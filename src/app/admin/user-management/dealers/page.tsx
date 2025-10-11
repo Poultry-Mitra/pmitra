@@ -7,7 +7,7 @@ export default function DealersPage() {
         <>
             <PageHeader title="Dealer Management" description="View and manage all dealers." />
             <div className="mt-8">
-                <UserManagementSummary />
+                <UserManagementSummary roleToShow="dealer" />
             </div>
         </>
     )

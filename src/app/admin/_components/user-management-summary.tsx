@@ -21,18 +21,30 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { MoreHorizontal, PlusCircle } from "lucide-react";
 import { mockUsers } from "@/lib/data";
+import Link from "next/link";
+import type { User } from "@/lib/types";
 
-export function UserManagementSummary() {
+export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 'dealer' }) {
+    const users = roleToShow 
+        ? mockUsers.filter(user => user.role === roleToShow)
+        : mockUsers.filter(user => user.role !== 'admin');
+
+    const title = roleToShow ? `${roleToShow.charAt(0).toUpperCase() + roleToShow.slice(1)}s` : "User Management";
+    const description = roleToShow ? `A list of all ${roleToShow}s in the system.` : "Recently active farmers and dealers.";
+
+
     return (
         <Card>
             <CardHeader className="flex flex-row items-center justify-between">
                 <div>
-                    <CardTitle>User Management</CardTitle>
-                    <CardDescription>Recently active farmers and dealers.</CardDescription>
+                    <CardTitle>{title}</CardTitle>
+                    <CardDescription>{description}</CardDescription>
                 </div>
-                <Button>
-                    <PlusCircle className="mr-2" />
-                    Add User
+                <Button asChild>
+                    <Link href="/admin/user-management/add-user">
+                        <PlusCircle className="mr-2" />
+                        Add User
+                    </Link>
                 </Button>
             </CardHeader>
             <CardContent>
@@ -47,7 +59,7 @@ export function UserManagementSummary() {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {mockUsers.slice(0,5).map(user => (
+                        {users.map((user: User) => (
                             <TableRow key={user.id}>
                                 <TableCell>
                                     <div className="flex items-center gap-3">

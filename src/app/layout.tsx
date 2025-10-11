@@ -4,6 +4,26 @@ import { Toaster } from '@/components/ui/toaster';
 import './globals.css';
 import { ThemeProvider } from '@/components/theme-provider';
 import { LanguageProvider } from '@/components/language-provider';
+import { Inter, Noto_Sans, Hind } from 'next/font/google';
+import { cn } from '@/lib/utils';
+
+const fontInter = Inter({
+  subsets: ['latin'],
+  variable: '--font-inter',
+});
+
+const fontNotoSans = Noto_Sans({
+  subsets: ['latin'],
+  weight: ['400', '700'],
+  variable: '--font-noto-sans',
+});
+
+const fontHind = Hind({
+  subsets: ['latin'],
+  weight: ['400', '500', '700'],
+  variable: '--font-hind',
+});
+
 
 export const metadata: Metadata = {
   title: 'PoultryMitra - Your AI-Powered Poultry Farming Assistant',
@@ -20,12 +40,15 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Noto+Sans:wght@400;700&family=Hind:wght@400;500;700&display=swap" rel="stylesheet" />
-      </head>
-      <body className="font-body antialiased" suppressHydrationWarning>
+      <body 
+        className={cn(
+          "font-body antialiased",
+          fontInter.variable,
+          fontNotoSans.variable,
+          fontHind.variable
+        )}
+        suppressHydrationWarning
+      >
         <LanguageProvider>
           <ThemeProvider
             attribute="class"

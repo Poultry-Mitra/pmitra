@@ -94,7 +94,7 @@ const translations = {
     sidebar_settings: "Settings",
     sidebar_logout: "Logout",
     login: {
-      welcome_title: "Welcome to Poultry Mitra",
+      welcome_title: "Welcome to PoultryMitra",
       welcome_subtitle: "Choose your login type to continue",
       farmer_title: "Farmer Login",
       farmer_description: "Access farm management tools, track expenses, monitor crops, and more.",
@@ -245,6 +245,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     for (const k of keys) {
       result = result?.[k];
       if (result === undefined) {
+        // Fallback to English if translation not found
         let fallbackResult: any = translations.en;
         for (const fk of keys) {
             fallbackResult = fallbackResult?.[fk];

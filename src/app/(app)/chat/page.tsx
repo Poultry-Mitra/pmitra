@@ -4,7 +4,7 @@ import { ChatLayout } from "./_components/chat-layout";
 
 export default function ChatPage() {
   return (
-    <div className="flex h-[calc(100vh-8rem)] flex-col">
+    <div className="flex h-full flex-col">
        <PageHeader 
         title="AI Chat Support" 
         description="Ask our AI assistant anything about poultry farming."

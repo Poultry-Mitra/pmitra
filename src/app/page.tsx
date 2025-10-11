@@ -95,7 +95,7 @@ export default function LandingPage() {
               <Link href="/login">{t('nav.login')}</Link>
             </Button>
             <Button asChild>
-              <Link href="/login">{t('nav.signup')}</Link>
+              <Link href="/signup">{t('nav.signup')}</Link>
             </Button>
           </div>
         </div>
@@ -114,7 +114,7 @@ export default function LandingPage() {
                       <Link href="/dashboard">{t('hero.get_started')}</Link>
                   </Button>
                   <Button size="lg" variant="outline" asChild>
-                      <Link href="#demo"><PlayCircle className="mr-2"/>{t('hero.watch_demo')}</Link>
+                      <Link href="#features">{t('hero.watch_demo')}</Link>
                   </Button>
                 </div>
             </div>
@@ -216,9 +216,9 @@ export default function LandingPage() {
       <footer id="contact" className="py-8 md:px-8 md:py-8 border-t">
         <div className="container flex flex-col items-center justify-between gap-4 md:h-24 md:flex-row">
           <nav className="flex gap-4 text-sm text-muted-foreground">
-            <Link href="#about" className="hover:text-foreground">{t('footer.about')}</Link>
-            <Link href="#terms" className="hover:text-foreground">{t('footer.terms')}</Link>
-            <Link href="#privacy" className="hover:text-foreground">{t('footer.privacy')}</Link>
+            <Link href="#features" className="hover:text-foreground">{t('footer.about')}</Link>
+            <Link href="#pricing-preview" className="hover:text-foreground">{t('footer.terms')}</Link>
+            <Link href="#pricing-preview" className="hover:text-foreground">{t('footer.privacy')}</Link>
             <Link href="#contact" className="hover:text-foreground">{t('footer.contact')}</Link>
           </nav>
           <p className="text-center text-sm leading-loose text-muted-foreground md:text-left">

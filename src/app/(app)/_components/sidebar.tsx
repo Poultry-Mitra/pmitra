@@ -20,7 +20,6 @@ import {
   HeartPulse,
   Wheat,
   CreditCard,
-  Users,
   LogOut,
   Settings,
 } from "lucide-react";
@@ -32,7 +31,6 @@ const navItems = [
   { href: "/monitoring", icon: HeartPulse, label: "Monitoring" },
   { href: "/feed-recommendation", icon: Wheat, label: "Feed AI" },
   { href: "/pricing", icon: CreditCard, label: "Pricing" },
-  { href: "/users", icon: Users, label: "Users" },
 ];
 
 export function AppSidebar() {

@@ -7,7 +7,7 @@ export default function FarmersPage() {
         <>
             <PageHeader title="Farmer Management" description="View and manage all farmers." />
             <div className="mt-8">
-                <UserManagementSummary />
+                <UserManagementSummary roleToShow="farmer" />
             </div>
         </>
     )

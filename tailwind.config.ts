@@ -1,6 +1,5 @@
 
 import type {Config} from 'tailwindcss';
-import { fontFamily } from "tailwindcss/defaultTheme"
 
 export default {
   darkMode: ['class'],
@@ -19,9 +18,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        body: ['"Noto Sans"', '"Hind"', ...fontFamily.sans],
-        headline: ['"Inter"', ...fontFamily.sans],
-        hindi: ['"Hind"', ...fontFamily.sans]
+        body: ['var(--font-noto-sans)', 'var(--font-hind)'],
+        headline: ['var(--font-inter)'],
       },
       colors: {
         background: 'hsl(var(--background))',

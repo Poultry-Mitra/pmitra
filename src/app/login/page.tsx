@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import Link from "next/link";
@@ -18,9 +19,12 @@ export default function LoginPage() {
             <LanguageToggle />
         </div>
         <div className="w-full max-w-4xl text-center">
-            <h1 className="text-3xl font-bold text-foreground md:text-4xl">
-            {t('login.welcome_title')}
-            </h1>
+            <div className="flex items-center justify-center gap-2">
+                <AppIcon className="size-10 text-primary" />
+                <h1 className="text-3xl font-bold text-foreground md:text-4xl">
+                {t('login.welcome_title')}
+                </h1>
+            </div>
             <p className="mt-2 text-muted-foreground">
             {t('login.welcome_subtitle')}
             </p>
@@ -28,11 +32,11 @@ export default function LoginPage() {
             <div className="mt-10 grid grid-cols-1 gap-8 md:grid-cols-2">
                 <Card className="text-left">
                     <CardHeader>
-                        <CardTitle className="font-headline text-2xl text-green-700 dark:text-green-500">{t('login.farmer_title')}</CardTitle>
+                        <CardTitle className="font-headline text-2xl text-primary">{t('login.farmer_title')}</CardTitle>
                         <CardDescription>{t('login.farmer_description')}</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <Button className="w-full bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-800" asChild>
+                        <Button className="w-full" asChild>
                            <Link href="/dashboard">
                                 {t('login.farmer_button')} <ArrowRight className="ml-2" />
                            </Link>
@@ -41,12 +45,12 @@ export default function LoginPage() {
                 </Card>
                  <Card className="text-left">
                     <CardHeader>
-                        <CardTitle className="font-headline text-2xl text-blue-700 dark:text-blue-500">{t('login.dealer_title')}</CardTitle>
+                        <CardTitle className="font-headline text-2xl text-accent-foreground/80">{t('login.dealer_title')}</CardTitle>
                         <CardDescription>{t('login.dealer_description')}</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <Button className="w-full bg-blue-600 hover:bg-blue-700" asChild>
-                            <Link href="/dashboard">
+                        <Button className="w-full" variant="secondary" asChild>
+                            <Link href="/admin/dashboard">
                                 {t('login.dealer_button')} <ArrowRight className="ml-2" />
                             </Link>
                         </Button>
