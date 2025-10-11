@@ -58,18 +58,18 @@ export default function LandingPage() {
   const testimonials = [
     {
       name: "Ravi Kumar",
-      role: t('testimonials.farmer.role'),
-      quote: t('testimonials.farmer.quote'),
+      role: t('testimonials.farmer_role'),
+      quote: t('testimonials.farmer_quote'),
     },
     {
       name: "Priya Sharma",
-      role: t('testimonials.dealer.role'),
-      quote: t('testimonials.dealer.quote'),
+      role: t('testimonials.dealer_role'),
+      quote: t('testimonials.dealer_quote'),
     },
     {
       name: "Amit Singh",
-      role: t('testimonials.admin.role'),
-      quote: t('testimonials.admin.quote'),
+      role: t('testimonials.admin_role'),
+      quote: t('testimonials.admin_quote'),
     }
   ];
 
@@ -92,10 +92,10 @@ export default function LandingPage() {
             <LanguageToggle />
             <ThemeToggle />
             <Button variant="outline" asChild>
-              <Link href="/dashboard">{t('nav.login')}</Link>
+              <Link href="/login">{t('nav.login')}</Link>
             </Button>
             <Button asChild>
-              <Link href="/dashboard">{t('nav.signup')}</Link>
+              <Link href="/login">{t('nav.signup')}</Link>
             </Button>
           </div>
         </div>

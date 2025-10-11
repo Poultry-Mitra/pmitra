@@ -22,6 +22,7 @@ import {
   LogOut,
   Settings,
 } from "lucide-react";
+import { useLanguage } from "@/components/language-provider";
 
 const navItems = [
   { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
@@ -34,6 +35,7 @@ const navItems = [
 
 export function AppSidebar() {
   const pathname = usePathname();
+  const { t } = useLanguage();
 
   return (
     <Sidebar>
@@ -68,14 +70,16 @@ export function AppSidebar() {
             <SidebarMenuItem>
                  <SidebarMenuButton tooltip="Settings">
                     <Settings/>
-                    <span>Settings</span>
+                    <span>{t('sidebar.settings')}</span>
                 </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-                <SidebarMenuButton tooltip="Logout">
-                    <LogOut />
-                    <span>Logout</span>
-                </SidebarMenuButton>
+                <Link href="/login">
+                  <SidebarMenuButton tooltip="Logout">
+                      <LogOut />
+                      <span>{t('sidebar.logout')}</span>
+                  </SidebarMenuButton>
+                </Link>
             </SidebarMenuItem>
          </SidebarMenu>
       </SidebarFooter>
