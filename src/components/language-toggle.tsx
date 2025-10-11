@@ -4,13 +4,10 @@ import * as React from "react"
 import { Languages } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
+import { useLanguage } from "./language-provider"
 
 export function LanguageToggle() {
-  const [language, setLanguage] = React.useState("en")
-
-  const toggleLanguage = () => {
-    setLanguage(prev => (prev === "en" ? "hi" : "en"))
-  }
+  const { toggleLanguage } = useLanguage();
 
   return (
     <Button variant="ghost" size="icon" onClick={toggleLanguage}>

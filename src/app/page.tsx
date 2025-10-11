@@ -1,3 +1,5 @@
+"use client";
+
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,6 +14,7 @@ import {
 import { AppIcon } from '@/app/icon';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { LanguageToggle } from '@/components/language-toggle';
+import { useLanguage } from '@/components/language-provider';
 
 
 const features = [
@@ -48,6 +51,8 @@ const features = [
 ];
 
 export default function LandingPage() {
+  const { t } = useLanguage();
+
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -57,17 +62,17 @@ export default function LandingPage() {
             <span className="font-bold font-headline">PoultryMitra</span>
           </Link>
           <nav className="flex items-center space-x-6 text-sm font-medium">
-            <Link href="#features" className="transition-colors hover:text-primary">Features</Link>
-            <Link href="/pricing" className="transition-colors hover:text-primary">Pricing</Link>
+            <Link href="#features" className="transition-colors hover:text-primary">{t('features')}</Link>
+            <Link href="/pricing" className="transition-colors hover:text-primary">{t('pricing')}</Link>
           </nav>
           <div className="ml-auto flex items-center space-x-2">
             <ThemeToggle />
             <LanguageToggle />
             <Button variant="ghost" asChild>
-              <Link href="/dashboard">Sign In</Link>
+              <Link href="/dashboard">{t('signIn')}</Link>
             </Button>
             <Button asChild>
-              <Link href="/dashboard">Get Started Free</Link>
+              <Link href="/dashboard">{t('getStarted')}</Link>
             </Button>
           </div>
         </div>
@@ -76,17 +81,17 @@ export default function LandingPage() {
         <section className="container grid items-center gap-6 pb-8 pt-6 md:py-10">
           <div className="flex flex-col items-start gap-4">
             <h1 className="font-headline text-3xl font-bold leading-tight tracking-tighter md:text-5xl lg:text-6xl">
-              The Future of Poultry Farming is Here
+              {t('heroTitle')}
             </h1>
             <p className="max-w-[700px] text-lg text-muted-foreground">
-              PoultryMitra is your AI-powered partner for a more productive and profitable farm. Get intelligent insights, real-time monitoring, and expert advice at your fingertips.
+              {t('heroSubtitle')}
             </p>
             <div className="flex gap-4">
               <Button size="lg" asChild>
-                <Link href="/dashboard">Explore Dashboard</Link>
+                <Link href="/dashboard">{t('exploreDashboard')}</Link>
               </Button>
               <Button size="lg" variant="outline" asChild>
-                 <Link href="#features">Learn More</Link>
+                 <Link href="#features">{t('learnMore')}</Link>
               </Button>
             </div>
           </div>
@@ -95,10 +100,10 @@ export default function LandingPage() {
         <section id="features" className="container space-y-6 bg-secondary py-8 md:py-12 lg:py-24">
           <div className="mx-auto flex max-w-[58rem] flex-col items-center space-y-4 text-center">
             <h2 className="font-headline text-3xl font-bold leading-[1.1] sm:text-3xl md:text-5xl">
-              Powerful Features for Smart Farming
+              {t('powerfulFeatures')}
             </h2>
             <p className="max-w-[85%] leading-normal text-muted-foreground sm:text-lg sm:leading-7">
-              Everything you need to manage and grow your poultry business, powered by cutting-edge AI.
+              {t('featuresSubtitle')}
             </p>
           </div>
           <div className="mx-auto grid justify-center gap-4 sm:grid-cols-2 md:max-w-[64rem] md:grid-cols-3">
@@ -120,10 +125,10 @@ export default function LandingPage() {
 
         <section className="container py-8 md:py-12 lg:py-24">
             <div className="mx-auto flex max-w-4xl flex-col items-center text-center">
-                 <h2 className="font-headline text-3xl font-bold md:text-5xl">Start Optimizing Your Farm Today</h2>
-                 <p className="mt-4 max-w-xl text-lg text-muted-foreground">Join hundreds of farmers who are revolutionizing their operations with PoultryMitra. Get started for free, no credit card required.</p>
+                 <h2 className="font-headline text-3xl font-bold md:text-5xl">{t('startOptimizing')}</h2>
+                 <p className="mt-4 max-w-xl text-lg text-muted-foreground">{t('startOptimizingSubtitle')}</p>
                  <Button size="lg" className="mt-8" asChild>
-                    <Link href="/dashboard">Sign Up Now</Link>
+                    <Link href="/dashboard">{t('signUpNow')}</Link>
                  </Button>
             </div>
         </section>
@@ -133,7 +138,7 @@ export default function LandingPage() {
       <footer className="py-6 md:px-8 md:py-0">
         <div className="container flex flex-col items-center justify-between gap-4 md:h-24 md:flex-row">
           <p className="text-center text-sm leading-loose text-muted-foreground md:text-left">
-            Built by Your AI Assistant. The source code is available on GitHub.
+            {t('footerText')}
           </p>
           <div className="flex items-center space-x-2">
             <AppIcon className="size-5 text-primary"/>
