@@ -146,7 +146,7 @@ export function AdminSidebar() {
           <SidebarMenuItem>
               <Link href="/admin/transactions">
                 <SidebarMenuButton
-                  isActive={pathname.startsWith("/admin/subscriptions")}
+                  isActive={pathname.startsWith("/admin/transactions")}
                   tooltip={"Subscription Management"}
                 >
                   <CreditCard />
