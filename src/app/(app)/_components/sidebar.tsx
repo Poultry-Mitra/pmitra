@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -10,6 +11,7 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarFooter,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import { AppIcon } from "@/app/icon";
 import {
@@ -36,13 +38,14 @@ const navItems = [
 export function AppSidebar() {
   const pathname = usePathname();
   const { t } = useLanguage();
+  const { state } = useSidebar();
 
   return (
     <Sidebar>
       <SidebarHeader>
         <div className="flex items-center gap-2">
             <AppIcon className="size-8 text-primary" />
-            <h1 className="font-headline text-lg font-bold">PoultryMitra</h1>
+            {state === 'expanded' && <h1 className="font-headline text-lg font-bold">PoultryMitra</h1>}
         </div>
       </SidebarHeader>
       <SidebarContent>
