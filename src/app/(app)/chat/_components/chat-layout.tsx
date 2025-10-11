@@ -1,0 +1,136 @@
+"use client";
+
+import { useState, useRef, useEffect } from "react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Send, WandSparkles } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { aiQueryPoultry } from "@/ai/flows/ai-query-poultry";
+import { mockUsers } from "@/lib/data";
+import { AppIcon } from "@/app/icon";
+
+type Message = {
+  id: string;
+  text: string;
+  sender: "user" | "ai";
+};
+
+export function ChatLayout() {
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const user = mockUsers[1];
+
+  useEffect(() => {
+    if (scrollAreaRef.current) {
+      scrollAreaRef.current.scrollTo({ top: scrollAreaRef.current.scrollHeight, behavior: 'smooth' });
+    }
+  }, [messages]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!input.trim() || loading) return;
+
+    const userMessage: Message = { id: Date.now().toString(), text: input, sender: "user" };
+    setMessages((prev) => [...prev, userMessage]);
+    setInput("");
+    setLoading(true);
+
+    try {
+      const result = await aiQueryPoultry({ query: input });
+      const aiMessage: Message = { id: (Date.now() + 1).toString(), text: result.answer, sender: "ai" };
+      setMessages((prev) => [...prev, aiMessage]);
+    } catch (error) {
+      console.error("AI query failed:", error);
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        text: "I'm sorry, but I'm having trouble connecting. Please try again later.",
+        sender: "ai",
+      };
+      setMessages((prev) => [...prev, errorMessage]);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  return (
+    <div className="h-full flex flex-col rounded-lg border bg-card">
+      <ScrollArea className="flex-1 p-4" ref={scrollAreaRef}>
+        <div className="space-y-6">
+          {messages.length === 0 && (
+             <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground p-8">
+                <WandSparkles className="size-16 mb-4 text-primary"/>
+                <h3 className="font-headline text-lg font-semibold text-foreground">Welcome to AI Chat</h3>
+                <p>Ask me about feed types, disease symptoms, or best practices for poultry farming.</p>
+             </div>
+          )}
+          {messages.map((message) => (
+            <div
+              key={message.id}
+              className={cn(
+                "flex items-start gap-3",
+                message.sender === "user" ? "justify-end" : "justify-start"
+              )}
+            >
+              {message.sender === "ai" && (
+                <Avatar className="size-8 border">
+                   <div className="flex h-full w-full items-center justify-center bg-primary">
+                    <AppIcon className="size-5 text-primary-foreground"/>
+                   </div>
+                </Avatar>
+              )}
+              <div
+                className={cn(
+                  "max-w-md rounded-lg px-4 py-3 text-sm",
+                  message.sender === "user"
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-secondary text-secondary-foreground"
+                )}
+              >
+                <p className="whitespace-pre-wrap">{message.text}</p>
+              </div>
+               {message.sender === "user" && (
+                <Avatar className="size-8">
+                  <AvatarImage src={user.avatarUrl} alt={user.name} />
+                  <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                </Avatar>
+              )}
+            </div>
+          ))}
+           {loading && (
+             <div className="flex items-start gap-3 justify-start">
+                <Avatar className="size-8 border">
+                   <div className="flex h-full w-full items-center justify-center bg-primary">
+                    <AppIcon className="size-5 text-primary-foreground"/>
+                   </div>
+                </Avatar>
+                <div className="max-w-md rounded-lg px-4 py-3 text-sm bg-secondary text-secondary-foreground">
+                    <div className="flex items-center gap-2">
+                        <span className="h-2 w-2 animate-pulse rounded-full bg-primary"></span>
+                        <span className="h-2 w-2 animate-pulse rounded-full bg-primary [animation-delay:0.2s]"></span>
+                        <span className="h-2 w-2 animate-pulse rounded-full bg-primary [animation-delay:0.4s]"></span>
+                    </div>
+                </div>
+            </div>
+          )}
+        </div>
+      </ScrollArea>
+      <div className="border-t bg-card p-4">
+        <form onSubmit={handleSubmit} className="flex items-center gap-2">
+          <Input
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="Ask about anything poultry-related..."
+            disabled={loading}
+          />
+          <Button type="submit" size="icon" disabled={loading || !input.trim()}>
+            <Send className="size-4" />
+          </Button>
+        </form>
+      </div>
+    </div>
+  );
+}
