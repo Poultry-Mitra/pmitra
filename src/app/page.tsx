@@ -8,18 +8,10 @@ import {
   Wheat,
   Users,
   CreditCard,
-  Languages,
-  Sun,
-  Moon,
 } from 'lucide-react';
 import { AppIcon } from '@/app/icon';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 import { ThemeToggle } from '@/components/theme-toggle';
+import { LanguageToggle } from '@/components/language-toggle';
 
 
 const features = [
@@ -70,22 +62,7 @@ export default function LandingPage() {
           </nav>
           <div className="ml-auto flex items-center space-x-2">
             <ThemeToggle />
-             <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon">
-                  <Languages className="h-[1.2rem] w-[1.2rem]" />
-                  <span className="sr-only">Change language</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem>
-                  English
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  हिंदी
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <LanguageToggle />
             <Button variant="ghost" asChild>
               <Link href="/dashboard">Sign In</Link>
             </Button>
