@@ -39,6 +39,7 @@ export default function AddUserPage() {
             title: "User Created",
             description: `${values.name} has been added as a ${values.role}.`,
         });
+        form.reset();
     }
 
 

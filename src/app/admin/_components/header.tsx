@@ -24,7 +24,7 @@ function Breadcrumbs() {
     const pathname = usePathname();
     const segments = pathname.split('/').filter(Boolean);
 
-    if (segments.length === 0) return null;
+    if (segments.length === 0 || segments[0] !== 'admin') return null;
 
     return (
         <nav aria-label="breadcrumb">
@@ -89,10 +89,16 @@ export function AdminHeader() {
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>{user.name}</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>Profile</DropdownMenuItem>
-            <DropdownMenuItem>Settings</DropdownMenuItem>
+            <DropdownMenuItem asChild>
+                <Link href="/admin/settings">Profile</Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+                <Link href="/admin/settings">Settings</Link>
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>Logout</DropdownMenuItem>
+            <DropdownMenuItem asChild>
+                <Link href="/login">Logout</Link>
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

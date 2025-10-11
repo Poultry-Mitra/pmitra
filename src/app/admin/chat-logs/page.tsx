@@ -24,10 +24,10 @@ import { MoreHorizontal, FileDown } from "lucide-react";
 import { mockUsers } from "@/lib/data";
 
 const chatLogs = [
-    { id: '1', user: mockUsers[1], lastMessage: 'What is the best feed for winter?', duration: '5m 32s', date: '2023-10-28' },
-    { id: '2', user: mockUsers[3], lastMessage: 'Gumboro disease symptoms', duration: '12m 10s', date: '2023-10-28' },
-    { id: '3', user: mockUsers[2], lastMessage: 'My hens are not laying eggs.', duration: '8m 05s', date: '2023-10-27' },
-    { id: '4', user: mockUsers[4], lastMessage: 'How to increase chicken weight?', duration: '15m 45s', date: '2023-10-27' },
+    { id: '1', user: mockUsers[1], lastMessage: 'What is the best feed for winter?', duration: '5m 32s', date: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString() },
+    { id: '2', user: mockUsers[3], lastMessage: 'Gumboro disease symptoms', duration: '12m 10s', date: new Date(Date.now() - 1000 * 60 * 60 * 5).toISOString() },
+    { id: '3', user: mockUsers[2], lastMessage: 'My hens are not laying eggs.', duration: '8m 05s', date: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString() },
+    { id: '4', user: mockUsers[4], lastMessage: 'How to increase chicken weight?', duration: '15m 45s', date: new Date(Date.now() - 1000 * 60 * 60 * 26).toISOString() },
 ];
 
 

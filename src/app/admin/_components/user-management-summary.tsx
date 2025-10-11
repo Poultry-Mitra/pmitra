@@ -25,11 +25,11 @@ import Link from "next/link";
 import type { User } from "@/lib/types";
 
 export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 'dealer' }) {
-    const users = roleToShow 
-        ? mockUsers.filter(user => user.role === roleToShow)
-        : mockUsers.filter(user => user.role !== 'admin');
+    const users = mockUsers.filter(user => user.role !== 'admin').filter(user => 
+        roleToShow ? user.role === roleToShow : true
+    );
 
-    const title = roleToShow ? `${roleToShow.charAt(0).toUpperCase() + roleToShow.slice(1)}s` : "User Management";
+    const title = roleToShow ? `${roleToShow.charAt(0).toUpperCase() + roleToShow.slice(1)}s` : "Recent Users";
     const description = roleToShow ? `A list of all ${roleToShow}s in the system.` : "Recently active farmers and dealers.";
 
 
