@@ -62,15 +62,15 @@ export function AdminHeader() {
   const user = mockUsers[0];
 
   return (
-    <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background/80 backdrop-blur-sm px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
+    <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background/80 px-4 backdrop-blur-sm sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
       <SidebarTrigger className="md:hidden" />
       <div className="hidden md:block">
         <Breadcrumbs />
       </div>
-      <div className="ml-auto flex items-center gap-4">
+      <div className="ml-auto flex items-center gap-2">
         <div className="relative">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Search users..." className="w-full pl-8 md:w-[200px] lg:w-[320px] bg-background/50" />
+          <Input placeholder="Search users..." className="w-full rounded-full bg-background/50 pl-8 md:w-[200px] lg:w-[320px]" />
         </div>
         <LanguageToggle />
         <ThemeToggle />

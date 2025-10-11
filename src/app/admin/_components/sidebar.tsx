@@ -12,10 +12,6 @@ import {
   SidebarMenuButton,
   SidebarFooter,
   useSidebar,
-  SidebarGroup,
-  SidebarGroupLabel,
-  SidebarMenuSub,
-  SidebarMenuSubButton,
   SidebarSeparator,
 } from "@/components/ui/sidebar";
 import { AppIcon } from "@/app/icon";
@@ -40,17 +36,6 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible"
 
-
-const navItems = [
-  { href: "/admin/dashboard", icon: LayoutGrid, label: "Dashboard" },
-  // { href: "/admin/user-management", icon: Users, label: "User Management" },
-  { href: "/admin/chat-logs", icon: Bot, label: "AI Chat Logs" },
-  { href: "/admin/reports", icon: BarChart2, label: "Reports & Analytics" },
-  { href: "/admin/transactions", icon: CreditCard, label: "Transactions" },
-  { href: "/admin/subscriptions", icon: CreditCard, label: "Subscription Management" },
-  { href: "/admin/settings", icon: Settings, label: "System Settings" },
-  { href: "/admin/notifications", icon: Bell, label: "Notifications" },
-];
 
 export function AdminSidebar() {
   const pathname = usePathname();
@@ -82,35 +67,46 @@ export function AdminSidebar() {
           </SidebarMenuItem>
 
           <Collapsible open={userManagementOpen} onOpenChange={setUserManagementOpen}>
-            <SidebarMenuItem>
+            <SidebarMenuItem className="relative">
               <CollapsibleTrigger asChild>
-                <SidebarMenuButton tooltip="User Management" className="justify-between">
-                  <div className="flex items-center gap-2">
-                    <Users />
-                    <span>User Management</span>
-                  </div>
-                  {userManagementOpen ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
-                </SidebarMenuButton>
+                  <SidebarMenuButton tooltip="User Management" className="w-full justify-between pr-8">
+                      <div className="flex items-center gap-3">
+                          <Users />
+                          <span>User Management</span>
+                      </div>
+                  </SidebarMenuButton>
               </CollapsibleTrigger>
+              { state === 'expanded' && (
+                  <div className="absolute right-2 top-1/2 -translate-y-1/2">
+                      {userManagementOpen ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
+                  </div>
+              )}
             </SidebarMenuItem>
 
             <CollapsibleContent>
-              <SidebarMenuSub>
-                <li>
-                  <Link href="/admin/user-management/farmers">
-                    <SidebarMenuSubButton isActive={pathname === "/admin/user-management/farmers"}>
-                      Farmers List
-                    </SidebarMenuSubButton>
-                  </Link>
-                </li>
-                 <li>
-                  <Link href="/admin/user-management/dealers">
-                    <SidebarMenuSubButton isActive={pathname === "/admin/user-management/dealers"}>
-                      Dealers List
-                    </SidebarMenuSubButton>
-                  </Link>
-                </li>
-              </SidebarMenuSub>
+                 <SidebarMenu className="ml-7 mt-1 border-l pl-3">
+                    <SidebarMenuItem>
+                        <Link href="/admin/user-management/farmers">
+                            <SidebarMenuButton size="sm" isActive={pathname === "/admin/user-management/farmers"}>
+                            Farmers List
+                            </SidebarMenuButton>
+                        </Link>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                        <Link href="/admin/user-management/dealers">
+                            <SidebarMenuButton size="sm" isActive={pathname === "/admin/user-management/dealers"}>
+                            Dealers List
+                            </SidebarMenuButton>
+                        </Link>
+                    </SidebarMenuItem>
+                     <SidebarMenuItem>
+                        <Link href="/admin/user-management/add-user">
+                            <SidebarMenuButton size="sm" isActive={pathname === "/admin/user-management/add-user"}>
+                            Add New User
+                            </SidebarMenuButton>
+                        </Link>
+                    </SidebarMenuItem>
+                 </SidebarMenu>
             </CollapsibleContent>
           </Collapsible>
           
@@ -198,7 +194,7 @@ export function AdminSidebar() {
                 <Link href="/login">
                   <SidebarMenuButton tooltip="Logout">
                       <LogOut />
-                      <span>{t('sidebar.logout')}</span>
+                      <span>{t('sidebar_logout')}</span>
                   </SidebarMenuButton>
                 </Link>
             </SidebarMenuItem>
