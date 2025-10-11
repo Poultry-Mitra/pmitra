@@ -10,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LanguageToggle } from "@/components/language-toggle";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { useLanguage } from "@/components/language-provider";
-import { Mail, KeyRound, User, Phone, Briefcase } from "lucide-react";
+import { Mail, KeyRound, User, Phone } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 function Illustration() {
@@ -59,7 +59,7 @@ function LoginForm() {
         <Button variant="secondary" className="w-full rounded-xl font-bold bg-accent hover:bg-accent/90 text-accent-foreground">{t('login.login_as_dealer')}</Button>
       </div>
       <p className="text-center text-xs">
-        <Link href="#" className="text-muted-foreground hover:text-primary">{t('login.admin_login')}</Link>
+        <Link href="/admin/dashboard" className="text-muted-foreground hover:text-primary">{t('login.admin_login')}</Link>
       </p>
     </div>
   );
@@ -67,19 +67,9 @@ function LoginForm() {
 
 function SignupForm() {
     const { t } = useLanguage();
-    const [role, setRole] = useState("farmer");
 
     return (
         <div className="space-y-6">
-             <div className="space-y-2">
-                <Label className="flex items-center gap-2"><Briefcase className="size-4"/>{t('signup.role_label')}</Label>
-                <Tabs value={role} onValueChange={setRole} className="w-full">
-                    <TabsList className="grid w-full grid-cols-2">
-                        <TabsTrigger value="farmer">{t('signup.farmer_role')}</TabsTrigger>
-                        <TabsTrigger value="dealer">{t('signup.dealer_role')}</TabsTrigger>
-                    </TabsList>
-                </Tabs>
-             </div>
             <div className="space-y-2">
                 <Label htmlFor="fullname" className="flex items-center gap-2"><User className="size-4"/>{t('signup.fullname_label')}</Label>
                 <Input id="fullname" placeholder={t('signup.fullname_placeholder')} />
@@ -100,7 +90,10 @@ function SignupForm() {
                 <Input id="signup-password" placeholder="••••••••" type="password" />
                  <span className="text-xs text-muted-foreground">{t('signup.password_hint')}</span>
             </div>
-            <Button className="w-full rounded-xl font-bold">{t('signup.create_account_button')}</Button>
+            <div className="space-y-3">
+                <Button className="w-full rounded-xl font-bold">{t('signup.signup_as_farmer')}</Button>
+                <Button variant="secondary" className="w-full rounded-xl font-bold bg-accent hover:bg-accent/90 text-accent-foreground">{t('signup.signup_as_dealer')}</Button>
+            </div>
              <p className="text-center text-xs text-muted-foreground">
                 {t('signup.terms_prefix')}{' '}
                 <Link href="#" className="text-primary hover:underline">{t('signup.terms_link')}</Link>
