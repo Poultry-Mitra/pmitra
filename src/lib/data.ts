@@ -8,6 +8,8 @@ export const mockUsers: User[] = [
   { id: '5', name: 'Dealer Bob', email: 'bob@dealer.com', role: 'dealer', dateJoined: '2023-05-21' },
 ];
 
+export const currentUser: User = mockUsers[1];
+
 export const mockFarmMetrics: FarmMetric[] = [
   { month: 'Jan', productionRate: 85, mortalityRate: 1.2, feedConsumption: 110 },
   { month: 'Feb', productionRate: 88, mortalityRate: 1.1, feedConsumption: 112 },

@@ -8,7 +8,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Send, WandSparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { aiQueryPoultry } from "@/ai/flows/ai-query-poultry";
-import { mockUsers } from "@/lib/data";
+import { currentUser } from "@/lib/data";
 import { AppIcon } from "@/app/icon";
 
 type Message = {
@@ -22,7 +22,7 @@ export function ChatLayout() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
-  const user = mockUsers[1];
+  const user = currentUser;
 
   useEffect(() => {
     if (scrollAreaRef.current) {
