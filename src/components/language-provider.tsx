@@ -1,3 +1,4 @@
+
 "use client";
 
 import { createContext, useContext, useState, useMemo, ReactNode } from "react";
@@ -13,6 +14,7 @@ type LanguageContextType = {
 const translations = {
   en: {
     features: "Features",
+    testimonials: "Testimonials",
     pricing: "Pricing",
     signIn: "Sign In",
     getStarted: "Get Started Free",
@@ -37,10 +39,23 @@ const translations = {
     featureUsersTitle: "User Management",
     featureUsersDesc: "An intuitive interface for admins to manage users, roles, and subscriptions.",
     featurePlansTitle: "Premium Plans",
-    featurePlansDesc: "Unlock advanced features, detailed reports, and unlimited AI support with a subscription."
+    featurePlansDesc: "Unlock advanced features, detailed reports, and unlimited AI support with a subscription.",
+    howItWorksTitle: "How It Works",
+    howItWorksSubtitle: "Get started in just three simple steps and revolutionize your farm management.",
+    howItWorksStep1Title: "Connect Your Data",
+    howItWorksStep1Desc: "Integrate your existing farm sensors or use our easy-to-install hardware for real-time data collection.",
+    howItWorksStep2Title: "Get AI Insights",
+    howItWorksStep2Desc: "Our AI analyzes your data to provide actionable insights on feed, health, and productivity.",
+    howItWorksStep3Title: "Optimize & Grow",
+    howItWorksStep3Desc: "Implement AI-driven recommendations to boost efficiency, reduce costs, and increase profitability.",
+    testimonialsTitle: "What Farmers Are Saying",
+    testimonialsSubtitle: "Don't just take our word for it. Here's what our users think about PoultryMitra.",
+    testimonial1Quote: "PoultryMitra has transformed my farm. The AI feed recommendations have cut my costs by 15% and egg production is up!",
+    testimonial2Quote: "The real-time monitoring and alerts are a lifesaver. I can finally sleep peacefully knowing my flock is safe.",
   },
   hi: {
     features: "विशेषताएँ",
+    testimonials: "प्रशंसापत्र",
     pricing: "मूल्य निर्धारण",
     signIn: "साइन इन करें",
     getStarted: "मुफ़्त में शुरू करें",
@@ -65,7 +80,19 @@ const translations = {
     featureUsersTitle: "उपयोगकर्ता प्रबंधन",
     featureUsersDesc: "उपयोगकर्ताओं, भूमिकाओं और सदस्यताओं को प्रबंधित करने के लिए व्यवस्थापकों के लिए एक सहज इंटरफ़ेस।",
     featurePlansTitle: "प्रीमियम योजनाएं",
-    featurePlansDesc: "एक सदस्यता के साथ उन्नत सुविधाएँ, विस्तृत रिपोर्ट और असीमित एआई समर्थन अनलॉक करें।"
+    featurePlansDesc: "एक सदस्यता के साथ उन्नत सुविधाएँ, विस्तृत रिपोर्ट और असीमित एआई समर्थन अनलॉक करें।",
+    howItWorksTitle: "यह कैसे काम करता है",
+    howItWorksSubtitle: "बस तीन सरल चरणों में शुरुआत करें और अपने कृषि प्रबंधन में क्रांति लाएँ।",
+    howItWorksStep1Title: "अपना डेटा कनेक्ट करें",
+    howItWorksStep1Desc: "वास्तविक समय डेटा संग्रह के लिए अपने मौजूदा फार्म सेंसर को एकीकृत करें या हमारे आसान-से-स्थापित हार्डवेयर का उपयोग करें।",
+    howItWorksStep2Title: "एआई अंतर्दृष्टि प्राप्त करें",
+    howItWorksStep2Desc: "हमारा एआई फ़ीड, स्वास्थ्य और उत्पादकता पर कार्रवाई योग्य अंतर्दृष्टि प्रदान करने के लिए आपके डेटा का विश्लेषण करता है।",
+    howItWorksStep3Title: "अनुकूलन और विकास करें",
+    howItWorksStep3Desc: "दक्षता बढ़ाने, लागत कम करने और लाभप्रदता बढ़ाने के लिए एआई-संचालित सिफारिशों को लागू करें।",
+    testimonialsTitle: "किसान क्या कह रहे हैं",
+    testimonialsSubtitle: "सिर्फ हमारी बात पर विश्वास न करें। यहां बताया गया है कि हमारे उपयोगकर्ता पोल्ट्रीमित्रा के बारे में क्या सोचते हैं।",
+    testimonial1Quote: "पोल्ट्रीमित्रा ने मेरे खेत को बदल दिया है। एआई फ़ीड की सिफारिशों ने मेरी लागत में 15% की कटौती की है और अंडे का उत्पादन बढ़ा है!",
+    testimonial2Quote: "वास्तविक समय की निगरानी और अलर्ट एक जीवन रक्षक हैं। मैं आखिरकार यह जानकर शांति से सो सकता हूं कि मेरा झुंड सुरक्षित है।",
   }
 };
 
@@ -102,3 +129,5 @@ export function useLanguage() {
   }
   return context;
 }
+
+    

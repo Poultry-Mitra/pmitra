@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from 'next/link';
@@ -10,15 +11,23 @@ import {
   Wheat,
   Users,
   CreditCard,
+  Check,
+  Star
 } from 'lucide-react';
 import { AppIcon } from '@/app/icon';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { LanguageToggle } from '@/components/language-toggle';
 import { useLanguage } from '@/components/language-provider';
+import Image from 'next/image';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 
 export default function LandingPage() {
   const { t } = useLanguage();
+  const heroImage = PlaceHolderImages[0];
+  const avatar1 = PlaceHolderImages[1];
+  const avatar2 = PlaceHolderImages[2];
 
   const features = [
     {
@@ -53,6 +62,39 @@ export default function LandingPage() {
     },
   ];
 
+  const howItWorksSteps = [
+    {
+      step: 1,
+      title: t('howItWorksStep1Title'),
+      description: t('howItWorksStep1Desc'),
+    },
+    {
+      step: 2,
+      title: t('howItWorksStep2Title'),
+      description: t('howItWorksStep2Desc'),
+    },
+    {
+      step: 3,
+      title: t('howItWorksStep3Title'),
+      description: t('howItWorksStep3Desc'),
+    },
+  ]
+
+  const testimonials = [
+    {
+        name: "Kuldeep Yadav",
+        role: "Farm Owner, Punjab",
+        quote: t('testimonial1Quote'),
+        avatar: avatar1,
+    },
+    {
+        name: "Meena Kumari",
+        role: "Poultry Manager, Haryana",
+        quote: t('testimonial2Quote'),
+        avatar: avatar2,
+    }
+  ];
+
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -63,6 +105,7 @@ export default function LandingPage() {
           </Link>
           <nav className="flex items-center space-x-6 text-sm font-medium">
             <Link href="#features" className="transition-colors hover:text-primary">{t('features')}</Link>
+            <Link href="#testimonials" className="transition-colors hover:text-primary">{t('testimonials')}</Link>
             <Link href="/pricing" className="transition-colors hover:text-primary">{t('pricing')}</Link>
           </nav>
           <div className="ml-auto flex items-center space-x-2">
@@ -78,26 +121,35 @@ export default function LandingPage() {
         </div>
       </header>
       <main className="flex-1">
-        <section className="container grid items-center gap-6 pb-8 pt-6 md:py-10">
-          <div className="flex flex-col items-start gap-4">
-            <h1 className="font-headline text-3xl font-bold leading-tight tracking-tighter md:text-5xl lg:text-6xl">
-              {t('heroTitle')}
-            </h1>
-            <p className="max-w-[700px] text-lg text-muted-foreground">
-              {t('heroSubtitle')}
-            </p>
-            <div className="flex gap-4">
-              <Button size="lg" asChild>
-                <Link href="/dashboard">{t('exploreDashboard')}</Link>
-              </Button>
-              <Button size="lg" variant="outline" asChild>
-                 <Link href="#features">{t('learnMore')}</Link>
-              </Button>
+        <section className="container grid grid-cols-1 items-center gap-8 py-12 md:grid-cols-2 md:py-20 lg:py-28">
+            <div className="flex flex-col items-start gap-4">
+                <h1 className="font-headline text-3xl font-bold leading-tight tracking-tighter md:text-5xl lg:text-6xl">
+                {t('heroTitle')}
+                </h1>
+                <p className="max-w-[700px] text-lg text-muted-foreground">
+                {t('heroSubtitle')}
+                </p>
+                <div className="flex gap-4">
+                <Button size="lg" asChild>
+                    <Link href="/dashboard">{t('exploreDashboard')}</Link>
+                </Button>
+                <Button size="lg" variant="outline" asChild>
+                    <Link href="#features">{t('learnMore')}</Link>
+                </Button>
+                </div>
             </div>
-          </div>
+            <div className="relative h-64 w-full overflow-hidden rounded-lg shadow-xl md:h-auto md:aspect-[4/3]">
+                <Image
+                src={heroImage.imageUrl}
+                alt={heroImage.description}
+                fill
+                className="object-cover"
+                data-ai-hint={heroImage.imageHint}
+                />
+            </div>
         </section>
 
-        <section id="features" className="container space-y-6 bg-secondary py-8 md:py-12 lg:py-24">
+        <section id="features" className="container space-y-12 py-8 md:py-12 lg:py-24">
           <div className="mx-auto flex max-w-[58rem] flex-col items-center space-y-4 text-center">
             <h2 className="font-headline text-3xl font-bold leading-[1.1] sm:text-3xl md:text-5xl">
               {t('powerfulFeatures')}
@@ -108,7 +160,7 @@ export default function LandingPage() {
           </div>
           <div className="mx-auto grid justify-center gap-4 sm:grid-cols-2 md:max-w-[64rem] md:grid-cols-3">
             {features.map((feature) => (
-              <Card key={feature.title} className="bg-background">
+              <Card key={feature.title}>
                 <CardHeader>
                   <div className="flex items-center gap-4">
                     {feature.icon}
@@ -121,6 +173,61 @@ export default function LandingPage() {
               </Card>
             ))}
           </div>
+        </section>
+
+        <section id="how-it-works" className="bg-secondary py-16 lg:py-24">
+            <div className="container">
+                <div className="mx-auto flex max-w-[58rem] flex-col items-center space-y-4 text-center">
+                    <h2 className="font-headline text-3xl font-bold leading-[1.1] sm:text-3xl md:text-5xl">{t('howItWorksTitle')}</h2>
+                    <p className="max-w-[85%] leading-normal text-muted-foreground sm:text-lg sm:leading-7">{t('howItWorksSubtitle')}</p>
+                </div>
+                <div className="mt-12 grid gap-8 md:grid-cols-3">
+                {howItWorksSteps.map(item => (
+                    <div key={item.step} className="relative">
+                         <div className="absolute -left-4 top-0 flex h-8 w-8 items-center justify-center rounded-full bg-primary font-bold text-primary-foreground">{item.step}</div>
+                        <div className="ml-8 space-y-2">
+                            <h3 className="font-headline text-xl font-semibold">{item.title}</h3>
+                            <p className="text-muted-foreground">{item.description}</p>
+                        </div>
+                    </div>
+                ))}
+                </div>
+            </div>
+        </section>
+
+        <section id="testimonials" className="py-16 lg:py-24">
+            <div className="container">
+                <div className="mx-auto flex max-w-[58rem] flex-col items-center space-y-4 text-center">
+                    <h2 className="font-headline text-3xl font-bold leading-[1.1] sm:text-3xl md:text-5xl">{t('testimonialsTitle')}</h2>
+                    <p className="max-w-[85%] leading-normal text-muted-foreground sm:text-lg sm:leading-7">{t('testimonialsSubtitle')}</p>
+                </div>
+                <div className="mt-12 grid gap-8 md:grid-cols-2">
+                    {testimonials.map(item => (
+                        <Card key={item.name} className="bg-background">
+                            <CardContent className="pt-6">
+                                <div className="flex space-x-1">
+                                    {[...Array(5)].map((_, i) => (
+                                        <Star key={i} className="size-5 fill-yellow-400 text-yellow-400" />
+                                    ))}
+                                </div>
+                                <blockquote className="mt-4 text-lg font-semibold leading-8 tracking-tight text-foreground">
+                                    "{item.quote}"
+                                </blockquote>
+                                <div className="mt-6 flex items-center gap-4">
+                                     <Avatar>
+                                        <AvatarImage src={item.avatar.imageUrl} alt={item.avatar.description} data-ai-hint={item.avatar.imageHint} />
+                                        <AvatarFallback>{item.name.charAt(0)}</AvatarFallback>
+                                    </Avatar>
+                                    <div>
+                                        <p className="font-semibold">{item.name}</p>
+                                        <p className="text-sm text-muted-foreground">{item.role}</p>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    ))}
+                </div>
+            </div>
         </section>
 
         <section className="container py-8 md:py-12 lg:py-24">
@@ -149,3 +256,5 @@ export default function LandingPage() {
     </div>
   );
 }
+
+    

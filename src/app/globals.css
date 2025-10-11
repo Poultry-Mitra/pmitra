@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -65,4 +66,9 @@
   body {
     @apply bg-background text-foreground;
   }
+  section {
+    @apply scroll-mt-20;
+  }
 }
+
+    

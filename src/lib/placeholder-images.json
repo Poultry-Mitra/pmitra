@@ -1,3 +1,22 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "hero-poultry",
+      "description": "A modern and clean poultry farm with healthy chickens.",
+      "imageUrl": "https://picsum.photos/seed/poultry/1200/900",
+      "imageHint": "poultry farm"
+    },
+    {
+      "id": "avatar-farmer-1",
+      "description": "Avatar for a male farmer.",
+      "imageUrl": "https://picsum.photos/seed/farmer1/100/100",
+      "imageHint": "man portrait"
+    },
+    {
+      "id": "avatar-farmer-2",
+      "description": "Avatar for a female farmer.",
+      "imageUrl": "https://picsum.photos/seed/farmer2/100/100",
+      "imageHint": "woman portrait"
+    }
+  ]
 }
