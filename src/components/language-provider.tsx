@@ -103,9 +103,10 @@ const translations = {
         email_phone_hint: "Enter the email or phone number you used to register.",
         password_label: "Password",
         forgot_password: "Forgot Password?",
-        login_as_farmer: "Login as Farmer",
-        login_as_dealer: "Login as Dealer",
+        login_button: "Login",
         admin_login: "Admin Login",
+        role_title: "How would you like to log in?",
+        role_description: "Select your role to proceed to your dashboard.",
     },
     signup: {
         tab: "Sign Up",
@@ -120,11 +121,16 @@ const translations = {
         phone_hint: "Your 10-digit mobile number.",
         password_label: "Create Password",
         password_hint: "Must be at least 8 characters long.",
-        signup_as_farmer: "Sign up as Farmer",
-        signup_as_dealer: "Sign up as Dealer",
+        create_account_button: "Create Account",
         terms_prefix: "By signing up, you agree to our",
         terms_link: "Terms of Service",
         privacy_link: "Privacy Policy",
+        role_title: "How are you joining us?",
+        role_description: "Choose your role to get the right experience.",
+        farmer_role: "I am a Farmer",
+        dealer_role: "I am a Dealer",
+        farmer_role_desc: "For managing your own farm.",
+        dealer_role_desc: "For managing other farms.",
     }
   },
   hi: {
@@ -218,9 +224,10 @@ const translations = {
         email_phone_hint: "पंजीकरण के लिए उपयोग किया गया ईमेल या फ़ोन नंबर दर्ज करें।",
         password_label: "पासवर्ड",
         forgot_password: "पासवर्ड भूल गए?",
-        login_as_farmer: "किसान के रूप में लॉगिन करें",
-        login_as_dealer: "डीलर के रूप में लॉगिन करें",
+        login_button: "लॉगिन करें",
         admin_login: "एडमिन लॉगिन",
+        role_title: "आप कैसे लॉगिन करना चाहेंगे?",
+        role_description: "अपने डैशबोर्ड पर जाने के लिए अपनी भूमिका चुनें।",
     },
     signup: {
         tab: "पंजीकरण करें",
@@ -235,11 +242,16 @@ const translations = {
         phone_hint: "आपका 10 अंकों का मोबाइल नंबर।",
         password_label: "पासवर्ड बनाएं",
         password_hint: "कम से कम 8 अक्षर का होना चाहिए।",
-        signup_as_farmer: "किसान के रूप में साइन अप करें",
-        signup_as_dealer: "डीलर के रूप में साइन अप करें",
+        create_account_button: "अकाउंट बनाएं",
         terms_prefix: "साइन अप करके, आप हमारी",
         terms_link: "सेवा की शर्तों",
         privacy_link: "गोपनीयता नीति",
+        role_title: "आप हमसे कैसे जुड़ रहे हैं?",
+        role_description: "सही अनुभव प्राप्त करने के लिए अपनी भूमिका चुनें।",
+        farmer_role: "मैं एक किसान हूँ",
+        dealer_role: "मैं एक डीलर हूँ",
+        farmer_role_desc: "अपने फार्म का प्रबंधन करने के लिए।",
+        dealer_role_desc: "अन्य फार्मों का प्रबंधन करने के लिए।",
     }
   }
 };
@@ -290,3 +302,5 @@ export function useLanguage() {
   }
   return context;
 }
+
+    
