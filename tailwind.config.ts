@@ -19,7 +19,7 @@ export default {
     },
     extend: {
       fontFamily: {
-        body: ['"Inter"', ...fontFamily.sans],
+        body: ['"PT Sans"', ...fontFamily.sans],
         headline: ['"Space Grotesk"', ...fontFamily.sans],
         hindi: ['"Hind"', ...fontFamily.sans]
       },
@@ -106,4 +106,3 @@ export default {
   },
   plugins: [require('tailwindcss-animate'), require('@tailwindcss/typography')],
 } satisfies Config;
-
