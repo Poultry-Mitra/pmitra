@@ -1,11 +1,11 @@
 import type { User, FarmMetric, SensorData, FarmAlert } from '@/lib/types';
 
 export const mockUsers: User[] = [
-  { id: '1', name: 'Admin User', email: 'admin@poultrymitra.com', avatarUrl: 'https://i.pravatar.cc/150?u=admin', role: 'admin' },
-  { id: '2', name: 'Farmer John', email: 'john@farm.com', avatarUrl: 'https://i.pravatar.cc/150?u=farmer1', role: 'farmer' },
-  { id: '3', name: 'Dealer Jane', email: 'jane@dealer.com', avatarUrl: 'https://i.pravatar.cc/150?u=dealer1', role: 'dealer' },
-  { id: '4', name: 'Farmer Alice', email: 'alice@farm.com', avatarUrl: 'https://i.pravatar.cc/150?u=farmer2', role: 'farmer' },
-  { id: '5', name: 'Dealer Bob', email: 'bob@dealer.com', avatarUrl: 'https://i.pravatar.cc/150?u=dealer2', role: 'dealer' },
+  { id: '1', name: 'Admin User', email: 'admin@poultrymitra.com', role: 'admin' },
+  { id: '2', name: 'Farmer John', email: 'john@farm.com', role: 'farmer' },
+  { id: '3', name: 'Dealer Jane', email: 'jane@dealer.com', role: 'dealer' },
+  { id: '4', name: 'Farmer Alice', email: 'alice@farm.com', role: 'farmer' },
+  { id: '5', name: 'Dealer Bob', email: 'bob@dealer.com', role: 'dealer' },
 ];
 
 export const mockFarmMetrics: FarmMetric[] = [

@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -9,12 +8,8 @@ import {
   Wheat,
   Users,
   CreditCard,
-  CheckCircle,
 } from 'lucide-react';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { AppIcon } from '@/app/icon';
-
-const heroImage = PlaceHolderImages.find((img) => img.id === 'hero');
 
 const features = [
   {
@@ -74,35 +69,21 @@ export default function LandingPage() {
       </header>
       <main className="flex-1">
         <section className="container grid items-center gap-6 pb-8 pt-6 md:py-10">
-          <div className="grid grid-cols-1 items-center gap-8 md:grid-cols-2">
-            <div className="flex flex-col items-start gap-4">
-              <h1 className="font-headline text-3xl font-bold leading-tight tracking-tighter md:text-5xl lg:text-6xl">
-                The Future of Poultry Farming is Here
-              </h1>
-              <p className="max-w-[700px] text-lg text-muted-foreground">
-                PoultryMitra is your AI-powered partner for a more productive and profitable farm. Get intelligent insights, real-time monitoring, and expert advice at your fingertips.
-              </p>
-              <div className="flex gap-4">
-                <Button size="lg" asChild>
-                  <Link href="/dashboard">Explore Dashboard</Link>
-                </Button>
-                <Button size="lg" variant="outline" asChild>
-                   <Link href="#features">Learn More</Link>
-                </Button>
-              </div>
+          <div className="flex flex-col items-start gap-4">
+            <h1 className="font-headline text-3xl font-bold leading-tight tracking-tighter md:text-5xl lg:text-6xl">
+              The Future of Poultry Farming is Here
+            </h1>
+            <p className="max-w-[700px] text-lg text-muted-foreground">
+              PoultryMitra is your AI-powered partner for a more productive and profitable farm. Get intelligent insights, real-time monitoring, and expert advice at your fingertips.
+            </p>
+            <div className="flex gap-4">
+              <Button size="lg" asChild>
+                <Link href="/dashboard">Explore Dashboard</Link>
+              </Button>
+              <Button size="lg" variant="outline" asChild>
+                 <Link href="#features">Learn More</Link>
+              </Button>
             </div>
-            {heroImage && (
-              <div className="relative h-64 w-full overflow-hidden rounded-lg shadow-2xl md:h-96">
-                <Image
-                  src={heroImage.imageUrl}
-                  alt={heroImage.description}
-                  fill
-                  className="object-cover"
-                  data-ai-hint={heroImage.imageHint}
-                  priority
-                />
-              </div>
-            )}
           </div>
         </section>
 

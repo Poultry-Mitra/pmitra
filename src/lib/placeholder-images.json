@@ -1,28 +1,3 @@
 {
-  "placeholderImages": [
-    {
-      "id": "hero",
-      "description": "A bright and clean poultry farm with chickens.",
-      "imageUrl": "https://picsum.photos/seed/poultryfarm/1200/800",
-      "imageHint": "poultry farm"
-    },
-    {
-      "id": "dashboard-preview",
-      "description": "A preview of the analytics dashboard.",
-      "imageUrl": "https://picsum.photos/seed/dashboard/600/400",
-      "imageHint": "data dashboard"
-    },
-    {
-      "id": "farmer-avatar-1",
-      "description": "Avatar for a farmer.",
-      "imageUrl": "https://picsum.photos/seed/farmer1/100/100",
-      "imageHint": "person portrait"
-    },
-    {
-      "id": "farmer-avatar-2",
-      "description": "Avatar for a farmer.",
-      "imageUrl": "https://picsum.photos/seed/farmer2/100/100",
-      "imageHint": "person portrait"
-    }
-  ]
+  "placeholderImages": []
 }

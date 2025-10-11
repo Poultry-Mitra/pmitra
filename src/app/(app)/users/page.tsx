@@ -53,7 +53,6 @@ export default function UsersPage() {
                                         <TableCell>
                                             <div className="flex items-center gap-3">
                                                 <Avatar>
-                                                    <AvatarImage src={user.avatarUrl} />
                                                     <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
                                                 </Avatar>
                                                 <div>

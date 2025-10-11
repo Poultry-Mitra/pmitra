@@ -94,7 +94,6 @@ export function ChatLayout() {
               </div>
                {message.sender === "user" && (
                 <Avatar className="size-8">
-                  <AvatarImage src={user.avatarUrl} alt={user.name} />
                   <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
                 </Avatar>
               )}
