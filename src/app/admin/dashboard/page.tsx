@@ -1,5 +1,5 @@
 
-import { PageHeader } from "@/app/(app)/_components/page-header";
+import { PageHeader } from "../../(app)/_components/page-header";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { mockFarmMetrics, mockUsers } from "@/lib/data";
 import { Users, Bot, IndianRupee, BarChart } from "lucide-react";
