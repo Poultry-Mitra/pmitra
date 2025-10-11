@@ -14,6 +14,7 @@ import { Mail, KeyRound, User, Phone, Briefcase } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 function Illustration() {
+    const { t } = useLanguage();
     return (
         <div className="hidden lg:flex lg:items-center lg:justify-center lg:flex-col lg:text-center lg:p-12 bg-primary/5 dark:bg-primary/10">
              <div className="relative w-64 h-64">
