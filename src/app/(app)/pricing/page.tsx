@@ -6,8 +6,8 @@ import { PageHeader } from "../_components/page-header";
 const plans = [
     {
         name: "Free",
-        price: "$0",
-        price_desc: "per month",
+        price: "INR 0",
+        price_desc: "for basic needs",
         description: "For small farms and hobbyists starting out.",
         features: [
             "Basic Analytics Dashboard",
@@ -19,8 +19,8 @@ const plans = [
         isPopular: false
     },
     {
-        name: "Pro",
-        price: "$49",
+        name: "Farmer Plan",
+        price: "INR 199",
         price_desc: "per month",
         description: "For growing farms that need advanced tools.",
         features: [
@@ -30,22 +30,22 @@ const plans = [
             "Real-time Sensor Monitoring",
             "Email & Chat Support"
         ],
-        cta: "Upgrade to Pro",
+        cta: "Upgrade to Farmer",
         isPopular: true
     },
     {
-        name: "Enterprise",
-        price: "Custom",
-        price_desc: "for large operations",
-        description: "Tailored solutions for large-scale poultry businesses.",
+        name: "Dealer Plan",
+        price: "INR 499",
+        price_desc: "per month",
+        description: "Tailored solutions for large-scale poultry businesses and dealers.",
         features: [
-            "All Pro features",
+            "All Farmer features",
             "Multi-farm Management",
             "API Access & Integrations",
             "Dedicated Account Manager",
             "On-site Training"
         ],
-        cta: "Contact Sales",
+        cta: "Choose Dealer Plan",
         isPopular: false
     }
 ]

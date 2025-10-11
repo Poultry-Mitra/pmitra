@@ -50,9 +50,9 @@ export default function LandingPage() {
   ];
 
   const pricingPlans = [
-    { name: 'free_trial', price: t('pricing.free_trial_price'), period: t('pricing.free_trial_period') },
-    { name: 'basic_plan', price: t('pricing.basic_plan_price'), period: t('pricing.plan_period') },
-    { name: 'premium_plan', price: t('pricing.premium_plan_price'), period: t('pricing.plan_period') },
+    { name: 'free_plan', price: t('pricing.free_plan_price'), period: t('pricing.free_plan_period') },
+    { name: 'farmer_plan', price: t('pricing.farmer_plan_price'), period: t('pricing.plan_period') },
+    { name: 'dealer_plan', price: t('pricing.dealer_plan_price'), period: t('pricing.plan_period') },
   ]
 
   const testimonials = [
