@@ -1,3 +1,4 @@
+
 import type {Config} from 'tailwindcss';
 import { fontFamily } from "tailwindcss/defaultTheme"
 
@@ -18,8 +19,9 @@ export default {
     },
     extend: {
       fontFamily: {
-        body: ['"PT Sans"', ...fontFamily.sans],
-        headline: ['"Space Grotesk"', ...fontFamily.sans],
+        body: ['"Inter"', ...fontFamily.sans],
+        headline: ['"Inter"', ...fontFamily.sans],
+        hindi: ['"Hind"', ...fontFamily.sans]
       },
       colors: {
         background: 'hsl(var(--background))',

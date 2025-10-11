@@ -3,16 +3,16 @@
 
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import {
-  LayoutDashboard,
-  MessageSquare,
-  HeartPulse,
-  Wheat,
+  Bot,
+  AreaChart,
   Users,
   CreditCard,
-  Check,
-  Star
+  LayoutGrid,
+  CheckCircle,
+  Star,
+  PlayCircle
 } from 'lucide-react';
 import { AppIcon } from '@/app/icon';
 import { ThemeToggle } from '@/components/theme-toggle';
@@ -24,155 +24,149 @@ export default function LandingPage() {
 
   const features = [
     {
-      icon: <LayoutDashboard className="size-8 text-primary" />,
-      title: t('featureAnalyticsTitle'),
-      description: t('featureAnalyticsDesc'),
+      icon: <Bot className="size-8 text-primary" />,
+      title: t('features.aiChat.title'),
+      description: t('features.aiChat.description'),
     },
     {
-      icon: <MessageSquare className="size-8 text-primary" />,
-      title: t('featureChatTitle'),
-      description: t('featureChatDesc'),
-    },
-    {
-      icon: <HeartPulse className="size-8 text-primary" />,
-      title: t('featureMonitoringTitle'),
-      description: t('featureMonitoringDesc'),
-    },
-    {
-      icon: <Wheat className="size-8 text-primary" />,
-      title: t('featureFeedTitle'),
-      description: t('featureFeedDesc'),
+      icon: <LayoutGrid className="size-8 text-primary" />,
+      title: t('features.flockTracking.title'),
+      description: t('features.flockTracking.description'),
     },
     {
       icon: <Users className="size-8 text-primary" />,
-      title: t('featureUsersTitle'),
-      description: t('featureUsersDesc'),
+      title: t('features.dealerManagement.title'),
+      description: t('features.dealerManagement.description'),
     },
     {
       icon: <CreditCard className="size-8 text-primary" />,
-      title: t('featurePlansTitle'),
-      description: t('featurePlansDesc'),
+      title: t('features.payments.title'),
+      description: t('features.payments.description'),
+    },
+    {
+      icon: <AreaChart className="size-8 text-primary" />,
+      title: t('features.analytics.title'),
+      description: t('features.analytics.description'),
     },
   ];
 
-  const howItWorksSteps = [
-    {
-      step: 1,
-      title: t('howItWorksStep1Title'),
-      description: t('howItWorksStep1Desc'),
-    },
-    {
-      step: 2,
-      title: t('howItWorksStep2Title'),
-      description: t('howItWorksStep2Desc'),
-    },
-    {
-      step: 3,
-      title: t('howItWorksStep3Title'),
-      description: t('howItWorksStep3Desc'),
-    },
+  const pricingPlans = [
+    { name: 'free_trial', price: t('pricing.free_trial_price'), period: t('pricing.free_trial_period') },
+    { name: 'basic_plan', price: t('pricing.basic_plan_price'), period: t('pricing.plan_period') },
+    { name: 'premium_plan', price: t('pricing.premium_plan_price'), period: t('pricing.plan_period') },
   ]
 
   const testimonials = [
     {
-        name: "Kuldeep Yadav",
-        role: "Farm Owner, Punjab",
-        quote: t('testimonial1Quote'),
+      name: "Ravi Kumar",
+      role: t('testimonials.farmer.role'),
+      quote: t('testimonials.farmer.quote'),
     },
     {
-        name: "Meena Kumari",
-        role: "Poultry Manager, Haryana",
-        quote: t('testimonial2Quote'),
+      name: "Priya Sharma",
+      role: t('testimonials.dealer.role'),
+      quote: t('testimonials.dealer.quote'),
+    },
+    {
+      name: "Amit Singh",
+      role: t('testimonials.admin.role'),
+      quote: t('testimonials.admin.quote'),
     }
   ];
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-14 items-center">
+        <div className="container flex h-16 items-center">
           <Link href="/" className="mr-6 flex items-center space-x-2">
             <AppIcon className="size-6 text-primary" />
             <span className="font-bold font-headline">PoultryMitra</span>
           </Link>
-          <nav className="flex items-center space-x-6 text-sm font-medium">
-            <Link href="#features" className="transition-colors hover:text-primary">{t('features')}</Link>
-            <Link href="#testimonials" className="transition-colors hover:text-primary">{t('testimonials')}</Link>
-            <Link href="/pricing" className="transition-colors hover:text-primary">{t('pricing')}</Link>
+          <nav className="hidden items-center space-x-6 text-sm font-medium md:flex">
+            <Link href="/" className="transition-colors hover:text-foreground">{t('nav.home')}</Link>
+            <Link href="#features" className="text-muted-foreground transition-colors hover:text-foreground">{t('nav.features')}</Link>
+            <Link href="/pricing" className="text-muted-foreground transition-colors hover:text-foreground">{t('nav.pricing')}</Link>
+            <Link href="/chat" className="text-muted-foreground transition-colors hover:text-foreground">{t('nav.ai_chat')}</Link>
+            <Link href="#contact" className="text-muted-foreground transition-colors hover:text-foreground">{t('nav.contact')}</Link>
           </nav>
           <div className="ml-auto flex items-center space-x-2">
-            <ThemeToggle />
             <LanguageToggle />
-            <Button variant="ghost" asChild>
-              <Link href="/dashboard">{t('signIn')}</Link>
+            <ThemeToggle />
+            <Button variant="outline" asChild>
+              <Link href="/dashboard">{t('nav.login')}</Link>
             </Button>
             <Button asChild>
-              <Link href="/dashboard">{t('getStarted')}</Link>
+              <Link href="/dashboard">{t('nav.signup')}</Link>
             </Button>
           </div>
         </div>
       </header>
       <main className="flex-1">
-        <section className="container flex flex-col items-center justify-center gap-8 py-12 text-center md:py-20 lg:py-28">
+        <section id="hero" className="container flex flex-col items-center justify-center gap-8 py-20 text-center md:py-28 lg:py-32">
             <div className="flex flex-col items-center gap-4">
-                <h1 className="font-headline text-3xl font-bold leading-tight tracking-tighter md:text-5xl lg:text-6xl">
-                {t('heroTitle')}
+                <h1 className="font-headline text-4xl font-bold leading-tight tracking-tighter md:text-5xl lg:text-6xl">
+                {t('hero.title')}
                 </h1>
                 <p className="max-w-[700px] text-lg text-muted-foreground">
-                {t('heroSubtitle')}
+                {t('hero.subtitle')}
                 </p>
-                <div className="flex gap-4">
-                <Button size="lg" asChild>
-                    <Link href="/dashboard">{t('exploreDashboard')}</Link>
-                </Button>
-                <Button size="lg" variant="outline" asChild>
-                    <Link href="#features">{t('learnMore')}</Link>
-                </Button>
+                <div className="flex gap-4 mt-4">
+                  <Button size="lg" asChild>
+                      <Link href="/dashboard">{t('hero.get_started')}</Link>
+                  </Button>
+                  <Button size="lg" variant="outline" asChild>
+                      <Link href="#demo"><PlayCircle className="mr-2"/>{t('hero.watch_demo')}</Link>
+                  </Button>
                 </div>
             </div>
         </section>
 
-        <section id="features" className="container space-y-12 py-8 md:py-12 lg:py-24">
+        <section id="features" className="container space-y-12 py-8 md:py-16 lg:py-24">
           <div className="mx-auto flex max-w-[58rem] flex-col items-center space-y-4 text-center">
             <h2 className="font-headline text-3xl font-bold leading-[1.1] sm:text-3xl md:text-5xl">
-              {t('powerfulFeatures')}
+              {t('features.title')}
             </h2>
             <p className="max-w-[85%] leading-normal text-muted-foreground sm:text-lg sm:leading-7">
-              {t('featuresSubtitle')}
+              {t('features.subtitle')}
             </p>
           </div>
-          <div className="mx-auto grid justify-center gap-4 sm:grid-cols-2 md:max-w-[64rem] md:grid-cols-3">
-            {features.map((feature) => (
-              <Card key={feature.title}>
+          <div className="mx-auto grid justify-center gap-6 sm:grid-cols-2 md:max-w-[64rem] lg:grid-cols-3">
+            {features.map((feature, i) => (
+              <Card key={i}>
                 <CardHeader>
-                  <div className="flex items-center gap-4">
                     {feature.icon}
-                    <CardTitle className="font-headline">{feature.title}</CardTitle>
-                  </div>
                 </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground">{feature.description}</p>
+                <CardContent className="space-y-2">
+                  <CardTitle className="font-headline text-xl">{feature.title}</CardTitle>
+                  <p className="text-muted-foreground text-sm">{feature.description}</p>
                 </CardContent>
               </Card>
             ))}
           </div>
         </section>
 
-        <section id="how-it-works" className="bg-secondary py-16 lg:py-24">
+        <section id="pricing-preview" className="bg-secondary py-16 lg:py-24">
             <div className="container">
                 <div className="mx-auto flex max-w-[58rem] flex-col items-center space-y-4 text-center">
-                    <h2 className="font-headline text-3xl font-bold leading-[1.1] sm:text-3xl md:text-5xl">{t('howItWorksTitle')}</h2>
-                    <p className="max-w-[85%] leading-normal text-muted-foreground sm:text-lg sm:leading-7">{t('howItWorksSubtitle')}</p>
+                    <h2 className="font-headline text-3xl font-bold leading-[1.1] sm:text-3xl md:text-5xl">{t('pricing.title')}</h2>
+                    <p className="max-w-[85%] leading-normal text-muted-foreground sm:text-lg sm:leading-7">{t('pricing.subtitle')}</p>
                 </div>
                 <div className="mt-12 grid gap-8 md:grid-cols-3">
-                {howItWorksSteps.map(item => (
-                    <div key={item.step} className="relative">
-                         <div className="absolute -left-4 top-0 flex h-8 w-8 items-center justify-center rounded-full bg-primary font-bold text-primary-foreground">{item.step}</div>
-                        <div className="ml-8 space-y-2">
-                            <h3 className="font-headline text-xl font-semibold">{item.title}</h3>
-                            <p className="text-muted-foreground">{item.description}</p>
-                        </div>
-                    </div>
-                ))}
+                  {pricingPlans.map(plan => (
+                    <Card key={plan.name} className="flex flex-col justify-between text-center">
+                      <CardHeader>
+                        <CardTitle className="text-lg font-medium text-muted-foreground">{t(`pricing.${plan.name}`)}</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p><span className="text-4xl font-bold">{plan.price}</span><span className="text-muted-foreground">{plan.period}</span></p>
+                      </CardContent>
+                      <CardFooter>
+                        <Button variant="outline" className="w-full" asChild>
+                          <Link href="/pricing">{t('pricing.compare_plans')}</Link>
+                        </Button>
+                      </CardFooter>
+                    </Card>
+                  ))}
                 </div>
             </div>
         </section>
@@ -180,22 +174,23 @@ export default function LandingPage() {
         <section id="testimonials" className="py-16 lg:py-24">
             <div className="container">
                 <div className="mx-auto flex max-w-[58rem] flex-col items-center space-y-4 text-center">
-                    <h2 className="font-headline text-3xl font-bold leading-[1.1] sm:text-3xl md:text-5xl">{t('testimonialsTitle')}</h2>
-                    <p className="max-w-[85%] leading-normal text-muted-foreground sm:text-lg sm:leading-7">{t('testimonialsSubtitle')}</p>
+                    <h2 className="font-headline text-3xl font-bold leading-[1.1] sm:text-3xl md:text-5xl">{t('testimonials.title')}</h2>
+                    <p className="max-w-[85%] leading-normal text-muted-foreground sm:text-lg sm:leading-7">{t('testimonials.subtitle')}</p>
                 </div>
-                <div className="mt-12 grid gap-8 md:grid-cols-2">
-                    {testimonials.map(item => (
-                        <Card key={item.name} className="bg-background">
+                <div className="mt-12 grid gap-8 md:grid-cols-3">
+                    {testimonials.map((item, i) => (
+                        <Card key={i} className="bg-secondary/50 dark:bg-card">
                             <CardContent className="pt-6">
                                 <div className="flex space-x-1">
                                     {[...Array(5)].map((_, i) => (
-                                        <Star key={i} className="size-5 fill-yellow-400 text-yellow-400" />
+                                        <Star key={i} className="size-5 fill-accent text-accent" />
                                     ))}
                                 </div>
-                                <blockquote className="mt-4 text-lg font-semibold leading-8 tracking-tight text-foreground">
+                                <blockquote className="mt-4 text-base text-foreground">
                                     "{item.quote}"
                                 </blockquote>
                                 <div className="mt-6 flex items-center gap-4">
+                                    <div className="flex size-10 items-center justify-center rounded-full bg-muted font-bold">{item.name.charAt(0)}</div>
                                     <div>
                                         <p className="font-semibold">{item.name}</p>
                                         <p className="text-sm text-muted-foreground">{item.role}</p>
@@ -208,27 +203,28 @@ export default function LandingPage() {
             </div>
         </section>
 
-        <section className="container py-8 md:py-12 lg:py-24">
-            <div className="mx-auto flex max-w-4xl flex-col items-center text-center">
-                 <h2 className="font-headline text-3xl font-bold md:text-5xl">{t('startOptimizing')}</h2>
-                 <p className="mt-4 max-w-xl text-lg text-muted-foreground">{t('startOptimizingSubtitle')}</p>
-                 <Button size="lg" className="mt-8" asChild>
-                    <Link href="/dashboard">{t('signUpNow')}</Link>
+        <section id="cta" className="container py-16 md:py-20 lg:py-24">
+            <div className="mx-auto flex max-w-4xl flex-col items-center text-center bg-primary text-primary-foreground p-12 rounded-xl">
+                 <h2 className="font-headline text-3xl font-bold md:text-4xl">{t('cta.title')}</h2>
+                 <p className="mt-4 max-w-xl text-lg text-primary-foreground/80">{t('cta.subtitle')}</p>
+                 <Button size="lg" variant="secondary" className="mt-8" asChild>
+                    <Link href="/dashboard">{t('cta.button')}</Link>
                  </Button>
             </div>
         </section>
-
       </main>
 
-      <footer className="py-6 md:px-8 md:py-0">
+      <footer id="contact" className="py-8 md:px-8 md:py-8 border-t">
         <div className="container flex flex-col items-center justify-between gap-4 md:h-24 md:flex-row">
+          <nav className="flex gap-4 text-sm text-muted-foreground">
+            <Link href="#about" className="hover:text-foreground">{t('footer.about')}</Link>
+            <Link href="#terms" className="hover:text-foreground">{t('footer.terms')}</Link>
+            <Link href="#privacy" className="hover:text-foreground">{t('footer.privacy')}</Link>
+            <Link href="#contact" className="hover:text-foreground">{t('footer.contact')}</Link>
+          </nav>
           <p className="text-center text-sm leading-loose text-muted-foreground md:text-left">
-            {t('footerText')}
+            {t('footer.copyright')}
           </p>
-          <div className="flex items-center space-x-2">
-            <AppIcon className="size-5 text-primary"/>
-            <span className="font-bold font-headline">PoultryMitra</span>
-          </div>
         </div>
       </footer>
     </div>
