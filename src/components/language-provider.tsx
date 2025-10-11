@@ -107,6 +107,18 @@ const translations = {
       back_to_home: "Back to Home",
       admin_login: "Admin Login"
     },
+    signup: {
+      welcome_title: "Join PoultryMitra Today",
+      welcome_subtitle: "Choose how you want to get started",
+      farmer_title: "Sign up as a Farmer",
+      farmer_description: "Get access to our powerful farm management tools and AI assistant.",
+      farmer_button: "Register as Farmer",
+      dealer_title: "Sign up as a Dealer",
+      dealer_description: "Manage your network of farmers, track sales, and grow your business.",
+      dealer_button: "Register as Dealer",
+      have_account: "Already have an account?",
+      login_here: "Login here",
+    }
   },
   hi: {
     nav: {
@@ -203,6 +215,18 @@ const translations = {
       back_to_home: "होम पर वापस जाएं",
       admin_login: "एडमिन लॉगिन"
     },
+    signup: {
+        welcome_title: "आज ही पोल्ट्री मित्र से जुड़ें",
+        welcome_subtitle: "आप कैसे शुरू करना चाहते हैं, यह चुनें",
+        farmer_title: "किसान के रूप में पंजीकरण करें",
+        farmer_description: "हमारे शक्तिशाली फार्म प्रबंधन टूल और एआई सहायक तक पहुंच प्राप्त करें।",
+        farmer_button: "किसान के रूप में पंजीकरण करें",
+        dealer_title: "डीलर के रूप में पंजीकरण करें",
+        dealer_description: "किसानों के अपने नेटवर्क को प्रबंधित करें, बिक्री ट्रैक करें और अपना व्यवसाय बढ़ाएं।",
+        dealer_button: "डीलर के रूप में पंजीकरण करें",
+        have_account: "पहले से ही एक खाता है?",
+        login_here: "यहां लॉगिन करें",
+    }
   }
 };
 
