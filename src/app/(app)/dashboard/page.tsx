@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { mockFarmMetrics } from "@/lib/data";
 import { PageHeader } from "../_components/page-header";
@@ -67,7 +68,7 @@ export default function DashboardPage() {
             <CardTitle>Farm Performance Overview</CardTitle>
             <CardDescription>Monthly trends for key farm metrics.</CardDescription>
           </CardHeader>
-          <CardContent className="pl-2">
+          <CardContent>
             <ProductionChart data={mockFarmMetrics} />
           </CardContent>
         </Card>
