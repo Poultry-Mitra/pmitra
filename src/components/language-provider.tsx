@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { createContext, useContext, useState, useMemo, ReactNode } from "react";
@@ -53,6 +54,10 @@ const translations = {
         title: "Live Analytics Dashboard",
         description: "Admins get real-time revenue, flock performance, and AI usage insights through interactive Recharts graphs.",
       },
+      monitoring: {
+        title: "Real-time Farm Monitoring",
+        description: "Get live sensor data and critical alerts for temperature, humidity, and ammonia levels to prevent issues before they start.",
+      }
     },
     pricing: {
         title: "Flexible Plans for Every Need",
@@ -161,6 +166,10 @@ const translations = {
             title: "लाइव एनालिटिक्स डैशबोर्ड",
             description: "व्यवस्थापक इंटरैक्टिव रीचार्ट्स ग्राफ़ के माध्यम से रीयल-टाइम राजस्व, झुंड प्रदर्शन और एआई उपयोग अंतर्दृष्टि प्राप्त करते हैं।",
         },
+        monitoring: {
+            title: "रीयल-टाइम फार्म मॉनिटरिंग",
+            description: "समस्याओं को शुरू होने से पहले रोकने के लिए तापमान, आर्द्रता और अमोनिया के स्तर के लिए लाइव सेंसर डेटा और महत्वपूर्ण अलर्ट प्राप्त करें।",
+        }
     },
     pricing: {
         title: "हर जरूरत के लिए लचीली योजनाएं",
@@ -277,3 +286,5 @@ export function useLanguage() {
   }
   return context;
 }
+
+    

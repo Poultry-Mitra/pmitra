@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import Link from 'next/link';
@@ -9,9 +10,9 @@ import {
   AreaChart,
   Users,
   CreditCard,
-  LayoutGrid,
+  ShieldCheck,
   Star,
-  PlayCircle
+  LayoutGrid
 } from 'lucide-react';
 import { AppIcon } from '@/app/icon';
 import { ThemeToggle } from '@/components/theme-toggle';
@@ -46,6 +47,11 @@ export default function LandingPage() {
       icon: <AreaChart className="size-8 text-primary" />,
       title: t('features.analytics.title'),
       description: t('features.analytics.description'),
+    },
+    {
+      icon: <ShieldCheck className="size-8 text-primary" />,
+      title: t('features.monitoring.title'),
+      description: t('features.monitoring.description'),
     },
   ];
 
@@ -229,3 +235,5 @@ export default function LandingPage() {
     </div>
   );
 }
+
+    
