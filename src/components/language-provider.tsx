@@ -25,7 +25,19 @@ const translations = {
     startOptimizing: "Start Optimizing Your Farm Today",
     startOptimizingSubtitle: "Join hundreds of farmers who are revolutionizing their operations with PoultryMitra. Get started for free, no credit card required.",
     signUpNow: "Sign Up Now",
-    footerText: "Built by Your AI Assistant. The source code is available on GitHub."
+    footerText: "Built by Your AI Assistant. The source code is available on GitHub.",
+    featureAnalyticsTitle: "Analytics Dashboard",
+    featureAnalyticsDesc: "Visualize key farm metrics like production rates, mortality, and feed consumption.",
+    featureChatTitle: "AI Chat Support",
+    featureChatDesc: "Get instant answers to your poultry farming questions with our expert AI assistant.",
+    featureMonitoringTitle: "Farm Monitoring",
+    featureMonitoringDesc: "Real-time monitoring of farm conditions with alerts for critical events and AI-powered forecasts.",
+    featureFeedTitle: "Feed Recommendation",
+    featureFeedDesc: "Our AI analyzes your farm data to recommend the most optimal and cost-effective feed.",
+    featureUsersTitle: "User Management",
+    featureUsersDesc: "An intuitive interface for admins to manage users, roles, and subscriptions.",
+    featurePlansTitle: "Premium Plans",
+    featurePlansDesc: "Unlock advanced features, detailed reports, and unlimited AI support with a subscription."
   },
   hi: {
     features: "विशेषताएँ",
@@ -41,7 +53,19 @@ const translations = {
     startOptimizing: "आज ही अपने फार्म का अनुकूलन शुरू करें",
     startOptimizingSubtitle: "उन सैकड़ों किसानों में शामिल हों जो पोल्ट्रीमित्रा के साथ अपने कार्यों में क्रांति ला रहे हैं। मुफ्त में शुरू करें, कोई क्रेडिट कार्ड की आवश्यकता नहीं है।",
     signUpNow: "अभी साइन अप करें",
-    footerText: "आपके AI सहायक द्वारा बनाया गया। स्रोत कोड GitHub पर उपलब्ध है।"
+    footerText: "आपके AI सहायक द्वारा बनाया गया। स्रोत कोड GitHub पर उपलब्ध है।",
+    featureAnalyticsTitle: "एनालिटिक्स डैशबोर्ड",
+    featureAnalyticsDesc: "उत्पादन दर, मृत्यु दर और फ़ीड की खपत जैसे प्रमुख कृषि मेट्रिक्स की कल्पना करें।",
+    featureChatTitle: "एआई चैट सपोर्ट",
+    featureChatDesc: "हमारे विशेषज्ञ एआई सहायक से अपने मुर्गी पालन संबंधी प्रश्नों के तुरंत उत्तर प्राप्त करें।",
+    featureMonitoringTitle: "फार्म की निगरानी",
+    featureMonitoringDesc: "महत्वपूर्ण घटनाओं और एआई-संचालित पूर्वानुमानों के लिए अलर्ट के साथ खेत की स्थितियों की वास्तविक समय पर निगरानी।",
+    featureFeedTitle: "फ़ीड अनुशंसा",
+    featureFeedDesc: "हमारा एआई सबसे इष्टतम और लागत प्रभावी फ़ीड की सिफारिश करने के लिए आपके खेत के डेटा का विश्लेषण करता है।",
+    featureUsersTitle: "उपयोगकर्ता प्रबंधन",
+    featureUsersDesc: "उपयोगकर्ताओं, भूमिकाओं और सदस्यताओं को प्रबंधित करने के लिए व्यवस्थापकों के लिए एक सहज इंटरफ़ेस।",
+    featurePlansTitle: "प्रीमियम योजनाएं",
+    featurePlansDesc: "एक सदस्यता के साथ उन्नत सुविधाएँ, विस्तृत रिपोर्ट और असीमित एआई समर्थन अनलॉक करें।"
   }
 };
 

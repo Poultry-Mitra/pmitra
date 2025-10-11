@@ -17,41 +17,41 @@ import { LanguageToggle } from '@/components/language-toggle';
 import { useLanguage } from '@/components/language-provider';
 
 
-const features = [
-  {
-    icon: <LayoutDashboard className="size-8 text-primary" />,
-    title: 'Analytics Dashboard',
-    description: 'Visualize key farm metrics like production rates, mortality, and feed consumption.',
-  },
-  {
-    icon: <MessageSquare className="size-8 text-primary" />,
-    title: 'AI Chat Support',
-    description: 'Get instant answers to your poultry farming questions with our expert AI assistant.',
-  },
-  {
-    icon: <HeartPulse className="size-8 text-primary" />,
-    title: 'Farm Monitoring',
-    description: 'Real-time monitoring of farm conditions with alerts for critical events and AI-powered forecasts.',
-  },
-  {
-    icon: <Wheat className="size-8 text-primary" />,
-    title: 'Feed Recommendation',
-    description: 'Our AI analyzes your farm data to recommend the most optimal and cost-effective feed.',
-  },
-  {
-    icon: <Users className="size-8 text-primary" />,
-    title: 'User Management',
-    description: 'An intuitive interface for admins to manage users, roles, and subscriptions.',
-  },
-  {
-    icon: <CreditCard className="size-8 text-primary" />,
-    title: 'Premium Plans',
-    description: 'Unlock advanced features, detailed reports, and unlimited AI support with a subscription.',
-  },
-];
-
 export default function LandingPage() {
   const { t } = useLanguage();
+
+  const features = [
+    {
+      icon: <LayoutDashboard className="size-8 text-primary" />,
+      title: t('featureAnalyticsTitle'),
+      description: t('featureAnalyticsDesc'),
+    },
+    {
+      icon: <MessageSquare className="size-8 text-primary" />,
+      title: t('featureChatTitle'),
+      description: t('featureChatDesc'),
+    },
+    {
+      icon: <HeartPulse className="size-8 text-primary" />,
+      title: t('featureMonitoringTitle'),
+      description: t('featureMonitoringDesc'),
+    },
+    {
+      icon: <Wheat className="size-8 text-primary" />,
+      title: t('featureFeedTitle'),
+      description: t('featureFeedDesc'),
+    },
+    {
+      icon: <Users className="size-8 text-primary" />,
+      title: t('featureUsersTitle'),
+      description: t('featureUsersDesc'),
+    },
+    {
+      icon: <CreditCard className="size-8 text-primary" />,
+      title: t('featurePlansTitle'),
+      description: t('featurePlansDesc'),
+    },
+  ];
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
