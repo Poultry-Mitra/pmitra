@@ -10,7 +10,6 @@ import {
   Users,
   CreditCard,
   LayoutGrid,
-  CheckCircle,
   Star,
   PlayCircle
 } from 'lucide-react';
