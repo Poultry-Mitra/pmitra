@@ -21,7 +21,7 @@ const revenueData = [
   { month: 'Jan', revenue: 65000, revenueLastMonth: 59000 },
   { month: 'Feb', revenue: 72000, revenueLastMonth: 62000 },
   { month: 'Mar', revenue: 78000, revenueLastMonth: 68000 },
-  { month 'Apr', revenue: 82000, revenueLastMonth: 75000 },
+  { month: 'Apr', revenue: 82000, revenueLastMonth: 75000 },
   { month: 'May', revenue: 85000, revenueLastMonth: 78000 },
   { month: 'Jun', revenue: 92000, revenueLastMonth: 81000 },
   { month: 'Jul', revenue: 88000, revenueLastMonth: 85000 },
