@@ -18,16 +18,9 @@ import { AppIcon } from '@/app/icon';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { LanguageToggle } from '@/components/language-toggle';
 import { useLanguage } from '@/components/language-provider';
-import Image from 'next/image';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-
 
 export default function LandingPage() {
   const { t } = useLanguage();
-  const heroImage = PlaceHolderImages[0];
-  const avatar1 = PlaceHolderImages[1];
-  const avatar2 = PlaceHolderImages[2];
 
   const features = [
     {
@@ -85,13 +78,11 @@ export default function LandingPage() {
         name: "Kuldeep Yadav",
         role: "Farm Owner, Punjab",
         quote: t('testimonial1Quote'),
-        avatar: avatar1,
     },
     {
         name: "Meena Kumari",
         role: "Poultry Manager, Haryana",
         quote: t('testimonial2Quote'),
-        avatar: avatar2,
     }
   ];
 
@@ -121,8 +112,8 @@ export default function LandingPage() {
         </div>
       </header>
       <main className="flex-1">
-        <section className="container grid grid-cols-1 items-center gap-8 py-12 md:grid-cols-2 md:py-20 lg:py-28">
-            <div className="flex flex-col items-start gap-4">
+        <section className="container flex flex-col items-center justify-center gap-8 py-12 text-center md:py-20 lg:py-28">
+            <div className="flex flex-col items-center gap-4">
                 <h1 className="font-headline text-3xl font-bold leading-tight tracking-tighter md:text-5xl lg:text-6xl">
                 {t('heroTitle')}
                 </h1>
@@ -137,15 +128,6 @@ export default function LandingPage() {
                     <Link href="#features">{t('learnMore')}</Link>
                 </Button>
                 </div>
-            </div>
-            <div className="relative h-64 w-full overflow-hidden rounded-lg shadow-xl md:h-auto md:aspect-[4/3]">
-                <Image
-                src={heroImage.imageUrl}
-                alt={heroImage.description}
-                fill
-                className="object-cover"
-                data-ai-hint={heroImage.imageHint}
-                />
             </div>
         </section>
 
@@ -214,10 +196,6 @@ export default function LandingPage() {
                                     "{item.quote}"
                                 </blockquote>
                                 <div className="mt-6 flex items-center gap-4">
-                                     <Avatar>
-                                        <AvatarImage src={item.avatar.imageUrl} alt={item.avatar.description} data-ai-hint={item.avatar.imageHint} />
-                                        <AvatarFallback>{item.name.charAt(0)}</AvatarFallback>
-                                    </Avatar>
                                     <div>
                                         <p className="font-semibold">{item.name}</p>
                                         <p className="text-sm text-muted-foreground">{item.role}</p>
@@ -256,5 +234,3 @@ export default function LandingPage() {
     </div>
   );
 }
-
-    
