@@ -3,6 +3,7 @@ export type User = {
   name: string;
   email: string;
   role: 'farmer' | 'dealer' | 'admin';
+  dateJoined: string;
 };
 
 export type FarmMetric = {

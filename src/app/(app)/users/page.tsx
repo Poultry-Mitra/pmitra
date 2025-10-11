@@ -1,4 +1,5 @@
 
+
 import { PageHeader } from "../_components/page-header";
 import {
     Table,
@@ -66,7 +67,7 @@ export default function UsersPage() {
                                             <Badge variant={user.role === 'admin' ? 'default' : 'secondary'} className="capitalize">{user.role}</Badge>
                                         </TableCell>
                                         <TableCell className="hidden md:table-cell">
-                                            {new Date().toLocaleDateString()}
+                                            {new Date(user.dateJoined).toLocaleDateString('en-CA')}
                                         </TableCell>
                                         <TableCell>
                                             <DropdownMenu>
@@ -93,3 +94,4 @@ export default function UsersPage() {
         </>
     )
 }
+
