@@ -186,7 +186,10 @@ export function AdminSidebar() {
          <SidebarMenu>
             <SidebarMenuItem>
                  <Link href="/admin/settings">
-                    <SidebarMenuButton tooltip="Profile">
+                    <SidebarMenuButton 
+                        tooltip="Profile"
+                        isActive={pathname.startsWith("/admin/settings")}
+                    >
                         <User/>
                         <span>{"Profile"}</span>
                     </SidebarMenuButton>
