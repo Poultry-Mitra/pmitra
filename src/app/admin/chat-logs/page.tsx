@@ -1,7 +1,8 @@
 
+
 "use client";
 
-import { PageHeader } from "@/app/(app)/_components/page-header";
+import { PageHeader } from "@/app/admin/_components/page-header";
 import {
     Table,
     TableBody,

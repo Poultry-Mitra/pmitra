@@ -1,7 +1,8 @@
 
+
 "use client";
 
-import { PageHeader } from "@/app/(app)/_components/page-header";
+import { PageHeader } from "@/app/admin/_components/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";

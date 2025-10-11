@@ -1,5 +1,5 @@
 
-import { PageHeader } from "@/app/(app)/_components/page-header";
+
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { mockFarmMetrics, mockUsers } from "@/lib/data";
 import { Users, Bot, IndianRupee, Activity, WifiOff, Server } from "lucide-react";
@@ -11,6 +11,7 @@ import {
   Area,
   ResponsiveContainer,
 } from 'recharts';
+import { PageHeader } from "@/app/admin/_components/page-header";
 
 const kpiData = [
     {
