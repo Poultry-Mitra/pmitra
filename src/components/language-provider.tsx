@@ -94,44 +94,19 @@ const translations = {
     sidebar_settings: "Settings",
     sidebar_logout: "Logout",
     login: {
-        title: "Welcome to PoultryMitra",
-        subtitle: "The trusted companion for smart poultry management",
-        illustration_subtitle: "A complete poultry ecosystem — from hatchery to market, powered by intelligence.",
-        tab: "Login",
-        email_phone_label: "Email or Phone",
-        email_phone_placeholder: "you@example.com",
-        email_phone_hint: "Enter the email or phone number you used to register.",
-        password_label: "Password",
-        forgot_password: "Forgot Password?",
-        login_button: "Login",
-        admin_login: "Admin Login",
-        role_title: "How would you like to log in?",
-        role_description: "Select your role to proceed to your dashboard.",
+      welcome_title: "Welcome to Poultry Mitra",
+      welcome_subtitle: "Choose your login type to continue",
+      farmer_title: "Farmer Login",
+      farmer_description: "Access farm management tools, track expenses, monitor crops, and more.",
+      farmer_button: "Continue as Farmer",
+      dealer_title: "Dealer Login",
+      dealer_description: "Manage orders, customers, products, and see market rates.",
+      dealer_button: "Continue as Dealer",
+      no_account: "Don't have an account?",
+      register_here: "Register here",
+      back_to_home: "Back to Home",
+      admin_login: "Admin Login"
     },
-    signup: {
-        tab: "Sign Up",
-        fullname_label: "Full Name",
-        fullname_placeholder: "e.g. Ravi Kumar",
-        fullname_hint: "Enter your full name as per your records.",
-        email_label: "Email Address",
-        email_placeholder: "you@example.com",
-        email_hint: "A valid email for communication and login.",
-        phone_label: "Phone Number",
-        phone_placeholder: "+91 98765 43210",
-        phone_hint: "Your 10-digit mobile number.",
-        password_label: "Create Password",
-        password_hint: "Must be at least 8 characters long.",
-        create_account_button: "Create Account",
-        terms_prefix: "By signing up, you agree to our",
-        terms_link: "Terms of Service",
-        privacy_link: "Privacy Policy",
-        role_title: "How are you joining us?",
-        role_description: "Choose your role to get the right experience.",
-        farmer_role: "I am a Farmer",
-        dealer_role: "I am a Dealer",
-        farmer_role_desc: "For managing your own farm.",
-        dealer_role_desc: "For managing other farms.",
-    }
   },
   hi: {
     nav: {
@@ -215,51 +190,26 @@ const translations = {
     sidebar_settings: "सेटिंग्स",
     sidebar_logout: "लॉगआउट",
     login: {
-        title: "पोल्ट्रीमित्र में आपका स्वागत है",
-        subtitle: "स्मार्ट पोल्ट्री प्रबंधन का भरोसेमंद साथी",
-        illustration_subtitle: "हैचरी से बाजार तक, एक संपूर्ण पोल्ट्री इकोसिस्टम, जो बुद्धिमत्ता द्वारा संचालित है।",
-        tab: "लॉगिन",
-        email_phone_label: "ईमेल या फ़ोन",
-        email_phone_placeholder: "आप@example.com",
-        email_phone_hint: "पंजीकरण के लिए उपयोग किया गया ईमेल या फ़ोन नंबर दर्ज करें।",
-        password_label: "पासवर्ड",
-        forgot_password: "पासवर्ड भूल गए?",
-        login_button: "लॉगिन करें",
-        admin_login: "एडमिन लॉगिन",
-        role_title: "आप कैसे लॉगिन करना चाहेंगे?",
-        role_description: "अपने डैशबोर्ड पर जाने के लिए अपनी भूमिका चुनें।",
+      welcome_title: "पोल्ट्री मित्र में आपका स्वागत है",
+      welcome_subtitle: "जारी रखने के लिए अपना लॉगिन प्रकार चुनें",
+      farmer_title: "किसान लॉगिन",
+      farmer_description: "फार्म प्रबंधन उपकरण, ट्रैक खर्च, फसल की निगरानी और अधिक एक्सेस करें।",
+      farmer_button: "किसान के रूप में जारी रखें",
+      dealer_title: "डीलर लॉगिन",
+      dealer_description: "ऑर्डर, ग्राहक, उत्पाद प्रबंधित करें और बाजार दरें देखें।",
+      dealer_button: "डीलर के रूप में जारी रखें",
+      no_account: "कोई खाता नहीं है?",
+      register_here: "यहाँ रजिस्टर करें",
+      back_to_home: "होम पर वापस जाएं",
+      admin_login: "एडमिन लॉगिन"
     },
-    signup: {
-        tab: "पंजीकरण करें",
-        fullname_label: "पूरा नाम",
-        fullname_placeholder: "उदा. रवि कुमार",
-        fullname_hint: "अपने रिकॉर्ड के अनुसार पूरा नाम दर्ज करें।",
-        email_label: "ईमेल पता",
-        email_placeholder: "आप@example.com",
-        email_hint: "संचार और लॉगिन के लिए एक वैध ईमेल।",
-        phone_label: "फ़ोन नंबर",
-        phone_placeholder: "+91 98765 43210",
-        phone_hint: "आपका 10 अंकों का मोबाइल नंबर।",
-        password_label: "पासवर्ड बनाएं",
-        password_hint: "कम से कम 8 अक्षर का होना चाहिए।",
-        create_account_button: "अकाउंट बनाएं",
-        terms_prefix: "साइन अप करके, आप हमारी",
-        terms_link: "सेवा की शर्तों",
-        privacy_link: "गोपनीयता नीति",
-        role_title: "आप हमसे कैसे जुड़ रहे हैं?",
-        role_description: "सही अनुभव प्राप्त करने के लिए अपनी भूमिका चुनें।",
-        farmer_role: "मैं एक किसान हूँ",
-        dealer_role: "मैं एक डीलर हूँ",
-        farmer_role_desc: "अपने फार्म का प्रबंधन करने के लिए।",
-        dealer_role_desc: "अन्य फार्मों का प्रबंधन करने के लिए।",
-    }
   }
 };
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [language, setLanguage] = useState<Language>("en");
+  const [language, setLanguage] = useState<Language>("hi");
 
   const toggleLanguage = () => {
     setLanguage((prev) => (prev === "en" ? "hi" : "en"));
@@ -302,5 +252,3 @@ export function useLanguage() {
   }
   return context;
 }
-
-    
