@@ -161,7 +161,7 @@ export default function LandingPage() {
                       </CardContent>
                       <CardFooter>
                         <Button variant="outline" className="w-full" asChild>
-                          <Link href="/pricing">{t('pricing.compare_plans')}</Link>
+                           <Link href="/pricing">{t(`pricing.${plan.name}.cta`)}</Link>
                         </Button>
                       </CardFooter>
                     </Card>
@@ -229,3 +229,5 @@ export default function LandingPage() {
     </div>
   );
 }
+
+    
