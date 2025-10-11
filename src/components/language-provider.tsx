@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { createContext, useContext, useState, useMemo, ReactNode } from "react";
@@ -116,7 +117,7 @@ const translations = {
     "hero_get_started": "मुफ्त में शुरू करें",
     "hero_watch_demo": "डेमो देखें",
     "features_title": "पोल्ट्रीमित्र क्यों चुनें?",
-    "features_subtitle": "हैकरी से बाजार तक, एक संपूर्ण पोल्ट्री इकोसिस्टम, जो बुद्धिमत्ता द्वारा संचालित है।",
+    "features_subtitle": "हैचरी से बाजार तक, एक संपूर्ण पोल्ट्री इकोसिस्टम, जो बुद्धिमत्ता द्वारा संचालित है।",
     "features_aiChat_title": "एआई असिस्टेंट सपोर्ट",
     "features_aiChat_description": "पोल्ट्री प्रबंधन, स्वास्थ्य टिप्स और बाजार की जानकारी पर तत्काल सहायता के लिए हमारे एआई सहायक के साथ हिंदी या अंग्रेजी में चैट करें।",
     "features_flockTracking_title": "झुंड और फार्म ट्रैकिंग",
@@ -160,7 +161,7 @@ const translations = {
     "sidebar_logout": "लॉगआउट",
     "login_title": "पोल्ट्रीमित्र में आपका स्वागत है",
     "login_subtitle": "स्मार्ट पोल्ट्री प्रबंधन का भरोसेमंद साथी",
-    "login_illustration_subtitle": "हैकरी से बाजार तक, एक संपूर्ण पोल्ट्री इकोसिस्टम, जो बुद्धिमत्ता द्वारा संचालित है।",
+    "login_illustration_subtitle": "हैचरी से बाजार तक, एक संपूर्ण पोल्ट्री इकोसिस्टम, जो बुद्धिमत्ता द्वारा संचालित है।",
     "login_tab": "लॉगिन",
     "signup_tab": "पंजीकरण करें",
     "login_email_phone_label": "ईमेल या फ़ोन",
@@ -238,5 +239,3 @@ export function useLanguage() {
   }
   return context;
 }
-
-    
