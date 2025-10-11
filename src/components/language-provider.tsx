@@ -65,10 +65,10 @@ const translations = {
         "dealer_plan": "Dealer Plan",
         "dealer_plan_price": "INR 499",
         "plan_period": "per month",
-        "compare_plans": "Compare Plans",
-        "free_plan.cta": "Continue with Free",
-        "farmer_plan.cta": "Choose Farmer Plan",
-        "dealer_plan.cta": "Choose Dealer Plan"
+        "choose_plan": "Choose Plan",
+        "free_plan_cta": "Continue with Free",
+        "farmer_plan_cta": "Choose Farmer Plan",
+        "dealer_plan_cta": "Choose Dealer Plan"
     },
     "testimonials": {
         "title": "What Our Users Say",
@@ -152,10 +152,10 @@ const translations = {
         "dealer_plan": "डीलर योजना",
         "dealer_plan_price": "INR 499",
         "plan_period": "प्रति माह",
-        "compare_plans": "योजनाओं की तुलना करें",
-        "free_plan.cta": "मुफ्त में जारी रखें",
-        "farmer_plan.cta": "किसान योजना चुनें",
-        "dealer_plan.cta": "डीलर योजना चुनें"
+        "choose_plan": "योजना चुनें",
+        "free_plan_cta": "मुफ्त में जारी रखें",
+        "farmer_plan_cta": "किसान योजना चुनें",
+        "dealer_plan_cta": "डीलर योजना चुनें"
     },
     "testimonials": {
         "title": "हमारे उपयोगकर्ता क्या कहते हैं",
@@ -234,5 +234,3 @@ export function useLanguage() {
   }
   return context;
 }
-
-    

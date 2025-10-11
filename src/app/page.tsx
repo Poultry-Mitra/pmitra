@@ -50,9 +50,9 @@ export default function LandingPage() {
   ];
 
   const pricingPlans = [
-    { name: 'free_plan', price: t('pricing.free_plan_price'), period: t('pricing.free_plan_period') },
-    { name: 'farmer_plan', price: t('pricing.farmer_plan_price'), period: t('pricing.plan_period') },
-    { name: 'dealer_plan', price: t('pricing.dealer_plan_price'), period: t('pricing.plan_period') },
+    { name: 'free_plan', price: t('pricing.free_plan_price'), period: t('pricing.free_plan_period'), cta: t('pricing.free_plan_cta') },
+    { name: 'farmer_plan', price: t('pricing.farmer_plan_price'), period: t('pricing.plan_period'), cta: t('pricing.farmer_plan_cta') },
+    { name: 'dealer_plan', price: t('pricing.dealer_plan_price'), period: t('pricing.plan_period'), cta: t('pricing.dealer_plan_cta') },
   ]
 
   const testimonials = [
@@ -161,7 +161,7 @@ export default function LandingPage() {
                       </CardContent>
                       <CardFooter>
                         <Button variant="outline" className="w-full" asChild>
-                           <Link href="/pricing">{t(`pricing.${plan.name}.cta`)}</Link>
+                           <Link href="/pricing">{plan.cta}</Link>
                         </Button>
                       </CardFooter>
                     </Card>
@@ -229,5 +229,3 @@ export default function LandingPage() {
     </div>
   );
 }
-
-    
