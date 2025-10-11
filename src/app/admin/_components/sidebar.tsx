@@ -144,7 +144,7 @@ export function AdminSidebar() {
               </Link>
           </SidebarMenuItem>
           <SidebarMenuItem>
-              <Link href="/admin/subscriptions">
+              <Link href="/admin/transactions">
                 <SidebarMenuButton
                   isActive={pathname.startsWith("/admin/subscriptions")}
                   tooltip={"Subscription Management"}
@@ -185,10 +185,12 @@ export function AdminSidebar() {
       <SidebarFooter>
          <SidebarMenu>
             <SidebarMenuItem>
-                 <SidebarMenuButton tooltip="Profile">
-                    <User/>
-                    <span>{"Profile"}</span>
-                </SidebarMenuButton>
+                 <Link href="/admin/settings">
+                    <SidebarMenuButton tooltip="Profile">
+                        <User/>
+                        <span>{"Profile"}</span>
+                    </SidebarMenuButton>
+                 </Link>
             </SidebarMenuItem>
             <SidebarMenuItem>
                 <Link href="/login">
