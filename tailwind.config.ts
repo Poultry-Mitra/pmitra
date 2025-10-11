@@ -19,8 +19,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        body: ['"PT Sans"', ...fontFamily.sans],
-        headline: ['"Space Grotesk"', ...fontFamily.sans],
+        body: ['"Noto Sans"', '"Hind"', ...fontFamily.sans],
+        headline: ['"Inter"', ...fontFamily.sans],
         hindi: ['"Hind"', ...fontFamily.sans]
       },
       colors: {
