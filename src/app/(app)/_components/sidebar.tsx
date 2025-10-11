@@ -70,14 +70,14 @@ export function AppSidebar() {
             <SidebarMenuItem>
                  <SidebarMenuButton tooltip="Settings">
                     <Settings/>
-                    <span>{t('sidebar.settings')}</span>
+                    <span>{t('sidebar_settings')}</span>
                 </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
                 <Link href="/login">
                   <SidebarMenuButton tooltip="Logout">
                       <LogOut />
-                      <span>{t('sidebar.logout')}</span>
+                      <span>{t('sidebar_logout')}</span>
                   </SidebarMenuButton>
                 </Link>
             </SidebarMenuItem>
