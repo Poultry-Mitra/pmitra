@@ -19,7 +19,6 @@ import { Bell, Search } from 'lucide-react';
 import { LanguageToggle } from '@/components/language-toggle';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Input } from '@/components/ui/input';
-import { useClientState } from '@/hooks/use-client-state';
 import type { User as AppUser } from '@/lib/types';
 import { useUser, useFirestore } from '@/firebase/provider';
 import { doc, getDoc } from 'firebase/firestore';
@@ -74,13 +73,27 @@ export function AdminHeader() {
       const userDocRef = doc(firestore, "users", firebaseUser.uid);
       getDoc(userDocRef).then((docSnap) => {
         if (docSnap.exists()) {
-          setUser(docSnap.data() as AppUser);
+          const userData = docSnap.data() as AppUser;
+           if (userData.role === 'admin') {
+               setUser({ ...userData, id: docSnap.id });
+           } else {
+            setUser(null); // Not an admin
+           }
         }
       });
+    } else {
+        setUser(null);
     }
   }, [firebaseUser, firestore]);
 
-  if (!user || user.role !== 'admin') return <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background/80 px-4 backdrop-blur-sm sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6"></header>;
+  // Render nothing if user is not a loaded admin
+  if (!user) {
+    return (
+         <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background/80 px-4 backdrop-blur-sm sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
+             <SidebarTrigger className="md:hidden" />
+         </header>
+    );
+  }
 
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background/80 px-4 backdrop-blur-sm sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
