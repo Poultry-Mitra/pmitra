@@ -1,4 +1,5 @@
-import type { User, FarmMetric, SensorData, FarmAlert, DailyRates } from '@/lib/types';
+
+import type { User, FarmMetric, SensorData, FarmAlert, DailyRates, Batch } from '@/lib/types';
 
 export const mockUsers: User[] = [
   { id: '1', name: 'Admin User', email: 'admin@poultrymitra.com', role: 'admin', dateJoined: '2023-01-15' },
@@ -9,6 +10,13 @@ export const mockUsers: User[] = [
 ];
 
 export const currentUser: User = mockUsers[1];
+
+export const mockBatches: Batch[] = [
+  { id: 'B001', breed: 'Broiler', quantity: 500, ageDays: 35, avgWeight: 1800, status: 'Active', startDate: '2023-09-22' },
+  { id: 'B002', breed: 'Layer', quantity: 1000, ageDays: 120, avgWeight: 1500, status: 'Active', startDate: '2023-07-01' },
+  { id: 'B003', breed: 'Broiler', quantity: 450, ageDays: 42, avgWeight: 2200, status: 'Completed', startDate: '2023-08-10' },
+  { id: 'B004', breed: 'Broiler', quantity: 550, ageDays: 12, avgWeight: 450, status: 'Active', startDate: '2023-10-15' },
+];
 
 export const mockFarmMetrics: FarmMetric[] = [
   { month: 'Jan', productionRate: 85, mortalityRate: 1.2, feedConsumption: 110 },

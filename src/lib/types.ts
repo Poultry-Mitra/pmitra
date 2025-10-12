@@ -11,6 +11,16 @@ export type User = {
   avatarUrl?: string;
 };
 
+export type Batch = {
+  id: string;
+  breed: 'Broiler' | 'Layer';
+  quantity: number;
+  ageDays: number;
+  avgWeight: number; // in grams
+  status: 'Active' | 'Completed' | 'Planned';
+  startDate: string;
+};
+
 export type FarmMetric = {
   month: string;
   productionRate: number; // percentage
