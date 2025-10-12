@@ -27,8 +27,6 @@ import {
   LogOut,
   ChevronDown,
   ChevronUp,
-  Wallet,
-  TrendingUp,
 } from "lucide-react";
 import { useLanguage } from "@/components/language-provider";
 import { useState } from "react";
@@ -123,17 +121,6 @@ export function AdminSidebar() {
                 </SidebarMenuButton>
               </Link>
           </SidebarMenuItem>
-           <SidebarMenuItem>
-              <Link href="/admin/daily-rates">
-                <SidebarMenuButton
-                  isActive={pathname.startsWith("/admin/daily-rates")}
-                  tooltip={"Daily Rate Management"}
-                >
-                  <TrendingUp />
-                  <span>Daily Rate Management</span>
-                </SidebarMenuButton>
-              </Link>
-          </SidebarMenuItem>
           <SidebarMenuItem>
               <Link href="/admin/reports">
                 <SidebarMenuButton
@@ -153,17 +140,6 @@ export function AdminSidebar() {
                 >
                   <CreditCard />
                   <span>{"Transactions"}</span>
-                </SidebarMenuButton>
-              </Link>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-              <Link href="/admin/subscription-management">
-                <SidebarMenuButton
-                  isActive={pathname.startsWith("/admin/subscription-management")}
-                  tooltip={"Subscription Management"}
-                >
-                  <Wallet />
-                  <span>Subscription Management</span>
                 </SidebarMenuButton>
               </Link>
           </SidebarMenuItem>
