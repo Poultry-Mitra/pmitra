@@ -134,7 +134,7 @@ export default function DetailedSignupPage() {
             } else {
                 toast({
                     title: "Signup Failed",
-                    description: "error kyu hai",
+                    description: "aisa error kyu aa raha hai",
                     variant: "destructive",
                 });
             }
