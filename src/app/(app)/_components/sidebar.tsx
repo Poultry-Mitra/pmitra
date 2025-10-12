@@ -13,10 +13,8 @@ import {
   SidebarMenuButton,
   SidebarFooter,
   useSidebar,
-  Collapsible,
-  CollapsibleTrigger,
-  CollapsibleContent,
 } from "@/components/ui/sidebar";
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import { AppIcon } from "@/app/icon";
 import {
   LayoutDashboard,
