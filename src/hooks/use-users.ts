@@ -185,3 +185,27 @@ export function deleteUser(firestore: Firestore, userId: string) {
         throw e;
     });
 }
+
+
+export async function createUserProfile(firestore: Firestore, newUserProfile: Omit<User, 'id'>) {
+    if (!firestore) {
+        throw new Error("Firestore instance is not available.");
+    }
+
+    const usersCollection = collection(firestore, "users");
+
+    try {
+        const docRef = await addDoc(usersCollection, newUserProfile);
+        return docRef;
+    } catch (error) {
+        // Emit a specific permission error for better debugging
+        const permissionError = new FirestorePermissionError({
+            path: 'users',
+            operation: 'create',
+            requestResourceData: newUserProfile,
+        });
+        errorEmitter.emit('permission-error', permissionError);
+        // Re-throw the original error to be caught by the calling function's try/catch block
+        throw error;
+    }
+}
