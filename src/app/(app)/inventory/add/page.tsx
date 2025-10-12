@@ -28,7 +28,7 @@ const formSchema = z.object({
   supplierContact: z.string().optional(),
   // Product
   productName: z.string().min(2, "Product name is required."),
-  category: z.enum(["Feed", "Medicine"]),
+  category: z.enum(["Feed", "Medicine", "Equipment", "Supplements", "Bedding", "Sanitizers", "Other"]),
   // Purchase
   quantity: z.coerce.number().min(0, "Quantity must be non-negative."),
   unit: z.enum(["kg", "grams", "liters", "ml", "units"]),
@@ -144,6 +144,11 @@ export default function AddPurchasePage() {
                                                         <SelectContent>
                                                             <SelectItem value="Feed">Feed</SelectItem>
                                                             <SelectItem value="Medicine">Medicine</SelectItem>
+                                                            <SelectItem value="Equipment">Equipment</SelectItem>
+                                                            <SelectItem value="Supplements">Supplements</SelectItem>
+                                                            <SelectItem value="Bedding">Bedding</SelectItem>
+                                                            <SelectItem value="Sanitizers">Sanitizers</SelectItem>
+                                                            <SelectItem value="Other">Other</SelectItem>
                                                         </SelectContent>
                                                     </Select>
                                                     <FormMessage />
@@ -302,3 +307,5 @@ export default function AddPurchasePage() {
         </>
     );
 }
+
+    

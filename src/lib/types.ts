@@ -34,7 +34,7 @@ export type InventoryItem = {
     farmerUID: string;
     dealerUID?: string;
     productName: string;
-    category: "Feed" | "Medicine";
+    category: "Feed" | "Medicine" | "Equipment" | "Supplements" | "Bedding" | "Sanitizers" | "Other";
     stockQuantity: number;
     unit: "kg" | "grams" | "liters" | "ml" | "units";
     lowStockThreshold: number;
@@ -103,5 +103,7 @@ export type PricingPlan = {
     isPopular: boolean;
     userType: "Farmer" | "Dealer";
 }
+
+    
 
     
