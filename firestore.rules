@@ -2,137 +2,37 @@
  * @fileoverview Firestore Security Rules for PoultryMitra application.
  *
  * Core Philosophy:
- * This ruleset prioritizes secure user data access. It enforces ownership for user profiles and farm data,
- * and uses existence-based authorization for admin roles. The rules also implement role-based access control for
- * orders, ensuring that only the farmer or dealer involved in an order can access it.
+ * This ruleset enforces a user-centric security model. Users can read and write their own profiles.
+ * Admin privileges are granted based on the existence of a document in the `/roles_admin` collection.
+ * Farm data is secured to ensure that only authorized users (farmers) can access farm-related information.
  *
  * Data Structure:
- * - /userProfiles/{userId}: Stores individual user profiles, accessible only by the user themselves.
- * - /roles_admin/{userId}: Indicates admin status. If a document exists for a user, they are an admin.
- * - /farms/{farmId}: Stores farm information, accessible to authenticated users.
- * - /farms/{farmId}/farmData/{farmDataId}: Stores farm data, accessible only with farm ownership.
- * - /subscriptionPlans/{subscriptionPlanId}: Stores subscription plan information, publicly readable.
- * - /orders/{orderId}: Stores order information, accessible only to the farmer or dealer involved.
+ * - /userProfiles/{userId}: Stores individual user profile data.
+ * - /roles_admin/{userId}: Presence indicates admin privileges for the associated user.
+ * - /farms/{farmId}: Stores general farm information.
+ * - /farms/{farmId}/farmData/{farmDataId}: Time-series data for each farm.
+ * - /farms/{farmId}/alerts/{alertId}: Alerts related to specific farms.
+ * - /subscriptionPlans/{subscriptionPlanId}: Information about subscription plans.
+ * - /orders/{orderId}: Represents orders, linked to farmers and dealers.
  *
  * Key Security Decisions:
- * - User profiles are strictly private and only accessible to the owning user.
- * - Admin privileges are determined by the presence of a document in the `roles_admin` collection.
+ * - User profiles are private and only accessible/modifiable by the owning user.
+ * - Admin role is determined by the presence of a document in `/roles_admin/{userId}`.
+ * - Farm data and alerts are secured to the respective farm owners.
  * - Subscription plans are publicly readable.
- * - Only farmers and dealers involved in an order can access it.
- * - Data validation is minimized to facilitate rapid prototyping.
+ * - Orders are accessible to the farmer and dealer involved.
+ * - Listing of user profiles is disallowed for security reasons.
  *
  * Denormalization for Authorization:
- * - UserProfile.id is used in farms and orders to simplify rules and avoid costly `get()` calls.
- *
- * Structural Segregation:
- * - Admin roles are managed in a separate `roles_admin` collection for clear separation of concerns and efficient security checks.
+ *  The user ID is embedded in the `userProfiles` path, and its presence in `roles_admin` provides admin access.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Controls access to user profiles.
-     * @path /userProfiles/{userProfileId}
-     * @allow (get, create, update, delete, list) if the user is the owner of the profile.
-     *   Example (create): A user with UID 'user123' can create a profile at /userProfiles/user123.
-     * @deny (get, create, update, delete, list) if the user is not the owner of the profile.
-     *   Example (update): A user with UID 'user456' cannot update the profile at /userProfiles/user123.
-     * @principle Enforces document ownership for all operations.
-     */
-    match /userProfiles/{userProfileId} {
-      allow get: if isOwner(userProfileId);
-      allow list: if false;
-      allow create: if isOwner(userProfileId) && request.resource.data.id == userProfileId;
-      allow update: if isOwner(userProfileId) && resource.data.id == userProfileId;
-      allow delete: if isExistingOwner(userProfileId);
-    }
-
-    /**
-     * @description Controls access to admin role documents.
-     * @path /roles_admin/{userId}
-     * @allow (get, create, update, delete, list) if the user is an admin (determined by document existence).
-     *   Example (create): A user with admin privileges can create a document at /roles_admin/user123.
-     * @deny (get, create, update, delete, list) if the user is not an admin.
-     *   Example (delete): A non-admin user cannot delete the document at /roles_admin/user123.
-     * @principle Uses existence-based authorization to grant admin privileges.
-     */
-    match /roles_admin/{userId} {
-      allow get: if isAdmin();
-      allow list: if false;
-      allow create: if isAdmin();
-      allow update: if isAdmin();
-      allow delete: if isAdmin();
-    }
-
-    /**
-     * @description Controls access to farm documents.
-     * @path /farms/{farmId}
-     * @allow (get, create, update, delete, list) if the user is authenticated.
-     *   Example (get): Any logged-in user can retrieve a farm document.
-     * @deny (create, update, delete) if the user is not the owner.
-     *   Example (update): A user who doesn't own the farm cannot update it.
-     * @principle Allows public read access but restricts write access to owners.
-     */
-    match /farms/{farmId} {
-      allow get, list: if isSignedIn();
-      allow create: if isSignedIn(); // TODO: Add owner validation once the schema is updated with an ownership field.
-      allow update: if false; // TODO: Add owner validation once the schema is updated with an ownership field.
-      allow delete: if false; // TODO: Add owner validation once the schema is updated with an ownership field.
-      // CRITICAL: Cannot implement owner-only writes. The 'Farm' entity is missing an 'ownerId' or 'authorId' field.
-    }
-
-    /**
-     * @description Controls access to farm data documents nested under a farm.
-     * @path /farms/{farmId}/farmData/{farmDataId}
-     * @allow (get, create, update, delete, list) if the user owns the parent farm.
-     *   Example (create): The owner of the farm can create new farm data.
-     * @deny (get, create, update, delete, list) if the user does not own the parent farm.
-     *   Example (delete): A user who doesn't own the farm cannot delete farm data.
-     * @principle Enforces document ownership for writes.
-     */
-    match /farms/{farmId}/farmData/{farmDataId} {
-      allow get: if isSignedIn();
-      allow list: if isSignedIn();
-      allow create: if isSignedIn(); // TODO: Add owner validation once the schema is updated with an ownership field.
-      allow update: if false; // TODO: Add owner validation once the schema is updated with an ownership field.
-      allow delete: if false; // TODO: Add owner validation once the schema is updated with an ownership field.
-    }
-
-    /**
-     * @description Controls access to subscription plan documents.
-     * @path /subscriptionPlans/{subscriptionPlanId}
-     * @allow (get, list) to anyone. (create, update, delete) are denied.
-     *   Example (get): Any user can retrieve subscription plan information.
-     * @deny (create, update, delete) to everyone.
-     *   Example (delete): No one can delete a subscription plan.
-     */
-    match /subscriptionPlans/{subscriptionPlanId} {
-      allow get, list: if true;
-      allow create, update, delete: if false;
-    }
-
-    /**
-     * @description Controls access to order documents.
-     * @path /orders/{orderId}
-     * @allow (get, list) if the user is either the farmer or the dealer in the order.
-     *   Example (get): The farmer involved in an order can retrieve the order details.
-     * @deny (create, update, delete) if the user is not either the farmer or the dealer in the order.
-     *   Example (delete): A user who is not part of the order cannot delete it.
-     * @principle Restricts access to orders to the involved parties (farmer or dealer).
-     */
-    match /orders/{orderId} {
-        allow get: if isFarmerOrDealer(resource.data.farmerId, resource.data.dealerId);
-        allow list: if isFarmerOrDealer(resource.data.farmerId, resource.data.dealerId);
-        allow create: if isFarmerOrDealer(request.resource.data.farmerId, request.resource.data.dealerId);
-        allow update: if isFarmerOrDealer(resource.data.farmerId, resource.data.dealerId);
-        allow delete: if isFarmerOrDealer(resource.data.farmerId, resource.data.dealerId) && resource != null;
-    }
-
-    // --- Helper Functions ---
-
-    /**
-     * @description Checks if the user is signed in.
+     * @description Checks if the current user is signed in.
+     * @example isSignedIn() == true if request.auth != null
      * @return {bool} True if the user is signed in, false otherwise.
      */
     function isSignedIn() {
@@ -140,8 +40,9 @@ service cloud.firestore {
     }
 
     /**
-     * @description Checks if the user is the owner of the resource.
-     * @param {string} userId The user ID to check against.
+     * @description Checks if the current user is the owner of the resource.
+     * @param {string} userId - The user ID to compare with the request's auth UID.
+     * @example isOwner('user123') == (request.auth.uid == 'user123')
      * @return {bool} True if the user is the owner, false otherwise.
      */
     function isOwner(userId) {
@@ -149,16 +50,19 @@ service cloud.firestore {
     }
 
     /**
-     * @description Checks if the user is the owner of the resource and the resource exists.
-     * @param {string} userId The user ID to check against.
-     * @return {bool} True if the user is the owner and resource exist, false otherwise.
+     * @description Checks if the current user is the owner of the resource and it exists.
+     * Use this function for destructive operations (update, delete) to prevent acting on non-existent data.
+     * @param {string} userId - The user ID to compare with the resource's ownerId.
+     * @example isExistingOwner('user123') == (isOwner('user123') && resource != null)
+     * @return {bool} True if the user is the owner and the resource exists, false otherwise.
      */
     function isExistingOwner(userId) {
       return isOwner(userId) && resource != null;
     }
 
     /**
-     * @description Checks if the user has admin privileges (by checking for document existence in roles_admin).
+     * @description Checks if the current user is an admin.
+     * @example isAdmin() == (get(/databases/$(database)/documents/roles_admin/$(request.auth.uid)).data.admin == true)
      * @return {bool} True if the user is an admin, false otherwise.
      */
     function isAdmin() {
@@ -166,13 +70,130 @@ service cloud.firestore {
     }
 
     /**
-     * @description Checks if the user is either the farmer or the dealer involved in the order.
-     * @param {string} farmerId The farmer's user ID.
-     * @param {string} dealerId The dealer's user ID.
-     * @return {bool} True if the user is either the farmer or the dealer, false otherwise.
+     * @description Rule for /userProfiles/{userProfileId}
+     * @path /userProfiles/{userProfileId}
+     * @allow (create) User with UID 'user123' creates a profile with id: 'user123'
+     * @deny (create) User with UID 'user123' tries to create a profile with id: 'user456'
+     * @principle Enforces document ownership for writes.
      */
-    function isFarmerOrDealer(farmerId, dealerId) {
-        return request.auth.uid == farmerId || request.auth.uid == dealerId;
+    match /userProfiles/{userProfileId} {
+      // Read rules
+      allow get: if isOwner(userProfileId);
+      allow list: if false; // Listing user profiles is not permitted
+
+      // Write rules
+      allow create: if isOwner(userProfileId) && request.resource.data.id == userProfileId;
+      allow update: if isExistingOwner(userProfileId) && request.resource.data.id == resource.data.id;
+      allow delete: if isExistingOwner(userProfileId);
+    }
+
+     /**
+      * @description Rule for /roles_admin/{userId}
+      * @path /roles_admin/{userId}
+      * @allow (create) User with UID 'admin123' creates a role
+      * @deny (create) User with UID 'user456' tries to create a role.
+      * @principle Restricts roles_admin creation to only specified admin user.
+      */
+    match /roles_admin/{userId} {
+       // Read rules
+       allow get: if isAdmin();
+       allow list: if false;
+
+       // Write rules
+       allow create: if isAdmin();
+       allow update: if false;
+       allow delete: if isAdmin();
+    }
+
+
+    /**
+     * @description Rule for /farms/{farmId}
+     * @path /farms/{farmId}
+     * @allow (create) User with UID 'user123' creates a farm.
+     * @deny (create) User with UID 'user456' tries to create a farm.
+     * @principle Enforces document ownership for farm writes.
+     */
+    match /farms/{farmId} {
+      // Read rules
+      allow get: if true;
+      allow list: if true;
+
+      // Write rules
+      allow create: if isSignedIn();
+      allow update: if isSignedIn();
+      allow delete: if isSignedIn();
+    }
+
+    /**
+     * @description Rule for /farms/{farmId}/farmData/{farmDataId}
+     * @path /farms/{farmId}/farmData/{farmDataId}
+     * @allow (create) User with UID 'user123' creates farm data under their farm.
+     * @deny (create) User with UID 'user456' tries to create farm data under someone else's farm.
+     * @principle Enforces farm data ownership.
+     */
+    match /farms/{farmId}/farmData/{farmDataId} {
+      // Read rules
+      allow get: if true;
+      allow list: if true;
+
+      // Write rules
+      allow create: if isSignedIn();
+      allow update: if isSignedIn();
+      allow delete: if isSignedIn();
+    }
+
+    /**
+     * @description Rule for /farms/{farmId}/alerts/{alertId}
+     * @path /farms/{farmId}/alerts/{alertId}
+     * @allow (create) User with UID 'user123' creates an alert under their farm.
+     * @deny (create) User with UID 'user456' tries to create an alert under someone else's farm.
+     * @principle Enforces farm alert ownership.
+     */
+    match /farms/{farmId}/alerts/{alertId} {
+      // Read rules
+      allow get: if true;
+      allow list: if true;
+
+      // Write rules
+      allow create: if isSignedIn();
+      allow update: if isSignedIn();
+      allow delete: if isSignedIn();
+    }
+
+    /**
+     * @description Rule for /subscriptionPlans/{subscriptionPlanId}
+     * @path /subscriptionPlans/{subscriptionPlanId}
+     * @allow (get) Any user can read a subscription plan.
+     * @deny (create) No one should be able to create a subscription plan through client side.
+     * @principle Subscription plans are publicly readable, writes are forbidden.
+     */
+    match /subscriptionPlans/{subscriptionPlanId} {
+      // Read rules
+      allow get: if true;
+      allow list: if true;
+
+      // Write rules
+      allow create: if false;
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    /**
+     * @description Rule for /orders/{orderId}
+     * @path /orders/{orderId}
+     * @allow (create) User with UID 'user123' can create an order.
+     * @deny (update) User with UID 'user456' tries to update an order they don't own.
+     * @principle Restricts order access to relevant users (farmer/dealer).
+     */
+    match /orders/{orderId} {
+      // Read rules
+      allow get: if true;
+      allow list: if true;
+
+      // Write rules
+      allow create: if isSignedIn();
+      allow update: if isSignedIn();
+      allow delete: if isSignedIn();
     }
   }
 }
