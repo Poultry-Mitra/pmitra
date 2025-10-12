@@ -1,3 +1,4 @@
+
 import { Timestamp } from "firebase/firestore";
 
 export type UserRole = 'farmer' | 'dealer' | 'admin';
@@ -15,6 +16,10 @@ export type User = {
   connectedDealers?: string[];
   aiQueriesCount?: number;
   lastQueryDate?: string;
+  mobileNumber?: string;
+  state?: string;
+  district?: string;
+  pinCode?: string;
 };
 
 export type Batch = {
@@ -83,7 +88,7 @@ export type LedgerEntry = {
 };
 
 export type FarmMetric = {
-  month: string;
+  month: string; // YYYY-MM
   productionRate: number; // percentage
   mortalityRate: number; // percentage
   feedConsumption: number; // grams per bird per day
@@ -91,6 +96,7 @@ export type FarmMetric = {
 
 export type SensorData = {
   id: string;
+  farmId: string;
   location: string; // e.g., "Coop A-1"
   temperature: number; // Celsius
   humidity: number; // percentage
@@ -100,9 +106,11 @@ export type SensorData = {
 
 export type FarmAlert = {
   id: string;
+  farmId: string;
   type: 'critical' | 'warning';
   message: string;
   timestamp: string; // ISO 8601 format
+  isRead: boolean;
 };
 
 export type DailyRates = {
@@ -165,3 +173,5 @@ export type Connection = {
     requestedBy: 'farmer' | 'dealer';
     createdAt: string;
 }
+
+    

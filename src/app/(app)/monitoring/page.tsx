@@ -4,22 +4,48 @@
 import { useState, useEffect } from 'react';
 import { PageHeader } from "../_components/page-header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { mockSensorData, mockHistoricalData } from "@/lib/data";
-import type { FarmAlert } from '@/lib/types';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertTriangle, Siren, Thermometer, Droplets, Wind } from 'lucide-react';
+import { AlertTriangle, Siren, Thermometer, Droplets, Wind, Loader2 } from 'lucide-react';
 import { AIForecast } from "./_components/ai-forecast";
+import { useUser } from '@/firebase/provider';
+import { useCollection } from '@/firebase/firestore/use-collection';
+import { collection, query, where, orderBy, limit } from 'firebase/firestore';
+import { useFirestore } from '@/firebase';
+import type { SensorData, FarmAlert } from '@/lib/types';
+import { formatDistanceToNow } from 'date-fns';
 
 export default function MonitoringPage() {
-    const [alerts, setAlerts] = useState<FarmAlert[]>([]);
+    const { user } = useUser();
+    const firestore = useFirestore();
 
-    useEffect(() => {
-        // Mock alerts for demonstration
-        setAlerts([
-            { id: 'alert-1', type: 'critical', message: 'High ammonia levels detected in Coop B-2. Immediate ventilation required.', timestamp: new Date(Date.now() - 1000 * 60 * 5).toISOString() },
-            { id: 'alert-2', type: 'warning', message: 'Humidity dropping in Coop A-1. Check water supply.', timestamp: new Date(Date.now() - 1000 * 60 * 30).toISOString() },
-        ]);
-    }, []);
+    // Fetch latest sensor data (assuming one document per farm for simplicity)
+    const sensorQuery = firestore && user ? query(
+        collection(firestore, 'farmData'),
+        where('farmId', '==', user.uid), // Assuming farmId is user.uid for simplicity
+        orderBy('timestamp', 'desc'),
+        limit(4) // Fetching 4 latest readings for 4 coops
+    ) : null;
+    const { data: sensorData, isLoading: sensorLoading } = useCollection<SensorData>(sensorQuery);
+    
+    // Fetch active alerts
+    const alertsQuery = firestore && user ? query(
+        collection(firestore, 'farmAlerts'),
+        where('farmId', '==', user.uid),
+        where('isRead', '==', false),
+        orderBy('timestamp', 'desc')
+    ) : null;
+    const { data: alerts, isLoading: alertsLoading } = useCollection<FarmAlert>(alertsQuery);
+
+    // Fetch historical data for AI forecast
+    const historicalQuery = firestore && user ? query(
+        collection(firestore, 'farmData'),
+        where('farmId', '==', user.uid),
+        orderBy('timestamp', 'desc'),
+        limit(100) // Last 100 records for historical context
+    ) : null;
+    const { data: historicalData, isLoading: historyLoading } = useCollection<SensorData>(historicalQuery);
+
+    const loading = sensorLoading || alertsLoading || historyLoading;
 
     return (
         <>
@@ -31,50 +57,63 @@ export default function MonitoringPage() {
             <div className="mt-8 grid gap-6 lg:grid-cols-3">
                 <div className="lg:col-span-2">
                      <h2 className="font-headline text-xl font-semibold mb-4">Live Sensor Readings</h2>
-                     <div className="grid gap-4 md:grid-cols-2">
-                        {mockSensorData.map(sensor => (
-                            <Card key={sensor.id}>
-                                <CardHeader className="pb-2">
-                                    <div className="flex items-center justify-between">
-                                        <CardTitle className="text-base">{sensor.location}</CardTitle>
-                                        <div className="flex items-center gap-1 text-xs text-green-500">
-                                            <span className="relative flex h-2 w-2">
-                                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                                                <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
-                                            </span>
-                                            Live
+                     {loading ? (
+                         <div className="grid gap-4 md:grid-cols-2">
+                             {[...Array(4)].map(i => <Card key={i} className="h-36"><CardContent className="pt-6 flex justify-center items-center h-full"><Loader2 className="animate-spin"/></CardContent></Card>)}
+                         </div>
+                     ) : sensorData && sensorData.length > 0 ? (
+                         <div className="grid gap-4 md:grid-cols-2">
+                            {sensorData.map(sensor => (
+                                <Card key={sensor.id}>
+                                    <CardHeader className="pb-2">
+                                        <div className="flex items-center justify-between">
+                                            <CardTitle className="text-base">{`Coop ${sensor.id.slice(-4)}`}</CardTitle>
+                                            <div className="flex items-center gap-1 text-xs text-green-500">
+                                                <span className="relative flex h-2 w-2">
+                                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                                                </span>
+                                                Live
+                                            </div>
                                         </div>
-                                    </div>
-                                    <CardDescription>Last updated: a few seconds ago</CardDescription>
-                                </CardHeader>
-                                <CardContent className="grid grid-cols-3 gap-2 text-sm">
-                                    <div className="flex items-center gap-2 p-2 rounded-md bg-secondary/50">
-                                        <Thermometer className="size-4 text-muted-foreground" />
-                                        <span>{sensor.temperature}°C</span>
-                                    </div>
-                                    <div className="flex items-center gap-2 p-2 rounded-md bg-secondary/50">
-                                        <Droplets className="size-4 text-muted-foreground" />
-                                        <span>{sensor.humidity}%</span>
-                                    </div>
-                                    <div className="flex items-center gap-2 p-2 rounded-md bg-secondary/50">
-                                        <Wind className="size-4 text-muted-foreground" />
-                                        <span>{sensor.ammonia} ppm</span>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        ))}
-                     </div>
+                                        <CardDescription>Last updated: {formatDistanceToNow(new Date(sensor.timestamp), { addSuffix: true })}</CardDescription>
+                                    </CardHeader>
+                                    <CardContent className="grid grid-cols-3 gap-2 text-sm">
+                                        <div className="flex items-center gap-2 p-2 rounded-md bg-secondary/50">
+                                            <Thermometer className="size-4 text-muted-foreground" />
+                                            <span>{sensor.temperature}°C</span>
+                                        </div>
+                                        <div className="flex items-center gap-2 p-2 rounded-md bg-secondary/50">
+                                            <Droplets className="size-4 text-muted-foreground" />
+                                            <span>{sensor.humidity}%</span>
+                                        </div>
+                                        <div className="flex items-center gap-2 p-2 rounded-md bg-secondary/50">
+                                            <Wind className="size-4 text-muted-foreground" />
+                                            <span>{sensor.ammonia} ppm</span>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            ))}
+                         </div>
+                     ) : (
+                        <div className="text-center text-muted-foreground py-10">No sensor data available.</div>
+                     )}
                 </div>
                 <div className="lg:col-span-1 space-y-4">
                     <h2 className="font-headline text-xl font-semibold">Active Alerts</h2>
-                    {alerts.map(alert => (
-                         <Alert key={alert.id} variant={alert.type === 'critical' ? 'destructive' : 'default'}>
-                            {alert.type === 'critical' ? <Siren className="h-4 w-4" /> : <AlertTriangle className="h-4 w-4" />}
-                            <AlertTitle>{alert.type === 'critical' ? 'Critical Alert' : 'Warning'}</AlertTitle>
-                            <AlertDescription>{alert.message}</AlertDescription>
-                        </Alert>
-                    ))}
-                    {alerts.length === 0 && <p className="text-sm text-muted-foreground">No active alerts.</p>}
+                    {loading ? (
+                         <Card className="h-36"><CardContent className="pt-6 flex justify-center items-center h-full"><Loader2 className="animate-spin"/></CardContent></Card>
+                    ) : alerts && alerts.length > 0 ? (
+                        alerts.map(alert => (
+                             <Alert key={alert.id} variant={alert.type === 'critical' ? 'destructive' : 'default'}>
+                                {alert.type === 'critical' ? <Siren className="h-4 w-4" /> : <AlertTriangle className="h-4 w-4" />}
+                                <AlertTitle>{alert.type === 'critical' ? 'Critical Alert' : 'Warning'}</AlertTitle>
+                                <AlertDescription>{alert.message}</AlertDescription>
+                            </Alert>
+                        ))
+                    ) : (
+                        <p className="text-sm text-muted-foreground pt-4">No active alerts.</p>
+                    )}
                 </div>
             </div>
 
@@ -87,13 +126,19 @@ export default function MonitoringPage() {
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
-                       <AIForecast
-                        sensorData={JSON.stringify(mockSensorData, null, 2)}
-                        historicalData={JSON.stringify(mockHistoricalData, null, 2)}
-                       />
+                       {loading ? (
+                           <div className="flex justify-center items-center p-8"><Loader2 className="animate-spin" /></div>
+                       ) : (
+                           <AIForecast
+                            sensorData={JSON.stringify(sensorData, null, 2)}
+                            historicalData={JSON.stringify(historicalData, null, 2)}
+                           />
+                       )}
                     </CardContent>
                 </Card>
             </div>
         </>
     );
 }
+
+    

@@ -127,40 +127,32 @@
       "type": "object",
       "description": "Represents farm data collected over time.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the farm data entry."
-        },
-        "farmId": {
-          "type": "string",
-          "description": "Reference to Farm. (Relationship: Farm 1:N FarmData)"
-        },
-        "timestamp": {
-          "type": "string",
-          "description": "Timestamp of the data collection.",
-          "format": "date-time"
-        },
-        "productionRate": {
-          "type": "number",
-          "description": "Production rate of the farm (e.g., eggs per day)."
-        },
-        "mortalityRate": {
-          "type": "number",
-          "description": "Mortality rate of the farm."
-        },
-        "feedConsumption": {
-          "type": "number",
-          "description": "Feed consumption of the farm."
-        }
+        "id": { "type": "string", "description": "Unique identifier for the farm data entry." },
+        "farmId": { "type": "string", "description": "Reference to Farm." },
+        "timestamp": { "type": "string", "description": "Timestamp of the data collection.", "format": "date-time" },
+        "temperature": { "type": "number", "description": "Temperature in Celsius." },
+        "humidity": { "type": "number", "description": "Humidity in percentage." },
+        "ammonia": { "type": "number", "description": "Ammonia level in ppm." },
+        "productionRate": { "type": "number", "description": "Production rate of the farm (e.g., eggs per day)." },
+        "mortalityRate": { "type": "number", "description": "Mortality rate of the farm." },
+        "feedConsumption": { "type": "number", "description": "Feed consumption of the farm." }
       },
-      "required": [
-        "id",
-        "farmId",
-        "timestamp",
-        "productionRate",
-        "mortalityRate",
-        "feedConsumption"
-      ]
+      "required": ["id", "farmId", "timestamp"]
+    },
+    "FarmAlert": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "FarmAlert",
+      "type": "object",
+      "description": "Represents a critical or warning alert for a farm.",
+      "properties": {
+        "id": { "type": "string", "description": "Unique identifier for the alert." },
+        "farmId": { "type": "string", "description": "Reference to Farm." },
+        "type": { "type": "string", "enum": ["critical", "warning"], "description": "The severity of the alert." },
+        "message": { "type": "string", "description": "A descriptive message for the alert." },
+        "timestamp": { "type": "string", "format": "date-time", "description": "When the alert was generated." },
+        "isRead": { "type": "boolean", "description": "Whether the alert has been read by the user." }
+      },
+      "required": ["id", "farmId", "type", "message", "timestamp", "isRead"]
     },
     "Order": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -270,7 +262,7 @@
           "schema": {
             "$ref": "#/backend/entities/FarmData"
           },
-          "description": "Stores time-series data for a specific farm.",
+          "description": "Stores time-series data for a specific farm, including sensor readings.",
           "params": [
             {
               "name": "farmId",
@@ -279,6 +271,26 @@
             {
               "name": "farmDataId",
               "description": "The unique identifier for the farm data entry."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/farms/{farmId}/alerts/{alertId}",
+        "definition": {
+          "entityName": "FarmAlert",
+          "schema": {
+            "$ref": "#/backend/entities/FarmAlert"
+          },
+          "description": "Stores critical and warning alerts for a specific farm.",
+          "params": [
+            {
+              "name": "farmId",
+              "description": "The unique identifier for the farm."
+            },
+            {
+              "name": "alertId",
+              "description": "The unique identifier for the alert."
             }
           ]
         }
@@ -316,6 +328,8 @@
         }
       }
     ],
-    "reasoning": "The Firestore structure is designed to ensure authorization independence, clarity, and scalability. User profiles are stored in a top-level `userProfiles` collection, with the admin role determined by document existence in the `roles_admin` collection.  Farm data is nested under the `farms` collection to link farm data to a specific farm.  The denormalization of the `UserProfile` is included in each farm, subscriptionPlan and orders.  This eliminates the need for `get()` calls in security rules when accessing associated farm data or dealing with orders related to a user. For managing administrator access, the structure leverages a dedicated `roles_admin` collection, using the principle of existence-based authorization.  This approach simplifies the security rules and enhances maintainability.  The `orders` collection stores order details, including the `farmerId` and `dealerId` for linking orders to specific users."
+    "reasoning": "The Firestore structure is designed to ensure authorization independence, clarity, and scalability. User profiles are stored in a top-level `userProfiles` collection, with the admin role determined by document existence in the `roles_admin` collection. Farm data, including sensor readings, is nested under the `farms` collection to link it to a specific farm. A new `alerts` subcollection is added under `farms` to manage real-time alerts efficiently. The denormalization of the `UserProfile` is included in each farm, subscriptionPlan and orders. This eliminates the need for `get()` calls in security rules when accessing associated farm data or dealing with orders related to a user. For managing administrator access, the structure leverages a dedicated `roles_admin` collection, using the principle of existence-based authorization. This approach simplifies the security rules and enhances maintainability. The `orders` collection stores order details, including the `farmerId` and `dealerId` for linking orders to specific users."
   }
 }
+
+    

@@ -5,6 +5,7 @@ import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxi
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { FarmMetric } from '@/lib/types';
 import { ChartConfig, ChartContainer, ChartTooltipContent } from '@/components/ui/chart';
+import { useLanguage } from '@/components/language-provider';
 
 const chartConfig = {
     productionRate: {
@@ -22,17 +23,23 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 export function ProductionChart({ data }: { data: FarmMetric[] }) {
+    const { t } = useLanguage();
+
+    const localizedData = data.map(item => ({
+        ...item,
+        month: new Date(2024, parseInt(item.month.split('-')[1]) - 1).toLocaleString(t('nav.home') === 'Home' ? 'en-US' : 'hi-IN', { month: 'short' })
+    }));
+
     return (
         <ChartContainer config={chartConfig} className="min-h-[300px] w-full">
             <ResponsiveContainer>
-                <BarChart data={data}>
+                <BarChart data={localizedData}>
                     <CartesianGrid vertical={false} />
                     <XAxis
                         dataKey="month"
                         tickLine={false}
                         tickMargin={10}
                         axisLine={false}
-                        tickFormatter={(value) => value.slice(0, 3)}
                     />
                      <YAxis />
                     <Tooltip content={<ChartTooltipContent />} />
@@ -43,3 +50,5 @@ export function ProductionChart({ data }: { data: FarmMetric[] }) {
         </ChartContainer>
     );
 }
+
+    
