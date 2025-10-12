@@ -14,6 +14,7 @@ export type User = {
 
 export type Batch = {
   id: string;
+  farmerUID: string;
   batchName: string;
   batchType: "Broiler" | "Layer";
   totalChicks: number;
@@ -77,3 +78,5 @@ export type PricingPlan = {
     isPopular: boolean;
     userType: "Farmer" | "Dealer";
 }
+
+    

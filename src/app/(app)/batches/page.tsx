@@ -30,7 +30,8 @@ import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
-import { useFirestore } from "@/firebase/provider";
+import { useFirestore, useUser } from "@/firebase/provider";
+import { currentUser } from "@/lib/data";
 
 const statusVariant: { [key in 'Active' | 'Completed' | 'Planned']: "default" | "secondary" | "outline" } = {
     Active: "default",
@@ -46,23 +47,24 @@ const statusColorScheme = {
 
 export default function BatchesPage() {
   const firestore = useFirestore();
-  const { batches, loading } = useBatches();
+  const user = currentUser; // In a real app, this would come from useUser()
+  const { batches, loading } = useBatches(user.id);
   const [showUpgradeAlert, setShowUpgradeAlert] = useState(false);
   const [showDeleteAlert, setShowDeleteAlert] = useState<Batch | null>(null);
   const { toast } = useToast();
   const router = useRouter();
 
-  // Assuming a mock user plan for now. In a real app, this would come from user data.
-  const isPremiumUser = true; 
+  // This should be dynamic based on the user's subscription status.
+  const isPremiumUser = user.role !== 'admin'; // Assuming admin is not a farmer plan, and we have another way to check premium
   const activeBatchesCount = batches.filter(b => b.status === 'Active').length;
 
   const handleAddNewBatch = () => {
-    if (!firestore) return;
+    if (!firestore || !user) return;
+
     if (!isPremiumUser && activeBatchesCount >= 1) {
       setShowUpgradeAlert(true);
     } else {
-      // Create a new mock batch and add it to firestore
-      const newBatch: Omit<Batch, 'id' | 'createdAt'> = {
+      const newBatch: Omit<Batch, 'id' | 'createdAt' | 'farmerUID'> = {
         batchName: `New Batch #${batches.length + 1}`,
         batchType: "Broiler",
         totalChicks: Math.floor(Math.random() * 100 + 450),
@@ -73,7 +75,7 @@ export default function BatchesPage() {
         feedConsumed: 0,
         status: "Active",
       };
-      addBatch(firestore, newBatch);
+      addBatch(firestore, user.id, newBatch);
       toast({
         title: "Batch Added",
         description: `${newBatch.batchName} has been successfully created.`,
@@ -225,3 +227,5 @@ export default function BatchesPage() {
     </>
   );
 }
+
+    

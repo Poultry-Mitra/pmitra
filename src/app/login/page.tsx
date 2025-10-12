@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { LanguageToggle } from "@/components/language-toggle";
 import { useLanguage } from "@/components/language-provider";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowRight, ArrowLeft } from "lucide-react";
+import { ArrowRight, ArrowLeft, Shield } from "lucide-react";
 
 export default function LoginPage() {
   const { t } = useLanguage();
@@ -58,6 +58,14 @@ export default function LoginPage() {
                 </Card>
             </div>
 
+             <div className="mt-8">
+                 <Button variant="ghost" asChild className="text-sm">
+                    <Link href="/admin">
+                        <Shield className="mr-2" /> {t('login.admin_login')}
+                    </Link>
+                 </Button>
+            </div>
+
             <div className="mt-10 space-y-4 text-sm text-muted-foreground">
                 <p>
                     {t('login.no_account')}{' '}
@@ -75,3 +83,5 @@ export default function LoginPage() {
     </div>
   );
 }
+
+    
