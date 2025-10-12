@@ -1,3 +1,4 @@
+
 // src/hooks/use-batches.ts
 'use client';
 
@@ -12,6 +13,7 @@ import {
   type Firestore,
   type DocumentData,
   QueryDocumentSnapshot,
+  DocumentSnapshot,
 } from 'firebase/firestore';
 import { useFirestore } from '@/firebase/provider';
 import type { Batch } from '@/lib/types';
@@ -19,8 +21,9 @@ import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 
 // Helper to convert Firestore doc to Batch type
-function toBatch(doc: QueryDocumentSnapshot<DocumentData>): Batch {
+function toBatch(doc: QueryDocumentSnapshot<DocumentData> | DocumentSnapshot<DocumentData>): Batch {
     const data = doc.data();
+    if (!data) throw new Error("Document data is empty");
     return {
         id: doc.id,
         ...data,
@@ -35,7 +38,10 @@ export function useBatches() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!firestore) return;
+    if (!firestore) {
+        setLoading(false);
+        return;
+    }
     
     setLoading(true);
     const unsubscribe = onSnapshot(
@@ -60,6 +66,45 @@ export function useBatches() {
 
   return { batches, loading };
 }
+
+export function useBatch(batchId: string) {
+    const firestore = useFirestore();
+    const [batch, setBatch] = useState<Batch | null>(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        if (!firestore || !batchId) {
+            setLoading(false);
+            return;
+        };
+
+        setLoading(true);
+        const docRef = doc(firestore, 'batches', batchId);
+        const unsubscribe = onSnapshot(docRef, (doc) => {
+            if (doc.exists()) {
+                setBatch(toBatch(doc));
+            } else {
+                setBatch(null);
+                console.warn(`Batch with id ${batchId} not found.`);
+            }
+            setLoading(false);
+        },
+        async (err) => {
+            const permissionError = new FirestorePermissionError({
+              path: docRef.path,
+              operation: 'get',
+            });
+            errorEmitter.emit('permission-error', permissionError);
+            console.error(err);
+            setLoading(false);
+        });
+
+        return () => unsubscribe();
+    }, [firestore, batchId]);
+
+    return { batch, loading };
+}
+
 
 export function addBatch(data: Omit<Batch, 'id' | 'createdAt'>) {
     const { firestore } = initializeFirebase();

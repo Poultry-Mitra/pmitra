@@ -29,6 +29,7 @@ import {
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { useToast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
 
 const statusVariant: { [key in 'Active' | 'Completed' | 'Planned']: "default" | "secondary" | "outline" } = {
     Active: "default",
@@ -47,6 +48,7 @@ export default function BatchesPage() {
   const [showUpgradeAlert, setShowUpgradeAlert] = useState(false);
   const [showDeleteAlert, setShowDeleteAlert] = useState<Batch | null>(null);
   const { toast } = useToast();
+  const router = useRouter();
 
   // Assuming a mock user plan for now. In a real app, this would come from user data.
   const isPremiumUser = true; 
@@ -87,6 +89,10 @@ export default function BatchesPage() {
       setShowDeleteAlert(null);
     }
   }
+
+  const handleRowClick = (batchId: string) => {
+    router.push(`/batches/${batchId}`);
+  };
   
   return (
     <>
@@ -139,7 +145,7 @@ export default function BatchesPage() {
                           const ageInMs = new Date().getTime() - new Date(batch.batchStartDate).getTime();
                           const ageInDays = Math.floor(ageInMs / (1000 * 60 * 60 * 24));
                           return(
-                            <TableRow key={batch.id}>
+                            <TableRow key={batch.id} onClick={() => handleRowClick(batch.id)} className="cursor-pointer">
                                 <TableCell className="font-medium">{batch.batchName}</TableCell>
                                 <TableCell>{batch.batchType}</TableCell>
                                 <TableCell>
@@ -150,7 +156,7 @@ export default function BatchesPage() {
                                 <TableCell className="text-right">{batch.totalChicks.toLocaleString()}</TableCell>
                                 <TableCell className="text-right">{ageInDays}</TableCell>
                                 <TableCell className="text-right">{batch.avgBodyWeight.toLocaleString()}</TableCell>
-                                <TableCell className="text-right">
+                                <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                                      <DropdownMenu>
                                         <DropdownMenuTrigger asChild>
                                             <Button aria-haspopup="true" size="icon" variant="ghost">
@@ -159,7 +165,9 @@ export default function BatchesPage() {
                                             </Button>
                                         </DropdownMenuTrigger>
                                         <DropdownMenuContent align="end">
-                                            <DropdownMenuItem>View Details</DropdownMenuItem>
+                                            <DropdownMenuItem asChild>
+                                                <Link href={`/batches/${batch.id}`}>View Details</Link>
+                                            </DropdownMenuItem>
                                             <DropdownMenuItem>Mark as Completed</DropdownMenuItem>
                                             <DropdownMenuItem className="text-destructive" onClick={() => setShowDeleteAlert(batch)}>Delete</DropdownMenuItem>
                                         </DropdownMenuContent>
@@ -214,4 +222,3 @@ export default function BatchesPage() {
     </>
   );
 }
-
