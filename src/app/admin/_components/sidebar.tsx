@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import Link from "next/link";
@@ -52,7 +53,7 @@ export function AdminSidebar() {
   const [contentManagementOpen, setContentManagementOpen] = useState(pathname.startsWith('/admin/daily-rates'));
 
   // This is a mock. In a real app, you'd get the current user from an auth context.
-  const currentUser = mockUsers.find(u => u.role !== 'farmer' && u.role !== 'admin');
+  const currentUser = mockUsers.find(u => u.role === 'dealer');
   const isAdmin = currentUser?.role === 'admin';
 
 
