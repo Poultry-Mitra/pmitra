@@ -33,6 +33,10 @@ export default function TransactionsPage() {
     const pageTitle = isAdmin ? "All Transactions" : "My Transactions";
     const pageDescription = isAdmin ? "View all transactions across the platform." : "View and manage all transactions related to your account.";
 
+    const handleTransactionClick = (txn: any) => {
+        alert(`Transaction Details:\n\nID: ${txn.id}\nFarmer: ${txn.user.name}\nAmount: ${txn.amount}\nStatus: ${txn.status}\nDate: ${txn.date}`);
+    }
+
 
     return (
         <>
@@ -64,7 +68,7 @@ export default function TransactionsPage() {
                                 {transactions.map(txn => {
                                     if (!txn.user) return null;
                                     return (
-                                        <TableRow key={txn.id}>
+                                        <TableRow key={txn.id} onClick={() => handleTransactionClick(txn)} className="cursor-pointer">
                                             <TableCell>
                                                 <div className="font-medium">{txn.user.name}</div>
                                                 <div className="text-sm text-muted-foreground">{txn.user.email}</div>
@@ -77,7 +81,7 @@ export default function TransactionsPage() {
                                             <TableCell>
                                                 {new Date(txn.date).toLocaleDateString('en-CA')}
                                             </TableCell>
-                                            <TableCell>
+                                            <TableCell onClick={(e) => e.stopPropagation()}>
                                                 <DropdownMenu>
                                                     <DropdownMenuTrigger asChild>
                                                         <Button aria-haspopup="true" size="icon" variant="ghost">
