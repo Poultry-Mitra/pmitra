@@ -1,3 +1,4 @@
+// src/app/(app)/batches/[batchId]/page.tsx
 "use client";
 
 import { useState } from "react";
@@ -10,6 +11,7 @@ import { Bird, Droplet, Percent, Scale, Wheat, IndianRupee, Loader2, AlertCircle
 import { AddDailyRecordDialog } from "./_components/add-daily-record-dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { format } from 'date-fns';
+import { BatchCharts } from "./_components/batch-charts";
 
 function StatCard({ title, value, icon: Icon, unit }: { title: string, value: string | number, icon: React.ElementType, unit?: string }) {
     return (
@@ -79,6 +81,24 @@ export default function BatchDetailPage() {
                 <StatCard title="Feed Consumed" value={batch.feedConsumed} unit="kg" icon={Wheat} />
                 <StatCard title="FCR" value={feedConversionRatio} icon={Droplet} />
                 <StatCard title="Est. Profit" value="--" icon={IndianRupee} />
+            </div>
+
+            <div className="mt-8">
+                 <Card>
+                    <CardHeader>
+                        <CardTitle>Batch Analytics</CardTitle>
+                        <CardDescription>Visualizing daily trends for mortality and feed consumption.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                       {recordsLoading ? (
+                             <div className="flex justify-center items-center p-4 h-64">
+                                <Loader2 className="animate-spin mr-2" /> Loading charts...
+                            </div>
+                       ) : (
+                           <BatchCharts data={[...records].reverse()} />
+                       )}
+                    </CardContent>
+                </Card>
             </div>
 
             <div className="mt-8">
