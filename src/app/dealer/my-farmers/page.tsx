@@ -2,7 +2,7 @@
 // src/app/dealer/my-farmers/page.tsx
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { PageHeader } from "../_components/page-header";
 import { Button } from "@/components/ui/button";
@@ -34,10 +34,10 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { PlusCircle, MoreHorizontal, AlertTriangle, Loader2 } from "lucide-react";
 import { useUsersByIds } from '@/hooks/use-users';
-import type { User } from "@/lib/types";
 import { ConnectFarmerDialog } from './_components/connect-farmer-dialog';
 import { useUser } from '@/firebase/provider';
-import { useClientState } from '@/hooks/use-client-state';
+import type { User } from '@/lib/types';
+
 
 type ConnectionStatus = "Approved" | "Pending";
 
@@ -47,10 +47,17 @@ const statusVariant: { [key in ConnectionStatus]: "default" | "outline" } = {
 };
 
 export default function MyFarmersPage() {
-    const dealer = useUser();
-    // Using useClientState to safely access dealer properties that might not be available on the server
-    const connectedFarmerIds = useClientState(() => dealer?.connectedFarmers || [], []);
-    const planType = useClientState(() => dealer?.planType || 'free', 'free');
+    const dealerUser = useUser();
+    const [dealer, setDealer] = useState<User | null>(null);
+    useEffect(() => {
+        // This pattern is needed to safely access user properties on the client
+        if (dealerUser) {
+            setDealer(dealerUser as User);
+        }
+    }, [dealerUser]);
+
+    const connectedFarmerIds = dealer?.connectedFarmers || [];
+    const planType = dealer?.planType || 'free';
     
     const { users: connectedFarmers, loading } = useUsersByIds(connectedFarmerIds);
 

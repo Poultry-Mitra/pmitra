@@ -14,6 +14,7 @@ export type User = {
   planType?: 'free' | 'premium';
   uniqueDealerCode?: string;
   connectedFarmers?: string[];
+  connectedDealers?: string[];
 };
 
 export type Batch = {
@@ -59,9 +60,9 @@ export type DealerInventoryItem = {
     dealerUID: string;
     category: "Feed" | "Medicine" | "Equipment" | "Chicks" | "Other";
     productName: string;
+    quantity: number;
     unit: "bag" | "packet" | "bottle" | "pcs" | "chick";
     unitWeight?: number; // For feed, e.g., 50kg
-    quantity: number;
     ratePerUnit: number;
     phaseApplicable?: ("Pre-Starter" | "Starter" | "Finisher")[];
     updatedAt: Timestamp;
@@ -149,6 +150,7 @@ export type Order = {
     
 
     
+
 
 
 

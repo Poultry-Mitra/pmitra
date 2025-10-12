@@ -106,7 +106,7 @@ export default function AddStockPage() {
         defaultValues: {
             supplierName: "",
             supplierContact: "",
-            products: [{ productName: "", category: "Feed", unit: "bag", ratePerUnit: 0, discount: 0, quantity: 1 }],
+            products: [{ productName: "", category: "Feed", unit: "bag", ratePerUnit: 0, discount: 0, quantity: 1, unitWeight: 50 }],
             transportCost: 0,
             miscCost: 0,
             paymentMethod: "cash",
@@ -134,7 +134,12 @@ export default function AddStockPage() {
             // 1. Add each product to the dealer's inventory
             for (const product of values.products) {
                 const newItem: Omit<DealerInventoryItem, 'id' | 'dealerUID' | 'updatedAt'> = {
-                    ...product,
+                    productName: product.productName,
+                    category: product.category,
+                    quantity: product.quantity,
+                    unit: product.unit,
+                    ratePerUnit: product.ratePerUnit,
+                    unitWeight: product.unitWeight,
                     phaseApplicable: [], // Default empty for now
                 };
                 await addDealerInventoryItem(firestore, user.uid, newItem);
@@ -290,7 +295,7 @@ export default function AddStockPage() {
                                             ))}
                                         </div>
 
-                                        <Button type="button" variant="outline" onClick={() => append({ productName: "", category: "Feed", unit: "bag", ratePerUnit: 0, discount: 0, quantity: 1 })}>
+                                        <Button type="button" variant="outline" onClick={() => append({ productName: "", category: "Feed", unit: "bag", ratePerUnit: 0, discount: 0, quantity: 1, unitWeight: 50 })}>
                                             <PlusCircle className="mr-2" />
                                             Add Another Product
                                         </Button>

@@ -23,11 +23,18 @@ import { FirestorePermissionError } from '@/firebase/errors';
 function toDealerInventoryItem(doc: QueryDocumentSnapshot<DocumentData>): DealerInventoryItem {
     const data = doc.data();
     if (!data) throw new Error("Document data is empty");
-    return {
+    const item = {
         id: doc.id,
         ...data,
         updatedAt: data.updatedAt,
     } as DealerInventoryItem;
+
+    // Ensure quantity is always a number
+    if (typeof item.quantity !== 'number') {
+        item.quantity = 0;
+    }
+
+    return item;
 }
 
 export function useDealerInventory(dealerUID: string) {

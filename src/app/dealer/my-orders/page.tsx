@@ -28,10 +28,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { MoreHorizontal, Loader2, PlusCircle } from "lucide-react";
-import type { Order } from "@/lib/types";
 import { useToast } from '@/hooks/use-toast';
 import { useUser } from '@/firebase/provider';
-import { useOrders, updateOrderStatus } from '@/hooks/use-orders';
+import { useOrders } from '@/hooks/use-orders';
 import { useUsersByIds } from '@/hooks/use-users';
 import { CreateOrderDialog } from './_components/create-order-dialog';
 
@@ -69,7 +68,7 @@ export default function MyOrdersPage() {
             >
                 <Button onClick={() => setCreateOrderOpen(true)}>
                     <PlusCircle className="mr-2" />
-                    Create Order
+                    Create Order for Farmer
                 </Button>
             </PageHeader>
 

@@ -8,7 +8,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from '@/components/ui/badge';
 import { PlusCircle, MoreHorizontal, Loader2 } from 'lucide-react';
-import type { DealerInventoryItem } from '@/lib/types';
 import { useUser } from '@/firebase/provider';
 import { useDealerInventory } from '@/hooks/use-dealer-inventory';
 
@@ -69,7 +68,7 @@ export default function MyInventoryPage() {
                                             <Badge variant="outline">{item.category}</Badge>
                                         </TableCell>
                                         <TableCell>
-                                            {item.stockQuantity.toLocaleString()} {item.unit}
+                                            {item.quantity.toLocaleString()} {item.unit}
                                             {item.unitWeight && ` (${item.unitWeight}kg)`}
                                         </TableCell>
                                         <TableCell className="text-right">₹{item.ratePerUnit.toLocaleString()}</TableCell>

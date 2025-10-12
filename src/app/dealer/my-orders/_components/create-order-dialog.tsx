@@ -24,12 +24,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { useUser } from "@/firebase/provider";
+import { useUser, useFirestore } from "@/firebase/provider";
 import { useUsersByIds } from "@/hooks/use-users";
 import { useDealerInventory } from "@/hooks/use-dealer-inventory";
 import { createOrder } from "@/hooks/use-orders";
 import { Send, Loader2 } from "lucide-react";
 import { useMemo } from "react";
+import type { User } from "@/lib/types";
 
 const formSchema = z.object({
     farmerUID: z.string().min(1, "Please select a farmer."),
@@ -41,7 +42,7 @@ type FormValues = z.infer<typeof formSchema>;
 
 export function CreateOrderDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
     const { toast } = useToast();
-    const dealerUser = useUser();
+    const dealerUser = useUser() as User; // Assuming user is a dealer and logged in
 
     const farmerIds = useMemo(() => dealerUser?.connectedFarmers || [], [dealerUser]);
     const { users: farmers, loading: farmersLoading } = useUsersByIds(farmerIds);

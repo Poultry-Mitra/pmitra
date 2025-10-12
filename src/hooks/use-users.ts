@@ -10,6 +10,7 @@ import {
   QueryDocumentSnapshot,
   query,
   where,
+  getDocs,
 } from 'firebase/firestore';
 import { useFirestore } from '@/firebase/provider';
 import type { User } from '@/lib/types';
@@ -79,8 +80,6 @@ export function useUsersByIds(userIds: string[]) {
 
         setLoading(true);
         const usersCollection = collection(firestore, 'users');
-        // Firestore 'in' queries are limited to 30 items. 
-        // For a real-world app with many connected farmers, you might need to batch these queries.
         const q = query(usersCollection, where('__name__', 'in', userIds.slice(0, 30)));
 
         const unsubscribe = onSnapshot(
@@ -101,7 +100,26 @@ export function useUsersByIds(userIds: string[]) {
         );
 
         return () => unsubscribe();
-    }, [firestore, userIds]);
+    }, [firestore, JSON.stringify(userIds)]); // stringify to prevent re-renders
 
     return { users, loading };
+}
+
+
+export async function findUserByDealerCode(firestore: Firestore, dealerCode: string): Promise<User | null> {
+    if (!firestore) throw new Error("Firestore not initialized");
+
+    const usersCollection = collection(firestore, 'users');
+    const q = query(usersCollection, where("uniqueDealerCode", "==", dealerCode), where("role", "==", "dealer"));
+    
+    try {
+        const querySnapshot = await getDocs(q);
+        if (querySnapshot.empty) {
+            return null;
+        }
+        return toUser(querySnapshot.docs[0]);
+    } catch (error) {
+        console.error("Error finding user by dealer code:", error);
+        throw error;
+    }
 }

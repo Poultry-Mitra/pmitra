@@ -55,7 +55,9 @@ export default function AddUserPage() {
             const newUser = {
                 ...values,
                 dateJoined: new Date().toISOString(),
-                uniqueDealerCode: values.role === 'dealer' ? `DEAL-${Math.random().toString(36).substring(2, 8).toUpperCase()}` : null,
+                uniqueDealerCode: values.role === 'dealer' ? `DL-${Math.random().toString(36).substring(2, 8).toUpperCase()}` : null,
+                connectedFarmers: [],
+                connectedDealers: [],
             };
             
             const usersCollection = collection(firestore, "users");
