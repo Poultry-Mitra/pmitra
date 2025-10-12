@@ -180,7 +180,7 @@ export async function updateOrderStatus(firestore: Firestore, order: Order, newS
                 });
                 
                 const now = new Date().toISOString();
-
+                
                 // 2. Add Debit entry to farmer's ledger
                 const farmerLedgerDescription = `Purchased ${order.productName} from ${dealerUser.name}`;
                 await addLedgerEntryInTransaction(transaction, firestore, order.farmerUID, {
@@ -194,7 +194,7 @@ export async function updateOrderStatus(firestore: Firestore, order: Order, newS
                 // 3. Add Credit entry to dealer's ledger
                 // In a real app, you would fetch farmer's name, but for now we'll use their UID as it's available
                 const dealerLedgerDescription = `Sold ${order.productName} to farmer ${order.farmerUID.substring(0, 5)}`;
-                await addLedgerEntryInTransaction(transaction, firestore, order.dealerUID, {
+                 await addLedgerEntryInTransaction(transaction, firestore, order.dealerUID, {
                     description: dealerLedgerDescription,
                     amount: order.totalAmount,
                     date: now,
