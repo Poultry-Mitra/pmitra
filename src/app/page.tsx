@@ -19,14 +19,13 @@ import { ThemeToggle } from '@/components/theme-toggle';
 import { LanguageToggle } from '@/components/language-toggle';
 import { useLanguage } from '@/components/language-provider';
 import { RateTicker } from './_components/rate-ticker';
-import { useClientState } from '@/hooks/use-client-state';
-import { currentUser } from '@/lib/data';
+import { useUser } from '@/firebase/provider';
 import type { User } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function LandingPage() {
   const { t } = useLanguage();
-  const user = useClientState<User | undefined | null>(currentUser, undefined);
+  const user = useUser();
 
   const features = [
     {
@@ -110,7 +109,7 @@ export default function LandingPage() {
               </div>
             ) : user ? (
               <Button asChild>
-                <Link href={user.role === 'dealer' ? '/dealer/dashboard' : '/dashboard'}>Dashboard</Link>
+                <Link href={'/dashboard'}>Dashboard</Link>
               </Button>
             ) : (
               <>
