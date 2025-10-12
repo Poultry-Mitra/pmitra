@@ -15,6 +15,8 @@ import {
   orderBy,
   addDoc,
   serverTimestamp,
+  runTransaction,
+  increment,
 } from 'firebase/firestore';
 import { useFirestore } from '@/firebase/provider';
 import type { Order } from '@/lib/types';
@@ -28,7 +30,7 @@ function toOrder(doc: QueryDocumentSnapshot<DocumentData>): Order {
     return {
         id: doc.id,
         ...data,
-        createdAt: data.createdAt.toDate().toISOString(),
+        createdAt: data.createdAt?.toDate().toISOString() || new Date().toISOString(),
     } as Order;
 }
 
@@ -144,16 +146,37 @@ export async function createOrder(data: Omit<Order, 'id' | 'createdAt'>) {
     }
 }
 
-export async function updateOrderStatus(orderId: string, status: Order['status']) {
+export async function updateOrderStatus(orderId: string, status: Order['status'], order: Order) {
     const firestore = useFirestore();
     if (!firestore) throw new Error("Firestore not initialized");
 
     const orderRef = doc(firestore, 'orders', orderId);
+    const inventoryRef = doc(firestore, 'dealerInventory', order.productId);
 
     try {
-        await updateDoc(orderRef, { status: status });
-    } catch(e: any) {
-        console.error("Error updating order status: ", e);
+        await runTransaction(firestore, async (transaction) => {
+            // Update the order status
+            transaction.update(orderRef, { status });
+
+            // If the order is approved, decrease the dealer's inventory
+            if (status === 'Approved') {
+                const inventoryDoc = await transaction.get(inventoryRef);
+                if (!inventoryDoc.exists()) {
+                    throw new Error("Product not found in dealer's inventory.");
+                }
+
+                const currentQuantity = inventoryDoc.data().quantity;
+                if (currentQuantity < order.quantity) {
+                    throw new Error("Not enough stock available to fulfill the order.");
+                }
+
+                transaction.update(inventoryRef, {
+                    quantity: increment(-order.quantity)
+                });
+            }
+        });
+    } catch (e: any) {
+        console.error("Error updating order status and inventory: ", e);
         const permissionError = new FirestorePermissionError({
             path: orderRef.path,
             operation: 'update',

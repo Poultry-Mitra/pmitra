@@ -6,6 +6,8 @@ import {
   collection,
   onSnapshot,
   addDoc,
+  doc,
+  updateDoc,
   serverTimestamp,
   type Firestore,
   type DocumentData,
@@ -33,6 +35,11 @@ function toDealerInventoryItem(doc: QueryDocumentSnapshot<DocumentData>): Dealer
     if (typeof item.quantity !== 'number') {
         item.quantity = 0;
     }
+     // Ensure lowStockThreshold is a number, default to 10 if not present
+    if (typeof item.lowStockThreshold !== 'number') {
+        item.lowStockThreshold = 10;
+    }
+
 
     return item;
 }
@@ -88,6 +95,7 @@ export function addDealerInventoryItem(firestore: Firestore, dealerUID: string, 
     const itemData = {
         ...data,
         dealerUID,
+        lowStockThreshold: data.lowStockThreshold || 10,
         updatedAt: serverTimestamp(),
     };
 
@@ -99,5 +107,26 @@ export function addDealerInventoryItem(firestore: Firestore, dealerUID: string, 
         });
         errorEmitter.emit('permission-error', permissionError);
         throw serverError; // Re-throw for the form to catch
+    });
+}
+
+export function updateDealerInventoryItem(firestore: Firestore, itemId: string, data: Partial<Pick<DealerInventoryItem, 'quantity' | 'ratePerUnit' | 'lowStockThreshold'>>) {
+    if (!firestore) throw new Error("Firestore not initialized");
+
+    const docRef = doc(firestore, 'dealerInventory', itemId);
+    
+    const itemData = {
+        ...data,
+        updatedAt: serverTimestamp(),
+    };
+
+    updateDoc(docRef, itemData).catch(async (serverError) => {
+        const permissionError = new FirestorePermissionError({
+            path: docRef.path,
+            operation: 'update',
+            requestResourceData: itemData,
+        });
+        errorEmitter.emit('permission-error', permissionError);
+        throw serverError;
     });
 }

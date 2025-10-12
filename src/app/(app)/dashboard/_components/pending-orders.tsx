@@ -8,6 +8,7 @@ import { useOrdersByFarmer, updateOrderStatus } from "@/hooks/use-orders";
 import { useUser } from "@/firebase/provider";
 import { Loader2, CheckCircle, XCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import type { Order } from "@/lib/types";
 
 export function PendingOrders() {
     const user = useUser();
@@ -16,17 +17,17 @@ export function PendingOrders() {
 
     const pendingOrders = orders.filter(o => o.status === 'Pending');
 
-    const handleUpdateStatus = async (orderId: string, status: 'Approved' | 'Rejected') => {
+    const handleUpdateStatus = async (order: Order, status: 'Approved' | 'Rejected') => {
         try {
-            await updateOrderStatus(orderId, status);
+            await updateOrderStatus(order.id, status, order);
             toast({
                 title: `Order ${status}`,
-                description: `The order has been successfully ${status.toLowerCase()}.`
+                description: `The order for ${order.productName} has been successfully ${status.toLowerCase()}.`
             });
-        } catch (error) {
+        } catch (error: any) {
             toast({
                 title: "Error",
-                description: "Failed to update order status.",
+                description: error.message || "Failed to update order status.",
                 variant: "destructive"
             });
         }
@@ -69,11 +70,11 @@ export function PendingOrders() {
                                 <TableCell>{order.quantity}</TableCell>
                                 <TableCell className="text-right">₹{order.totalAmount.toLocaleString()}</TableCell>
                                 <TableCell className="text-center space-x-2">
-                                    <Button size="sm" variant="outline" className="text-green-600 hover:bg-green-50 hover:text-green-700" onClick={() => handleUpdateStatus(order.id, 'Approved')}>
+                                    <Button size="sm" variant="outline" className="text-green-600 hover:bg-green-50 hover:text-green-700" onClick={() => handleUpdateStatus(order, 'Approved')}>
                                         <CheckCircle className="mr-2" />
                                         Accept
                                     </Button>
-                                     <Button size="sm" variant="outline" className="text-red-600 hover:bg-red-50 hover:text-red-700" onClick={() => handleUpdateStatus(order.id, 'Rejected')}>
+                                     <Button size="sm" variant="outline" className="text-red-600 hover:bg-red-50 hover:text-red-700" onClick={() => handleUpdateStatus(order, 'Rejected')}>
                                         <XCircle className="mr-2" />
                                         Reject
                                     </Button>

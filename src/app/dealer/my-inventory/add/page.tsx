@@ -27,6 +27,7 @@ const productSchema = z.object({
   ratePerUnit: z.coerce.number().min(0),
   discount: z.coerce.number().min(0).default(0),
   unitWeight: z.coerce.number().optional(),
+  lowStockThreshold: z.coerce.number().min(0).default(10),
 });
 
 const formSchema = z.object({
@@ -106,7 +107,7 @@ export default function AddStockPage() {
         defaultValues: {
             supplierName: "",
             supplierContact: "",
-            products: [{ productName: "", category: "Feed", unit: "bag", ratePerUnit: 0, discount: 0, quantity: 1, unitWeight: 50 }],
+            products: [{ productName: "", category: "Feed", unit: "bag", ratePerUnit: 0, discount: 0, quantity: 1, unitWeight: 50, lowStockThreshold: 10 }],
             transportCost: 0,
             miscCost: 0,
             paymentMethod: "cash",
@@ -140,6 +141,7 @@ export default function AddStockPage() {
                     unit: product.unit,
                     ratePerUnit: product.ratePerUnit,
                     unitWeight: product.unitWeight,
+                    lowStockThreshold: product.lowStockThreshold,
                     phaseApplicable: [], // Default empty for now
                 };
                 await addDealerInventoryItem(firestore, user.uid, newItem);
@@ -235,7 +237,7 @@ export default function AddStockPage() {
                                                             </FormItem>
                                                         )} />
                                                     </div>
-                                                    <div className="col-span-6 md:col-span-3">
+                                                    <div className="col-span-6 md:col-span-2">
                                                          <FormField name={`products.${index}.quantity`} control={form.control} render={({ field }) => (
                                                             <FormItem>
                                                                 <FormLabel className="text-xs">Quantity</FormLabel>
@@ -243,7 +245,7 @@ export default function AddStockPage() {
                                                             </FormItem>
                                                         )} />
                                                     </div>
-                                                    <div className="col-span-6 md:col-span-3">
+                                                    <div className="col-span-6 md:col-span-2">
                                                         <FormField name={`products.${index}.unit`} control={form.control} render={({ field }) => (
                                                             <FormItem>
                                                                 <FormLabel className="text-xs">Unit</FormLabel>
@@ -260,7 +262,7 @@ export default function AddStockPage() {
                                                             </FormItem>
                                                         )} />
                                                     </div>
-                                                    <div className="col-span-6 md:col-span-3">
+                                                    <div className="col-span-6 md:col-span-2">
                                                         <FormField name={`products.${index}.ratePerUnit`} control={form.control} render={({ field }) => (
                                                             <FormItem>
                                                                 <FormLabel className="text-xs">Rate/Unit (₹)</FormLabel>
@@ -268,7 +270,7 @@ export default function AddStockPage() {
                                                             </FormItem>
                                                         )} />
                                                     </div>
-                                                     <div className="col-span-6 md:col-span-3">
+                                                     <div className="col-span-6 md:col-span-2">
                                                         <FormField name={`products.${index}.discount`} control={form.control} render={({ field }) => (
                                                             <FormItem>
                                                                 <FormLabel className="text-xs">Discount (₹)</FormLabel>
@@ -276,7 +278,7 @@ export default function AddStockPage() {
                                                             </FormItem>
                                                         )} />
                                                     </div>
-                                                    <div className="col-span-12 md:col-span-3">
+                                                    <div className="col-span-6 md:col-span-2">
                                                          <FormField name={`products.${index}.unitWeight`} control={form.control} render={({ field }) => (
                                                             <FormItem>
                                                                 <FormLabel className="text-xs">Unit Wt. (kg)</FormLabel>
@@ -284,8 +286,16 @@ export default function AddStockPage() {
                                                             </FormItem>
                                                         )} />
                                                     </div>
+                                                     <div className="col-span-6 md:col-span-2">
+                                                         <FormField name={`products.${index}.lowStockThreshold`} control={form.control} render={({ field }) => (
+                                                            <FormItem>
+                                                                <FormLabel className="text-xs">Low Stock At</FormLabel>
+                                                                <FormControl><Input type="number" {...field} /></FormControl>
+                                                            </FormItem>
+                                                        )} />
+                                                    </div>
                                                     {fields.length > 1 && (
-                                                        <div className="col-span-12 md:col-span-9 text-right -mb-2">
+                                                        <div className="col-span-12 md:col-span-12 text-right -mb-2">
                                                             <Button type="button" variant="ghost" size="icon" className="text-destructive hover:bg-destructive/10 h-7 w-7" onClick={() => remove(index)}>
                                                                 <Trash2 className="size-4" />
                                                             </Button>
@@ -295,7 +305,7 @@ export default function AddStockPage() {
                                             ))}
                                         </div>
 
-                                        <Button type="button" variant="outline" onClick={() => append({ productName: "", category: "Feed", unit: "bag", ratePerUnit: 0, discount: 0, quantity: 1, unitWeight: 50 })}>
+                                        <Button type="button" variant="outline" onClick={() => append({ productName: "", category: "Feed", unit: "bag", ratePerUnit: 0, discount: 0, quantity: 1, unitWeight: 50, lowStockThreshold: 10 })}>
                                             <PlusCircle className="mr-2" />
                                             Add Another Product
                                         </Button>

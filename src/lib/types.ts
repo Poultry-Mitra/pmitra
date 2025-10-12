@@ -64,6 +64,7 @@ export type DealerInventoryItem = {
     unit: "bag" | "packet" | "bottle" | "pcs" | "chick";
     unitWeight?: number; // For feed, e.g., 50kg
     ratePerUnit: number;
+    lowStockThreshold: number;
     phaseApplicable?: ("Pre-Starter" | "Starter" | "Finisher")[];
     updatedAt: Timestamp;
 };
@@ -137,7 +138,7 @@ export type Order = {
     farmerUID: string;
     dealerUID: string;
     batchId?: string;
-    productId?: string;
+    productId: string;
     productName: string;
     quantity: number;
     ratePerUnit: number;
@@ -150,6 +151,7 @@ export type Order = {
     
 
     
+
 
 
 
