@@ -131,7 +131,23 @@ export type PricingPlan = {
     userType: "Farmer" | "Dealer";
 }
 
+export type Order = {
+    id: string;
+    farmerUID: string;
+    dealerUID: string;
+    batchId: string;
+    productId: string;
+    productName: string;
+    quantity: number;
+    ratePerUnit: number;
+    transportCost?: number;
+    labourCost?: number;
+    totalAmount: number;
+    status: "Pending" | "Approved" | "Rejected";
+    createdAt: string; // ISO 8601
+}
     
 
     
+
 
