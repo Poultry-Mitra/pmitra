@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useParams } from "next/navigation";
@@ -52,7 +51,7 @@ export default function BatchDetailPage() {
     
     const liveBirds = batch.totalChicks - batch.mortalityCount;
     const mortalityPercentage = batch.totalChicks > 0 ? ((batch.mortalityCount / batch.totalChicks) * 100).toFixed(2) : 0;
-    const feedConversionRatio = batch.avgBodyWeight > 0 ? (batch.feedConsumed * 1000 / (liveBirds * batch.avgBodyWeight)).toFixed(2) : 'N/A';
+    const feedConversionRatio = liveBirds > 0 && batch.avgBodyWeight > 0 ? (batch.feedConsumed * 1000 / (liveBirds * batch.avgBodyWeight)).toFixed(2) : 'N/A';
 
 
     return (
@@ -87,4 +86,3 @@ export default function BatchDetailPage() {
         </>
     );
 }
-
