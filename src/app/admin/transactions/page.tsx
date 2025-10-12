@@ -1,4 +1,3 @@
-
 // src/app/admin/transactions/page.tsx
 "use client";
 
@@ -13,11 +12,11 @@ import { FileDown, MoreHorizontal } from "lucide-react";
 
 // Mock transactions specific to a dealer (e.g., dealer with id usr_dealer_003)
 const transactions = [
-    { id: 'txn_1', user: mockUsers.find(u => u.id === 'usr_farmer_002'), plan: 'Farmer Plan Subscription', amount: 'INR 249', status: 'Success', date: '2023-10-28' },
     { id: 'txn_2', user: mockUsers.find(u => u.id === 'usr_farmer_004'), plan: 'Order #ORD-2 Payment', amount: 'INR 22,500', status: 'Success', date: '2023-10-28' },
     { id: 'txn_3', user: mockUsers.find(u => u.id === 'usr_farmer_002'), plan: 'Order #ORD-1 Payment', amount: 'INR 22,000', status: 'Pending', date: '2023-10-27' },
-    { id: 'txn_4', user: mockUsers.find(u => u.id === 'usr_farmer_004'), plan: 'Farmer Plan Subscription', amount: 'INR 249', status: 'Success', date: '2023-10-27' },
     { id: 'txn_5', user: mockUsers.find(u => u.id === 'usr_farmer_002'), plan: 'Order #ORD-3 Payment', amount: 'INR 1,750', status: 'Failed', date: '2023-10-26' },
+    { id: 'txn_6', user: mockUsers.find(u => u.id === 'usr_farmer_004'), plan: 'Order #ORD-4 Payment', amount: 'INR 43,000', status: 'Success', date: '2023-10-25' },
+    { id: 'txn_7', user: mockUsers.find(u => u.id === 'usr_farmer_002'), plan: 'Advance Payment', amount: 'INR 10,000', status: 'Success', date: '2023-10-24' },
 ];
 
 const statusVariant = {
