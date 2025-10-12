@@ -9,6 +9,7 @@ import { useState, useEffect } from 'react';
  * server-rendered value is consistent with the initial client-rendered value.
  *
  * @param initialState - The initial state value. Can be a value or a function that returns a value.
+ * @param serverState - The state to use during server-side rendering and initial client render. Defaults to the initialState.
  * @returns The stateful value that is only set on the client after mounting.
  *
  * @example
@@ -17,18 +18,18 @@ import { useState, useEffect } from 'react';
  *
  * const Component = () => {
  *   // `currentUser` might be undefined on the server, but will be set on the client.
- *   const user = useClientState(currentUser);
+ *   const user = useClientState(currentUser, null); // Use null on the server
  *
- *   if (!user) {
+ *   if (user === null) {
  *     return <div>Loading user...</div>; // Or a skeleton loader
  *   }
  *
  *   return <div>Welcome, {user.name}!</div>;
  * }
  */
-export function useClientState<T>(initialState: T | (() => T)): T {
+export function useClientState<T>(initialState: T | (() => T), serverState?: T): T {
   const [state, setState] = useState<T>(
-    () => (typeof window === 'undefined' ? (null as T) : initialState)
+    () => (typeof window === 'undefined' ? (serverState !== undefined ? serverState : initialState) : initialState)
   );
 
   useEffect(() => {

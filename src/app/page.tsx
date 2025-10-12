@@ -22,10 +22,11 @@ import { RateTicker } from './_components/rate-ticker';
 import { useClientState } from '@/hooks/use-client-state';
 import { currentUser } from '@/lib/data';
 import type { User } from '@/lib/types';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function LandingPage() {
   const { t } = useLanguage();
-  const user = useClientState<User | undefined>(currentUser);
+  const user = useClientState<User | undefined | null>(currentUser, undefined);
 
   const features = [
     {
@@ -102,19 +103,24 @@ export default function LandingPage() {
           <div className="ml-auto flex items-center space-x-2">
             <LanguageToggle />
             <ThemeToggle />
-            {user ? (
-                <Button asChild>
-                    <Link href="/dashboard">Dashboard</Link>
-                </Button>
+             {user === undefined ? (
+              <div className="flex items-center gap-2">
+                <Skeleton className="h-9 w-20" />
+                <Skeleton className="h-9 w-24" />
+              </div>
+            ) : user ? (
+              <Button asChild>
+                <Link href={user.role === 'dealer' ? '/dealer/dashboard' : '/dashboard'}>Dashboard</Link>
+              </Button>
             ) : (
-                <>
-                    <Button variant="outline" asChild>
-                    <Link href="/login">{t('nav.login')}</Link>
-                    </Button>
-                    <Button asChild>
-                    <Link href="/signup">{t('nav.signup')}</Link>
-                    </Button>
-                </>
+              <>
+                <Button variant="outline" asChild>
+                  <Link href="/login">{t('nav.login')}</Link>
+                </Button>
+                <Button asChild>
+                  <Link href="/signup">{t('nav.signup')}</Link>
+                </Button>
+              </>
             )}
           </div>
         </div>
