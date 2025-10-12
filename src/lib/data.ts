@@ -11,13 +11,6 @@ export const mockUsers: User[] = [
 
 export const currentUser: User = mockUsers[1];
 
-export const mockBatches: Batch[] = [
-  { id: 'B001', breed: 'Broiler', quantity: 500, ageDays: 35, avgWeight: 1800, status: 'Active', startDate: '2023-09-22' },
-  { id: 'B002', breed: 'Layer', quantity: 1000, ageDays: 120, avgWeight: 1500, status: 'Active', startDate: '2023-07-01' },
-  { id: 'B003', breed: 'Broiler', quantity: 450, ageDays: 42, avgWeight: 2200, status: 'Completed', startDate: '2023-08-10' },
-  { id: 'B004', breed: 'Broiler', quantity: 550, ageDays: 12, avgWeight: 450, status: 'Active', startDate: '2023-10-15' },
-];
-
 export const mockFarmMetrics: FarmMetric[] = [
   { month: 'Jan', productionRate: 85, mortalityRate: 1.2, feedConsumption: 110 },
   { month: 'Feb', productionRate: 88, mortalityRate: 1.1, feedConsumption: 112 },

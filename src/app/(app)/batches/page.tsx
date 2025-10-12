@@ -4,11 +4,12 @@
 import { useState } from "react";
 import { PageHeader } from "../_components/page-header";
 import { Button } from "@/components/ui/button";
-import { MoreHorizontal, PlusCircle, AlertTriangle } from "lucide-react";
+import { MoreHorizontal, PlusCircle, AlertTriangle, Loader2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { mockBatches, currentUser } from "@/lib/data";
+import { useBatches, addBatch, deleteBatch } from "@/hooks/use-batches";
+import type { Batch } from "@/lib/types";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -27,6 +28,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import { useToast } from "@/hooks/use-toast";
 
 const statusVariant: { [key in 'Active' | 'Completed' | 'Planned']: "default" | "secondary" | "outline" } = {
     Active: "default",
@@ -40,21 +42,51 @@ const statusColorScheme = {
     Planned: "text-blue-500 border-blue-500/50 bg-blue-500/10",
 };
 
-
 export default function BatchesPage() {
+  const { batches, loading } = useBatches();
   const [showUpgradeAlert, setShowUpgradeAlert] = useState(false);
+  const [showDeleteAlert, setShowDeleteAlert] = useState<Batch | null>(null);
+  const { toast } = useToast();
+
   // Assuming a mock user plan for now. In a real app, this would come from user data.
-  const isPremiumUser = true; // Change to false to test the free user experience
-  const activeBatches = mockBatches.filter(b => b.status === 'Active').length;
+  const isPremiumUser = true; 
+  const activeBatchesCount = batches.filter(b => b.status === 'Active').length;
 
   const handleAddNewBatch = () => {
-    if (!isPremiumUser && activeBatches >= 1) {
+    if (!isPremiumUser && activeBatchesCount >= 1) {
       setShowUpgradeAlert(true);
     } else {
-      // Logic to add a new batch would go here
-      alert("Navigating to Add New Batch page...");
+      // Create a new mock batch and add it to firestore
+      const newBatch: Omit<Batch, 'id' | 'createdAt'> = {
+        batchName: `New Batch #${batches.length + 1}`,
+        batchType: "Broiler",
+        totalChicks: Math.floor(Math.random() * 100 + 450),
+        batchStartDate: new Date().toISOString(),
+        feedPhase: "Starter",
+        mortalityCount: 0,
+        avgBodyWeight: 100,
+        feedConsumed: 0,
+        status: "Active",
+      };
+      addBatch(newBatch);
+      toast({
+        title: "Batch Added",
+        description: `${newBatch.batchName} has been successfully created.`,
+      })
     }
   };
+
+  const handleDeleteBatch = () => {
+    if(showDeleteAlert) {
+      deleteBatch(showDeleteAlert.id);
+      toast({
+        title: "Batch Deleted",
+        description: `Batch ${showDeleteAlert.batchName} has been deleted.`,
+        variant: "destructive"
+      });
+      setShowDeleteAlert(null);
+    }
+  }
   
   return (
     <>
@@ -77,7 +109,7 @@ export default function BatchesPage() {
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            <TableHead>Batch ID</TableHead>
+                            <TableHead>Batch Name</TableHead>
                             <TableHead>Breed</TableHead>
                             <TableHead>Status</TableHead>
                             <TableHead className="text-right">Quantity</TableHead>
@@ -87,18 +119,37 @@ export default function BatchesPage() {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {mockBatches.map((batch) => (
+                        {loading && (
+                            <TableRow>
+                                <TableCell colSpan={7} className="text-center">
+                                    <div className="flex justify-center items-center p-4">
+                                        <Loader2 className="animate-spin mr-2" /> Loading batches...
+                                    </div>
+                                </TableCell>
+                            </TableRow>
+                        )}
+                        {!loading && batches.length === 0 && (
+                            <TableRow>
+                                <TableCell colSpan={7} className="text-center p-8">
+                                    No batches found. Click "Add New Batch" to get started.
+                                </TableCell>
+                            </TableRow>
+                        )}
+                        {!loading && batches.map((batch) => {
+                          const ageInMs = new Date().getTime() - new Date(batch.batchStartDate).getTime();
+                          const ageInDays = Math.floor(ageInMs / (1000 * 60 * 60 * 24));
+                          return(
                             <TableRow key={batch.id}>
-                                <TableCell className="font-medium">{batch.id}</TableCell>
-                                <TableCell>{batch.breed}</TableCell>
+                                <TableCell className="font-medium">{batch.batchName}</TableCell>
+                                <TableCell>{batch.batchType}</TableCell>
                                 <TableCell>
                                     <Badge variant={statusVariant[batch.status]} className={cn("capitalize", statusColorScheme[batch.status])}>
                                         {batch.status}
                                     </Badge>
                                 </TableCell>
-                                <TableCell className="text-right">{batch.quantity.toLocaleString()}</TableCell>
-                                <TableCell className="text-right">{batch.ageDays}</TableCell>
-                                <TableCell className="text-right">{batch.avgWeight.toLocaleString()}</TableCell>
+                                <TableCell className="text-right">{batch.totalChicks.toLocaleString()}</TableCell>
+                                <TableCell className="text-right">{ageInDays}</TableCell>
+                                <TableCell className="text-right">{batch.avgBodyWeight.toLocaleString()}</TableCell>
                                 <TableCell className="text-right">
                                      <DropdownMenu>
                                         <DropdownMenuTrigger asChild>
@@ -110,12 +161,13 @@ export default function BatchesPage() {
                                         <DropdownMenuContent align="end">
                                             <DropdownMenuItem>View Details</DropdownMenuItem>
                                             <DropdownMenuItem>Mark as Completed</DropdownMenuItem>
-                                            <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
+                                            <DropdownMenuItem className="text-destructive" onClick={() => setShowDeleteAlert(batch)}>Delete</DropdownMenuItem>
                                         </DropdownMenuContent>
                                     </DropdownMenu>
                                 </TableCell>
                             </TableRow>
-                        ))}
+                          )
+                        })}
                     </TableBody>
                 </Table>
             </CardContent>
@@ -138,6 +190,24 @@ export default function BatchesPage() {
             <AlertDialogAction asChild>
               <Link href="/pricing">Upgrade to Premium</Link>
             </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={!!showDeleteAlert} onOpenChange={() => setShowDeleteAlert(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+                <AlertTriangle className="text-destructive"/>
+                Delete Batch
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete the batch "{showDeleteAlert?.batchName}"? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteBatch} className="bg-destructive hover:bg-destructive/90 text-destructive-foreground">Delete</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

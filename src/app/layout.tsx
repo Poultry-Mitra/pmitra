@@ -6,6 +6,8 @@ import { ThemeProvider } from '@/components/theme-provider';
 import { LanguageProvider } from '@/components/language-provider';
 import { Inter, Noto_Sans, Hind } from 'next/font/google';
 import { cn } from '@/lib/utils';
+import { FirebaseProvider } from '@/firebase/provider';
+import { FirebaseErrorListener } from '@/components/firebase-error-listener';
 
 const fontInter = Inter({
   subsets: ['latin'],
@@ -56,11 +58,15 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            {children}
-            <Toaster />
+            <FirebaseProvider>
+                {children}
+                <Toaster />
+                <FirebaseErrorListener />
+            </FirebaseProvider>
           </ThemeProvider>
         </LanguageProvider>
       </body>
     </html>
   );
 }
+

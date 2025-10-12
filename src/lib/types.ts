@@ -1,4 +1,5 @@
 
+import { Timestamp } from "firebase/firestore";
 
 export type UserRole = 'farmer' | 'dealer' | 'admin';
 
@@ -13,12 +14,17 @@ export type User = {
 
 export type Batch = {
   id: string;
-  breed: 'Broiler' | 'Layer';
-  quantity: number;
-  ageDays: number;
-  avgWeight: number; // in grams
+  batchName: string;
+  batchType: "Broiler" | "Layer";
+  totalChicks: number;
+  batchStartDate: string;
+  feedPhase: "Pre-Starter" | "Starter" | "Finisher";
+  mortalityCount: number;
+  avgBodyWeight: number; // in grams
+  feedConsumed: number; // in kg
+  dealerUID?: string;
   status: 'Active' | 'Completed' | 'Planned';
-  startDate: string;
+  createdAt?: Timestamp;
 };
 
 export type FarmMetric = {
