@@ -62,7 +62,7 @@ export function ChatLayout() {
     <div className="h-full flex flex-col rounded-lg border bg-card">
       <ScrollArea className="flex-1 p-4" ref={scrollAreaRef}>
         <div className="space-y-6">
-          {messages.length === 0 && (
+          {messages.length === 0 && !loading && (
              <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground p-8">
                 <WandSparkles className="size-16 mb-4 text-primary"/>
                 <h3 className="font-headline text-lg font-semibold text-foreground">Welcome to AI Chat</h3>
