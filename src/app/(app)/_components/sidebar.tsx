@@ -22,6 +22,7 @@ import {
   CreditCard,
   LogOut,
   Settings,
+  TrendingUp,
 } from "lucide-react";
 import { useLanguage } from "@/components/language-provider";
 
@@ -30,6 +31,7 @@ const navItems = [
   { href: "/chat", icon: MessageSquare, label: "AI Chat" },
   { href: "/monitoring", icon: HeartPulse, label: "Monitoring" },
   { href: "/feed-recommendation", icon: Wheat, label: "Feed AI" },
+  { href: "/daily-rates", icon: TrendingUp, label: "Daily Rates" },
   { href: "/pricing", icon: CreditCard, label: "Pricing" },
 ];
 

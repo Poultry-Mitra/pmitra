@@ -28,6 +28,7 @@ import {
   ChevronDown,
   ChevronUp,
   Wallet,
+  TrendingUp,
 } from "lucide-react";
 import { useLanguage } from "@/components/language-provider";
 import { useState } from "react";
@@ -119,6 +120,17 @@ export function AdminSidebar() {
                 >
                   <Bot />
                   <span>{"AI Chat Logs"}</span>
+                </SidebarMenuButton>
+              </Link>
+          </SidebarMenuItem>
+           <SidebarMenuItem>
+              <Link href="/admin/daily-rates">
+                <SidebarMenuButton
+                  isActive={pathname.startsWith("/admin/daily-rates")}
+                  tooltip={"Daily Rate Management"}
+                >
+                  <TrendingUp />
+                  <span>Daily Rate Management</span>
                 </SidebarMenuButton>
               </Link>
           </SidebarMenuItem>

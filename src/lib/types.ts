@@ -1,3 +1,4 @@
+
 export type UserRole = 'farmer' | 'dealer' | 'admin';
 
 export type User = {
@@ -31,3 +32,18 @@ export type FarmAlert = {
   message: string;
   timestamp: string; // ISO 8601 format
 };
+
+export type DailyRates = {
+    readyBird: {
+        small: number;
+        medium: number;
+        big: number;
+    },
+    chickRate: number;
+    feedCostIndex: number;
+    lastUpdated: string;
+    location: {
+        state: string;
+        district: string;
+    }
+}

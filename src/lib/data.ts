@@ -1,4 +1,4 @@
-import type { User, FarmMetric, SensorData, FarmAlert } from '@/lib/types';
+import type { User, FarmMetric, SensorData, FarmAlert, DailyRates } from '@/lib/types';
 
 export const mockUsers: User[] = [
   { id: '1', name: 'Admin User', email: 'admin@poultrymitra.com', role: 'admin', dateJoined: '2023-01-15' },
@@ -34,4 +34,19 @@ export const mockAlerts: FarmAlert[] = [
 
 export const mockHistoricalData = {
     thirtyDays: mockFarmMetrics.map((d, i) => ({...d, date: new Date(Date.now() - (30-i) * 24 * 60 * 60 * 1000).toISOString()}))
-}
+};
+
+export const mockDailyRates: DailyRates = {
+    readyBird: {
+        small: 110,
+        medium: 125,
+        big: 140,
+    },
+    chickRate: 35,
+    feedCostIndex: 45.5,
+    lastUpdated: new Date().toISOString(),
+    location: {
+        state: "Maharashtra",
+        district: "Pune",
+    }
+};
