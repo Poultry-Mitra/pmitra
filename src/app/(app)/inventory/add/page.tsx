@@ -14,6 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useFirestore } from "@/firebase/provider";
 import { currentUser } from "@/lib/data";
 import { addInventoryItem, type InventoryItem } from "@/hooks/use-inventory";
+import { addLedgerEntry, type LedgerEntry } from "@/hooks/use-ledger";
 import { useRouter } from "next/navigation";
 import { CalendarIcon, Save, Trash2, PlusCircle, IndianRupee } from "lucide-react";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
@@ -112,6 +113,8 @@ export default function AddPurchasePage() {
     });
 
     const paymentMethod = form.watch("paymentMethod");
+    const products = form.watch('products');
+    const netPayable = products.reduce((acc, p) => acc + (p.price * p.quantity), 0) - products.reduce((acc, p) => acc + p.discount, 0);
 
     async function onSubmit(values: FormValues) {
         if (!firestore || !user) {
@@ -119,9 +122,8 @@ export default function AddPurchasePage() {
             return;
         }
 
-        // For now, we add each product as a separate inventory item.
-        // In the future, this could be a single purchase record with multiple items.
         try {
+            // 1. Add each product to the inventory
             for (const product of values.products) {
                 const newItem: Omit<InventoryItem, 'id' | 'farmerUID' | 'lastUpdated'> = {
                     productName: product.productName,
@@ -132,14 +134,24 @@ export default function AddPurchasePage() {
                 };
                 await addInventoryItem(firestore, user.id, newItem);
             }
+
+            // 2. Add a single debit entry to the ledger for the total purchase amount
+            const ledgerDescription = `Purchase from ${values.supplierName || 'Unknown Supplier'}` + (values.invoiceNumber ? ` (Bill: ${values.invoiceNumber})` : '');
+            const newLedgerEntry: Omit<LedgerEntry, 'id' | 'farmerUID' | 'type' | 'balanceAfter'> = {
+                description: ledgerDescription,
+                amount: netPayable,
+                date: values.invoiceDate.toISOString(),
+            };
+            await addLedgerEntry(firestore, user.id, newLedgerEntry, 'Debit');
             
             toast({
                 title: "Purchase Recorded",
-                description: `${values.products.length} item(s) have been added to your inventory.`,
+                description: `${values.products.length} item(s) have been added to inventory and a debit entry created in your ledger.`,
             });
             router.push('/inventory');
+
         } catch (error) {
-             toast({ title: "Error", description: "Failed to add purchase.", variant: "destructive" });
+             toast({ title: "Error", description: "Failed to record purchase and update ledger.", variant: "destructive" });
              console.error("Failed to add purchase", error)
         }
     }
@@ -381,5 +393,3 @@ export default function AddPurchasePage() {
         </>
     );
 }
-
-    

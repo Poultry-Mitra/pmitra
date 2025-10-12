@@ -11,7 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useLedger } from "@/hooks/use-ledger";
 import { currentUser } from "@/lib/data";
 import { cn } from "@/lib/utils";
-import { AddExpenseDialog } from "../expenses/page";
+import { AddExpenseDialog } from "./_components/add-expense-dialog";
 
 export default function LedgerPage() {
   const user = currentUser;
@@ -36,7 +36,7 @@ export default function LedgerPage() {
             </div>
             <Button onClick={() => setAddExpenseOpen(true)}>
                 <PlusCircle className="mr-2" />
-                Add Expense
+                Add Manual Expense
             </Button>
         </div>
       </PageHeader>
@@ -70,7 +70,7 @@ export default function LedgerPage() {
                         {!loading && entries.length === 0 && (
                             <TableRow>
                                 <TableCell colSpan={5} className="text-center p-8">
-                                    No transactions found. Add an expense to get started.
+                                    No transactions found. Add a purchase or manual expense to get started.
                                 </TableCell>
                             </TableRow>
                         )}
