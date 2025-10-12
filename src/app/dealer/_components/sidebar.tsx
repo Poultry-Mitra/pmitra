@@ -20,12 +20,9 @@ import { AppIcon } from "@/app/icon";
 import {
   LayoutGrid,
   Users,
-  Bot,
-  BarChart2,
   CreditCard,
   User,
   LogOut,
-  TrendingUp,
   Warehouse,
   ShoppingBag,
 } from "lucide-react";
@@ -124,34 +121,6 @@ export function DealerSidebar() {
                       <SidebarMenuButton isActive={pathname.startsWith("/dealer/transactions")} tooltip={"Ledger"}>
                       <CreditCard />
                       <span>{"Ledger"}</span>
-                      </SidebarMenuButton>
-                  </Link>
-              </SidebarMenuItem>
-          </SidebarMenu>
-          <SidebarSeparator />
-          <SidebarGroupLabel>Tools & Insights</SidebarGroupLabel>
-           <SidebarMenu>
-              <SidebarMenuItem>
-                  <Link href="/dealer/reports">
-                      <SidebarMenuButton isActive={pathname.startsWith("/dealer/reports")} tooltip={"Reports"}>
-                      <BarChart2 />
-                      <span>{"Reports"}</span>
-                      </SidebarMenuButton>
-                  </Link>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                  <Link href="/dealer/chat-logs">
-                      <SidebarMenuButton isActive={pathname.startsWith("/dealer/chat-logs")} tooltip={"AI Chat"}>
-                      <Bot />
-                      <span>{"AI Chat"}</span>
-                      </SidebarMenuButton>
-                  </Link>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                  <Link href="/dealer/daily-rates">
-                      <SidebarMenuButton isActive={pathname.startsWith("/dealer/daily-rates")} tooltip={"Daily Rates"}>
-                      <TrendingUp />
-                      <span>{"Daily Rates"}</span>
                       </SidebarMenuButton>
                   </Link>
               </SidebarMenuItem>
