@@ -52,131 +52,128 @@ export function AdminSidebar() {
 
   const currentUser = useClientState<UserType | undefined>(currentDealer);
 
-  if (!currentUser) {
-      // Render a skeleton or loading state to prevent hydration mismatch
-      return (
-        <Sidebar>
-            <SidebarHeader />
-            <SidebarContent>
-                {/* You can add skeleton loaders here if you want */}
-            </SidebarContent>
-            <SidebarFooter />
-        </Sidebar>
-      );
-  }
+  const isAdmin = currentUser?.role === 'admin';
 
-  const isAdmin = currentUser.role === 'admin';
-
-
-  if (!isAdmin) {
-    // Render Dealer Sidebar
-    return (
-       <Sidebar>
-        <SidebarHeader>
-          <div className="flex items-center gap-2">
-              <AppIcon className="size-8 text-primary" />
-              {state === 'expanded' && <h1 className="font-headline text-lg font-bold">PoultryMitra</h1>}
-          </div>
-        </SidebarHeader>
-        <SidebarContent>
-            <SidebarGroupLabel>Menu</SidebarGroupLabel>
-            <SidebarMenu>
-                <SidebarMenuItem>
-                    <Link href="/admin/dashboard">
-                        <SidebarMenuButton isActive={pathname === "/admin/dashboard"} tooltip={"Dashboard"}>
-                        <LayoutGrid />
-                        <span>{"Dashboard"}</span>
-                        </SidebarMenuButton>
-                    </Link>
-                </SidebarMenuItem>
-                 <SidebarMenuItem>
-                    <Link href="/admin/my-inventory">
-                        <SidebarMenuButton isActive={pathname.startsWith("/admin/my-inventory")} tooltip={"My Inventory"}>
-                        <Warehouse />
-                        <span>{"My Inventory"}</span>
-                        </SidebarMenuButton>
-                    </Link>
-                </SidebarMenuItem>
-                 <SidebarMenuItem>
-                    <Link href="/admin/my-farmers">
-                        <SidebarMenuButton isActive={pathname.startsWith("/admin/my-farmers")} tooltip={"My Farmers"}>
-                        <Users />
-                        <span>{"My Farmers"}</span>
-                        </SidebarMenuButton>
-                    </Link>
-                </SidebarMenuItem>
-                 <SidebarMenuItem>
-                    <Link href="/admin/my-orders">
-                        <SidebarMenuButton isActive={pathname.startsWith("/admin/my-orders")} tooltip={"Farmer Orders"}>
-                        <ShoppingBag />
-                        <span>{"Farmer Orders"}</span>
-                        </SidebarMenuButton>
-                    </Link>
-                </SidebarMenuItem>
-                 <SidebarMenuItem>
-                    <Link href="/admin/transactions">
-                        <SidebarMenuButton isActive={pathname.startsWith("/admin/transactions")} tooltip={"Ledger"}>
-                        <CreditCard />
-                        <span>{"Ledger"}</span>
-                        </SidebarMenuButton>
-                    </Link>
-                </SidebarMenuItem>
-            </SidebarMenu>
-            <SidebarSeparator />
-            <SidebarGroupLabel>Tools & Insights</SidebarGroupLabel>
-             <SidebarMenu>
-                <SidebarMenuItem>
-                    <Link href="/admin/reports">
-                        <SidebarMenuButton isActive={pathname.startsWith("/admin/reports")} tooltip={"Reports"}>
-                        <BarChart2 />
-                        <span>{"Reports"}</span>
-                        </SidebarMenuButton>
-                    </Link>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                    <Link href="/admin/chat-logs">
-                        <SidebarMenuButton isActive={pathname.startsWith("/admin/chat-logs")} tooltip={"AI Chat"}>
-                        <Bot />
-                        <span>{"AI Chat"}</span>
-                        </SidebarMenuButton>
-                    </Link>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                    <Link href="/admin/daily-rates">
-                        <SidebarMenuButton isActive={pathname.startsWith("/admin/daily-rates")} tooltip={"Daily Rates"}>
-                        <TrendingUp />
-                        <span>{"Daily Rates"}</span>
-                        </SidebarMenuButton>
-                    </Link>
-                </SidebarMenuItem>
-            </SidebarMenu>
-        </SidebarContent>
-        <SidebarFooter>
-            <SidebarMenu>
-                <SidebarMenuItem>
-                    <Link href="/admin/settings">
-                        <SidebarMenuButton isActive={pathname.startsWith("/admin/settings")} tooltip="Profile">
-                            <User/>
-                            <span>{"Profile"}</span>
-                        </SidebarMenuButton>
-                    </Link>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                    <Link href="/login">
-                    <SidebarMenuButton tooltip="Logout">
-                        <LogOut />
-                        <span>{t('sidebar_logout')}</span>
-                    </SidebarMenuButton>
-                    </Link>
-                </SidebarMenuItem>
-            </SidebarMenu>
-        </SidebarFooter>
+  const renderLoadingSidebar = () => (
+      <Sidebar>
+          <SidebarHeader>
+                <div className="flex items-center gap-2">
+                    <AppIcon className="size-8 text-primary" />
+                    {state === 'expanded' && <h1 className="font-headline text-lg font-bold">PoultryMitra</h1>}
+                </div>
+          </SidebarHeader>
+          <SidebarContent>
+              {/* You can add skeleton loaders here if you want */}
+          </SidebarContent>
+          <SidebarFooter />
       </Sidebar>
-    )
-  }
+  );
 
-  // Render Admin Sidebar
-  return (
+  const renderDealerSidebar = () => (
+     <Sidebar>
+      <SidebarHeader>
+        <div className="flex items-center gap-2">
+            <AppIcon className="size-8 text-primary" />
+            {state === 'expanded' && <h1 className="font-headline text-lg font-bold">PoultryMitra</h1>}
+        </div>
+      </SidebarHeader>
+      <SidebarContent>
+          <SidebarGroupLabel>Menu</SidebarGroupLabel>
+          <SidebarMenu>
+              <SidebarMenuItem>
+                  <Link href="/admin/dashboard">
+                      <SidebarMenuButton isActive={pathname === "/admin/dashboard"} tooltip={"Dashboard"}>
+                      <LayoutGrid />
+                      <span>{"Dashboard"}</span>
+                      </SidebarMenuButton>
+                  </Link>
+              </SidebarMenuItem>
+               <SidebarMenuItem>
+                  <Link href="/admin/my-inventory">
+                      <SidebarMenuButton isActive={pathname.startsWith("/admin/my-inventory")} tooltip={"My Inventory"}>
+                      <Warehouse />
+                      <span>{"My Inventory"}</span>
+                      </SidebarMenuButton>
+                  </Link>
+              </SidebarMenuItem>
+               <SidebarMenuItem>
+                  <Link href="/admin/my-farmers">
+                      <SidebarMenuButton isActive={pathname.startsWith("/admin/my-farmers")} tooltip={"My Farmers"}>
+                      <Users />
+                      <span>{"My Farmers"}</span>
+                      </SidebarMenuButton>
+                  </Link>
+              </SidebarMenuItem>
+               <SidebarMenuItem>
+                  <Link href="/admin/my-orders">
+                      <SidebarMenuButton isActive={pathname.startsWith("/admin/my-orders")} tooltip={"Farmer Orders"}>
+                      <ShoppingBag />
+                      <span>{"Farmer Orders"}</span>
+                      </SidebarMenuButton>
+                  </Link>
+              </SidebarMenuItem>
+               <SidebarMenuItem>
+                  <Link href="/admin/transactions">
+                      <SidebarMenuButton isActive={pathname.startsWith("/admin/transactions")} tooltip={"Ledger"}>
+                      <CreditCard />
+                      <span>{"Ledger"}</span>
+                      </SidebarMenuButton>
+                  </Link>
+              </SidebarMenuItem>
+          </SidebarMenu>
+          <SidebarSeparator />
+          <SidebarGroupLabel>Tools & Insights</SidebarGroupLabel>
+           <SidebarMenu>
+              <SidebarMenuItem>
+                  <Link href="/admin/reports">
+                      <SidebarMenuButton isActive={pathname.startsWith("/admin/reports")} tooltip={"Reports"}>
+                      <BarChart2 />
+                      <span>{"Reports"}</span>
+                      </SidebarMenuButton>
+                  </Link>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                  <Link href="/admin/chat-logs">
+                      <SidebarMenuButton isActive={pathname.startsWith("/admin/chat-logs")} tooltip={"AI Chat"}>
+                      <Bot />
+                      <span>{"AI Chat"}</span>
+                      </SidebarMenuButton>
+                  </Link>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                  <Link href="/admin/daily-rates">
+                      <SidebarMenuButton isActive={pathname.startsWith("/admin/daily-rates")} tooltip={"Daily Rates"}>
+                      <TrendingUp />
+                      <span>{"Daily Rates"}</span>
+                      </SidebarMenuButton>
+                  </Link>
+              </SidebarMenuItem>
+          </SidebarMenu>
+      </SidebarContent>
+      <SidebarFooter>
+          <SidebarMenu>
+              <SidebarMenuItem>
+                  <Link href="/admin/settings">
+                      <SidebarMenuButton isActive={pathname.startsWith("/admin/settings")} tooltip="Profile">
+                          <User/>
+                          <span>{"Profile"}</span>
+                      </SidebarMenuButton>
+                  </Link>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                  <Link href="/login">
+                  <SidebarMenuButton tooltip="Logout">
+                      <LogOut />
+                      <span>{t('sidebar_logout')}</span>
+                  </SidebarMenuButton>
+                  </Link>
+              </SidebarMenuItem>
+          </SidebarMenu>
+      </SidebarFooter>
+    </Sidebar>
+  );
+
+  const renderAdminSidebar = () => (
     <Sidebar>
       <SidebarHeader>
         <div className="flex items-center gap-2">
@@ -329,4 +326,10 @@ export function AdminSidebar() {
       </SidebarFooter>
     </Sidebar>
   );
+
+  if (!currentUser) {
+      return renderLoadingSidebar();
+  }
+
+  return isAdmin ? renderAdminSidebar() : renderDealerSidebar();
 }
