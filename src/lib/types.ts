@@ -54,6 +54,20 @@ export type InventoryItem = {
     lastUpdated: Timestamp;
 }
 
+export type DealerInventoryItem = {
+    id: string;
+    dealerUID: string;
+    category: "Feed" | "Medicine" | "Equipment" | "Chicks";
+    productName: string;
+    unit: "bag" | "packet" | "bottle" | "pcs" | "chick";
+    unitWeight?: number; // For feed, e.g., 50kg
+    stockQuantity: number;
+    ratePerUnit: number;
+    phaseApplicable?: ("Pre-Starter" | "Starter" | "Finisher")[];
+    updatedAt: Timestamp;
+};
+
+
 export type LedgerEntry = {
   id: string;
   farmerUID: string;
@@ -120,3 +134,4 @@ export type PricingPlan = {
     
 
     
+
