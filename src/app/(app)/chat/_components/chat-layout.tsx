@@ -96,19 +96,25 @@ export function ChatLayout() {
        if (appUser.planType === 'free') {
           const userDocRef = doc(firestore, 'users', appUser.id);
           const currentMonth = new Date().toISOString().slice(0, 7);
-          const lastQueryMonth = appUser.lastQueryDate?.slice(0, 7);
           
-          const queriesThisMonth = lastQueryMonth === currentMonth ? (appUser.aiQueriesCount || 0) : 0;
+          const queriesThisMonth = (appUser.lastQueryDate?.slice(0, 7) === currentMonth) ? (appUser.aiQueriesCount || 0) : 0;
+          
+          let updatedCount;
 
-          if (lastQueryMonth === currentMonth) {
+          if (appUser.lastQueryDate?.slice(0, 7) === currentMonth) {
               await updateDoc(userDocRef, { aiQueriesCount: increment(1), lastQueryDate: new Date().toISOString() });
+              updatedCount = queriesThisMonth + 1;
           } else {
               // Reset count for the new month
               await updateDoc(userDocRef, {
                   aiQueriesCount: 1,
                   lastQueryDate: new Date().toISOString()
               });
+              updatedCount = 1;
           }
+
+           // Optimistically update local state to enforce limit immediately
+           setAppUser(prevUser => prevUser ? { ...prevUser, aiQueriesCount: updatedCount, lastQueryDate: new Date().toISOString() } : null);
       }
 
     } catch (error) {

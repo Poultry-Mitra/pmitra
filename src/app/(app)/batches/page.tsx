@@ -82,7 +82,7 @@ export default function BatchesPage() {
   };
 
   const handleDeleteBatch = () => {
-    if(showDeleteAlert && firestore) {
+    if(showDeleteAlert && firestore && firebaseUser) {
       deleteBatch(firestore, showDeleteAlert.id);
       toast({
         title: "Batch Deleted",

@@ -40,7 +40,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useState, useEffect } from "react";
 import type { User } from "@/lib/types";
 import { useUser, useFirestore } from "@/firebase/provider";
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, onSnapshot } from 'firebase/firestore';
 
 const mainNavItems = [
   { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
@@ -70,11 +70,14 @@ export function AppSidebar() {
   useEffect(() => {
     if (firebaseUser && firestore) {
       const userDocRef = doc(firestore, "users", firebaseUser.uid);
-      getDoc(userDocRef).then((docSnap) => {
+      const unsubscribe = onSnapshot(userDocRef, (docSnap) => {
         if (docSnap.exists()) {
           setUser({ id: docSnap.id, ...docSnap.data() } as User);
+        } else {
+          setUser(null);
         }
       });
+      return () => unsubscribe();
     } else {
       setUser(null);
     }
