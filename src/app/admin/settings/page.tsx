@@ -24,8 +24,8 @@ export default function AdminSettingsPage() {
     return (
         <>
             <PageHeader title="System Settings" description="Configure global application settings." />
-            <div className="mt-8 max-w-3xl mx-auto">
-                <Card>
+            <div className="mt-8 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                <Card className="lg:col-span-2">
                     <CardHeader>
                         <CardTitle>App Configuration</CardTitle>
                         <CardDescription>Manage core features and default behaviors.</CardDescription>
@@ -75,7 +75,23 @@ export default function AdminSettingsPage() {
                             </div>
                         </div>
 
-                        <Button onClick={handleSave}>Save Settings</Button>
+                        <Button onClick={handleSave}>Save All Settings</Button>
+                    </CardContent>
+                </Card>
+                 <Card>
+                    <CardHeader>
+                        <CardTitle>AI Configuration</CardTitle>
+                        <CardDescription>Manage AI feature settings.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                        <div className="space-y-2 rounded-lg border p-4">
+                             <Label htmlFor="language" className="text-base">Monthly AI Chat Limit (Free Plan)</Label>
+                             <p className="text-sm text-muted-foreground pb-2">
+                                Set the number of free AI chat queries per month for users on the free plan.
+                            </p>
+                             <Input id="ai-chat-limit" type="number" defaultValue="5" className="w-[120px]" />
+                        </div>
+                        <Button onClick={handleSave} variant="secondary">Save AI Settings</Button>
                     </CardContent>
                 </Card>
             </div>
