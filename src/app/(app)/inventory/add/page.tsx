@@ -1,12 +1,12 @@
 
 "use client";
 
-import { useForm } from "react-hook-form";
+import { useForm, useFieldArray, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { PageHeader } from "../../_components/page-header";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -15,36 +15,75 @@ import { useFirestore } from "@/firebase/provider";
 import { currentUser } from "@/lib/data";
 import { addInventoryItem, type InventoryItem } from "@/hooks/use-inventory";
 import { useRouter } from "next/navigation";
-import { CalendarIcon, Save } from "lucide-react";
+import { CalendarIcon, Save, Trash2, PlusCircle, IndianRupee } from "lucide-react";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
+import { Separator } from "@/components/ui/separator";
+
+const productSchema = z.object({
+  productName: z.string().min(2, "Product name is required."),
+  category: z.enum(["Chicks", "Feed", "Medicine", "Equipment", "Supplements", "Bedding", "Sanitizers", "Other"]),
+  quantity: z.coerce.number().min(0, "Quantity must be non-negative."),
+  unit: z.enum(["kg", "grams", "liters", "ml", "units"]),
+  price: z.coerce.number().min(0),
+  discount: z.coerce.number().min(0).default(0),
+});
 
 const formSchema = z.object({
   // Supplier
   supplierName: z.string().optional(),
   supplierContact: z.string().optional(),
-  // Product
-  productName: z.string().min(2, "Product name is required."),
-  category: z.enum(["Chicks", "Feed", "Medicine", "Equipment", "Supplements", "Bedding", "Sanitizers", "Other"]),
-  // Purchase
-  quantity: z.coerce.number().min(0, "Quantity must be non-negative."),
-  unit: z.enum(["kg", "grams", "liters", "ml", "units"]),
+  
+  // Products Array
+  products: z.array(productSchema).min(1, "Please add at least one product."),
+
   // Pricing
   priceType: z.enum(['mrp', 'ex_factory']),
-  price: z.coerce.number().min(0),
-  discount: z.coerce.number().min(0).default(0),
+  
   // Payment
   paymentMethod: z.enum(['cash', 'credit', 'bank_transfer']),
   amountPaid: z.coerce.number().min(0),
   utrNumber: z.string().optional(),
+  
   // Invoice
   invoiceDate: z.date(),
   invoiceNumber: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
+
+function SummaryCard({ control }: { control: any }) {
+    const products = useWatch({ control, name: 'products' });
+    const subTotal = products.reduce((acc: number, product: any) => acc + (product.price * product.quantity), 0);
+    const totalDiscount = products.reduce((acc: number, product: any) => acc + product.discount, 0);
+    const netPayable = subTotal - totalDiscount;
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Pricing Summary</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Subtotal</span>
+                    <span className="font-medium">₹{subTotal.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Total Discount</span>
+                    <span className="font-medium text-destructive">- ₹{totalDiscount.toFixed(2)}</span>
+                </div>
+                <Separator />
+                <div className="flex justify-between font-bold text-lg">
+                    <span>Net Payable</span>
+                    <span>₹{netPayable.toFixed(2)}</span>
+                </div>
+            </CardContent>
+        </Card>
+    )
+}
+
 
 export default function AddPurchasePage() {
     const { toast } = useToast();
@@ -55,16 +94,17 @@ export default function AddPurchasePage() {
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            productName: "",
-            category: "Feed",
-            unit: "kg",
+            products: [{ productName: "", category: "Feed", unit: "kg", price: 0, discount: 0, quantity: 1 }],
             priceType: "mrp",
-            price: 0,
-            discount: 0,
             paymentMethod: "cash",
             amountPaid: 0,
             invoiceDate: new Date(),
         },
+    });
+
+    const { fields, append, remove } = useFieldArray({
+        control: form.control,
+        name: "products"
     });
 
     const paymentMethod = form.watch("paymentMethod");
@@ -75,20 +115,23 @@ export default function AddPurchasePage() {
             return;
         }
 
-        const newItem: Omit<InventoryItem, 'id' | 'farmerUID' | 'lastUpdated'> = {
-            productName: values.productName,
-            category: values.category,
-            stockQuantity: values.quantity,
-            unit: values.unit,
-            lowStockThreshold: 10, // Default for now
-        };
-
+        // For now, we add each product as a separate inventory item.
+        // In the future, this could be a single purchase record with multiple items.
         try {
-            await addInventoryItem(firestore, user.id, newItem);
-            // In a real app, you would also create a ledger entry for the payment
+            for (const product of values.products) {
+                const newItem: Omit<InventoryItem, 'id' | 'farmerUID' | 'lastUpdated'> = {
+                    productName: product.productName,
+                    category: product.category,
+                    stockQuantity: product.quantity,
+                    unit: product.unit,
+                    lowStockThreshold: 10, // Default for now
+                };
+                await addInventoryItem(firestore, user.id, newItem);
+            }
+            
             toast({
                 title: "Purchase Recorded",
-                description: `${values.productName} has been added to your inventory.`,
+                description: `${values.products.length} item(s) have been added to your inventory.`,
             });
             router.push('/inventory');
         } catch (error) {
@@ -99,7 +142,7 @@ export default function AddPurchasePage() {
 
     return (
         <>
-            <PageHeader title="Add New Purchase" description="Record a new inward entry for feed or medicine." />
+            <PageHeader title="Add New Purchase" description="Record a new inward entry for feed, medicine, or chicks." />
             <div className="mt-8">
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
@@ -110,7 +153,7 @@ export default function AddPurchasePage() {
                                         <CardTitle>Supplier & Product Details</CardTitle>
                                         <CardDescription>Enter details about who you bought from and what you bought.</CardDescription>
                                     </CardHeader>
-                                    <CardContent className="space-y-4">
+                                    <CardContent className="space-y-6">
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <FormField name="supplierName" control={form.control} render={({ field }) => (
                                                 <FormItem>
@@ -127,57 +170,97 @@ export default function AddPurchasePage() {
                                                 </FormItem>
                                             )} />
                                         </div>
-                                         <FormField name="productName" control={form.control} render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Product Name</FormLabel>
-                                                <FormControl><Input placeholder="e.g., Broiler Starter Pellets" {...field} /></FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )} />
-                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                             <FormField name="category" control={form.control} render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>Category</FormLabel>
-                                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                                        <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
-                                                        <SelectContent>
-                                                            <SelectItem value="Chicks">Chicks</SelectItem>
-                                                            <SelectItem value="Feed">Feed</SelectItem>
-                                                            <SelectItem value="Medicine">Medicine</SelectItem>
-                                                            <SelectItem value="Equipment">Equipment</SelectItem>
-                                                            <SelectItem value="Supplements">Supplements</SelectItem>
-                                                            <SelectItem value="Bedding">Bedding</SelectItem>
-                                                            <SelectItem value="Sanitizers">Sanitizers</SelectItem>
-                                                            <SelectItem value="Other">Other</SelectItem>
-                                                        </SelectContent>
-                                                    </Select>
-                                                    <FormMessage />
-                                                </FormItem>
-                                            )} />
-                                             <FormField name="quantity" control={form.control} render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>Quantity</FormLabel>
-                                                    <FormControl><Input type="number" placeholder="e.g., 50" {...field} /></FormControl>
-                                                    <FormMessage />
-                                                </FormItem>
-                                            )} />
-                                             <FormField name="unit" control={form.control} render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>Unit</FormLabel>
-                                                     <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                                        <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
-                                                        <SelectContent>
-                                                            <SelectItem value="kg">kg</SelectItem>
-                                                            <SelectItem value="grams">grams</SelectItem>
-                                                            <SelectItem value="liters">liters</SelectItem>
-                                                            <SelectItem value="ml">ml</SelectItem>
-                                                            <SelectItem value="units">units</SelectItem>
-                                                        </SelectContent>
-                                                    </Select>
-                                                    <FormMessage />
-                                                </FormItem>
-                                            )} />
+                                        <Separator />
+                                        
+                                        <div className="space-y-4">
+                                            {fields.map((field, index) => (
+                                                <div key={field.id} className="grid grid-cols-12 gap-x-4 gap-y-2 p-4 border rounded-md relative">
+                                                    <div className="col-span-12 md:col-span-6">
+                                                        <FormField name={`products.${index}.productName`} control={form.control} render={({ field }) => (
+                                                            <FormItem>
+                                                                <FormLabel>Product Name</FormLabel>
+                                                                <FormControl><Input placeholder="e.g., Broiler Starter Pellets" {...field} /></FormControl>
+                                                                <FormMessage />
+                                                            </FormItem>
+                                                        )} />
+                                                    </div>
+                                                     <div className="col-span-12 md:col-span-6">
+                                                         <FormField name={`products.${index}.category`} control={form.control} render={({ field }) => (
+                                                            <FormItem>
+                                                                <FormLabel>Category</FormLabel>
+                                                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                                    <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
+                                                                    <SelectContent>
+                                                                        <SelectItem value="Chicks">Chicks</SelectItem>
+                                                                        <SelectItem value="Feed">Feed</SelectItem>
+                                                                        <SelectItem value="Medicine">Medicine</SelectItem>
+                                                                        <SelectItem value="Equipment">Equipment</SelectItem>
+                                                                        <SelectItem value="Supplements">Supplements</SelectItem>
+                                                                        <SelectItem value="Bedding">Bedding</SelectItem>
+                                                                        <SelectItem value="Sanitizers">Sanitizers</SelectItem>
+                                                                        <SelectItem value="Other">Other</SelectItem>
+                                                                    </SelectContent>
+                                                                </Select>
+                                                                <FormMessage />
+                                                            </FormItem>
+                                                        )} />
+                                                    </div>
+                                                    <div className="col-span-6 md:col-span-3">
+                                                         <FormField name={`products.${index}.quantity`} control={form.control} render={({ field }) => (
+                                                            <FormItem>
+                                                                <FormLabel>Quantity</FormLabel>
+                                                                <FormControl><Input type="number" placeholder="e.g., 50" {...field} /></FormControl>
+                                                            </FormItem>
+                                                        )} />
+                                                    </div>
+                                                    <div className="col-span-6 md:col-span-3">
+                                                        <FormField name={`products.${index}.unit`} control={form.control} render={({ field }) => (
+                                                            <FormItem>
+                                                                <FormLabel>Unit</FormLabel>
+                                                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                                    <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
+                                                                    <SelectContent>
+                                                                        <SelectItem value="kg">kg</SelectItem>
+                                                                        <SelectItem value="grams">grams</SelectItem>
+                                                                        <SelectItem value="liters">liters</SelectItem>
+                                                                        <SelectItem value="ml">ml</SelectItem>
+                                                                        <SelectItem value="units">units</SelectItem>
+                                                                    </SelectContent>
+                                                                </Select>
+                                                            </FormItem>
+                                                        )} />
+                                                    </div>
+                                                    <div className="col-span-6 md:col-span-3">
+                                                        <FormField name={`products.${index}.price`} control={form.control} render={({ field }) => (
+                                                            <FormItem>
+                                                                <FormLabel>Price/Unit</FormLabel>
+                                                                <FormControl><Input type="number" placeholder="₹" {...field} /></FormControl>
+                                                            </FormItem>
+                                                        )} />
+                                                    </div>
+                                                     <div className="col-span-6 md:col-span-3">
+                                                        <FormField name={`products.${index}.discount`} control={form.control} render={({ field }) => (
+                                                            <FormItem>
+                                                                <FormLabel>Discount</FormLabel>
+                                                                <FormControl><Input type="number" placeholder="₹" {...field} /></FormControl>
+                                                            </FormItem>
+                                                        )} />
+                                                    </div>
+                                                    {fields.length > 1 && (
+                                                        <div className="col-span-12 text-right">
+                                                            <Button type="button" variant="ghost" size="icon" className="text-destructive hover:bg-destructive/10" onClick={() => remove(index)}>
+                                                                <Trash2 className="size-4" />
+                                                            </Button>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            ))}
                                         </div>
+
+                                        <Button type="button" variant="outline" onClick={() => append({ productName: "", category: "Feed", unit: "kg", price: 0, discount: 0, quantity: 1 })}>
+                                            <PlusCircle className="mr-2" />
+                                            Add Product
+                                        </Button>
                                     </CardContent>
                                 </Card>
                                  <Card>
@@ -204,7 +287,12 @@ export default function AddPurchasePage() {
                                              <FormField name="amountPaid" control={form.control} render={({ field }) => (
                                                 <FormItem>
                                                     <FormLabel>Amount Paid</FormLabel>
-                                                    <FormControl><Input type="number" placeholder="e.g., 2500" {...field} /></FormControl>
+                                                    <FormControl>
+                                                        <div className="relative">
+                                                            <IndianRupee className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                                            <Input type="number" className="pl-8" placeholder="e.g., 2500" {...field} />
+                                                        </div>
+                                                    </FormControl>
                                                     <FormMessage />
                                                 </FormItem>
                                             )} />
@@ -223,37 +311,7 @@ export default function AddPurchasePage() {
                             </div>
 
                             <div className="lg:col-span-1 space-y-8">
-                                <Card>
-                                    <CardHeader>
-                                        <CardTitle>Pricing</CardTitle>
-                                    </CardHeader>
-                                    <CardContent className="space-y-4">
-                                        <FormField name="priceType" control={form.control} render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Price Type</FormLabel>
-                                                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                                    <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
-                                                    <SelectContent>
-                                                        <SelectItem value="mrp">MRP</SelectItem>
-                                                        <SelectItem value="ex_factory">Ex-Factory</SelectItem>
-                                                    </SelectContent>
-                                                </Select>
-                                            </FormItem>
-                                        )} />
-                                        <FormField name="price" control={form.control} render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Price per Unit (₹)</FormLabel>
-                                                <FormControl><Input type="number" {...field} /></FormControl>
-                                            </FormItem>
-                                        )} />
-                                        <FormField name="discount" control={form.control} render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Discount (₹)</FormLabel>
-                                                <FormControl><Input type="number" {...field} /></FormControl>
-                                            </FormItem>
-                                        )} />
-                                    </CardContent>
-                                </Card>
+                                <SummaryCard control={form.control} />
                                 <Card>
                                     <CardHeader>
                                         <CardTitle>Invoice</CardTitle>
@@ -291,6 +349,18 @@ export default function AddPurchasePage() {
                                             <FormItem>
                                                 <FormLabel>Invoice/Bill No.</FormLabel>
                                                 <FormControl><Input placeholder="Optional" {...field} /></FormControl>
+                                            </FormItem>
+                                        )} />
+                                         <FormField name="priceType" control={form.control} render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Price Type</FormLabel>
+                                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                    <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
+                                                    <SelectContent>
+                                                        <SelectItem value="mrp">MRP</SelectItem>
+                                                        <SelectItem value="ex_factory">Ex-Factory</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
                                             </FormItem>
                                         )} />
                                     </CardContent>
