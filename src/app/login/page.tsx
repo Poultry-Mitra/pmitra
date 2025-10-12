@@ -50,7 +50,7 @@ export default function LoginPage() {
                     </CardHeader>
                     <CardContent>
                         <Button className="w-full" variant="secondary" asChild>
-                            <Link href="/admin/dashboard">
+                            <Link href="/admin">
                                 {t('login.dealer_button')} <ArrowRight className="ml-2" />
                             </Link>
                         </Button>
