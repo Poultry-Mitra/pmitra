@@ -16,11 +16,13 @@ import { Save } from "lucide-react";
 import { useFirestore, useUser } from "@/firebase/provider";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { addAuditLog } from "@/hooks/use-audit-logs";
+import { FirestorePermissionError } from "@/firebase/errors";
+import { errorEmitter } from "@/firebase/error-emitter";
 
 const formSchema = z.object({
   name: z.string().min(3, "Full name is required."),
   email: z.string().email("Please enter a valid email address."),
-  role: z.enum(["farmer", "dealer"]),
+  role: z.enum(["farmer", "dealer", "admin"]),
   planType: z.enum(["free", "premium"]),
 });
 
@@ -52,20 +54,25 @@ export default function AddUserPage() {
             return;
         }
 
-        try {
-            const newUserProfile = {
-                name: values.name,
-                email: values.email,
-                role: values.role,
-                planType: values.planType,
-                dateJoined: new Date().toISOString(),
-                uniqueDealerCode: values.role === 'dealer' ? `DL-${Math.random().toString(36).substring(2, 8).toUpperCase()}` : null,
+        const newUserProfile = {
+            name: values.name,
+            email: values.email,
+            role: values.role,
+            planType: values.planType,
+            dateJoined: new Date().toISOString(),
+            // Only add role-specific fields if needed
+            ...(values.role === 'dealer' && { 
+                uniqueDealerCode: `DL-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
                 connectedFarmers: [],
+            }),
+            ...(values.role === 'farmer' && {
                 connectedDealers: [],
-                aiQueriesCount: 0,
-                lastQueryDate: '',
-            };
-            
+            }),
+            aiQueriesCount: 0,
+            lastQueryDate: '',
+        };
+
+        try {
             const usersCollection = collection(firestore, "users");
             const docRef = await addDoc(usersCollection, newUserProfile);
 
@@ -81,7 +88,14 @@ export default function AddUserPage() {
                 title: "User Profile Created",
                 description: `A profile for ${values.name} has been added. They will need to sign up with this email to access their account.`,
             });
-            router.push(values.role === 'farmer' ? '/admin/user-management/farmers' : '/admin/user-management/dealers');
+            
+            if (values.role === 'farmer') {
+                router.push('/admin/user-management/farmers');
+            } else if (values.role === 'dealer') {
+                 router.push('/admin/user-management/dealers');
+            } else {
+                 router.push('/admin/dashboard');
+            }
 
         } catch(error) {
             console.error("Error creating user profile:", error);
@@ -91,11 +105,6 @@ export default function AddUserPage() {
                 requestResourceData: newUserProfile
             });
             errorEmitter.emit('permission-error', permissionError);
-            toast({
-                title: "Error",
-                description: "Failed to create user profile in the database.",
-                variant: "destructive",
-            });
         }
     }
 
@@ -149,6 +158,7 @@ export default function AddUserPage() {
                                                 <SelectContent>
                                                     <SelectItem value="farmer">Farmer</SelectItem>
                                                     <SelectItem value="dealer">Dealer</SelectItem>
+                                                    <SelectItem value="admin">Admin</SelectItem>
                                                 </SelectContent>
                                             </Select>
                                             <FormMessage />
