@@ -32,6 +32,7 @@ export default function DailyRateManagementPage() {
     const [lastUpdated, setLastUpdated] = useState('');
 
     useEffect(() => {
+        // This ensures date formatting only happens on the client, avoiding hydration errors.
         setLastUpdated(new Date(mockDailyRates.lastUpdated).toLocaleString());
     }, []);
 
