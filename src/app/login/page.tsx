@@ -22,60 +22,46 @@ export default function LoginPage() {
   const auth = useAuth();
   const router = useRouter();
   const [loading, setLoading] = useState(true);
-  const [authChecked, setAuthChecked] = useState(false);
 
   useEffect(() => {
     if (isUserLoading) {
-      setLoading(true);
-      return;
+      return; // Wait until user auth state is resolved
     }
   
-    if (firebaseUser) {
-      setLoading(true);
+    if (firebaseUser && firestore) {
       const userDocRef = doc(firestore, "users", firebaseUser.uid);
       
       getDoc(userDocRef).then(docSnap => {
         if (docSnap.exists()) {
           const userData = docSnap.data() as AppUser;
-          switch(userData.role) {
-            case 'farmer':
-              router.replace('/dashboard');
-              break;
-            case 'dealer':
-              router.replace('/dealer/dashboard');
-              break;
-            case 'admin':
-              router.replace('/admin/dashboard');
-              break;
-            default:
-              setLoading(false);
-              router.replace('/'); 
-          }
+          const targetPath = {
+            farmer: '/dashboard',
+            dealer: '/dealer/dashboard',
+            admin: '/admin/dashboard'
+          }[userData.role] || '/';
+          router.replace(targetPath);
         } else {
+          // User exists in Auth but not in Firestore, maybe during signup
           setLoading(false);
-          router.replace('/signup'); 
+          router.replace('/signup');
         }
       }).catch(() => {
         setLoading(false);
       });
     } else {
-       setLoading(false);
+       setLoading(false); // No user, stop loading
     }
-     setAuthChecked(true);
-
   }, [firebaseUser, isUserLoading, firestore, router]);
 
 
   const handleAnonymousLogin = (role: 'farmer' | 'dealer' | 'admin') => {
-    // This is a mock login for demonstration. 
-    // In a real app, you'd use signInWithEmailAndPassword, etc.
     if(auth) {
         initiateAnonymousSignIn(auth);
     }
   };
 
 
-  if (loading || !authChecked) {
+  if (loading || isUserLoading) {
     return (
         <div className="flex min-h-screen w-full flex-col items-center justify-center bg-muted/30 p-4 font-body">
             <Loader2 className="h-12 w-12 animate-spin text-primary" />

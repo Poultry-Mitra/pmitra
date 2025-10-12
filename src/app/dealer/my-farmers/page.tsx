@@ -1,3 +1,4 @@
+
 // src/app/dealer/my-farmers/page.tsx
 "use client";
 
@@ -36,24 +37,23 @@ import { useUsersByIds } from '@/hooks/use-users';
 import { ConnectFarmerDialog } from './_components/connect-farmer-dialog';
 import { useUser, useFirestore } from '@/firebase/provider';
 import type { User, Connection } from '@/lib/types';
-import { doc, onSnapshot } from 'firebase/firestore';
+import { doc, getDoc } from 'firebase/firestore';
 import { useConnections, updateConnectionStatus } from '@/hooks/use-connections';
 import { useToast } from '@/hooks/use-toast';
 
 export default function MyFarmersPage() {
-    const dealerUser = useUser();
+    const { user: dealerUser } = useUser();
     const firestore = useFirestore();
     const { toast } = useToast();
     const [dealer, setDealer] = useState<User | null>(null);
 
     useEffect(() => {
         if (!firestore || !dealerUser?.uid) return;
-        const unsub = onSnapshot(doc(firestore, 'users', dealerUser.uid), (doc) => {
+        getDoc(doc(firestore, 'users', dealerUser.uid)).then((doc) => {
             if (doc.exists()) {
                 setDealer(doc.data() as User);
             }
         });
-        return () => unsub();
     }, [firestore, dealerUser?.uid]);
 
     const { connections: allConnections, loading: connectionsLoading } = useConnections(dealerUser?.uid, 'dealer');

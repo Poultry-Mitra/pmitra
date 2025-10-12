@@ -1,3 +1,4 @@
+
 // src/app/dealer/dashboard/page.tsx
 "use client";
 
@@ -11,7 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import type { User as AppUser, Order } from "@/lib/types";
 import { useUser, useFirestore } from "@/firebase/provider";
-import { doc, onSnapshot } from "firebase/firestore";
+import { doc, getDoc } from "firebase/firestore";
 import { useEffect, useState, useMemo } from "react";
 import { useOrders } from "@/hooks/use-orders";
 import { useUsersByIds } from "@/hooks/use-users";
@@ -88,14 +89,13 @@ export default function DealerDashboardPage() {
     useEffect(() => {
         if (firebaseUser && firestore) {
             const userDocRef = doc(firestore, "users", firebaseUser.uid);
-            const unsub = onSnapshot(userDocRef, (docSnap) => {
+            getDoc(userDocRef).then((docSnap) => {
                 if (docSnap.exists()) {
                     setUser({ id: docSnap.id, ...docSnap.data() } as AppUser);
                 } else {
                     setUser(null);
                 }
             });
-             return () => unsub();
         } else {
             setUser(null);
         }

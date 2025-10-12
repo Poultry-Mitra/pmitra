@@ -1,3 +1,4 @@
+
 // src/app/(app)/daily-rates/page.tsx
 "use client";
 
@@ -8,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { IndianRupee, MapPin, Zap } from "lucide-react";
 import { Button } from '@/components/ui/button';
 import { useUser, useFirestore } from '@/firebase/provider';
-import { doc, onSnapshot } from 'firebase/firestore';
+import { doc, getDoc } from 'firebase/firestore';
 import type { User as AppUser, DailyRates } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
@@ -17,7 +18,7 @@ export default function DailyRatesPage() {
     const [rates, setRates] = useState<DailyRates | null>(null);
     const [ratesLoading, setRatesLoading] = useState(true);
     const [lastUpdatedTime, setLastUpdatedTime] = useState('');
-    const firebaseUser = useUser();
+    const { user: firebaseUser } = useUser();
     const firestore = useFirestore();
     const [user, setUser] = useState<AppUser | null>(null);
     const [userLoading, setUserLoading] = useState(true);
@@ -26,7 +27,7 @@ export default function DailyRatesPage() {
         if (firebaseUser && firestore) {
             setUserLoading(true);
             const userDocRef = doc(firestore, 'users', firebaseUser.uid);
-            const unsubscribe = onSnapshot(userDocRef, (docSnap) => {
+            getDoc(userDocRef).then((docSnap) => {
                 if (docSnap.exists()) {
                     setUser(docSnap.data() as AppUser);
                 } else {
@@ -34,7 +35,6 @@ export default function DailyRatesPage() {
                 }
                 setUserLoading(false);
             });
-            return () => unsubscribe();
         } else if (firebaseUser === null) {
             setUserLoading(false);
         }
@@ -46,7 +46,7 @@ export default function DailyRatesPage() {
         const today = format(new Date(), 'yyyy-MM-dd');
         const ratesDocRef = doc(firestore, 'dailyRates', today);
 
-        const unsubscribe = onSnapshot(ratesDocRef, (docSnap) => {
+        getDoc(ratesDocRef).then((docSnap) => {
             if (docSnap.exists()) {
                 const data = docSnap.data() as DailyRates;
                 setRates(data);
@@ -57,13 +57,12 @@ export default function DailyRatesPage() {
                 setRates(null);
             }
             setRatesLoading(false);
-        }, (error) => {
+        }).catch((error) => {
             console.error("Error fetching daily rates:", error);
             setRates(null);
             setRatesLoading(false);
         });
 
-        return () => unsubscribe();
     }, [firestore]);
 
 

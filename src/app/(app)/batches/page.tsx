@@ -31,9 +31,9 @@ import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
-import { useFirestore, useUser } from '@/firebase/provider';
+import { useUser, useFirestore } from '@/firebase/provider';
 import { AddBatchDialog } from "./_components/add-batch-dialog";
-import { doc, onSnapshot } from 'firebase/firestore';
+import { doc, getDoc } from 'firebase/firestore';
 
 
 const statusVariant: { [key in 'Active' | 'Completed' | 'Planned']: "default" | "secondary" | "outline" } = {
@@ -50,7 +50,7 @@ const statusColorScheme = {
 
 export default function BatchesPage() {
   const firestore = useFirestore();
-  const firebaseUser = useUser();
+  const { user: firebaseUser } = useUser();
   const [user, setUser] = useState<User | null>(null);
 
   const { batches, loading } = useBatches(firebaseUser?.uid || '');
@@ -62,12 +62,11 @@ export default function BatchesPage() {
   
   useEffect(() => {
     if (!firestore || !firebaseUser?.uid) return;
-    const unsub = onSnapshot(doc(firestore, 'users', firebaseUser.uid), (doc) => {
+    getDoc(doc(firestore, 'users', firebaseUser.uid)).then((doc) => {
         if (doc.exists()) {
             setUser(doc.data() as User);
         }
     });
-    return () => unsub();
   }, [firestore, firebaseUser?.uid]);
 
   const isPremiumUser = user?.planType === 'premium';
@@ -229,5 +228,3 @@ export default function BatchesPage() {
     </>
   );
 }
-
-    

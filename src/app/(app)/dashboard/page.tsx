@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useMemo, useEffect } from 'react';
@@ -15,12 +16,12 @@ import { useUser, useFirestore } from "@/firebase/provider";
 import type { User } from "@/lib/types";
 import { ConnectDealerDialog } from './_components/connect-dealer-dialog';
 import { PendingOrders } from './_components/pending-orders';
-import { doc, onSnapshot } from 'firebase/firestore';
+import { doc, getDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 
 
 export default function DashboardPage() {
-  const firebaseUser = useUser();
+  const { user: firebaseUser } = useUser();
   const firestore = useFirestore();
   const [user, setUser] = useState<User | null>(null);
   const [isConnectDealerOpen, setConnectDealerOpen] = useState(false);
@@ -28,12 +29,12 @@ export default function DashboardPage() {
   
   useEffect(() => {
     if (!firestore || !firebaseUser?.uid) return;
-    const unsub = onSnapshot(doc(firestore, 'users', firebaseUser.uid), (doc) => {
-        if (doc.exists()) {
-            setUser(doc.data() as User);
+    const userDocRef = doc(firestore, 'users', firebaseUser.uid);
+    getDoc(userDocRef).then((docSnap) => {
+        if (docSnap.exists()) {
+            setUser(docSnap.data() as User);
         }
     });
-    return () => unsub();
   }, [firestore, firebaseUser?.uid]);
 
   
