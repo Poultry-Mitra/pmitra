@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -66,7 +67,7 @@ const statusColorScheme = {
 
 export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 'dealer' }) {
     const allUsers = mockUsers.filter(user => user.role !== 'admin');
-    const [usersWithStatus, setUsersWithStatus] = useState<UserWithStatus[]>(() => allUsers.map(user => ({...user, status: 'active'})));
+    const [usersWithStatus, setUsersWithStatus] = useState<UserWithStatus[]>([]);
     
     useEffect(() => {
         // This logic runs only on the client-side, preventing hydration mismatch.

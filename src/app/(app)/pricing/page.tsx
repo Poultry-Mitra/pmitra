@@ -91,8 +91,8 @@ function PricingCard({ plan }: { plan: PricingPlan }) {
                 <CardTitle className="font-headline">{plan.name} <span className="text-sm font-normal text-muted-foreground">({plan.userType})</span></CardTitle>
                 <CardDescription>{plan.description}</CardDescription>
                 <div className="flex items-baseline gap-2">
-                    <span className="text-3xl font-bold">₹{plan.priceMonthly}</span>
-                    <span className="text-muted-foreground">/month</span>
+                    <span className="text-3xl font-bold">{plan.priceMonthly === "0" ? "Free" : `₹${plan.priceMonthly}`}</span>
+                    {plan.priceMonthly !== "0" && <span className="text-muted-foreground">/month</span>}
                 </div>
                  {plan.priceYearly !== "—" && (
                     <div className="text-sm text-muted-foreground">
@@ -148,7 +148,7 @@ export default function PricingPage() {
             <div className="mt-8 space-y-12">
                 <div>
                     <h2 className="font-headline text-2xl font-bold tracking-tight mb-6">For Farmers (मुर्गीपालक)</h2>
-                    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                    <div className="grid gap-6 md:grid-cols-2 lg:max-w-4xl">
                         {farmerPlans.map(plan => (
                             <PricingCard key={`${plan.name}-${plan.userType}`} plan={plan} />
                         ))}
@@ -157,7 +157,7 @@ export default function PricingPage() {
 
                  <div>
                     <h2 className="font-headline text-2xl font-bold tracking-tight mb-6">For Dealers (डीलर / सप्लायर)</h2>
-                    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                     <div className="grid gap-6 md:grid-cols-2 lg:max-w-4xl">
                         {dealerPlans.map(plan => (
                              <PricingCard key={`${plan.name}-${plan.userType}`} plan={plan} />
                         ))}

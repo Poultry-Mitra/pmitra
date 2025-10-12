@@ -3,7 +3,7 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { mockFarmMetrics, mockUsers } from "@/lib/data";
+import { mockUsers } from "@/lib/data";
 import { Users, Bot, IndianRupee, Activity, WifiOff, Server, PlusCircle, Send } from "lucide-react";
 import { UserManagementSummary } from "../_components/user-management-summary";
 import { RevenueChart } from "../_components/revenue-chart";
