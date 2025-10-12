@@ -10,12 +10,13 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { mockUsers } from "@/lib/data";
 import { FileDown, MoreHorizontal } from "lucide-react";
 
+// Mock transactions specific to a dealer (e.g., dealer with id usr_dealer_003)
 const transactions = [
-    { id: 'txn_1', user: mockUsers[1], plan: 'Farmer Plan', amount: 'INR 249', status: 'Success', date: '2023-10-28' },
-    { id: 'txn_2', user: mockUsers[3], plan: 'Dealer Plan', amount: 'INR 499', status: 'Success', date: '2023-10-28' },
-    { id: 'txn_3', user: mockUsers[2], plan: 'Farmer Plan', amount: 'INR 249', status: 'Failed', date: '2023-10-27' },
-    { id: 'txn_4', user: mockUsers[4], plan: 'Farmer Plan', amount: 'INR 249', status: 'Success', date: '2023-10-27' },
-    { id: 'txn_5', user: mockUsers[4], plan: 'Dealer Plan', amount: 'INR 499', status: 'Success', date: '2023-10-26' },
+    { id: 'txn_1', user: mockUsers.find(u => u.id === 'usr_farmer_002'), plan: 'Farmer Plan Subscription', amount: 'INR 249', status: 'Success', date: '2023-10-28' },
+    { id: 'txn_2', user: mockUsers.find(u => u.id === 'usr_farmer_004'), plan: 'Order #ORD-2 Payment', amount: 'INR 22,500', status: 'Success', date: '2023-10-28' },
+    { id: 'txn_3', user: mockUsers.find(u => u.id === 'usr_farmer_002'), plan: 'Order #ORD-1 Payment', amount: 'INR 22,000', status: 'Pending', date: '2023-10-27' },
+    { id: 'txn_4', user: mockUsers.find(u => u.id === 'usr_farmer_004'), plan: 'Farmer Plan Subscription', amount: 'INR 249', status: 'Success', date: '2023-10-27' },
+    { id: 'txn_5', user: mockUsers.find(u => u.id === 'usr_farmer_002'), plan: 'Order #ORD-3 Payment', amount: 'INR 1,750', status: 'Failed', date: '2023-10-26' },
 ];
 
 const statusVariant = {
@@ -25,9 +26,10 @@ const statusVariant = {
 } as const;
 
 export default function TransactionsPage() {
+    // In a real app, we'd filter transactions where dealerUID matches the current user.
     return (
         <>
-            <PageHeader title="Transactions" description="View and manage all user transactions and subscriptions.">
+            <PageHeader title="My Transactions" description="View and manage all transactions related to your account.">
                 <Button variant="outline">
                     <FileDown className="mr-2" />
                     Export All
@@ -37,14 +39,14 @@ export default function TransactionsPage() {
                 <Card>
                     <CardHeader>
                         <CardTitle>Recent Transactions</CardTitle>
-                        <CardDescription>A list of the most recent transactions from all users.</CardDescription>
+                        <CardDescription>A list of the most recent payments and order transactions.</CardDescription>
                     </CardHeader>
                     <CardContent>
                         <Table>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead>User</TableHead>
-                                    <TableHead>Plan</TableHead>
+                                    <TableHead>Farmer/Customer</TableHead>
+                                    <TableHead>Description</TableHead>
                                     <TableHead>Amount</TableHead>
                                     <TableHead>Status</TableHead>
                                     <TableHead>Date</TableHead>
@@ -52,36 +54,39 @@ export default function TransactionsPage() {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {transactions.map(txn => (
-                                    <TableRow key={txn.id}>
-                                        <TableCell>
-                                            <div className="font-medium">{txn.user.name}</div>
-                                            <div className="text-sm text-muted-foreground">{txn.user.email}</div>
-                                        </TableCell>
-                                        <TableCell>{txn.plan}</TableCell>
-                                        <TableCell>{txn.amount}</TableCell>
-                                        <TableCell>
-                                            <Badge variant={statusVariant[txn.status as keyof typeof statusVariant]}>{txn.status}</Badge>
-                                        </TableCell>
-                                        <TableCell>
-                                            {new Date(txn.date).toLocaleDateString('en-CA')}
-                                        </TableCell>
-                                        <TableCell>
-                                            <DropdownMenu>
-                                                <DropdownMenuTrigger asChild>
-                                                    <Button aria-haspopup="true" size="icon" variant="ghost">
-                                                        <MoreHorizontal className="h-4 w-4" />
-                                                        <span className="sr-only">Toggle menu</span>
-                                                    </Button>
-                                                </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="end">
-                                                    <DropdownMenuItem>View Details</DropdownMenuItem>
-                                                    <DropdownMenuItem>Refund</DropdownMenuItem>
-                                                </DropdownMenuContent>
-                                            </DropdownMenu>
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
+                                {transactions.map(txn => {
+                                    if (!txn.user) return null;
+                                    return (
+                                        <TableRow key={txn.id}>
+                                            <TableCell>
+                                                <div className="font-medium">{txn.user.name}</div>
+                                                <div className="text-sm text-muted-foreground">{txn.user.email}</div>
+                                            </TableCell>
+                                            <TableCell>{txn.plan}</TableCell>
+                                            <TableCell>{txn.amount}</TableCell>
+                                            <TableCell>
+                                                <Badge variant={statusVariant[txn.status as keyof typeof statusVariant]}>{txn.status}</Badge>
+                                            </TableCell>
+                                            <TableCell>
+                                                {new Date(txn.date).toLocaleDateString('en-CA')}
+                                            </TableCell>
+                                            <TableCell>
+                                                <DropdownMenu>
+                                                    <DropdownMenuTrigger asChild>
+                                                        <Button aria-haspopup="true" size="icon" variant="ghost">
+                                                            <MoreHorizontal className="h-4 w-4" />
+                                                            <span className="sr-only">Toggle menu</span>
+                                                        </Button>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent align="end">
+                                                        <DropdownMenuItem>View Details</DropdownMenuItem>
+                                                        <DropdownMenuItem>Send Reminder</DropdownMenuItem>
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
+                                            </TableCell>
+                                        </TableRow>
+                                    )
+                                })}
                             </TableBody>
                         </Table>
                     </CardContent>

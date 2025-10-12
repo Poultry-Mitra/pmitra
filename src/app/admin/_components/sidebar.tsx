@@ -42,7 +42,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible"
-import { mockUsers } from "@/lib/data";
+import { mockUsers, type User as UserType } from "@/lib/data";
 
 
 export function AdminSidebar() {
@@ -53,7 +53,7 @@ export function AdminSidebar() {
   const [contentManagementOpen, setContentManagementOpen] = useState(pathname.startsWith('/admin/daily-rates'));
 
   // This is a mock. In a real app, you'd get the current user from an auth context.
-  const currentUser = mockUsers.find(u => u.role === 'dealer');
+  const currentUser = mockUsers.find(u => u.role === 'dealer') as UserType & { role: 'admin' | 'dealer' };
   const isAdmin = currentUser?.role === 'admin';
 
 
@@ -143,27 +143,40 @@ export function AdminSidebar() {
           )}
           
           <SidebarMenuItem>
-              <Link href={isAdmin ? "/admin/subscription-management" : "/admin/my-orders"}>
+              <Link href={isAdmin ? "/admin/subscription-management" : "/admin/my-inventory"}>
                 <SidebarMenuButton
-                  isActive={pathname.startsWith(isAdmin ? "/admin/subscription-management" : "/admin/my-orders")}
-                  tooltip={isAdmin ? "Subscriptions" : "Farmer Orders"}
+                  isActive={pathname.startsWith(isAdmin ? "/admin/subscription-management" : "/admin/my-inventory")}
+                  tooltip={isAdmin ? "Subscriptions" : "My Inventory"}
                 >
-                  {isAdmin ? <Tags /> : <ShoppingBag />}
-                  <span>{isAdmin ? "Subscriptions" : "Farmer Orders"}</span>
+                  {isAdmin ? <Tags /> : <Warehouse />}
+                  <span>{isAdmin ? "Subscriptions" : "My Inventory"}</span>
                 </SidebarMenuButton>
               </Link>
           </SidebarMenuItem>
            <SidebarMenuItem>
-              <Link href={isAdmin ? "/admin/transactions" : "/admin/my-inventory"}>
+              <Link href={isAdmin ? "/admin/transactions" : "/admin/my-orders"}>
                 <SidebarMenuButton
-                  isActive={pathname.startsWith(isAdmin ? "/admin/transactions" : "/admin/my-inventory")}
-                  tooltip={isAdmin ? "Transactions" : "My Inventory"}
+                  isActive={pathname.startsWith(isAdmin ? "/admin/transactions" : "/admin/my-orders")}
+                  tooltip={isAdmin ? "Transactions" : "Farmer Orders"}
                 >
-                  {isAdmin ? <CreditCard /> : <Warehouse />}
-                  <span>{isAdmin ? "Transactions" : "My Inventory"}</span>
+                  {isAdmin ? <CreditCard /> : <ShoppingBag />}
+                  <span>{isAdmin ? "Transactions" : "Farmer Orders"}</span>
                 </SidebarMenuButton>
               </Link>
           </SidebarMenuItem>
+          {!isAdmin && (
+             <SidebarMenuItem>
+                <Link href="/admin/transactions">
+                  <SidebarMenuButton
+                    isActive={pathname.startsWith("/admin/transactions")}
+                    tooltip={"Transactions"}
+                  >
+                    <CreditCard />
+                    <span>{"Transactions"}</span>
+                  </SidebarMenuButton>
+                </Link>
+            </SidebarMenuItem>
+          )}
 
           <SidebarSeparator />
           <SidebarGroupLabel>Content & AI</SidebarGroupLabel>
@@ -268,4 +281,3 @@ export function AdminSidebar() {
     </Sidebar>
   );
 }
-
