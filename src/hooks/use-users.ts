@@ -79,7 +79,9 @@ export function useUsersByIds(userIds: string[]) {
 
         setLoading(true);
         const usersCollection = collection(firestore, 'users');
-        const q = query(usersCollection, where('__name__', 'in', userIds));
+        // Firestore 'in' queries are limited to 30 items. 
+        // For a real-world app with many connected farmers, you might need to batch these queries.
+        const q = query(usersCollection, where('__name__', 'in', userIds.slice(0, 30)));
 
         const unsubscribe = onSnapshot(
             q,

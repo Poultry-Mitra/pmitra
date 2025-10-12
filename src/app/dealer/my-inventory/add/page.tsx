@@ -15,6 +15,9 @@ import { useRouter } from "next/navigation";
 import { Save, Trash2, PlusCircle, IndianRupee } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Label } from "@/components/ui/label";
+import { useFirestore, useUser } from "@/firebase/provider";
+import { addDealerInventoryItem, type DealerInventoryItem } from "@/hooks/use-dealer-inventory";
+import { addLedgerEntry } from "@/hooks/use-ledger";
 
 const productSchema = z.object({
   productName: z.string().min(2, "Product name is required."),
@@ -23,6 +26,7 @@ const productSchema = z.object({
   unit: z.enum(["bag", "packet", "bottle", "pcs", "chick"]),
   ratePerUnit: z.coerce.number().min(0),
   discount: z.coerce.number().min(0).default(0),
+  unitWeight: z.coerce.number().optional(),
 });
 
 const formSchema = z.object({
@@ -94,6 +98,8 @@ function SummaryCard({ control }: { control: any }) {
 export default function AddStockPage() {
     const { toast } = useToast();
     const router = useRouter();
+    const firestore = useFirestore();
+    const user = useUser();
 
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
@@ -119,15 +125,48 @@ export default function AddStockPage() {
     const paymentMethod = form.watch("paymentMethod");
 
     async function onSubmit(values: FormValues) {
-        console.log("Form Submitted", values);
-        // In a real app, this would save the purchase to Firestore and update inventory stock
-        // and create a debit entry in the dealer's ledger.
-        
-        toast({
-            title: "Stock Added",
-            description: "The new purchase has been recorded and stock has been updated.",
-        });
-        router.push('/dealer/my-inventory');
+        if (!firestore || !user) {
+            toast({ title: "Error", description: "You must be logged in to add stock.", variant: "destructive" });
+            return;
+        }
+
+        try {
+            // 1. Add each product to the dealer's inventory
+            for (const product of values.products) {
+                const newItem: Omit<DealerInventoryItem, 'id' | 'dealerUID' | 'updatedAt'> = {
+                    ...product,
+                    phaseApplicable: [], // Default empty for now
+                };
+                await addDealerInventoryItem(firestore, user.uid, newItem);
+            }
+            
+            // 2. Add a single debit entry to the ledger for the total purchase amount
+            const netPayable = values.products.reduce((acc, p) => acc + (p.ratePerUnit * p.quantity), 0) 
+                             - values.products.reduce((acc, p) => acc + p.discount, 0)
+                             + values.transportCost + values.miscCost;
+
+            const ledgerDescription = `Purchase from ${values.supplierName || 'Unknown Supplier'}` + (values.invoiceNumber ? ` (Bill: ${values.invoiceNumber})` : '');
+            
+            await addLedgerEntry(firestore, user.uid, {
+                description: ledgerDescription,
+                amount: netPayable,
+                date: new Date(values.invoiceDate).toISOString(),
+            }, 'Debit');
+            
+            toast({
+                title: "Stock Added",
+                description: "The new purchase has been recorded and stock has been updated.",
+            });
+            router.push('/dealer/my-inventory');
+
+        } catch (error: any) {
+            console.error("Failed to add stock:", error);
+            toast({
+                title: "Error adding stock",
+                description: error.message || "An unexpected error occurred.",
+                variant: "destructive",
+            });
+        }
     }
 
     return (
@@ -232,8 +271,16 @@ export default function AddStockPage() {
                                                             </FormItem>
                                                         )} />
                                                     </div>
+                                                    <div className="col-span-12 md:col-span-3">
+                                                         <FormField name={`products.${index}.unitWeight`} control={form.control} render={({ field }) => (
+                                                            <FormItem>
+                                                                <FormLabel className="text-xs">Unit Wt. (kg)</FormLabel>
+                                                                <FormControl><Input type="number" placeholder="Optional" {...field} /></FormControl>
+                                                            </FormItem>
+                                                        )} />
+                                                    </div>
                                                     {fields.length > 1 && (
-                                                        <div className="col-span-12 text-right -mb-2">
+                                                        <div className="col-span-12 md:col-span-9 text-right -mb-2">
                                                             <Button type="button" variant="ghost" size="icon" className="text-destructive hover:bg-destructive/10 h-7 w-7" onClick={() => remove(index)}>
                                                                 <Trash2 className="size-4" />
                                                             </Button>
@@ -329,9 +376,9 @@ export default function AddStockPage() {
                                         )} />
                                     </CardContent>
                                 </Card>
-                                 <Button type="submit" size="lg" className="w-full">
+                                 <Button type="submit" size="lg" className="w-full" disabled={form.formState.isSubmitting}>
                                     <Save className="mr-2" />
-                                    Record Purchase
+                                    {form.formState.isSubmitting ? "Saving..." : "Record Purchase"}
                                 </Button>
                             </div>
                         </div>

@@ -1,26 +1,20 @@
 
 "use client";
 
-import { useState } from 'react';
 import Link from 'next/link';
 import { PageHeader } from "../_components/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from '@/components/ui/badge';
-import { PlusCircle, MoreHorizontal } from 'lucide-react';
+import { PlusCircle, MoreHorizontal, Loader2 } from 'lucide-react';
 import type { DealerInventoryItem } from '@/lib/types';
-
-// Mock data for now, this would come from Firestore
-const mockInventory: DealerInventoryItem[] = [
-    { id: '1', dealerUID: 'usr_dealer_003', category: 'Feed', productName: 'Broiler Starter Crumble', unit: 'bag', unitWeight: 50, stockQuantity: 120, ratePerUnit: 2200, phaseApplicable: ['Starter'], updatedAt: new Date() },
-    { id: '2', dealerUID: 'usr_dealer_003', category: 'Feed', productName: 'Broiler Finisher Pellets', unit: 'bag', unitWeight: 50, stockQuantity: 80, ratePerUnit: 2150, phaseApplicable: ['Finisher'], updatedAt: new Date() },
-    { id: '3', dealerUID: 'usr_dealer_003', category: 'Chicks', productName: 'Cobb 430Y Chicks', unit: 'chick', stockQuantity: 5000, ratePerUnit: 45, updatedAt: new Date() },
-    { id: '4', dealerUID: 'usr_dealer_003', category: 'Medicine', productName: 'Vimeral Liquid', unit: 'bottle', stockQuantity: 50, ratePerUnit: 350, updatedAt: new Date() },
-];
+import { useUser } from '@/firebase/provider';
+import { useDealerInventory } from '@/hooks/use-dealer-inventory';
 
 export default function MyInventoryPage() {
-    const [inventory, setInventory] = useState(mockInventory);
+    const user = useUser();
+    const { inventory, loading } = useDealerInventory(user?.uid || '');
 
     return (
         <>
@@ -54,14 +48,21 @@ export default function MyInventoryPage() {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {inventory.length === 0 && (
+                                {loading && (
+                                     <TableRow>
+                                        <TableCell colSpan={5} className="h-24 text-center">
+                                            <Loader2 className="mx-auto animate-spin" />
+                                        </TableCell>
+                                    </TableRow>
+                                )}
+                                {!loading && inventory.length === 0 && (
                                     <TableRow>
                                         <TableCell colSpan={5} className="h-24 text-center">
                                             No products found. Add a product to get started.
                                         </TableCell>
                                     </TableRow>
                                 )}
-                                {inventory.map((item) => (
+                                {!loading && inventory.map((item) => (
                                     <TableRow key={item.id}>
                                         <TableCell className="font-medium">{item.productName}</TableCell>
                                         <TableCell>
@@ -87,5 +88,3 @@ export default function MyInventoryPage() {
         </>
     );
 }
-
-    
