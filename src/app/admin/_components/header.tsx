@@ -20,6 +20,9 @@ import { LanguageToggle } from '@/components/language-toggle';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
+import { useClientState } from '@/hooks/use-client-state';
+import type { User } from '@/lib/types';
+
 
 function Breadcrumbs() {
     const pathname = usePathname();
@@ -60,10 +63,10 @@ function Breadcrumbs() {
 
 
 export function AdminHeader() {
-  const user = currentDealer; 
+  const user = useClientState<User | undefined>(currentDealer);
   const { toast } = useToast();
 
-  if (!user) return null; // Don't render if not a dealer/admin context
+  if (!user) return <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background/80 px-4 backdrop-blur-sm sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6"></header>; // Render empty header to avoid layout shift
 
   const handleCopyCode = () => {
     if(user.uniqueDealerCode) {

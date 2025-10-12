@@ -40,6 +40,8 @@ import { currentDealer } from "@/lib/data";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { useState } from "react";
+import { useClientState } from "@/hooks/use-client-state";
+import type { User as UserType } from "@/lib/types";
 
 
 export function AdminSidebar() {
@@ -48,11 +50,17 @@ export function AdminSidebar() {
   const { state } = useSidebar();
   const [managementOpen, setManagementOpen] = useState(pathname.startsWith("/admin/user-management"));
 
-  const currentUser = currentDealer;
+  const currentUser = useClientState<UserType | undefined>(currentDealer);
 
   if (!currentUser) {
       // Could be a loading state or a redirect
-      return null; 
+      return (
+        <Sidebar>
+            <SidebarHeader />
+            <SidebarContent />
+            <SidebarFooter />
+        </Sidebar>
+      );
   }
 
   const isAdmin = currentUser.role === 'admin';
