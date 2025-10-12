@@ -17,6 +17,9 @@ import { useEffect, useState } from 'react';
 import { Loader2, Save } from 'lucide-react';
 import type { User as AppUser } from '@/lib/types';
 import { useLanguage } from '@/components/language-provider';
+import { FirestorePermissionError } from '@/firebase/errors';
+import { errorEmitter } from '@/firebase/error-emitter';
+
 
 const formSchema = z.object({
   name: z.string().min(3, "Name must be at least 3 characters."),
@@ -67,18 +70,24 @@ export default function ProfilePage() {
         }
 
         const userDocRef = doc(firestore, "users", firebaseUser.uid);
-        
-        try {
-            await updateDoc(userDocRef, {
-                name: values.name,
-                mobileNumber: values.mobileNumber,
-                pinCode: values.pinCode
+        const updatedData = {
+            name: values.name,
+            mobileNumber: values.mobileNumber,
+            pinCode: values.pinCode
+        };
+
+        updateDoc(userDocRef, updatedData)
+            .then(() => {
+                toast({ title: t('profile.update_success_title'), description: t('profile.update_success_desc') });
+            })
+            .catch((error) => {
+                 const permissionError = new FirestorePermissionError({
+                    path: userDocRef.path,
+                    operation: 'update',
+                    requestResourceData: updatedData,
+                });
+                errorEmitter.emit('permission-error', permissionError);
             });
-            toast({ title: t('profile.update_success_title'), description: t('profile.update_success_desc') });
-        } catch (error: any) {
-            console.error("Profile update failed: ", error);
-            toast({ title: t('messages.error'), description: error.message || t('profile.update_fail_desc'), variant: "destructive" });
-        }
     }
 
     if (isUserLoading || !user) {
