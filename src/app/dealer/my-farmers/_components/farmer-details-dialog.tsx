@@ -1,4 +1,3 @@
-
 // src/app/dealer/my-farmers/_components/farmer-details-dialog.tsx
 "use client";
 

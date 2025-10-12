@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { AppIcon } from '@/app/icon';
 import { ThemeToggle } from '@/components/theme-toggle';
-import { LanguageToggle } from '@/components/language-toggle';
+import { LanguageToggle } from '@/components/language-provider';
 import { useLanguage } from '@/components/language-provider';
 import { RateTicker } from './_components/rate-ticker';
 import { useUser, useAuth } from '@/firebase/provider';
@@ -90,11 +90,6 @@ export default function LandingPage() {
       role: t('testimonials.dealer_role'),
       quote: t('testimonials.dealer_quote'),
     },
-    {
-      name: "Amit Singh",
-      role: t('testimonials.admin_role'),
-      quote: t('testimonials.admin_quote'),
-    }
   ];
 
   return (
@@ -217,7 +212,7 @@ export default function LandingPage() {
                     <h2 className="font-headline text-3xl font-bold leading-[1.1] sm:text-3xl md:text-5xl">{t('testimonials.title')}</h2>
                     <p className="max-w-[85%] leading-normal text-muted-foreground sm:text-lg sm:leading-7">{t('testimonials.subtitle')}</p>
                 </div>
-                <div className="mt-12 grid gap-8 md:grid-cols-3">
+                <div className="mt-12 grid gap-8 md:grid-cols-2">
                     {testimonials.map((item, i) => (
                         <Card key={i} className="bg-secondary/50 dark:bg-card">
                             <CardContent className="pt-6">
@@ -270,3 +265,5 @@ export default function LandingPage() {
     </div>
   );
 }
+
+    

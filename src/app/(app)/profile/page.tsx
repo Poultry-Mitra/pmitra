@@ -1,3 +1,4 @@
+
 // src/app/(app)/profile/page.tsx
 "use client";
 
@@ -11,7 +12,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useUser, useFirestore } from '@/firebase/provider';
-import { doc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { useEffect } from 'react';
 import { Loader2, Save } from 'lucide-react';
 import type { User as AppUser } from '@/lib/types';
@@ -30,6 +31,7 @@ export default function ProfilePage() {
     const { user: firebaseUser, isUserLoading } = useUser();
     const firestore = useFirestore();
     const { toast } = useToast();
+    const [user, setUser] = useState<AppUser | null>(null);
 
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
@@ -42,11 +44,21 @@ export default function ProfilePage() {
 
     useEffect(() => {
         if (firebaseUser && firestore) {
-            // This assumes user data is stored in a 'users' collection with the user's UID as the document ID.
-            // In a real app, you might fetch this data and set the form's default values.
-            form.setValue('name', firebaseUser.displayName || '');
+            const userDocRef = doc(firestore, 'users', firebaseUser.uid);
+            getDoc(userDocRef).then((docSnap) => {
+                if (docSnap.exists()) {
+                    const userData = docSnap.data() as AppUser;
+                    setUser(userData);
+                    form.reset({
+                        name: userData.name || '',
+                        mobileNumber: userData.mobileNumber || '',
+                        pinCode: userData.pinCode || '',
+                    });
+                }
+            });
         }
     }, [firebaseUser, firestore, form]);
+
 
     async function onSubmit(values: FormValues) {
         if (!firestore || !firebaseUser) {
@@ -69,7 +81,7 @@ export default function ProfilePage() {
         }
     }
 
-    if (isUserLoading || form.formState.isLoading) {
+    if (isUserLoading || !user) {
         return (
             <div className="flex h-64 items-center justify-center">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
