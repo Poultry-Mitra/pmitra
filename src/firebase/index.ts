@@ -1,3 +1,4 @@
+
 // src/firebase/index.ts
 import { getApp, getApps, initializeApp, type FirebaseApp } from 'firebase/app';
 import { getAuth, type Auth } from 'firebase/auth';
@@ -12,17 +13,22 @@ export {
   useFirestore,
 } from './provider';
 
-let app: FirebaseApp;
-let auth: Auth;
-let firestore: Firestore;
+let app: FirebaseApp | undefined;
+let auth: Auth | undefined;
+let firestore: Firestore | undefined;
 
 export function initializeFirebase() {
   if (typeof window === 'undefined') {
     return { app: undefined, auth: undefined, firestore: undefined };
   }
+  
+  const config = getFirebaseConfig();
+  if (!config) {
+    return { app: undefined, auth: undefined, firestore: undefined };
+  }
 
   if (!getApps().length) {
-    app = initializeApp(getFirebaseConfig());
+    app = initializeApp(config);
     auth = getAuth(app);
     firestore = getFirestore(app);
   } else {

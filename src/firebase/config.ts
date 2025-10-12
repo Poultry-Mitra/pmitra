@@ -15,8 +15,13 @@ const firebaseConfig = {
 };
 
 export function getFirebaseConfig() {
-  if (!firebaseConfig.apiKey) {
-    throw new Error('Missing Firebase config: `apiKey`');
+  if (
+    !firebaseConfig.apiKey ||
+    !firebaseConfig.authDomain ||
+    !firebaseConfig.projectId
+  ) {
+    // Return null or a specific error object if you want to handle this gracefully
+    return null;
   }
   return firebaseConfig;
 }
