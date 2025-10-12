@@ -101,11 +101,10 @@ export function AppSidebar() {
   
   const [inventoryOpen, setInventoryOpen] = useState(pathname.startsWith('/inventory'));
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     if (auth) {
-      signOut(auth).then(() => {
-        router.push('/login');
-      });
+      await signOut(auth);
+      router.push('/login');
     }
     setShowLogoutAlert(false);
   };

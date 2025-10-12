@@ -79,11 +79,10 @@ export function AdminSidebar() {
     }
   }, [firebaseUser, firestore]);
   
-  const handleLogout = () => {
+  const handleLogout = async () => {
     if (auth) {
-      signOut(auth).then(() => {
-        router.push('/login');
-      });
+      await signOut(auth);
+      router.push('/login');
     }
     setShowLogoutAlert(false);
   };

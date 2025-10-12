@@ -24,8 +24,9 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // We only want to run this effect after the initial user loading is complete
     if (isUserLoading) {
-      return; // Wait until user auth state is resolved
+      return;
     }
   
     if (firebaseUser && firestore) {
@@ -34,6 +35,7 @@ export default function LoginPage() {
       getDoc(userDocRef).then(docSnap => {
         if (docSnap.exists()) {
           const userData = docSnap.data() as AppUser;
+          // Determine the correct dashboard based on the user's role
           const targetPath = {
             farmer: '/dashboard',
             dealer: '/dealer/dashboard',
@@ -41,15 +43,20 @@ export default function LoginPage() {
           }[userData.role] || '/';
           router.replace(targetPath);
         } else {
-          // User exists in Auth but not in Firestore, maybe during signup
+          // User exists in Auth but not in Firestore.
+          // This can happen during the signup process or if the user record was deleted.
+          // We'll send them to the signup page to complete their profile.
           setLoading(false);
           router.replace('/signup');
         }
-      }).catch(() => {
+      }).catch((error) => {
+        // Handle potential errors fetching the document
+        console.error("Error fetching user document:", error);
         setLoading(false);
       });
     } else {
-       setLoading(false); // No user, stop loading
+       // No user is logged in, so stop loading and show the login page.
+       setLoading(false);
     }
   }, [firebaseUser, isUserLoading, firestore, router]);
 
