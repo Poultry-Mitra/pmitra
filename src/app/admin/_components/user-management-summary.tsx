@@ -66,7 +66,7 @@ const statusColorScheme = {
 
 export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 'dealer' }) {
     const allUsers = mockUsers.filter(user => user.role !== 'admin');
-    const [usersWithStatus, setUsersWithStatus] = useState<UserWithStatus[]>([]);
+    const [usersWithStatus, setUsersWithStatus] = useState<UserWithStatus[]>(() => allUsers.map(user => ({...user, status: 'active'})));
     
     useEffect(() => {
         // This logic runs only on the client-side, preventing hydration mismatch.
@@ -354,3 +354,5 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
         </>
     )
 }
+
+    
