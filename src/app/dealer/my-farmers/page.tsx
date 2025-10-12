@@ -40,6 +40,7 @@ import type { User, Connection } from '@/lib/types';
 import { doc, getDoc } from 'firebase/firestore';
 import { useConnections, updateConnectionStatus } from '@/hooks/use-connections';
 import { useToast } from '@/hooks/use-toast';
+import { FarmerDetailsDialog } from './_components/farmer-details-dialog';
 
 export default function MyFarmersPage() {
     const { user: dealerUser } = useUser();
@@ -70,6 +71,7 @@ export default function MyFarmersPage() {
     const planType = dealer?.planType || 'free';
     const [isConnectDialogOpen, setConnectDialogOpen] = useState(false);
     const [showUpgradeAlert, setShowUpgradeAlert] = useState(false);
+    const [selectedFarmer, setSelectedFarmer] = useState<User | null>(null);
 
     const farmerLimit = 2;
     const canAddMoreFarmers = planType === 'premium' || connectedFarmers.length < farmerLimit;
@@ -94,6 +96,10 @@ export default function MyFarmersPage() {
         } catch (error: any) {
             toast({ title: "Error", description: error.message, variant: "destructive" });
         }
+    };
+    
+    const handleViewDetails = (farmer: User) => {
+        setSelectedFarmer(farmer);
     };
 
     return (
@@ -168,7 +174,7 @@ export default function MyFarmersPage() {
                                     <TableHead>Farmer Name</TableHead>
                                     <TableHead>Email</TableHead>
                                     <TableHead>Connected Since</TableHead>
-                                    <TableHead><span className="sr-only">Actions</span></TableHead>
+                                    <TableHead className='text-right'>Actions</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -181,9 +187,7 @@ export default function MyFarmersPage() {
                                         <TableCell>{farmer.email}</TableCell>
                                         <TableCell>{connection ? new Date(connection.createdAt).toLocaleDateString() : 'N/A'}</TableCell>
                                         <TableCell className="text-right">
-                                            <Button variant="ghost" size="icon">
-                                                <MoreHorizontal className="size-4" />
-                                            </Button>
+                                             <Button variant="outline" size="sm" onClick={() => handleViewDetails(farmer)}>View Details</Button>
                                         </TableCell>
                                     </TableRow>
                                 )})}
@@ -215,6 +219,13 @@ export default function MyFarmersPage() {
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
+            {selectedFarmer && (
+                <FarmerDetailsDialog 
+                    farmer={selectedFarmer}
+                    open={!!selectedFarmer}
+                    onOpenChange={() => setSelectedFarmer(null)}
+                />
+            )}
         </>
     );
 }
