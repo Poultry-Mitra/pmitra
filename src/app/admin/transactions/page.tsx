@@ -11,11 +11,11 @@ import { mockUsers } from "@/lib/data";
 import { FileDown, MoreHorizontal } from "lucide-react";
 
 const transactions = [
-    { id: 'txn_1', user: mockUsers[1], plan: 'Farmer Plan', amount: 'INR 199', status: 'Success', date: '2023-10-28' },
+    { id: 'txn_1', user: mockUsers[1], plan: 'Farmer Plan', amount: 'INR 249', status: 'Success', date: '2023-10-28' },
     { id: 'txn_2', user: mockUsers[3], plan: 'Dealer Plan', amount: 'INR 499', status: 'Success', date: '2023-10-28' },
-    { id: 'txn_3', user: mockUsers[2], plan: 'Farmer Plan', amount: 'INR 199', status: 'Failed', date: '2023-10-27' },
-    { id: 'txn_4', user: mockUsers[4], plan: 'Farmer Plan', amount: 'INR 199', status: 'Success', date: '2023-10-27' },
-     { id: 'txn_5', user: mockUsers[4], plan: 'Dealer Plan', amount: 'INR 499', status: 'Success', date: '2023-10-26' },
+    { id: 'txn_3', user: mockUsers[2], plan: 'Farmer Plan', amount: 'INR 249', status: 'Failed', date: '2023-10-27' },
+    { id: 'txn_4', user: mockUsers[4], plan: 'Farmer Plan', amount: 'INR 249', status: 'Success', date: '2023-10-27' },
+    { id: 'txn_5', user: mockUsers[4], plan: 'Dealer Plan', amount: 'INR 499', status: 'Success', date: '2023-10-26' },
 ];
 
 const statusVariant = {
