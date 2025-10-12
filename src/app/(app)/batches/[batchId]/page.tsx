@@ -1,4 +1,3 @@
-
 // src/app/(app)/batches/[batchId]/page.tsx
 "use client";
 
@@ -62,12 +61,10 @@ export default function BatchDetailPage() {
     const mortalityPercentage = batch.totalChicks > 0 ? ((batch.mortalityCount / batch.totalChicks) * 100).toFixed(2) : '0.00';
     
     // FCR Calculation: Total feed consumed (kg) / Total weight gain (kg)
-    // Assuming initial weight of a chick is 40g (0.040 kg)
-    const initialWeightKg = (batch.totalChicks * 40) / 1000; 
-    const currentWeightKg = (liveBirds * batch.avgBodyWeight) / 1000;
-    const weightOfDeadBirds = (batch.mortalityCount * batch.avgBodyWeight) / 2 / 1000; // Assume they died halfway on average
-    const totalWeightGainKg = (currentWeightKg + weightOfDeadBirds) - initialWeightKg;
-    
+    const INITIAL_CHICK_WEIGHT_G = 40;
+    // Total weight gain of all live birds in KG
+    const totalWeightGainKg = liveBirds > 0 ? (liveBirds * (batch.avgBodyWeight - INITIAL_CHICK_WEIGHT_G)) / 1000 : 0;
+
     const feedConversionRatio = (batch.feedConsumed > 0 && totalWeightGainKg > 0)
         ? (batch.feedConsumed / totalWeightGainKg).toFixed(2)
         : 'N/A';

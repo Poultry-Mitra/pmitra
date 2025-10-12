@@ -46,7 +46,7 @@ const prompt = ai.definePrompt({
   1.  **totalLiveBirds**: Sum of (totalChicks - mortalityCount) for all batches.
   2.  **overallMortalityRate**: Weighted average mortality rate. Calculated as (total mortality for all batches / total initial chicks for all batches) * 100.
   3.  **totalFeedConsumed**: Sum of feedConsumed for all batches.
-  4.  **averageFCR**: Weighted average FCR. First, calculate FCR for each batch (feedConsumed * 1000 / ((totalChicks - mortalityCount) * avgBodyWeight)). Then, calculate the weighted average based on the number of live birds in each batch. If there are no live birds or zero weight, FCR should be considered 0 for that batch.
+  4.  **averageFCR**: Weighted average FCR. First, calculate FCR for each batch (feedConsumed / ( (totalChicks - mortalityCount) * (avgBodyWeight - 40) / 1000 )). Then, calculate the weighted average based on the number of live birds in each batch. If weight gain is zero or negative, FCR for that batch is 0.
   5.  **summary**: Provide a concise, 1-2 sentence summary of the farm's health. For example, mention if mortality is high, if FCR is good, or if feed consumption seems unusual.
 
   Return the results in the specified JSON format.
