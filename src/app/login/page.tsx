@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import Link from "next/link";
@@ -9,36 +8,35 @@ import { LanguageToggle } from "@/components/language-toggle";
 import { useLanguage } from "@/components/language-provider";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowRight, ArrowLeft, Shield, Loader2 } from "lucide-react";
-import { useUser, useFirestore } from "@/firebase/provider";
+import { useUser, useFirestore, useAuth } from "@/firebase/provider";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { doc, getDoc } from "firebase/firestore";
 import type { User as AppUser } from "@/lib/types";
+import { initiateAnonymousSignIn } from "@/firebase/non-blocking-login";
 
 export default function LoginPage() {
   const { t } = useLanguage();
-  const firebaseUser = useUser();
+  const { user: firebaseUser, isUserLoading } = useUser();
   const firestore = useFirestore();
+  const auth = useAuth();
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [authChecked, setAuthChecked] = useState(false);
 
   useEffect(() => {
-    // This effect runs when firebaseUser state changes.
-    if (firebaseUser === null && authChecked) {
-      // User is explicitly logged out, stop loading.
-      setLoading(false);
+    if (isUserLoading) {
+      setLoading(true);
       return;
     }
-    
-    if (firebaseUser && firestore) {
-      setLoading(true); // Show loader while fetching role
+  
+    if (firebaseUser) {
+      setLoading(true);
       const userDocRef = doc(firestore, "users", firebaseUser.uid);
       
       getDoc(userDocRef).then(docSnap => {
         if (docSnap.exists()) {
           const userData = docSnap.data() as AppUser;
-          // Redirect based on role
           switch(userData.role) {
             case 'farmer':
               router.replace('/dashboard');
@@ -50,33 +48,34 @@ export default function LoginPage() {
               router.replace('/admin/dashboard');
               break;
             default:
-              setLoading(false); // Stop loading if role is unknown
+              setLoading(false);
               router.replace('/'); 
           }
         } else {
-          // User document doesn't exist, maybe they need to complete signup
           setLoading(false);
           router.replace('/signup'); 
         }
       }).catch(() => {
-        setLoading(false); // Stop loading on error
+        setLoading(false);
       });
-    } else if (firebaseUser === null) {
-      // This case handles the initial state where user is not logged in.
+    } else {
        setLoading(false);
     }
+     setAuthChecked(true);
 
-  }, [firebaseUser, firestore, router, authChecked]);
+  }, [firebaseUser, isUserLoading, firestore, router]);
 
-   useEffect(() => {
-    // This effect only runs once to confirm auth state has been checked
-    if (firebaseUser !== undefined) {
-      setAuthChecked(true);
+
+  const handleAnonymousLogin = (role: 'farmer' | 'dealer' | 'admin') => {
+    // This is a mock login for demonstration. 
+    // In a real app, you'd use signInWithEmailAndPassword, etc.
+    if(auth) {
+        initiateAnonymousSignIn(auth);
     }
-  }, [firebaseUser]);
+  };
 
 
-  if (loading) {
+  if (loading || !authChecked) {
     return (
         <div className="flex min-h-screen w-full flex-col items-center justify-center bg-muted/30 p-4 font-body">
             <Loader2 className="h-12 w-12 animate-spin text-primary" />
@@ -108,10 +107,8 @@ export default function LoginPage() {
                         <CardDescription>{t('login.farmer_description')}</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <Button className="w-full" asChild>
-                           <Link href="/dashboard">
-                                {t('login.farmer_button')} <ArrowRight className="ml-2" />
-                           </Link>
+                        <Button className="w-full" onClick={() => handleAnonymousLogin('farmer')}>
+                            {t('login.farmer_button')} <ArrowRight className="ml-2" />
                         </Button>
                     </CardContent>
                 </Card>
@@ -121,10 +118,8 @@ export default function LoginPage() {
                         <CardDescription>{t('login.dealer_description')}</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <Button className="w-full" variant="secondary" asChild>
-                            <Link href="/dealer/dashboard">
-                                {t('login.dealer_button')} <ArrowRight className="ml-2" />
-                            </Link>
+                        <Button className="w-full" variant="secondary" onClick={() => handleAnonymousLogin('dealer')}>
+                            {t('login.dealer_button')} <ArrowRight className="ml-2" />
                         </Button>
                     </CardContent>
                 </Card>
@@ -132,9 +127,9 @@ export default function LoginPage() {
 
             <div className="mt-10 space-y-4 text-sm text-muted-foreground">
                 <p>
-                    <Link href="/admin/dashboard" className="flex items-center justify-center gap-2 font-semibold text-primary hover:underline">
+                    <button onClick={() => handleAnonymousLogin('admin')} className="flex items-center justify-center gap-2 font-semibold text-primary hover:underline mx-auto">
                         <Shield className="size-4" /> {t('login.admin_login')}
-                    </Link>
+                    </button>
                 </p>
                 <p>
                     {t('login.no_account')}{' '}

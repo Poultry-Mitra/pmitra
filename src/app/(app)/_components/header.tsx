@@ -18,7 +18,7 @@ import { Bell, Search } from 'lucide-react';
 import { useUser } from '@/firebase/provider';
 
 export function AppHeader() {
-  const firebaseUser = useUser();
+  const { user: firebaseUser } = useUser();
 
   if (!firebaseUser) {
     return (

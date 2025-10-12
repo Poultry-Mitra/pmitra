@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { usePathname } from 'next/navigation';
@@ -21,7 +20,7 @@ import { ThemeToggle } from '@/components/theme-toggle';
 import { Input } from '@/components/ui/input';
 import type { User as AppUser } from '@/lib/types';
 import { useUser, useFirestore } from '@/firebase/provider';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, onSnapshot } from 'firebase/firestore';
 import { useState, useEffect } from 'react';
 
 
@@ -64,14 +63,14 @@ function Breadcrumbs() {
 
 
 export function AdminHeader() {
-  const firebaseUser = useUser();
+  const { user: firebaseUser } = useUser();
   const firestore = useFirestore();
   const [user, setUser] = useState<AppUser | null>(null);
 
   useEffect(() => {
     if (firebaseUser && firestore) {
       const userDocRef = doc(firestore, "users", firebaseUser.uid);
-      getDoc(userDocRef).then((docSnap) => {
+      const unsubscribe = onSnapshot(userDocRef, (docSnap) => {
         if (docSnap.exists()) {
           const userData = docSnap.data() as AppUser;
            if (userData.role === 'admin') {
@@ -82,7 +81,8 @@ export function AdminHeader() {
         } else {
             setUser(null);
         }
-      }).catch(() => setUser(null));
+      });
+      return () => unsubscribe();
     } else {
         setUser(null);
     }

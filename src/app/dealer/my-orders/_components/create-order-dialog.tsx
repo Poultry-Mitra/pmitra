@@ -1,3 +1,4 @@
+
 // src/app/dealer/my-orders/_components/create-order-dialog.tsx
 "use client";
 
@@ -43,9 +44,21 @@ type FormValues = z.infer<typeof formSchema>;
 export function CreateOrderDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
     const { toast } = useToast();
     const firestore = useFirestore();
-    const dealerUser = useUser() as User; // Assuming user is a dealer and logged in
+    const { user: dealerUser } = useUser();
+    const [dealerInfo, setDealerInfo] = useState<User | null>(null);
 
-    const farmerIds = useMemo(() => dealerUser?.connectedFarmers || [], [dealerUser]);
+    useEffect(() => {
+        if(dealerUser && firestore) {
+            const unsub = onSnapshot(doc(firestore, 'users', dealerUser.uid), (doc) => {
+                if(doc.exists()) {
+                    setDealerInfo(doc.data() as User);
+                }
+            });
+            return () => unsub();
+        }
+    }, [dealerUser, firestore]);
+
+    const farmerIds = useMemo(() => dealerInfo?.connectedFarmers || [], [dealerInfo]);
     const { users: farmers, loading: farmersLoading } = useUsersByIds(farmerIds);
     const { inventory: products, loading: productsLoading } = useDealerInventory(dealerUser?.uid || '');
 

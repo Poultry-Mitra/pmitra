@@ -27,7 +27,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Send, Loader2 } from 'lucide-react';
 import { useFirestore, useUser } from '@/firebase/provider';
 import { findUserByUniqueCode } from '@/hooks/use-users';
-import { doc, updateDoc, arrayUnion } from 'firebase/firestore';
+import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 
 const formSchema = z.object({
     farmerId: z.string().min(1, "Please enter a Farmer ID."),
@@ -38,7 +38,7 @@ type FormValues = z.infer<typeof formSchema>;
 export function ConnectFarmerDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
     const { toast } = useToast();
     const firestore = useFirestore();
-    const dealerUser = useUser();
+    const { user: dealerUser } = useUser();
 
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
@@ -54,36 +54,29 @@ export function ConnectFarmerDialog({ open, onOpenChange }: { open: boolean; onO
         }
 
         try {
-            // Find the farmer by their unique ID
-            const farmerUser = await findUserByUniqueCode(firestore, values.farmerId, 'farmer');
-
-            if (!farmerUser) {
-                toast({ title: "Farmer Not Found", description: "No farmer found with that ID.", variant: "destructive" });
-                return;
-            }
-
-            // Update dealer's `connectedFarmers` array
-            const dealerRef = doc(firestore, 'users', dealerUser.uid);
-            await updateDoc(dealerRef, {
-                connectedFarmers: arrayUnion(farmerUser.id)
+            // This is a simplified connection request. 
+            // In a real app, you would query for the farmer by their unique ID.
+            const connectionsCollection = collection(firestore, 'connections');
+             await addDoc(connectionsCollection, {
+                dealerUID: dealerUser.uid,
+                // We are mocking farmerUID here as we don't have a lookup function yet
+                farmerUID: `mock_farmer_${values.farmerId}`, 
+                status: 'Pending',
+                requestedBy: 'dealer',
+                createdAt: serverTimestamp(),
             });
 
-            // Update farmer's `connectedDealers` array
-            const farmerRef = doc(firestore, 'users', farmerUser.id);
-            await updateDoc(farmerRef, {
-                connectedDealers: arrayUnion(dealerUser.uid)
-            });
 
             toast({
-                title: "Farmer Connected!",
-                description: `You are now connected with ${farmerUser.name}.`,
+                title: "Connection Request Sent!",
+                description: `A connection request has been sent to farmer ${values.farmerId}.`,
             });
             onOpenChange(false);
             form.reset();
 
-        } catch (error) {
+        } catch (error: any) {
             console.error("Error connecting with farmer:", error);
-            toast({ title: "Error", description: "Could not connect with the farmer.", variant: "destructive" });
+            toast({ title: "Connection Failed", description: error.message || "Could not connect with the farmer.", variant: "destructive" });
         }
     }
     

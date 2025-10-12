@@ -63,7 +63,7 @@ export function AppSidebar() {
   const pathname = usePathname();
   const { t } = useLanguage();
   const { state } = useSidebar();
-  const firebaseUser = useUser();
+  const { user: firebaseUser } = useUser();
   const firestore = useFirestore();
   const [user, setUser] = useState<User | null>(null);
 
@@ -263,5 +263,3 @@ export function AppSidebar() {
     </Sidebar>
   );
 }
-
-    

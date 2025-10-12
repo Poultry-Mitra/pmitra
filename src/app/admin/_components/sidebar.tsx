@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import Link from "next/link";
@@ -28,6 +27,7 @@ import {
   CreditCard,
   ChevronDown,
   ChevronUp,
+  Loader2,
 } from "lucide-react";
 import { useLanguage } from "@/components/language-provider";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
@@ -44,7 +44,7 @@ export function AdminSidebar() {
   const [managementOpen, setManagementOpen] = useState(pathname.startsWith("/admin/user-management"));
   const [settingsOpen, setSettingsOpen] = useState(pathname.startsWith("/admin/settings"));
 
-  const firebaseUser = useUser();
+  const { user: firebaseUser } = useUser();
   const firestore = useFirestore();
   const [currentUser, setCurrentUser] = useState<UserType | null>(null);
 
@@ -73,7 +73,9 @@ export function AdminSidebar() {
                     </div>
               </SidebarHeader>
               <SidebarContent>
-                  {/* You can add skeleton loaders here if you want */}
+                  <div className="flex h-full items-center justify-center">
+                    <Loader2 className="animate-spin" />
+                  </div>
               </SidebarContent>
               <SidebarFooter />
           </Sidebar>

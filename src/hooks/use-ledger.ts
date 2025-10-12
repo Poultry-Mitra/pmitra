@@ -1,3 +1,4 @@
+
 // src/hooks/use-ledger.ts
 'use client';
 
@@ -33,7 +34,7 @@ function toLedgerEntry(doc: QueryDocumentSnapshot<DocumentData>): LedgerEntry {
     } as LedgerEntry;
 }
 
-export function useLedger(userId: string) {
+export function useLedger(userId?: string) {
   const firestore = useFirestore();
   const [entries, setEntries] = useState<LedgerEntry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -92,7 +93,8 @@ export async function addLedgerEntry(
                 limit(1)
             );
             
-            const lastEntryDocs = await getDocs(lastEntryQuery);
+            // Note: In a transaction, you must use transaction.get() for reads.
+            const lastEntryDocs = await transaction.get(lastEntryQuery);
             
             let lastBalance = 0;
             if (!lastEntryDocs.empty) {

@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { usePathname } from 'next/navigation';
@@ -22,7 +21,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import type { User as AppUser } from '@/lib/types';
 import { useUser, useFirestore } from '@/firebase/provider';
-import { doc, getDoc } from "firebase/firestore";
+import { doc, onSnapshot } from "firebase/firestore";
 import { useEffect, useState } from 'react';
 
 
@@ -65,7 +64,7 @@ function Breadcrumbs() {
 
 
 export function DealerHeader() {
-  const firebaseUser = useUser();
+  const { user: firebaseUser } = useUser();
   const firestore = useFirestore();
   const [user, setUser] = useState<AppUser | null>(null);
   const { toast } = useToast();
@@ -73,13 +72,14 @@ export function DealerHeader() {
   useEffect(() => {
     if (firebaseUser && firestore) {
       const userDocRef = doc(firestore, "users", firebaseUser.uid);
-      getDoc(userDocRef).then((docSnap) => {
+      const unsubscribe = onSnapshot(userDocRef, (docSnap) => {
         if (docSnap.exists()) {
           setUser({ id: docSnap.id, ...docSnap.data() } as AppUser);
         } else {
             setUser(null);
         }
       });
+      return () => unsubscribe();
     } else {
         setUser(null);
     }

@@ -1,3 +1,4 @@
+
 // src/app/dealer/my-orders/page.tsx
 "use client";
 
@@ -36,9 +37,9 @@ const statusConfig = {
 
 
 export default function MyOrdersPage() {
-    const user = useUser();
+    const { user: firebaseUser } = useUser();
     const firestore = useFirestore();
-    const { orders, loading: ordersLoading } = useOrders(user?.uid);
+    const { orders, loading: ordersLoading } = useOrders(firebaseUser?.uid);
     const { toast } = useToast();
     const [isCreateOrderOpen, setCreateOrderOpen] = useState(false);
     
@@ -53,12 +54,12 @@ export default function MyOrdersPage() {
         return farmers.find(f => f.id === farmerUID)?.name || "Loading...";
     }
     
-    const loading = ordersLoading || farmersLoading || !user;
+    const loading = ordersLoading || farmersLoading || !firebaseUser;
 
     const handleUpdateStatus = async (order: Order, newStatus: 'Approved' | 'Rejected') => {
-        if (!firestore || !user) return;
+        if (!firestore || !firebaseUser) return;
         try {
-            await updateOrderStatus(order, newStatus, firestore, user as User);
+            await updateOrderStatus(order, newStatus, firestore, { id: firebaseUser.uid, role: 'dealer' } as User);
             toast({
                 title: `Order ${newStatus}`,
                 description: `The order for ${order.productName} has been successfully ${newStatus.toLowerCase()}.`
@@ -153,7 +154,7 @@ export default function MyOrdersPage() {
                     </CardContent>
                 </Card>
             </div>
-            { user && <CreateOrderDialog open={isCreateOrderOpen} onOpenChange={setCreateOrderOpen} />}
+            { firebaseUser && <CreateOrderDialog open={isCreateOrderOpen} onOpenChange={setCreateOrderOpen} />}
         </>
     );
 }

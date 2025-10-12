@@ -1,3 +1,4 @@
+
 // src/app/dealer/dashboard/page.tsx
 "use client";
 
@@ -11,7 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import type { User as AppUser, Order } from "@/lib/types";
 import { useUser, useFirestore } from "@/firebase/provider";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, onSnapshot } from "firebase/firestore";
 import { useEffect, useState, useMemo } from "react";
 import { useOrders } from "@/hooks/use-orders";
 import { useUsersByIds } from "@/hooks/use-users";
@@ -72,7 +73,7 @@ function KpiCard({ title, value, change, changeColor, icon: Icon, chartData, cha
 }
 
 export default function DealerDashboardPage() {
-    const firebaseUser = useUser();
+    const { user: firebaseUser } = useUser();
     const firestore = useFirestore();
     const [user, setUser] = useState<AppUser | null>(null);
     

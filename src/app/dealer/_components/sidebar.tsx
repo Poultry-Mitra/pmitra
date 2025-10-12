@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import Link from "next/link";
@@ -30,7 +29,7 @@ import {
 import { useLanguage } from "@/components/language-provider";
 import type { User as UserType } from "@/lib/types";
 import { useUser, useFirestore } from "@/firebase/provider";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, onSnapshot } from "firebase/firestore";
 import { useEffect, useState } from "react";
 
 
@@ -38,20 +37,21 @@ export function DealerSidebar() {
   const pathname = usePathname();
   const { t } = useLanguage();
   const { state } = useSidebar();
-  const firebaseUser = useUser();
+  const { user: firebaseUser } = useUser();
   const firestore = useFirestore();
   const [currentUser, setCurrentUser] = useState<UserType | null>(null);
 
   useEffect(() => {
     if (firebaseUser && firestore) {
       const userDocRef = doc(firestore, "users", firebaseUser.uid);
-      getDoc(userDocRef).then((docSnap) => {
+      const unsubscribe = onSnapshot(userDocRef, (docSnap) => {
         if (docSnap.exists() && docSnap.data().role === 'dealer') {
           setCurrentUser({ id: docSnap.id, ...docSnap.data() } as UserType);
         } else {
           setCurrentUser(null);
         }
       });
+      return () => unsubscribe();
     } else {
         setCurrentUser(null);
     }

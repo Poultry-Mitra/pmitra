@@ -1,23 +1,41 @@
 
 "use client";
 
+import { useState, useEffect } from 'react';
 import { PageHeader } from "@/app/dealer/_components/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { currentDealer } from "@/lib/data";
+import { useUser, useFirestore } from '@/firebase/provider';
+import type { User as AppUser } from '@/lib/types';
+import { doc, onSnapshot } from 'firebase/firestore';
+import { Loader2 } from 'lucide-react';
 
 function DealerSettings() {
     const { toast } = useToast();
-    const dealer = currentDealer;
+    const { user: firebaseUser } = useUser();
+    const firestore = useFirestore();
+    const [dealer, setDealer] = useState<AppUser | null>(null);
+
+    useEffect(() => {
+        if (firebaseUser && firestore) {
+            const unsub = onSnapshot(doc(firestore, 'users', firebaseUser.uid), (doc) => {
+                if (doc.exists()) {
+                    setDealer(doc.data() as AppUser);
+                }
+            });
+            return () => unsub();
+        }
+    }, [firebaseUser, firestore]);
 
     const handleProfileSave = () => {
+        // In a real app, this would use updateDoc to save the new name/email.
         toast({ title: "Profile Updated", description: "Your profile information has been saved." });
     };
 
-    if (!dealer) return null;
+    if (!dealer) return <div className="flex justify-center"><Loader2 className="animate-spin" /></div>;
     
     return (
          <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-3">

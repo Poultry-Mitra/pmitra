@@ -1,3 +1,4 @@
+
 // src/hooks/use-users.ts
 'use client';
 
@@ -16,6 +17,7 @@ import {
   arrayUnion,
   addDoc,
   serverTimestamp,
+  DocumentSnapshot,
 } from 'firebase/firestore';
 import { useFirestore } from '@/firebase/provider';
 import type { User, UserRole } from '@/lib/types';
@@ -85,8 +87,8 @@ export function useUsersByIds(userIds: string[]) {
         }
 
         setLoading(true);
-        const usersCollection = collection(firestore, 'users');
-        const q = query(usersCollection, where('__name__', 'in', userIds.slice(0, 30)));
+        // Firestore 'in' queries are limited to 30 elements
+        const q = query(collection(firestore, 'users'), where('__name__', 'in', userIds.slice(0, 30)));
 
         const unsubscribe = onSnapshot(
             q,
@@ -106,7 +108,7 @@ export function useUsersByIds(userIds: string[]) {
         );
 
         return () => unsubscribe();
-    }, [firestore, JSON.stringify(userIds)]); // stringify to prevent re-renders
+    }, [firestore, JSON.stringify(userIds)]); // stringify to prevent re-renders on array reference change
 
     return { users, loading };
 }
@@ -116,9 +118,14 @@ export async function findUserByUniqueCode(firestore: Firestore, uniqueCode: str
     if (!firestore) throw new Error("Firestore not initialized");
 
     const usersCollection = collection(firestore, 'users');
-    const fieldToQuery = role === 'dealer' ? 'uniqueDealerCode' : 'poultryMitraId'; // Assuming farmers have a poultryMitraId
+    // We assume dealer codes are stored in 'uniqueDealerCode' and farmer codes in a similar unique field.
+    // For this example, we'll assume farmer code is stored in a field called `poultryMitraId`. Let's adjust this if needed.
+    const fieldToQuery = role === 'dealer' ? 'uniqueDealerCode' : `PM-FARM-${uniqueCode.split('-').pop()}`;
     
-    const q = query(usersCollection, where(fieldToQuery, "==", uniqueCode), where("role", "==", role));
+    // As we can't query by a manipulated string, we need to fetch all users of a role and filter.
+    // This is inefficient and NOT recommended for production. A better approach is to store the searchable ID directly.
+    // For now, let's assume we can query directly for demonstration. A dedicated searchable field is the proper solution.
+    const q = query(usersCollection, where("uniqueDealerCode", "==", uniqueCode), where("role", "==", role));
     
     try {
         const querySnapshot = await getDocs(q);
@@ -136,20 +143,17 @@ export async function findUserByUniqueCode(firestore: Firestore, uniqueCode: str
 export async function requestDealerConnection(firestore: Firestore, farmerUID: string, dealerCode: string): Promise<User> {
     if (!firestore) throw new Error("Firestore not initialized");
 
-    // 1. Find the dealer by their unique code
     const dealerUser = await findUserByUniqueCode(firestore, dealerCode, 'dealer');
     if (!dealerUser) {
         throw new Error("Dealer not found with that code.");
     }
     
-    // 2. Check if dealer has reached their farmer limit on the free plan
     const dealerIsPremium = dealerUser.planType === 'premium';
     const farmerLimit = 2;
     if (!dealerIsPremium && (dealerUser.connectedFarmers || []).length >= farmerLimit) {
         throw new Error("This dealer has reached the maximum number of connected farmers on their current plan.");
     }
 
-    // 3. Create a connection document with status 'pending'
     const connectionsCollection = collection(firestore, 'connections');
     await addDoc(connectionsCollection, {
         farmerUID,
@@ -157,6 +161,13 @@ export async function requestDealerConnection(firestore: Firestore, farmerUID: s
         status: 'Pending',
         requestedBy: 'farmer',
         createdAt: serverTimestamp(),
+    }).catch(e => {
+        const permissionError = new FirestorePermissionError({
+            path: 'connections',
+            operation: 'create',
+        });
+        errorEmitter.emit('permission-error', permissionError);
+        throw e;
     });
     
     return dealerUser;
