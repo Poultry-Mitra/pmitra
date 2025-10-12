@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import Link from "next/link";
@@ -192,6 +191,17 @@ export function AppSidebar() {
                         <span>Analytics</span>
                     </SidebarMenuButton>
                  </Link>
+            </SidebarMenuItem>
+             <SidebarMenuItem>
+              <Link href="/feed-recommendation">
+                <SidebarMenuButton
+                  isActive={pathname.startsWith("/feed-recommendation")}
+                  tooltip="Feed AI"
+                >
+                  <MessageSquare />
+                  <span>Feed AI</span>
+                </SidebarMenuButton>
+              </Link>
             </SidebarMenuItem>
         </SidebarMenu>
         
