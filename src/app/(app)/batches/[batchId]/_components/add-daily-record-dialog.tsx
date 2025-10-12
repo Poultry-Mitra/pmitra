@@ -33,6 +33,7 @@ import { format } from 'date-fns';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useInventoryByCategory } from '@/hooks/use-inventory';
 import { currentUser } from '@/lib/data';
+import { Card, CardContent } from '@/components/ui/card';
 
 const formSchema = z.object({
     date: z.date(),
@@ -145,45 +146,43 @@ export function AddDailyRecordDialog({ open, onOpenChange, batchId }: { open: bo
                                 )}
                             />
                         </div>
-                        <Card>
-                            <CardContent className="pt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-                               <FormField
-                                    control={form.control}
-                                    name="feedItemId"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                        <FormLabel>Feed Used</FormLabel>
-                                        <Select onValueChange={field.onChange} defaultValue={field.value} disabled={feedLoading}>
-                                            <FormControl>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder={feedLoading ? "Loading feeds..." : "Select feed from inventory"} />
-                                            </SelectTrigger>
-                                            </FormControl>
-                                            <SelectContent>
-                                                {feedItems.map(item => (
-                                                    <SelectItem key={item.id} value={item.id}>
-                                                        {item.productName} ({item.stockQuantity.toFixed(2)} {item.unit})
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
+                        <div className="pt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                           <FormField
+                                control={form.control}
+                                name="feedItemId"
+                                render={({ field }) => (
+                                    <FormItem>
+                                    <FormLabel>Feed Used</FormLabel>
+                                    <Select onValueChange={field.onChange} defaultValue={field.value} disabled={feedLoading}>
+                                        <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder={feedLoading ? "Loading feeds..." : "Select feed from inventory"} />
+                                        </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                            {feedItems.map(item => (
+                                                <SelectItem key={item.id} value={item.id}>
+                                                    {item.productName} ({item.stockQuantity.toFixed(2)} {item.unit})
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="feedConsumed"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Feed Consumed (kg)</FormLabel>
+                                        <FormControl><Input type="number" step="0.1" {...field} /></FormControl>
                                         <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                                <FormField
-                                    control={form.control}
-                                    name="feedConsumed"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Feed Consumed (kg)</FormLabel>
-                                            <FormControl><Input type="number" step="0.1" {...field} /></FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                            </CardContent>
-                        </Card>
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
                         
                         <DialogFooter>
                             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
