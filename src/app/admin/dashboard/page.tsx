@@ -4,7 +4,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { mockFarmMetrics, mockUsers } from "@/lib/data";
-import { Users, Bot, IndianRupee, Activity, WifiOff, Server } from "lucide-react";
+import { Users, Bot, IndianRupee, Activity, WifiOff, Server, PlusCircle, Send } from "lucide-react";
 import { UserManagementSummary } from "../_components/user-management-summary";
 import { RevenueChart } from "../_components/revenue-chart";
 import { Badge } from "@/components/ui/badge";
@@ -14,6 +14,9 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { PageHeader } from "@/app/admin/_components/page-header";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 const kpiData = [
     {
@@ -54,6 +57,19 @@ const kpiData = [
     }
 ];
 
+const transactions = [
+    { id: 'txn_1', user: mockUsers[1], plan: 'Farmer Plan', amount: 'INR 199', status: 'Success', date: '2023-10-28' },
+    { id: 'txn_2', user: mockUsers[3], plan: 'Dealer Plan', amount: 'INR 499', status: 'Success', date: '2023-10-28' },
+    { id: 'txn_3', user: mockUsers[2], plan: 'Farmer Plan', amount: 'INR 199', status: 'Failed', date: '2023-10-27' },
+];
+
+const statusVariant = {
+    Success: "default",
+    Failed: "destructive",
+    Pending: "secondary",
+} as const;
+
+
 function Sparkline({ data, color }: { data: { value: number }[], color: string }) {
     return (
         <div className="h-10 w-20">
@@ -75,7 +91,20 @@ function Sparkline({ data, color }: { data: { value: number }[], color: string }
 export default function AdminDashboardPage() {
     return (
         <>
-            <PageHeader title="Admin Dashboard" description="Overview of the PoultryMitra ecosystem." />
+            <PageHeader title="Admin Dashboard" description="Overview of the PoultryMitra ecosystem.">
+                <Button variant="outline" asChild>
+                    <Link href="/admin/notifications">
+                        <Send />
+                        Send Notification
+                    </Link>
+                </Button>
+                <Button asChild>
+                    <Link href="/admin/user-management/add-user">
+                        <PlusCircle />
+                        Add User
+                    </Link>
+                </Button>
+            </PageHeader>
             <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 {kpiData.map(kpi => (
                     <Card key={kpi.title}>
@@ -111,26 +140,18 @@ export default function AdminDashboardPage() {
                  <div className="lg:col-span-2 space-y-4">
                     <Card>
                         <CardHeader>
-                            <CardTitle>AI Chat Overview</CardTitle>
+                            <CardTitle>Subscriptions Overview</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            <div className="flex justify-between items-center text-center">
+                             <div className="flex justify-between items-center text-center">
                                 <div>
-                                    <p className="text-sm text-muted-foreground">Live Requests</p>
-                                    <p className="text-2xl font-bold">42</p>
+                                    <p className="text-sm text-muted-foreground">Premium Farmers</p>
+                                    <p className="text-2xl font-bold flex items-center justify-center gap-2"><Users /> 482</p>
                                 </div>
                                 <div>
-                                    <p className="text-sm text-muted-foreground">Avg. Response</p>
-                                    <p className="text-2xl font-bold">2.1s</p>
+                                    <p className="text-sm text-muted-foreground">Premium Dealers</p>
+                                    <p className="text-2xl font-bold flex items-center justify-center gap-2"><Users /> 35</p>
                                 </div>
-                            </div>
-                            <div>
-                                <h4 className="text-sm font-medium mb-2">Top Queries Today</h4>
-                                <ul className="text-sm text-muted-foreground space-y-1">
-                                    <li className="flex justify-between"><span>Feed for winter?</span> <span>(45)</span></li>
-                                    <li className="flex justify-between"><span>Gumboro disease</span> <span>(32)</span></li>
-                                    <li className="flex justify-between"><span>Low egg production</span> <span>(28)</span></li>
-                                </ul>
                             </div>
                         </CardContent>
                     </Card>
@@ -156,10 +177,45 @@ export default function AdminDashboardPage() {
                  </div>
             </div>
             
-            <div className="mt-8">
-               <UserManagementSummary />
+            <div className="mt-8 grid grid-cols-1 gap-4 lg:grid-cols-2">
+                <UserManagementSummary />
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Recent Transactions</CardTitle>
+                        <CardDescription>Latest payments from all users.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>User</TableHead>
+                                    <TableHead>Plan</TableHead>
+                                    <TableHead>Amount</TableHead>
+                                    <TableHead>Status</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {transactions.map(txn => (
+                                    <TableRow key={txn.id}>
+                                        <TableCell>
+                                            <div className="font-medium">{txn.user.name}</div>
+                                            <div className="text-sm text-muted-foreground">{txn.user.email}</div>
+                                        </TableCell>
+                                        <TableCell>{txn.plan}</TableCell>
+                                        <TableCell>{txn.amount}</TableCell>
+                                        <TableCell>
+                                            <Badge variant={statusVariant[txn.status as keyof typeof statusVariant]}>{txn.status}</Badge>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </CardContent>
+                </Card>
             </div>
 
         </>
     )
 }
+
+    
