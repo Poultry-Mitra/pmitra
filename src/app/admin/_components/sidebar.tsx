@@ -22,9 +22,7 @@ import {
   Users,
   Bot,
   BarChart2,
-  CreditCard,
   Settings,
-  User,
   LogOut,
   Tags,
   TrendingUp,
@@ -84,14 +82,6 @@ export function AdminSidebar() {
                 </SidebarMenuButton>
               </Link>
           </SidebarMenuItem>
-          <SidebarMenuItem>
-              <Link href="/admin/reports">
-                <SidebarMenuButton isActive={pathname.startsWith("/admin/reports")} tooltip={"Reports"}>
-                  <BarChart2 />
-                  <span>{"Reports"}</span>
-                </SidebarMenuButton>
-              </Link>
-          </SidebarMenuItem>
         </SidebarMenu>
 
         <SidebarSeparator />
@@ -141,22 +131,6 @@ export function AdminSidebar() {
                     </SidebarMenu>
                 </CollapsibleContent>
             </Collapsible>
-             <SidebarMenuItem>
-                <Link href="/admin/subscription-management">
-                  <SidebarMenuButton isActive={pathname.startsWith("/admin/subscription-management")} tooltip={"Subscriptions"}>
-                    <Tags />
-                    <span>{"Subscriptions"}</span>
-                  </SidebarMenuButton>
-                </Link>
-            </SidebarMenuItem>
-             <SidebarMenuItem>
-                <Link href="/admin/transactions">
-                  <SidebarMenuButton isActive={pathname.startsWith("/admin/transactions")} tooltip={"Transactions"}>
-                    <CreditCard />
-                    <span>{"Transactions"}</span>
-                  </SidebarMenuButton>
-                </Link>
-            </SidebarMenuItem>
         </SidebarMenu>
         <SidebarSeparator />
 
@@ -183,14 +157,6 @@ export function AdminSidebar() {
                 <SidebarMenuButton isActive={pathname.startsWith("/admin/notifications")} tooltip={"Notifications"}>
                   <Bell />
                   <span>{"Notifications"}</span>
-                </SidebarMenuButton>
-              </Link>
-          </SidebarMenuItem>
-           <SidebarMenuItem>
-              <Link href="/admin/promo-codes">
-                <SidebarMenuButton isActive={pathname.startsWith("/admin/promo-codes")} tooltip={"Promo Codes"}>
-                  <Tags />
-                  <span>{"Promo Codes"}</span>
                 </SidebarMenuButton>
               </Link>
           </SidebarMenuItem>
