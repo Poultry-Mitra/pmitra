@@ -6,22 +6,60 @@ import Link from 'next/link';
 import { PageHeader } from "../_components/page-header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { mockDailyRates, mockUsers } from "@/lib/data";
-import { IndianRupee, MapPin, Zap } from "lucide-react";
+import { IndianRupee, MapPin, Zap, AlertTriangle } from "lucide-react";
 import { Button } from '@/components/ui/button';
 import { useClientState } from '@/hooks/use-client-state';
+import { useUser, useFirestore } from '@/firebase/provider';
+import { doc, onSnapshot } from 'firebase/firestore';
+import type { User as AppUser } from '@/lib/types';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function DailyRatesPage() {
     const firstRate = mockDailyRates[0];
     const { readyBird, chickRate, feedCostIndex, lastUpdated, location } = firstRate;
     const [lastUpdatedTime, setLastUpdatedTime] = useState('');
+    const firebaseUser = useUser();
+    const firestore = useFirestore();
+    const [user, setUser] = useState<AppUser | null>(null);
+    const [loading, setLoading] = useState(true);
 
-    const user = useClientState(mockUsers.find(u => u.role === 'farmer'), undefined);
-    const userIsPremium = user?.planType === 'premium';
+     useEffect(() => {
+        if (firebaseUser && firestore) {
+            const userDocRef = doc(firestore, 'users', firebaseUser.uid);
+            const unsubscribe = onSnapshot(userDocRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    setUser(docSnap.data() as AppUser);
+                } else {
+                    setUser(null);
+                }
+                setLoading(false);
+            });
+            return () => unsubscribe();
+        } else if (firebaseUser === null) {
+            setLoading(false);
+        }
+    }, [firebaseUser, firestore]);
 
     useEffect(() => {
         setLastUpdatedTime(new Date(lastUpdated).toLocaleTimeString());
     }, [lastUpdated]);
+
+    const userIsPremium = user?.planType === 'premium';
     
+    if (loading) {
+        return (
+            <>
+                <PageHeader
+                    title="Daily Market Rates"
+                    description="Live poultry rates, updated daily by our team."
+                />
+                 <div className="mt-8">
+                    <Skeleton className="h-48 w-full" />
+                </div>
+            </>
+        )
+    }
+
     return (
         <>
             <PageHeader
@@ -34,50 +72,50 @@ export default function DailyRatesPage() {
                 <span>Showing rates for <span className="font-semibold text-foreground">{location.district}, {location.state}</span>. {lastUpdatedTime && `Last updated: ${lastUpdatedTime}`}</span>
             </div>
 
-            <div className="mt-6 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                <Card className="lg:col-span-2">
-                    <CardHeader>
-                        <CardTitle>Ready Bird Rate (₹/kg)</CardTitle>
-                        <CardDescription>Live rate for ready-to-sell birds.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
-                        <div className="rounded-lg border bg-secondary/30 p-4">
-                            <p className="text-sm text-muted-foreground">Small</p>
-                            <p className="text-3xl font-bold text-primary">{readyBird.small}</p>
-                        </div>
-                        <div className="rounded-lg border bg-secondary/30 p-4">
-                            <p className="text-sm text-muted-foreground">Medium</p>
-                            <p className="text-3xl font-bold text-primary">{readyBird.medium}</p>
-                        </div>
-                        <div className="rounded-lg border bg-secondary/30 p-4">
-                            <p className="text-sm text-muted-foreground">Big</p>
-                            <p className="text-3xl font-bold text-primary">{readyBird.big}</p>
-                        </div>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Chick Rate (₹/chick)</CardTitle>
-                        <CardDescription>Price for day-old chicks.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="flex items-center justify-center gap-2">
-                        <IndianRupee className="size-8 text-primary"/>
-                        <span className="text-4xl font-bold text-foreground">{chickRate}</span>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Feed Cost Index</CardTitle>
-                        <CardDescription>Represents average feed cost.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="flex items-center justify-center gap-2">
-                         <IndianRupee className="size-8 text-primary"/>
-                        <span className="text-4xl font-bold text-foreground">{feedCostIndex}</span>
-                    </CardContent>
-                </Card>
-            </div>
-            
-            {!userIsPremium && (
+            {userIsPremium ? (
+                <div className="mt-6 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                    <Card className="lg:col-span-2">
+                        <CardHeader>
+                            <CardTitle>Ready Bird Rate (₹/kg)</CardTitle>
+                            <CardDescription>Live rate for ready-to-sell birds.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
+                            <div className="rounded-lg border bg-secondary/30 p-4">
+                                <p className="text-sm text-muted-foreground">Small</p>
+                                <p className="text-3xl font-bold text-primary">{readyBird.small}</p>
+                            </div>
+                            <div className="rounded-lg border bg-secondary/30 p-4">
+                                <p className="text-sm text-muted-foreground">Medium</p>
+                                <p className="text-3xl font-bold text-primary">{readyBird.medium}</p>
+                            </div>
+                            <div className="rounded-lg border bg-secondary/30 p-4">
+                                <p className="text-sm text-muted-foreground">Big</p>
+                                <p className="text-3xl font-bold text-primary">{readyBird.big}</p>
+                            </div>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Chick Rate (₹/chick)</CardTitle>
+                            <CardDescription>Price for day-old chicks.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="flex items-center justify-center gap-2">
+                            <IndianRupee className="size-8 text-primary"/>
+                            <span className="text-4xl font-bold text-foreground">{chickRate}</span>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Feed Cost Index</CardTitle>
+                            <CardDescription>Represents average feed cost.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="flex items-center justify-center gap-2">
+                             <IndianRupee className="size-8 text-primary"/>
+                            <span className="text-4xl font-bold text-foreground">{feedCostIndex}</span>
+                        </CardContent>
+                    </Card>
+                </div>
+            ) : (
                  <Card className="mt-8 bg-accent/20 border-accent">
                     <CardHeader className="text-center">
                         <CardTitle className="font-headline text-2xl flex items-center justify-center gap-2">
