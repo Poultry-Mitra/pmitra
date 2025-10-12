@@ -3,13 +3,15 @@
 
 import { PageHeader } from "@/app/admin/_components/page-header";
 import { UserManagementSummary } from "@/app/admin/_components/user-management-summary";
+import { useLanguage } from "@/components/language-provider";
 
 export default function AllDealersPage() {
+    const { t } = useLanguage();
     return (
         <>
             <PageHeader
-                title="Dealer Management"
-                description="View, manage, and search all dealer accounts."
+                title={t('admin.dealers_page.title')}
+                description={t('admin.dealers_page.description')}
             />
             <div className="mt-8">
                 <UserManagementSummary roleToShow="dealer" />

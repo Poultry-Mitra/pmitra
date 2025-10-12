@@ -50,6 +50,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useUsers, deleteUser } from "@/hooks/use-users";
 import { useFirestore, useUser as useAuthUser } from "@/firebase/provider";
 import { addAuditLog } from "@/hooks/use-audit-logs";
+import { useLanguage } from "@/components/language-provider";
 
 
 type UserStatus = "active" | "suspended" | "pending";
@@ -87,11 +88,12 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
     const { toast } = useToast();
     const firestore = useFirestore();
     const adminUser = useAuthUser();
+    const { t } = useLanguage();
 
     const filteredUsers = roleToShow ? usersWithStatus : usersWithStatus.slice(0, 5); // Show only 5 recent users on dashboard view
 
-    const title = roleToShow ? `${roleToShow.charAt(0).toUpperCase() + roleToShow.slice(1)}s` : "Recent Users";
-    const description = roleToShow ? `A list of all ${roleToShow}s in the system.` : "Recently active farmers and dealers.";
+    const title = roleToShow ? t(`admin.users.title_${roleToShow}`) : t('admin.users.title_recent');
+    const description = roleToShow ? t(`admin.users.description_${roleToShow}`) : t('admin.users.description_recent');
 
 
     const handleSuspend = () => {
@@ -100,8 +102,8 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
         const finalReason = reason === 'other' ? otherReason : reason;
         if ((dialogState.user.status === 'active' && !finalReason) || (dialogState.action === 'delete' && !finalReason)) {
             toast({
-                title: "Reason Required",
-                description: "Please provide a reason for this action.",
+                title: t('admin.users.reason_required_title'),
+                description: t('admin.users.reason_required_desc'),
                 variant: "destructive",
             });
             return;
@@ -112,8 +114,8 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
         setUsersWithStatus(usersWithStatus.map(u => u.id === dialogState.user!.id ? { ...u, status: u.status === 'active' ? 'suspended' : 'active' } : u));
         
         toast({
-            title: `User ${dialogState.user.status === 'active' ? 'Suspended' : 'Unsuspended'}`,
-            description: `${dialogState.user.name} has been successfully ${dialogState.user.status === 'active' ? 'suspended' : 'unsuspended'}. ${finalReason ? `Reason: ${finalReason}` : ''}`,
+            title: t(dialogState.user.status === 'active' ? 'admin.users.user_suspended_title' : 'admin.users.user_unsuspended_title'),
+            description: t(dialogState.user.status === 'active' ? 'admin.users.user_suspended_desc' : 'admin.users.user_unsuspended_desc', { name: dialogState.user.name, reason: finalReason }),
         });
         setDialogState({ action: null, user: null });
         setReason("");
@@ -126,8 +128,8 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
         const finalReason = reason === 'other' ? otherReason : reason;
          if (!finalReason) {
             toast({
-                title: "Reason Required",
-                description: "Please provide a reason for deleting the user.",
+                title: t('admin.users.reason_required_title_delete'),
+                description: t('admin.users.reason_required_desc_delete'),
                 variant: "destructive",
             });
             return;
@@ -143,14 +145,14 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
             });
 
             toast({
-                title: "User Deleted",
-                description: `${dialogState.user.name} has been permanently deleted from the database.`,
+                title: t('admin.users.user_deleted_title'),
+                description: t('admin.users.user_deleted_desc', { name: dialogState.user.name }),
                 variant: "destructive",
             });
         } catch (error: any) {
             toast({
-                title: "Deletion Failed",
-                description: error.message || "Could not delete the user from the database.",
+                title: t('admin.users.delete_failed_title'),
+                description: error.message || t('admin.users.delete_failed_desc'),
                 variant: "destructive",
             });
         }
@@ -182,7 +184,7 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
                         <Button asChild>
                             <Link href="/admin/user-management/add-user">
                                 <PlusCircle className="mr-2" />
-                                Add User
+                                {t('admin.users.add_user_button')}
                             </Link>
                         </Button>
                     )}
@@ -191,11 +193,11 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead>User</TableHead>
-                                <TableHead>Role</TableHead>
-                                <TableHead>Status</TableHead>
-                                <TableHead className="hidden md:table-cell">Date Joined</TableHead>
-                                <TableHead><span className="sr-only">Actions</span></TableHead>
+                                <TableHead>{t('tables.user')}</TableHead>
+                                <TableHead>{t('tables.role')}</TableHead>
+                                <TableHead>{t('tables.status')}</TableHead>
+                                <TableHead className="hidden md:table-cell">{t('tables.date_joined')}</TableHead>
+                                <TableHead><span className="sr-only">{t('tables.actions')}</span></TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -203,7 +205,7 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
                                 <TableRow>
                                     <TableCell colSpan={5} className="text-center">
                                         <div className="flex justify-center items-center p-4">
-                                            <Loader2 className="animate-spin mr-2" /> Loading users...
+                                            <Loader2 className="animate-spin mr-2" /> {t('messages.loading_users')}
                                         </div>
                                     </TableCell>
                                 </TableRow>
@@ -211,7 +213,7 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
                             {!loading && filteredUsers.length === 0 && (
                                 <TableRow>
                                     <TableCell colSpan={5} className="text-center p-8">
-                                        No users found.
+                                        {t('messages.no_users_found')}
                                     </TableCell>
                                 </TableRow>
                             )}
@@ -229,11 +231,11 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
                                         </div>
                                     </TableCell>
                                     <TableCell>
-                                        <Badge variant={user.role === 'admin' ? 'default' : 'secondary'} className="capitalize">{user.role}</Badge>
+                                        <Badge variant={user.role === 'admin' ? 'default' : 'secondary'} className="capitalize">{t(`roles.${user.role}`)}</Badge>
                                     </TableCell>
                                     <TableCell>
                                         <Badge variant={statusVariant[user.status]} className={cn("capitalize", statusColorScheme[user.status])}>
-                                            {user.status}
+                                            {t(`status.${user.status}`)}
                                         </Badge>
                                     </TableCell>
                                     <TableCell className="hidden md:table-cell">
@@ -244,15 +246,15 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
                                             <DropdownMenuTrigger asChild>
                                                 <Button aria-haspopup="true" size="icon" variant="ghost">
                                                     <MoreHorizontal className="h-4 w-4" />
-                                                    <span className="sr-only">Toggle menu</span>
+                                                    <span className="sr-only">{t('actions.toggle_menu')}</span>
                                                 </Button>
                                             </DropdownMenuTrigger>
                                             <DropdownMenuContent align="end">
-                                                <DropdownMenuItem onClick={() => openDetailsDialog(user)}>View Details</DropdownMenuItem>
+                                                <DropdownMenuItem onClick={() => openDetailsDialog(user)}>{t('actions.view_details')}</DropdownMenuItem>
                                                 <DropdownMenuItem onClick={() => openDialog(user, 'suspend')}>
-                                                    {user.status === 'active' ? 'Suspend' : 'Unsuspend'}
+                                                    {user.status === 'active' ? t('actions.suspend') : t('actions.unsuspend')}
                                                 </DropdownMenuItem>
-                                                <DropdownMenuItem className="text-destructive" onClick={() => openDialog(user, 'delete')}>Delete</DropdownMenuItem>
+                                                <DropdownMenuItem className="text-destructive" onClick={() => openDialog(user, 'delete')}>{t('actions.delete')}</DropdownMenuItem>
                                             </DropdownMenuContent>
                                         </DropdownMenu>
                                     </TableCell>
@@ -266,18 +268,18 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
             <Dialog open={!!detailsUser} onOpenChange={(open) => !open && setDetailsUser(null)}>
                  <DialogContent className="sm:max-w-2xl">
                     <DialogHeader>
-                        <DialogTitle>User Details</DialogTitle>
+                        <DialogTitle>{t('admin.users.details_title')}</DialogTitle>
                         <DialogDescription>
-                            Comprehensive details for {detailsUser?.name}.
+                            {t('admin.users.details_desc', { name: detailsUser?.name })}
                         </DialogDescription>
                     </DialogHeader>
                     {detailsUser && (
                         <div className="py-4">
                             <Tabs defaultValue="overview">
                                 <TabsList>
-                                    <TabsTrigger value="overview">Overview</TabsTrigger>
-                                    <TabsTrigger value="subscription">Subscription</TabsTrigger>
-                                    <TabsTrigger value="activity">Recent Activity</TabsTrigger>
+                                    <TabsTrigger value="overview">{t('tabs.overview')}</TabsTrigger>
+                                    <TabsTrigger value="subscription">{t('tabs.subscription')}</TabsTrigger>
+                                    <TabsTrigger value="activity">{t('tabs.activity')}</TabsTrigger>
                                 </TabsList>
                                 <TabsContent value="overview" className="mt-4">
                                      <Card>
@@ -290,30 +292,30 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
                                                     <h3 className="text-xl font-bold">{detailsUser.name}</h3>
                                                     <div className="text-muted-foreground">{detailsUser.email}</div>
                                                     <div className="flex items-center gap-2 mt-1">
-                                                        <Badge className="capitalize">{detailsUser.role}</Badge>
+                                                        <Badge className="capitalize">{t(`roles.${detailsUser.role}`)}</Badge>
                                                         <Badge variant={statusVariant[detailsUser.status]} className={cn("capitalize", statusColorScheme[detailsUser.status])}>
-                                                            {detailsUser.status}
+                                                            {t(`status.${detailsUser.status}`)}
                                                         </Badge>
                                                     </div>
                                                 </div>
                                             </div>
                                              <div className="grid grid-cols-2 gap-2 text-sm">
-                                                <div><strong className="font-medium">Date Joined:</strong> {new Date(detailsUser.dateJoined).toLocaleDateString()}</div>
-                                                <div><strong className="font-medium">User ID:</strong> <span className="font-mono text-xs">{detailsUser.id}</span></div>
+                                                <div><strong className="font-medium">{t('labels.date_joined')}:</strong> {new Date(detailsUser.dateJoined).toLocaleDateString()}</div>
+                                                <div><strong className="font-medium">{t('labels.user_id')}:</strong> <span className="font-mono text-xs">{detailsUser.id}</span></div>
                                              </div>
                                         </CardContent>
                                      </Card>
                                 </TabsContent>
                                 <TabsContent value="subscription" className="mt-4 space-y-2">
-                                    <div className="font-medium">Subscription Plan: <Badge>{detailsUser.planType}</Badge></div>
-                                    <div className="flex items-center gap-2 font-medium">Status: <Badge variant="outline" className="text-green-500 border-green-500">Active</Badge></div>
-                                    <div className="font-medium">Next Billing Date: 2023-12-01</div>
+                                    <div className="font-medium">{t('labels.subscription_plan')}: <Badge>{detailsUser.planType}</Badge></div>
+                                    <div className="flex items-center gap-2 font-medium">{t('labels.status')}: <Badge variant="outline" className="text-green-500 border-green-500">{t('status.active')}</Badge></div>
+                                    <div className="font-medium">{t('labels.next_billing_date')}: 2023-12-01</div>
                                 </TabsContent>
                                 <TabsContent value="activity" className="mt-4">
                                     <ul className="space-y-2 text-sm text-muted-foreground">
-                                        <li>Logged in - 2 hours ago</li>
-                                        <li>Viewed Dashboard - 1 hour ago</li>
-                                        <li>Started an AI Chat - 30 minutes ago</li>
+                                        <li>{t('activity.logged_in')}</li>
+                                        <li>{t('activity.viewed_dashboard')}</li>
+                                        <li>{t('activity.started_chat')}</li>
                                     </ul>
                                 </TabsContent>
                             </Tabs>
@@ -325,11 +327,11 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
             <AlertDialog open={!!dialogState.action} onOpenChange={() => setDialogState({ action: null, user: null })}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                        <AlertDialogTitle>{t('dialog.are_you_sure_title')}</AlertDialogTitle>
                         <AlertDialogDescription>
                             {dialogState.action === 'delete'
-                                ? `This action cannot be undone. This will permanently delete ${dialogState.user?.name}'s account and remove their data from our servers.`
-                                : `This will ${dialogState.user?.status === 'active' ? 'suspend' : 'unsuspend'} ${dialogState.user?.name}'s account, ${dialogState.user?.status === 'active' ? 'preventing them from logging in' : 'allowing them to log in again'}.`
+                                ? t('dialog.delete_user_desc', { name: dialogState.user?.name })
+                                : t(dialogState.user?.status === 'active' ? 'dialog.suspend_user_desc' : 'dialog.unsuspend_user_desc', { name: dialogState.user?.name })
                             }
                         </AlertDialogDescription>
                     </AlertDialogHeader>
@@ -337,36 +339,39 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
                     {!isUnsuspendAction && (
                         <div className="space-y-4 my-4">
                              <div className="space-y-2">
-                                <Label htmlFor="reason">Reason</Label>
+                                <Label htmlFor="reason">{t('labels.reason')}</Label>
                                 <Select onValueChange={setReason} value={reason}>
                                     <SelectTrigger id="reason">
-                                        <SelectValue placeholder="Select a reason" />
+                                        <SelectValue placeholder={t('placeholders.select_reason')} />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {dialogState.action === 'delete' && <SelectItem value="user_request">User Request</SelectItem>}
-                                        <SelectItem value="payment_failed">Payment Failed</SelectItem>
-                                        <SelectItem value="policy_violation">Policy Violation</SelectItem>
-                                        <SelectItem value="spam_activity">Spam Activity</SelectItem>
-                                        <SelectItem value="other">Other</SelectItem>
+                                        {dialogState.action === 'delete' && <SelectItem value="user_request">{t('reasons.user_request')}</SelectItem>}
+                                        <SelectItem value="payment_failed">{t('reasons.payment_failed')}</SelectItem>
+                                        <SelectItem value="policy_violation">{t('reasons.policy_violation')}</SelectItem>
+                                        <SelectItem value="spam_activity">{t('reasons.spam_activity')}</SelectItem>
+                                        <SelectItem value="other">{t('reasons.other')}</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
                             {reason === 'other' && (
                                 <div className="space-y-2">
-                                    <Label htmlFor="other-reason">Please specify</Label>
-                                    <Textarea id="other-reason" value={otherReason} onChange={(e) => setOtherReason(e.target.value)} placeholder="Provide a specific reason..." />
+                                    <Label htmlFor="other-reason">{t('labels.please_specify')}</Label>
+                                    <Textarea id="other-reason" value={otherReason} onChange={(e) => setOtherReason(e.target.value)} placeholder={t('placeholders.provide_reason')} />
                                 </div>
                             )}
                         </div>
                     )}
 
                     <AlertDialogFooter>
-                        <AlertDialogCancel onClick={() => { setReason(""); setOtherReason(""); }}>Cancel</AlertDialogCancel>
+                        <AlertDialogCancel onClick={() => { setReason(""); setOtherReason(""); }}>{t('actions.cancel')}</AlertDialogCancel>
                         <AlertDialogAction
                             onClick={dialogState.action === 'delete' ? handleDelete : handleSuspend}
                             className={dialogState.action === 'delete' ? 'bg-destructive hover:bg-destructive/90 text-destructive-foreground' : ''}
                         >
-                            {dialogState.action === 'delete' ? 'Yes, delete' : `Yes, ${dialogState.user?.status === 'active' ? 'suspend' : 'unsuspend'}`}
+                            {dialogState.action === 'delete' 
+                                ? t('actions.yes_delete') 
+                                : (dialogState.user?.status === 'active' ? t('actions.yes_suspend') : t('actions.yes_unsuspend'))
+                            }
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
