@@ -94,11 +94,15 @@ export default function AddPurchasePage() {
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
         defaultValues: {
+            supplierName: "",
+            supplierContact: "",
             products: [{ productName: "", category: "Feed", unit: "kg", price: 0, discount: 0, quantity: 1 }],
             priceType: "mrp",
             paymentMethod: "cash",
             amountPaid: 0,
+            utrNumber: "",
             invoiceDate: new Date(),
+            invoiceNumber: "",
         },
     });
 
