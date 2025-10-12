@@ -36,6 +36,7 @@ import { mockUsers } from "@/lib/data";
 import Link from "next/link";
 import type { User } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
 type UserStatus = "active" | "suspended" | "pending";
 
