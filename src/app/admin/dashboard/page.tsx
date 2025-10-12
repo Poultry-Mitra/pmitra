@@ -95,13 +95,13 @@ export default function AdminDashboardPage() {
                 <div className="flex items-center gap-2">
                     <Button variant="outline" asChild>
                         <Link href="/admin/notifications">
-                            <Send />
+                            <Send className="mr-2" />
                             Send Notification
                         </Link>
                     </Button>
                     <Button asChild>
                         <Link href="/admin/user-management/add-user">
-                            <PlusCircle />
+                            <PlusCircle className="mr-2" />
                             Add User
                         </Link>
                     </Button>

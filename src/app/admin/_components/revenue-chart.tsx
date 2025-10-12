@@ -42,9 +42,16 @@ export function RevenueChart({ data }: { data: any[] }) {
                         tickFormatter={(value) => value.slice(0, 3)}
                     />
                      <YAxis 
-                        tickFormatter={(value) => `INR ${value / 1000}k`}
+                        tickFormatter={(value) => `₹${value / 1000}k`}
                      />
-                    <Tooltip content={<ChartTooltipContent />} />
+                    <Tooltip content={<ChartTooltipContent 
+                        formatter={(value, name) => {
+                            if (typeof value === 'number') {
+                                return `₹${value.toLocaleString()}`;
+                            }
+                            return value;
+                        }}
+                    />} />
                     <Line type="monotone" dataKey="revenue" stroke="var(--color-revenue)" strokeWidth={2} dot={true} />
                     <Line type="monotone" dataKey="revenueLastMonth" stroke="var(--color-revenueLastMonth)" strokeWidth={2} strokeDasharray="5 5" dot={false}/>
                 </LineChart>
