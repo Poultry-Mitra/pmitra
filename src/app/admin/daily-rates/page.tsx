@@ -18,6 +18,7 @@ import { doc, setDoc, onSnapshot } from 'firebase/firestore';
 import { format } from 'date-fns';
 import { addAuditLog } from '@/hooks/use-audit-logs';
 import type { DailyRates } from '@/lib/types';
+import indianStates from '@/lib/indian-states-districts.json';
 
 
 const formSchema = z.object({
@@ -38,6 +39,8 @@ export default function DailyRateManagementPage() {
     const [loading, setLoading] = useState(true);
     const firestore = useFirestore();
     const adminUser = useUser();
+    const [districts, setDistricts] = useState<string[]>([]);
+
 
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
@@ -51,6 +54,18 @@ export default function DailyRateManagementPage() {
             feedCostIndex: 45.5,
         },
     });
+
+    const selectedState = form.watch("state");
+
+    useEffect(() => {
+        if (selectedState) {
+            const stateData = indianStates.states.find(s => s.state === selectedState);
+            setDistricts(stateData ? stateData.districts : []);
+            form.setValue("district", "");
+        } else {
+            setDistricts([]);
+        }
+    }, [selectedState, form]);
     
     const today = format(new Date(), 'yyyy-MM-dd');
 
@@ -62,6 +77,10 @@ export default function DailyRateManagementPage() {
         const unsubscribe = onSnapshot(ratesDocRef, (docSnap) => {
             if (docSnap.exists()) {
                 const data = docSnap.data() as DailyRates;
+                const stateData = indianStates.states.find(s => s.state === data.location.state);
+                if (stateData) {
+                    setDistricts(stateData.districts);
+                }
                 form.reset({
                     state: data.location.state,
                     district: data.location.district,
@@ -159,16 +178,14 @@ export default function DailyRateManagementPage() {
                                         render={({ field }) => (
                                             <FormItem>
                                                 <FormLabel>State</FormLabel>
-                                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                <Select onValueChange={field.onChange} value={field.value}>
                                                     <FormControl>
                                                         <SelectTrigger>
                                                             <SelectValue placeholder="Select a state" />
                                                         </SelectTrigger>
                                                     </FormControl>
                                                     <SelectContent>
-                                                        <SelectItem value="Maharashtra">Maharashtra</SelectItem>
-                                                        <SelectItem value="Karnataka">Karnataka</SelectItem>
-                                                        <SelectItem value="Gujarat">Gujarat</SelectItem>
+                                                        {indianStates.states.map(s => <SelectItem key={s.state} value={s.state}>{s.state}</SelectItem>)}
                                                     </SelectContent>
                                                 </Select>
                                                 <FormMessage />
@@ -179,9 +196,14 @@ export default function DailyRateManagementPage() {
                                         control={form.control}
                                         name="district"
                                         render={({ field }) => (
-                                            <FormItem>
+                                             <FormItem>
                                                 <FormLabel>District</FormLabel>
-                                                <Input placeholder="e.g., Pune" {...field} />
+                                                <Select onValueChange={field.onChange} value={field.value} disabled={!selectedState}>
+                                                    <FormControl><SelectTrigger><SelectValue placeholder="Select a district" /></SelectTrigger></FormControl>
+                                                    <SelectContent>
+                                                        {districts.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
+                                                    </SelectContent>
+                                                </Select>
                                                 <FormMessage />
                                             </FormItem>
                                         )}
