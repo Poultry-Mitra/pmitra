@@ -36,17 +36,47 @@ export const mockHistoricalData = {
     thirtyDays: mockFarmMetrics.map((d, i) => ({...d, date: new Date(Date.now() - (30-i) * 24 * 60 * 60 * 1000).toISOString()}))
 };
 
-export const mockDailyRates: DailyRates = {
-    readyBird: {
-        small: 110,
-        medium: 125,
-        big: 140,
+export const mockDailyRates: DailyRates[] = [
+    {
+        readyBird: {
+            small: 110,
+            medium: 125,
+            big: 140,
+        },
+        chickRate: 35,
+        feedCostIndex: 45.5,
+        lastUpdated: '2023-10-27T10:00:00Z',
+        location: {
+            state: "Maharashtra",
+            district: "Pune",
+        }
     },
-    chickRate: 35,
-    feedCostIndex: 45.5,
-    lastUpdated: '2023-10-27T10:00:00Z',
-    location: {
-        state: "Maharashtra",
-        district: "Pune",
+    {
+        readyBird: {
+            small: 108,
+            medium: 122,
+            big: 138,
+        },
+        chickRate: 34,
+        feedCostIndex: 45.0,
+        lastUpdated: '2023-10-27T10:00:00Z',
+        location: {
+            state: "Maharashtra",
+            district: "Nashik",
+        }
+    },
+    {
+        readyBird: {
+            small: 115,
+            medium: 130,
+            big: 145,
+        },
+        chickRate: 36,
+        feedCostIndex: 46.2,
+        lastUpdated: '2023-10-27T10:00:00Z',
+        location: {
+            state: "Karnataka",
+            district: "Bengaluru",
+        }
     }
-};
+];

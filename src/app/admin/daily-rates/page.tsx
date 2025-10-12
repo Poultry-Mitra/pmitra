@@ -29,21 +29,22 @@ type FormValues = z.infer<typeof formSchema>;
 export default function DailyRateManagementPage() {
     const { toast } = useToast();
     const [lastUpdated, setLastUpdated] = useState('');
+    const firstRate = mockDailyRates[0];
 
     useEffect(() => {
         // This ensures date formatting only happens on the client, avoiding hydration errors.
-        setLastUpdated(new Date(mockDailyRates.lastUpdated).toLocaleString());
-    }, []);
+        setLastUpdated(new Date(firstRate.lastUpdated).toLocaleString());
+    }, [firstRate.lastUpdated]);
 
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            state: mockDailyRates.location.state,
-            district: mockDailyRates.location.district,
-            readyBirdSmall: mockDailyRates.readyBird.small,
-            readyBirdMedium: mockDailyRates.readyBird.medium,
-            readyBirdBig: mockDailyRates.readyBird.big,
-            chickRate: mockDailyRates.chickRate,
+            state: firstRate.location.state,
+            district: firstRate.location.district,
+            readyBirdSmall: firstRate.readyBird.small,
+            readyBirdMedium: firstRate.readyBird.medium,
+            readyBirdBig: firstRate.readyBird.big,
+            chickRate: firstRate.chickRate,
         },
     });
 

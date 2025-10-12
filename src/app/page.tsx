@@ -18,6 +18,7 @@ import { AppIcon } from '@/app/icon';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { LanguageToggle } from '@/components/language-toggle';
 import { useLanguage } from '@/components/language-provider';
+import { RateTicker } from './_components/rate-ticker';
 
 export default function LandingPage() {
   const { t } = useLanguage();
@@ -105,6 +106,7 @@ export default function LandingPage() {
             </Button>
           </div>
         </div>
+        <RateTicker />
       </header>
       <main className="flex-1">
         <section id="hero" className="container flex flex-col items-center justify-center gap-8 py-20 text-center md:py-28 lg:py-32">
@@ -235,5 +237,3 @@ export default function LandingPage() {
     </div>
   );
 }
-
-    

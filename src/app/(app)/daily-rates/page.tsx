@@ -8,7 +8,8 @@ import { mockDailyRates } from "@/lib/data";
 import { IndianRupee, MapPin } from "lucide-react";
 
 export default function DailyRatesPage() {
-    const { readyBird, chickRate, feedCostIndex, lastUpdated, location } = mockDailyRates;
+    const firstRate = mockDailyRates[0];
+    const { readyBird, chickRate, feedCostIndex, lastUpdated, location } = firstRate;
     const [lastUpdatedTime, setLastUpdatedTime] = useState('');
 
     useEffect(() => {
