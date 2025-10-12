@@ -1,4 +1,5 @@
 
+
 export type UserRole = 'farmer' | 'dealer' | 'admin';
 
 export type User = {
@@ -46,4 +47,17 @@ export type DailyRates = {
         state: string;
         district: string;
     }
+}
+
+export type PricingPlan = {
+    name: string;
+    price: string;
+    priceMonthly: string;
+    priceYearly: string;
+    priceDesc: string;
+    description: string;
+    features: string[];
+    cta: string;
+    isPopular: boolean;
+    userType: "Farmer" | "Dealer";
 }

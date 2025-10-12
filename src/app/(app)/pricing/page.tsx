@@ -1,89 +1,155 @@
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckCircle } from "lucide-react";
+import { CheckCircle, Zap } from "lucide-react";
 import { PageHeader } from "../_components/page-header";
+import type { PricingPlan } from "@/lib/types";
 
-const plans = [
+const plans: PricingPlan[] = [
     {
         name: "Free",
-        price: "INR 0",
-        price_desc: "for basic needs",
+        price: "₹0",
+        priceMonthly: "₹0",
+        priceYearly: "—",
+        priceDesc: "for basic needs",
         description: "For small farms and hobbyists starting out.",
         features: [
-            "Basic Analytics Dashboard",
-            "Limited AI Chat Queries (10/day)",
+            "1 Batch Limit",
+            "Limited AI Chat Queries (5/month)",
             "Manual Data Entry",
-            "Community Support"
+            "Community Access",
+            "Single Device Access",
         ],
         cta: "Continue with Free",
-        isPopular: false
+        isPopular: false,
+        userType: "Farmer",
     },
     {
-        name: "Farmer Plan",
-        price: "INR 199",
-        price_desc: "per month",
+        name: "Premium",
+        price: "₹249",
+        priceMonthly: "₹249",
+        priceYearly: "₹2499",
+        priceDesc: "per month",
         description: "For growing farms that need advanced tools.",
         features: [
-            "Advanced Analytics & Reports",
+            "Unlimited Batches",
             "Unlimited AI Chat Queries",
-            "AI Feed & Problem Forecasts",
-            "Real-time Sensor Monitoring",
-            "Email & Chat Support"
+            "Advanced Analytics & Reports",
+            "Feed AI Suggestions",
+            "Daily Market Rates Access",
+            "Data Export (PDF, Excel)",
+            "Ad-free Experience"
         ],
-        cta: "Upgrade to Farmer",
-        isPopular: true
+        cta: "Upgrade to Premium",
+        isPopular: true,
+        userType: "Farmer",
+    },
+     {
+        name: "Free",
+        price: "₹0",
+        priceMonthly: "₹0",
+        priceYearly: "—",
+        priceDesc: "for basic needs",
+        description: "For dealers starting out.",
+        features: [
+            "Manage up to 2 farmers",
+            "Limited AI Chat Queries (5/month)",
+            "Basic Sales Report",
+            "Single Device Access",
+        ],
+        cta: "Continue with Free",
+        isPopular: false,
+        userType: "Dealer",
     },
     {
-        name: "Dealer Plan",
-        price: "INR 499",
-        price_desc: "per month",
+        name: "Premium",
+        price: "₹499",
+        priceMonthly: "₹499",
+        priceYearly: "₹4999",
+        priceDesc: "per month",
         description: "Tailored solutions for large-scale poultry businesses and dealers.",
         features: [
-            "All Farmer features",
-            "Multi-farm Management",
-            "API Access & Integrations",
-            "Dedicated Account Manager",
-            "On-site Training"
+            "Unlimited Farmer Connections",
+            "Unlimited AI Chat Queries",
+            "Full Dealer Dashboard",
+            "Advanced Analytics",
+            "Daily Market Rate Access",
+            "CRM System",
+            "Ad-free Experience",
         ],
-        cta: "Choose Dealer Plan",
-        isPopular: false
+        cta: "Choose Premium",
+        isPopular: true,
+        userType: "Dealer",
     }
 ]
 
+function PricingCard({ plan }: { plan: PricingPlan }) {
+    return (
+        <Card className={`flex flex-col ${plan.isPopular ? 'border-primary shadow-lg' : ''}`}>
+             <CardHeader className="relative">
+                {plan.isPopular && (
+                    <div className="absolute top-0 right-4 -mt-3 flex items-center gap-1 rounded-full bg-primary px-3 py-1 text-xs text-primary-foreground">
+                        <Zap className="size-3" /> Most Popular
+                    </div>
+                )}
+                <CardTitle className="font-headline">{plan.name} <span className="text-sm font-normal text-muted-foreground">({plan.userType})</span></CardTitle>
+                <CardDescription>{plan.description}</CardDescription>
+                <div className="flex items-baseline gap-2">
+                    <span className="text-3xl font-bold">{plan.priceMonthly}</span>
+                    <span className="text-muted-foreground">/month</span>
+                </div>
+                 {plan.priceYearly !== "—" && (
+                    <div className="text-sm text-muted-foreground">
+                        or {plan.priceYearly} per year
+                    </div>
+                )}
+            </CardHeader>
+            <CardContent className="flex-1">
+                <ul className="space-y-3">
+                    {plan.features.map(feature => (
+                        <li key={feature} className="flex items-start">
+                            <CheckCircle className="mr-2 mt-1 size-4 shrink-0 text-green-500" />
+                            <span className="text-sm text-muted-foreground">{feature}</span>
+                        </li>
+                    ))}
+                </ul>
+            </CardContent>
+            <CardFooter>
+                <Button className="w-full" variant={plan.isPopular ? "default" : "outline"}>{plan.cta}</Button>
+            </CardFooter>
+        </Card>
+    )
+}
+
 export default function PricingPage() {
+    const farmerPlans = plans.filter(p => p.userType === 'Farmer');
+    const dealerPlans = plans.filter(p => p.userType === 'Dealer');
+
     return (
         <>
             <PageHeader
                 title="Subscription Plans"
                 description="Choose the plan that's right for your farm. Unlock powerful AI features to boost your productivity."
             />
-            <div className="mt-8 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {plans.map(plan => (
-                    <Card key={plan.name} className={`flex flex-col ${plan.isPopular ? 'border-primary shadow-lg' : ''}`}>
-                         <CardHeader className="relative">
-                            {plan.isPopular && <div className="absolute top-0 right-4 -mt-3 rounded-full bg-primary px-3 py-1 text-xs text-primary-foreground">Most Popular</div>}
-                            <CardTitle className="font-headline">{plan.name}</CardTitle>
-                            <CardDescription>{plan.description}</CardDescription>
-                            <div>
-                                <span className="text-3xl font-bold">{plan.price}</span>
-                                <span className="text-muted-foreground">{plan.price_desc}</span>
-                            </div>
-                        </CardHeader>
-                        <CardContent className="flex-1">
-                            <ul className="space-y-3">
-                                {plan.features.map(feature => (
-                                    <li key={feature} className="flex items-start">
-                                        <CheckCircle className="mr-2 mt-1 size-4 shrink-0 text-green-500" />
-                                        <span className="text-sm text-muted-foreground">{feature}</span>
-                                    </li>
-                                ))}
-                            </ul>
-                        </CardContent>
-                        <CardFooter>
-                            <Button className="w-full" variant={plan.isPopular ? "default" : "outline"}>{plan.cta}</Button>
-                        </CardFooter>
-                    </Card>
-                ))}
+
+            <div className="mt-8 space-y-12">
+                <div>
+                    <h2 className="font-headline text-2xl font-bold tracking-tight mb-6">For Farmers (मुर्गीपालक)</h2>
+                    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                        {farmerPlans.map(plan => (
+                            <PricingCard key={`${plan.name}-${plan.userType}`} plan={plan} />
+                        ))}
+                    </div>
+                </div>
+
+                 <div>
+                    <h2 className="font-headline text-2xl font-bold tracking-tight mb-6">For Dealers (डीलर / सप्लायर)</h2>
+                    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                        {dealerPlans.map(plan => (
+                             <PricingCard key={`${plan.name}-${plan.userType}`} plan={plan} />
+                        ))}
+                    </div>
+                </div>
             </div>
         </>
     )
