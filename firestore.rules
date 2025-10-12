@@ -1,0 +1,75 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+  
+    // Helper functions to check user roles
+    function isAdmin() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+    
+    function isFarmer() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'farmer';
+    }
+    
+    function isDealer() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'dealer';
+    }
+
+    // Rules for the 'users' collection
+    match /users/{userId} {
+      allow read, update: if request.auth.uid == userId || isAdmin();
+      allow list, create, delete: if isAdmin();
+    }
+    
+    // Rules for farmer's personal inventory
+    match /inventory/{itemId} {
+      allow read, write: if request.auth.uid == request.resource.data.farmerUID || isAdmin();
+    }
+
+    // Rules for dealer's public-facing inventory
+    match /dealerInventory/{itemId} {
+        // Dealer can do anything to their own inventory
+        allow write: if isDealer() && request.auth.uid == request.resource.data.dealerUID;
+        
+        // Farmers can read inventory of dealers they are connected to.
+        // Admins can read all inventory.
+        allow read: if isAdmin() || (isFarmer() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.connectedDealers.hasAny([resource.data.dealerUID]));
+    }
+    
+    // Rules for batches and their daily records
+    match /batches/{batchId} {
+      allow read, write: if request.auth.uid == resource.data.farmerUID || isAdmin();
+      
+      match /dailyRecords/{recordId} {
+        allow read, write: if get(/databases/$(database)/documents/batches/$(batchId)).data.farmerUID == request.auth.uid || isAdmin();
+      }
+    }
+    
+    // Rules for orders between farmers and dealers
+    match /orders/{orderId} {
+      // An order can be created by a farmer if they are connected to the dealer
+      // AND the product exists in that dealer's inventory.
+      allow create: if (isFarmer() && request.auth.uid == request.resource.data.farmerUID &&
+                        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.connectedDealers.hasAny([request.resource.data.dealerUID]) &&
+                        exists(/databases/$(database)/documents/dealerInventory/$(request.resource.data.productId)) &&
+                        get(/databases/$(database)/documents/dealerInventory/$(request.resource.data.productId)).data.dealerUID == request.resource.data.dealerUID) || isAdmin();
+                        
+      // The dealer connected to the order can update its status (approve/reject).
+      // The farmer who owns the order can also update/cancel it (future feature).
+      allow update: if (isDealer() && request.auth.uid == resource.data.dealerUID) || 
+                       (isFarmer() && request.auth.uid == resource.data.farmerUID) || 
+                       isAdmin();
+
+      allow read: if request.auth.uid == resource.data.farmerUID || request.auth.uid == resource.data.dealerUID || isAdmin();
+    }
+
+    // Rules for the financial ledger
+    match /ledger/{entryId} {
+      // Users can create entries in their own ledger. Admins can create entries for anyone (e.g., for corrections).
+      allow create: if request.auth.uid == request.resource.data.userId || isAdmin();
+      allow read: if request.auth.uid == resource.data.userId || isAdmin();
+      allow list: if isAdmin();
+    }
+  }
+}
