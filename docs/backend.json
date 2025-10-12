@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "UserProfile": {
@@ -23,6 +24,22 @@
           "type": "string",
           "description": "Role of the user (farmer, dealer, admin)."
         },
+        "mobileNumber": {
+          "type": "string",
+          "description": "User's mobile phone number."
+        },
+        "state": {
+            "type": "string",
+            "description": "The state where the user resides."
+        },
+        "district": {
+            "type": "string",
+            "description": "The district where the user resides."
+        },
+        "pinCode": {
+            "type": "string",
+            "description": "The user's postal PIN code."
+        },
         "subscriptionPlanId": {
           "type": "string",
           "description": "Reference to SubscriptionPlan. (Relationship: UserProfile 1:1 SubscriptionPlan)"
@@ -36,7 +53,9 @@
         "id",
         "email",
         "fullName",
-        "role"
+        "role",
+        "state",
+        "district"
       ]
     },
     "Farm": {

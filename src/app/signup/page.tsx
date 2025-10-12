@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import Link from "next/link";
@@ -37,8 +36,7 @@ export default function SignupPage() {
                     </CardHeader>
                     <CardContent>
                         <Button className="w-full" asChild>
-                           {/* This would eventually link to a more detailed signup form */}
-                           <Link href="/dashboard">
+                           <Link href="/signup/farmer">
                                 {t('signup.farmer_button')} <ArrowRight className="ml-2" />
                            </Link>
                         </Button>
@@ -51,8 +49,7 @@ export default function SignupPage() {
                     </CardHeader>
                     <CardContent>
                         <Button className="w-full" variant="secondary" asChild>
-                            {/* This would eventually link to a more detailed signup form */}
-                            <Link href="/dealer/dashboard">
+                            <Link href="/signup/dealer">
                                 {t('signup.dealer_button')} <ArrowRight className="ml-2" />
                             </Link>
                         </Button>
