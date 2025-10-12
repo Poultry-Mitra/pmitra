@@ -21,47 +21,59 @@ export default function LoginPage() {
   const firestore = useFirestore();
   const router = useRouter();
   const [loading, setLoading] = useState(true);
+  const [authChecked, setAuthChecked] = useState(false);
 
   useEffect(() => {
-    if (firebaseUser === null) {
-      // User is not logged in, stop loading.
+    // This effect runs when firebaseUser state changes.
+    if (firebaseUser === null && authChecked) {
+      // User is explicitly logged out, stop loading.
       setLoading(false);
       return;
     }
-
+    
     if (firebaseUser && firestore) {
-      // User is logged in, fetch their role from Firestore.
-      setLoading(true); // Start loading while we fetch the role
+      setLoading(true); // Show loader while fetching role
       const userDocRef = doc(firestore, "users", firebaseUser.uid);
+      
       getDoc(userDocRef).then(docSnap => {
         if (docSnap.exists()) {
           const userData = docSnap.data() as AppUser;
           // Redirect based on role
           switch(userData.role) {
             case 'farmer':
-              router.push('/dashboard');
+              router.replace('/dashboard');
               break;
             case 'dealer':
-              router.push('/dealer/dashboard');
+              router.replace('/dealer/dashboard');
               break;
             case 'admin':
-              router.push('/admin/dashboard');
+              router.replace('/admin/dashboard');
               break;
             default:
-              // Fallback if role is not set or unknown
-              setLoading(false);
-              router.push('/'); // Or a generic welcome page
+              setLoading(false); // Stop loading if role is unknown
+              router.replace('/'); 
           }
         } else {
           // User document doesn't exist, maybe they need to complete signup
           setLoading(false);
-          router.push('/signup'); // Redirect to signup if no user doc
+          router.replace('/signup'); 
         }
       }).catch(() => {
-        setLoading(false);
+        setLoading(false); // Stop loading on error
       });
+    } else if (firebaseUser === null) {
+      // This case handles the initial state where user is not logged in.
+       setLoading(false);
     }
-  }, [firebaseUser, firestore, router]);
+
+  }, [firebaseUser, firestore, router, authChecked]);
+
+   useEffect(() => {
+    // This effect only runs once to confirm auth state has been checked
+    if (firebaseUser !== undefined) {
+      setAuthChecked(true);
+    }
+  }, [firebaseUser]);
 
 
   if (loading) {

@@ -25,19 +25,38 @@ import {
   LogOut,
   Warehouse,
   ShoppingBag,
+  Loader2,
 } from "lucide-react";
 import { useLanguage } from "@/components/language-provider";
-import { currentDealer } from "@/lib/data";
-import { useClientState } from "@/hooks/use-client-state";
 import type { User as UserType } from "@/lib/types";
+import { useUser, useFirestore } from "@/firebase/provider";
+import { doc, getDoc } from "firebase/firestore";
+import { useEffect, useState } from "react";
 
 
 export function DealerSidebar() {
   const pathname = usePathname();
   const { t } = useLanguage();
   const { state } = useSidebar();
+  const firebaseUser = useUser();
+  const firestore = useFirestore();
+  const [currentUser, setCurrentUser] = useState<UserType | null>(null);
 
-  const currentUser = useClientState<UserType | undefined>(currentDealer);
+  useEffect(() => {
+    if (firebaseUser && firestore) {
+      const userDocRef = doc(firestore, "users", firebaseUser.uid);
+      getDoc(userDocRef).then((docSnap) => {
+        if (docSnap.exists() && docSnap.data().role === 'dealer') {
+          setCurrentUser({ id: docSnap.id, ...docSnap.data() } as UserType);
+        } else {
+          setCurrentUser(null);
+        }
+      });
+    } else {
+        setCurrentUser(null);
+    }
+  }, [firebaseUser, firestore]);
+  
 
   if (!currentUser) {
       return (
@@ -48,29 +67,14 @@ export function DealerSidebar() {
                     {state === 'expanded' && <h1 className="font-headline text-lg font-bold">PoultryMitra</h1>}
                 </div>
             </SidebarHeader>
-            <SidebarContent />
+            <SidebarContent>
+                <div className="flex justify-center p-4">
+                    <Loader2 className="animate-spin" />
+                </div>
+            </SidebarContent>
             <SidebarFooter />
         </Sidebar>
       );
-  }
-
-  const isDealer = currentUser?.role === 'dealer';
-
-  if (!isDealer) {
-      return (
-          <Sidebar>
-            <SidebarHeader>
-                 <div className="flex items-center gap-2">
-                    <AppIcon className="size-8 text-primary" />
-                    {state === 'expanded' && <h1 className="font-headline text-lg font-bold">PoultryMitra</h1>}
-                </div>
-            </SidebarHeader>
-            <SidebarContent>
-                <p className="p-4 text-sm text-muted-foreground">Invalid user role for this dashboard.</p>
-            </SidebarContent>
-             <SidebarFooter />
-          </Sidebar>
-      )
   }
 
   return (

@@ -26,17 +26,15 @@ import {
   TrendingUp,
   Bell,
   CreditCard,
-  Tags,
-  DollarSign,
   ChevronDown,
   ChevronUp,
 } from "lucide-react";
 import { useLanguage } from "@/components/language-provider";
-import { mockUsers } from "@/lib/data";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
-import { useState } from "react";
-import { useClientState } from "@/hooks/use-client-state";
+import { useState, useEffect } from "react";
 import type { User as UserType } from "@/lib/types";
+import { useUser, useFirestore } from "@/firebase/provider";
+import { doc, getDoc } from "firebase/firestore";
 
 
 export function AdminSidebar() {
@@ -46,10 +44,26 @@ export function AdminSidebar() {
   const [managementOpen, setManagementOpen] = useState(pathname.startsWith("/admin/user-management"));
   const [settingsOpen, setSettingsOpen] = useState(pathname.startsWith("/admin/settings"));
 
-  const adminUser = mockUsers.find(u => u.role === 'admin');
-  const currentUser = useClientState<UserType | undefined>(adminUser);
+  const firebaseUser = useUser();
+  const firestore = useFirestore();
+  const [currentUser, setCurrentUser] = useState<UserType | null>(null);
 
-  if (!currentUser || currentUser.role !== 'admin') {
+   useEffect(() => {
+    if (firebaseUser && firestore) {
+      const userDocRef = doc(firestore, "users", firebaseUser.uid);
+      getDoc(userDocRef).then((docSnap) => {
+        if (docSnap.exists() && docSnap.data().role === 'admin') {
+          setCurrentUser({ id: docSnap.id, ...docSnap.data() } as UserType);
+        } else {
+          setCurrentUser(null);
+        }
+      });
+    } else {
+      setCurrentUser(null);
+    }
+  }, [firebaseUser, firestore]);
+
+  if (!currentUser) {
       return (
           <Sidebar>
               <SidebarHeader>

@@ -10,9 +10,6 @@ export const mockUsers: User[] = [
   { id: 'usr_dealer_005', name: 'Dealer Bob', email: 'bob@dealer.com', role: 'dealer', dateJoined: '2023-05-21', planType: 'free', uniqueDealerCode: 'DEAL-BOB', connectedFarmers: ['usr_farmer_002'] },
 ];
 
-export const currentDealer: User | undefined = mockUsers.find(u => u.id === 'usr_dealer_003');
-
-
 export const mockFarmMetrics: FarmMetric[] = [
   { month: 'Jan', productionRate: 85, mortalityRate: 1.2, feedConsumption: 110 },
   { month: 'Feb', productionRate: 88, mortalityRate: 1.1, feedConsumption: 112 },

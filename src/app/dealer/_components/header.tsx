@@ -20,8 +20,7 @@ import { LanguageToggle } from '@/components/language-toggle';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { useClientState } from '@/hooks/use-client-state';
-import type { User } from '@/lib/types';
+import type { User as AppUser } from '@/lib/types';
 import { useUser, useFirestore } from '@/firebase/provider';
 import { doc, getDoc } from "firebase/firestore";
 import { useEffect, useState } from 'react';
@@ -68,7 +67,7 @@ function Breadcrumbs() {
 export function DealerHeader() {
   const firebaseUser = useUser();
   const firestore = useFirestore();
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<AppUser | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -76,7 +75,7 @@ export function DealerHeader() {
       const userDocRef = doc(firestore, "users", firebaseUser.uid);
       getDoc(userDocRef).then((docSnap) => {
         if (docSnap.exists()) {
-          setUser({ id: docSnap.id, ...docSnap.data() } as User);
+          setUser({ id: docSnap.id, ...docSnap.data() } as AppUser);
         } else {
             setUser(null);
         }

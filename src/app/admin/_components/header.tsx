@@ -15,7 +15,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Bell, Search } from 'lucide-react';
+import { Bell, Search, Loader2 } from 'lucide-react';
 import { LanguageToggle } from '@/components/language-toggle';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Input } from '@/components/ui/input';
@@ -79,18 +79,23 @@ export function AdminHeader() {
            } else {
             setUser(null); // Not an admin
            }
+        } else {
+            setUser(null);
         }
-      });
+      }).catch(() => setUser(null));
     } else {
         setUser(null);
     }
   }, [firebaseUser, firestore]);
 
-  // Render nothing if user is not a loaded admin
+  // Render a placeholder or nothing if user isn't loaded or not an admin
   if (!user) {
     return (
          <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background/80 px-4 backdrop-blur-sm sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
              <SidebarTrigger className="md:hidden" />
+              <div className="ml-auto flex items-center gap-2">
+                <Loader2 className="animate-spin" />
+              </div>
          </header>
     );
   }

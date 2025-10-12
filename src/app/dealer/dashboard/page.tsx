@@ -2,18 +2,20 @@
 // src/app/dealer/dashboard/page.tsx
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { mockUsers, currentDealer as dealerUser } from "@/lib/data";
-import { Users, IndianRupee, Activity, PlusCircle, ShoppingBag } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Users, IndianRupee, Activity, PlusCircle, ShoppingBag, Loader2 } from "lucide-react";
 import { RevenueChart } from "../_components/revenue-chart";
 import { PageHeader } from "@/app/dealer/_components/page-header";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { useClientState } from "@/hooks/use-client-state";
-import type { User } from "@/lib/types";
-
+import type { User as AppUser, Order } from "@/lib/types";
+import { useUser, useFirestore } from "@/firebase/provider";
+import { doc, getDoc } from "firebase/firestore";
+import { useEffect, useState, useMemo } from "react";
+import { useOrders } from "@/hooks/use-orders";
+import { useUsersByIds } from "@/hooks/use-users";
 
 import {
   AreaChart,
@@ -21,53 +23,6 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 
-const kpiData = {
-    dealer: [
-        {
-            title: "Total Farmers",
-            value: "2",
-            change: "+1 this month",
-            changeColor: "text-green-500",
-            icon: Users,
-            chartData: [{ value: 1 }, { value: 1 }, { value: 1 }, { value: 2 }, { value: 2 }, { value: 2 }],
-            chartColor: "hsl(var(--chart-1))"
-        },
-        {
-            title: "Active Orders",
-            value: "2",
-            change: "+50%",
-            changeColor: "text-green-500",
-            icon: ShoppingBag,
-            chartData: [{ value: 2 }, { value: 3 }, { value: 2 }, { value: 4 }, { value: 5 }, { value: 4 }],
-            chartColor: "hsl(var(--chart-1))"
-        },
-        {
-            title: "Monthly Revenue",
-            value: "₹45,249",
-            change: "+20.1%",
-            changeColor: "text-green-500",
-            icon: IndianRupee,
-            chartData: [{ value: 10000 }, { value: 12000 }, { value: 15000 }, { value: 14000 }, { value: 18000 }, { value: 20000 }],
-            chartColor: "hsl(var(--chart-1))"
-        },
-        {
-            title: "Orders Fulfilled",
-            value: "12",
-            change: "this month",
-            changeColor: "text-muted-foreground",
-            icon: Activity,
-            chartData: [{ value: 5 }, { value: 6 }, { value: 8 }, { value: 10 }, { value: 11 }, { value: 12 }],
-            chartColor: "hsl(var(--chart-2))"
-        }
-    ]
-};
-
-// Mock data, in real app this would be filtered by dealerUID
-const transactions = [
-    { id: 'txn_2', user: mockUsers.find(u => u.id === 'usr_farmer_004'), plan: 'Order #ORD-2 Payment', amount: 'INR 22,500', status: 'Success', date: '2023-10-28' },
-    { id: 'txn_3', user: mockUsers.find(u => u.id === 'usr_farmer_002'), plan: 'Order #ORD-1 Payment', amount: 'INR 22,000', status: 'Pending', date: '2023-10-27' },
-    { id: 'txn_5', user: mockUsers.find(u => u.id === 'usr_farmer_002'), plan: 'Order #ORD-3 Payment', amount: 'INR 1,750', status: 'Failed', date: '2023-10-26' },
-];
 
 const statusVariant = {
     Success: "default",
@@ -77,6 +32,7 @@ const statusVariant = {
 
 
 function Sparkline({ data, color }: { data: { value: number }[], color: string }) {
+    if (!data || data.length === 0) return <div className="h-10 w-20" />;
     return (
         <div className="h-10 w-20">
             <ResponsiveContainer width="100%" height="100%">
@@ -94,20 +50,87 @@ function Sparkline({ data, color }: { data: { value: number }[], color: string }
     )
 }
 
-export default function DealerDashboardPage() {
-    const user = useClientState<User | undefined>(dealerUser, undefined);
+function KpiCard({ title, value, change, changeColor, icon: Icon, chartData, chartColor }: { title: string, value: string | number, change: string, changeColor: string, icon: React.ElementType, chartData: {value: number}[], chartColor: string }) {
+    return (
+        <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">{title}</CardTitle>
+                <Icon className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+                <div className="flex items-end justify-between">
+                    <div>
+                        <div className="text-2xl font-bold">{value}</div>
+                        <p className={`text-xs ${changeColor}`}>
+                            {change}
+                        </p>
+                    </div>
+                    <Sparkline data={chartData} color={chartColor} />
+                </div>
+            </CardContent>
+        </Card>
+    );
+}
 
-    if (!user) {
-        // You can return a loading skeleton here
+export default function DealerDashboardPage() {
+    const firebaseUser = useUser();
+    const firestore = useFirestore();
+    const [user, setUser] = useState<AppUser | null>(null);
+    
+    const { orders, loading: ordersLoading } = useOrders(firebaseUser?.uid);
+    
+    const farmerIds = useMemo(() => {
+        if (!user || !user.connectedFarmers) return [];
+        return user.connectedFarmers;
+    }, [user]);
+
+    const { users: farmers, loading: farmersLoading } = useUsersByIds(farmerIds);
+
+    useEffect(() => {
+        if (firebaseUser && firestore) {
+            const userDocRef = doc(firestore, "users", firebaseUser.uid);
+            getDoc(userDocRef).then((docSnap) => {
+                if (docSnap.exists()) {
+                    setUser({ id: docSnap.id, ...docSnap.data() } as AppUser);
+                } else {
+                    setUser(null);
+                }
+            });
+        } else {
+            setUser(null);
+        }
+    }, [firebaseUser, firestore]);
+    
+    const loading = !user || ordersLoading || farmersLoading;
+
+    const kpiData = useMemo(() => {
+        if (loading) return null;
+        
+        const successfulOrders = orders.filter(o => o.status === 'Success');
+        const monthlyRevenue = successfulOrders.reduce((acc, order) => acc + order.totalAmount, 0);
+
+        return {
+            totalFarmers: user?.connectedFarmers?.length || 0,
+            activeOrders: orders.filter(o => o.status === 'Pending').length,
+            monthlyRevenue: `₹${monthlyRevenue.toLocaleString()}`,
+            ordersFulfilled: successfulOrders.length
+        };
+    }, [loading, orders, user]);
+
+
+    if (loading || !user) {
         return (
-            <PageHeader title="Loading..." description="Please wait while we load your dashboard." />
+             <div className="flex h-screen items-center justify-center">
+                <Loader2 className="animate-spin size-8" />
+             </div>
         );
     }
     const pageTitle = `Welcome back, ${user.name.split(' ')[0]}! 👋`;
     const pageDescription = "Here's an overview of your business.";
     
-    const handleTransactionClick = (txn: any) => {
-        alert(`Transaction Details:\n\nID: ${txn.id}\nFarmer: ${txn.user.name}\nAmount: ${txn.amount}\nStatus: ${txn.status}\nDate: ${txn.date}`);
+    const handleTransactionClick = (txn: Order) => {
+        const farmer = farmers.find(f => f.id === txn.farmerUID);
+        alert(`Transaction Details:\n\nID: ${txn.id}\nFarmer: ${farmer?.name}\nAmount: ${txn.totalAmount}\nStatus: ${txn.status}\nDate: ${new Date(txn.createdAt).toLocaleDateString()}`);
     }
 
       return (
@@ -128,40 +151,61 @@ export default function DealerDashboardPage() {
               </div>
           </PageHeader>
            <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                {kpiData.dealer.map(kpi => (
-                    <Card key={kpi.title}>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">{kpi.title}</CardTitle>
-                            <kpi.icon className="h-4 w-4 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="flex items-end justify-between">
-                                <div>
-                                    <div className="text-2xl font-bold">{kpi.value}</div>
-                                    <p className={`text-xs ${kpi.changeColor}`}>
-                                        {kpi.change}
-                                    </p>
-                                </div>
-                                <Sparkline data={kpi.chartData} color={kpi.chartColor} />
-                            </div>
-                        </CardContent>
-                    </Card>
-                ))}
+               {kpiData && (
+                   <>
+                        <KpiCard 
+                            title="Total Farmers" 
+                            value={kpiData.totalFarmers} 
+                            change="" 
+                            changeColor="text-muted-foreground"
+                            icon={Users}
+                            chartData={[{ value: 1 }, { value: 1 }, { value: 1 }, { value: kpiData.totalFarmers }]} // Mock chart
+                            chartColor="hsl(var(--chart-1))"
+                        />
+                        <KpiCard 
+                            title="Active Orders" 
+                            value={kpiData.activeOrders} 
+                            change="Pending approval" 
+                            changeColor="text-muted-foreground"
+                            icon={ShoppingBag}
+                            chartData={[{ value: 2 }, { value: 3 }, { value: 2 }, { value: kpiData.activeOrders }]} // Mock chart
+                            chartColor="hsl(var(--chart-1))"
+                        />
+                        <KpiCard 
+                            title="Monthly Revenue" 
+                            value={kpiData.monthlyRevenue} 
+                            change="+20.1% from last month"
+                            changeColor="text-green-500" 
+                            icon={IndianRupee}
+                            chartData={[{ value: 10000 }, { value: 12000 }, { value: 15000 }, { value: 18000 }]} // Mock chart
+                            chartColor="hsl(var(--chart-1))"
+                        />
+                        <KpiCard 
+                            title="Orders Fulfilled" 
+                            value={kpiData.ordersFulfilled} 
+                            change="this month" 
+                            changeColor="text-muted-foreground"
+                            icon={Activity}
+                            chartData={[{ value: 5 }, { value: 6 }, { value: 8 }, { value: kpiData.ordersFulfilled }]} // Mock chart
+                            chartColor="hsl(var(--chart-2))"
+                        />
+                   </>
+               )}
             </div>
              <div className="mt-8 grid grid-cols-1 gap-4 lg:grid-cols-5">
                 <Card className="lg:col-span-3">
                     <CardHeader>
                         <CardTitle>Revenue Analytics</CardTitle>
-                        <CardDescription>Monthly revenue from orders and subscriptions.</CardDescription>
+                        <CardDescription>Cumulative revenue from successful orders in the last 30 days.</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <RevenueChart data={[]} />
+                        <RevenueChart orders={orders} />
                     </CardContent>
                 </Card>
                  <Card className="lg:col-span-2">
                     <CardHeader>
-                        <CardTitle>Recent Transactions</CardTitle>
-                        <CardDescription>Your most recent financial activities.</CardDescription>
+                        <CardTitle>Recent Pending Orders</CardTitle>
+                        <CardDescription>Orders that require your immediate attention.</CardDescription>
                     </CardHeader>
                     <CardContent>
                        <Table>
@@ -173,15 +217,20 @@ export default function DealerDashboardPage() {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {transactions.slice(0, 3).map(txn => {
-                                    if (!txn.user) return null;
+                                {orders.filter(o => o.status === 'Pending').slice(0, 5).map(order => {
+                                    const farmer = farmers.find(f => f.id === order.farmerUID);
                                     return (
-                                    <TableRow key={txn.id} onClick={() => handleTransactionClick(txn)} className="cursor-pointer">
-                                        <TableCell>{txn.user.name}</TableCell>
-                                        <TableCell>{txn.amount}</TableCell>
-                                        <TableCell><Badge variant={statusVariant[txn.status as keyof typeof statusVariant]} className="capitalize">{txn.status}</Badge></TableCell>
+                                    <TableRow key={order.id} onClick={() => handleTransactionClick(order)} className="cursor-pointer">
+                                        <TableCell>{farmer?.name || '...'}</TableCell>
+                                        <TableCell>₹{order.totalAmount.toLocaleString()}</TableCell>
+                                        <TableCell><Badge variant={statusVariant[order.status]} className="capitalize">{order.status}</Badge></TableCell>
                                     </TableRow>
                                 )})}
+                                {orders.filter(o => o.status === 'Pending').length === 0 && (
+                                    <TableRow>
+                                        <TableCell colSpan={3} className="text-center h-24">No pending orders.</TableCell>
+                                    </TableRow>
+                                )}
                             </TableBody>
                        </Table>
                     </CardContent>
