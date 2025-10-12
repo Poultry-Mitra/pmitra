@@ -58,14 +58,6 @@ export default function LoginPage() {
                 </Card>
             </div>
 
-             <div className="mt-8">
-                 <Button variant="ghost" asChild className="text-sm">
-                    <Link href="/dealer/dashboard">
-                        <Shield className="mr-2" /> {t('login.admin_login')}
-                    </Link>
-                 </Button>
-            </div>
-
             <div className="mt-10 space-y-4 text-sm text-muted-foreground">
                 <p>
                     {t('login.no_account')}{' '}
