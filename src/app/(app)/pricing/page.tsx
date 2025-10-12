@@ -1,16 +1,18 @@
 
+
+"use client";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckCircle, Zap } from "lucide-react";
 import { PageHeader } from "../_components/page-header";
 import type { PricingPlan } from "@/lib/types";
+import { useState } from "react";
 
-const plans: PricingPlan[] = [
+const initialPlans: Omit<PricingPlan, 'priceMonthly' | 'priceYearly'>[] = [
     {
         name: "Free",
         price: "₹0",
-        priceMonthly: "₹0",
-        priceYearly: "—",
         priceDesc: "for basic needs",
         description: "For small farms and hobbyists starting out.",
         features: [
@@ -27,8 +29,6 @@ const plans: PricingPlan[] = [
     {
         name: "Premium",
         price: "₹249",
-        priceMonthly: "₹249",
-        priceYearly: "₹2499",
         priceDesc: "per month",
         description: "For growing farms that need advanced tools.",
         features: [
@@ -47,8 +47,6 @@ const plans: PricingPlan[] = [
      {
         name: "Free",
         price: "₹0",
-        priceMonthly: "₹0",
-        priceYearly: "—",
         priceDesc: "for basic needs",
         description: "For dealers starting out.",
         features: [
@@ -64,8 +62,6 @@ const plans: PricingPlan[] = [
     {
         name: "Premium",
         price: "₹499",
-        priceMonthly: "₹499",
-        priceYearly: "₹4999",
         priceDesc: "per month",
         description: "Tailored solutions for large-scale poultry businesses and dealers.",
         features: [
@@ -95,12 +91,12 @@ function PricingCard({ plan }: { plan: PricingPlan }) {
                 <CardTitle className="font-headline">{plan.name} <span className="text-sm font-normal text-muted-foreground">({plan.userType})</span></CardTitle>
                 <CardDescription>{plan.description}</CardDescription>
                 <div className="flex items-baseline gap-2">
-                    <span className="text-3xl font-bold">{plan.priceMonthly}</span>
+                    <span className="text-3xl font-bold">₹{plan.priceMonthly}</span>
                     <span className="text-muted-foreground">/month</span>
                 </div>
                  {plan.priceYearly !== "—" && (
                     <div className="text-sm text-muted-foreground">
-                        or {plan.priceYearly} per year
+                        or ₹{plan.priceYearly} per year
                     </div>
                 )}
             </CardHeader>
@@ -122,6 +118,23 @@ function PricingCard({ plan }: { plan: PricingPlan }) {
 }
 
 export default function PricingPage() {
+    // In a real app, these prices would be fetched from a database.
+    // The admin settings page would update the database.
+    const [prices, setPrices] = useState({
+        farmer: { monthly: 249, yearly: 2499 },
+        dealer: { monthly: 499, yearly: 4999 },
+    });
+    
+    const plans: PricingPlan[] = initialPlans.map(p => {
+        if(p.userType === "Farmer" && p.name === "Premium") {
+            return { ...p, priceMonthly: prices.farmer.monthly.toString(), priceYearly: prices.farmer.yearly.toString() };
+        }
+        if(p.userType === "Dealer" && p.name === "Premium") {
+            return { ...p, priceMonthly: prices.dealer.monthly.toString(), priceYearly: prices.dealer.yearly.toString() };
+        }
+        return { ...p, priceMonthly: "0", priceYearly: "—" };
+    });
+
     const farmerPlans = plans.filter(p => p.userType === 'Farmer');
     const dealerPlans = plans.filter(p => p.userType === 'Dealer');
 
