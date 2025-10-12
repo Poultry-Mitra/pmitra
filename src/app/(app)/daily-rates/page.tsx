@@ -1,4 +1,4 @@
-
+// src/app/(app)/daily-rates/page.tsx
 "use client";
 
 import { useState, useEffect } from 'react';

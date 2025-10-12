@@ -1,5 +1,4 @@
-
-
+// src/app/admin/dashboard/page.tsx
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
