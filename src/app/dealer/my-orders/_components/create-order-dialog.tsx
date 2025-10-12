@@ -1,3 +1,4 @@
+
 // src/app/dealer/my-orders/_components/create-order-dialog.tsx
 "use client";
 
@@ -42,6 +43,7 @@ type FormValues = z.infer<typeof formSchema>;
 
 export function CreateOrderDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
     const { toast } = useToast();
+    const firestore = useFirestore();
     const dealerUser = useUser() as User; // Assuming user is a dealer and logged in
 
     const farmerIds = useMemo(() => dealerUser?.connectedFarmers || [], [dealerUser]);
@@ -61,13 +63,19 @@ export function CreateOrderDialog({ open, onOpenChange }: { open: boolean; onOpe
     const selectedProduct = products.find(p => p.id === selectedProductId);
 
     async function onSubmit(values: FormValues) {
-        if (!dealerUser || !selectedProduct) {
+        if (!dealerUser || !selectedProduct || !firestore) {
             toast({ title: "Error", description: "Could not create order.", variant: "destructive" });
+            return;
+        }
+        
+        const selectedFarmer = farmers.find(f => f.id === values.farmerUID);
+        if (!selectedFarmer) {
+            toast({ title: "Error", description: "Selected farmer not found.", variant: "destructive" });
             return;
         }
 
         try {
-            await createOrder({
+            await createOrder(firestore, {
                 farmerUID: values.farmerUID,
                 dealerUID: dealerUser.uid,
                 productId: values.productId,
@@ -75,11 +83,11 @@ export function CreateOrderDialog({ open, onOpenChange }: { open: boolean; onOpe
                 quantity: values.quantity,
                 ratePerUnit: selectedProduct.ratePerUnit,
                 totalAmount: selectedProduct.ratePerUnit * values.quantity,
-                status: 'Pending',
+                status: 'Pending', // Order is pending until farmer approves
             });
             toast({
                 title: "Order Created",
-                description: `An order has been sent to the selected farmer for approval.`,
+                description: `An order for ${selectedFarmer.name} has been created and is pending their approval.`,
             });
             onOpenChange(false);
             form.reset();
@@ -93,7 +101,7 @@ export function CreateOrderDialog({ open, onOpenChange }: { open: boolean; onOpe
             <DialogContent>
                 <DialogHeader>
                     <DialogTitle>Create New Order for Farmer</DialogTitle>
-                    <DialogDescription>Select a farmer and product to create a new order.</DialogDescription>
+                    <DialogDescription>Select a farmer and product to create a new order. The farmer will need to approve it.</DialogDescription>
                 </DialogHeader>
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
@@ -167,7 +175,7 @@ export function CreateOrderDialog({ open, onOpenChange }: { open: boolean; onOpe
                             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
                             <Button type="submit" disabled={form.formState.isSubmitting}>
                                 {form.formState.isSubmitting ? <Loader2 className="animate-spin" /> : <Send className="mr-2" />}
-                                Send Order
+                                Create Order
                             </Button>
                         </DialogFooter>
                     </form>

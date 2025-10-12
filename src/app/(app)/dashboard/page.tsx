@@ -1,10 +1,11 @@
 
 "use client";
 
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { mockFarmMetrics, mockUsers } from "@/lib/data";
 import { Button } from "@/components/ui/button";
-import { FileDown, Plus, Copy, Zap, Loader2 } from "lucide-react";
+import { FileDown, Plus, Copy, Zap, Loader2, Link as LinkIcon } from "lucide-react";
 import { ProductionChart } from "./_components/production-chart";
 import { AISuggestions } from "./_components/ai-suggestions";
 import { Badge } from "@/components/ui/badge";
@@ -13,11 +14,14 @@ import { DashboardStats } from "./_components/DashboardStats";
 import { useUser } from "@/firebase/provider";
 import { useClientState } from "@/hooks/use-client-state";
 import type { User } from "@/lib/types";
+import { ConnectDealerDialog } from './_components/connect-dealer-dialog';
+import { PendingOrders } from './_components/pending-orders';
 
 
 export default function DashboardPage() {
   const firebaseUser = useUser();
   const user = useClientState<User | undefined>(mockUsers.find(u => u.role === 'farmer'), undefined);
+  const [isConnectDealerOpen, setConnectDealerOpen] = useState(false);
   
   const { batches, loading: batchesLoading } = useBatches(firebaseUser?.uid || "");
   
@@ -56,15 +60,19 @@ export default function DashboardPage() {
 
         <div className="flex items-center gap-4">
             <Badge>Premium Plan</Badge>
-             <Button size="sm" variant="outline" className="border-primary text-primary hover:bg-primary/10 hover:text-primary">
-                <Zap className="mr-2" />
-                Upgrade Plan
+             <Button size="sm" variant="outline" className="border-primary text-primary hover:bg-primary/10 hover:text-primary" onClick={() => setConnectDealerOpen(true)}>
+                <LinkIcon className="mr-2" />
+                Connect to Dealer
             </Button>
         </div>
       </div>
       
       <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <DashboardStats batches={activeBatches} loading={batchesLoading} />
+      </div>
+
+      <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-2">
+        <PendingOrders />
       </div>
 
       <div className="mt-8 grid grid-cols-1 gap-4 lg:grid-cols-7">
@@ -98,6 +106,7 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
       </div>
+      <ConnectDealerDialog open={isConnectDealerOpen} onOpenChange={setConnectDealerOpen} />
     </>
   );
 }

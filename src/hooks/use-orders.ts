@@ -18,12 +18,12 @@ import {
   serverTimestamp,
   runTransaction,
   increment,
-  getFirestore,
 } from 'firebase/firestore';
-import { initializeFirebase } from '@/firebase';
+import { useFirestore } from '@/firebase/provider';
 import type { Order } from '@/lib/types';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
+import { addLedgerEntry } from './use-ledger';
 
 // Helper to convert Firestore doc to Order type
 function toOrder(doc: QueryDocumentSnapshot<DocumentData>): Order {
@@ -37,7 +37,7 @@ function toOrder(doc: QueryDocumentSnapshot<DocumentData>): Order {
 }
 
 export function useOrders(dealerUID?: string) {
-  const [firestore] = useState(getFirestore(initializeFirebase().app!));
+  const firestore = useFirestore();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -80,7 +80,7 @@ export function useOrders(dealerUID?: string) {
 }
 
 export function useOrdersByFarmer(farmerUID?: string) {
-  const [firestore] = useState(getFirestore(initializeFirebase().app!));
+  const firestore = useFirestore();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -123,8 +123,7 @@ export function useOrdersByFarmer(farmerUID?: string) {
 }
 
 
-export async function createOrder(data: Omit<Order, 'id' | 'createdAt'>) {
-    const { firestore } = initializeFirebase();
+export async function createOrder(firestore: Firestore, data: Omit<Order, 'id' | 'createdAt'>) {
     if (!firestore) throw new Error("Firestore not initialized");
 
     const orderCollection = collection(firestore, 'orders');
@@ -148,20 +147,20 @@ export async function createOrder(data: Omit<Order, 'id' | 'createdAt'>) {
     }
 }
 
-export async function updateOrderStatus(orderId: string, status: Order['status'], order: Order) {
-    const { firestore } = initializeFirebase();
+export async function updateOrderStatus(firestore: Firestore, orderId: string, status: Order['status'], order: Order, dealerName?: string) {
     if (!firestore) throw new Error("Firestore not initialized");
 
     const orderRef = doc(firestore, 'orders', orderId);
-    const inventoryRef = doc(firestore, 'dealerInventory', order.productId);
-
+    
     try {
         await runTransaction(firestore, async (transaction) => {
             // Update the order status
             transaction.update(orderRef, { status });
 
             // If the order is approved, decrease the dealer's inventory
+            // AND create ledger entries for both farmer and dealer
             if (status === 'Approved') {
+                const inventoryRef = doc(firestore, 'dealerInventory', order.productId);
                 const inventoryDoc = await transaction.get(inventoryRef);
                 if (!inventoryDoc.exists()) {
                     throw new Error("Product not found in dealer's inventory.");
@@ -172,8 +171,41 @@ export async function updateOrderStatus(orderId: string, status: Order['status']
                     throw new Error("Not enough stock available to fulfill the order.");
                 }
 
+                // 1. Reduce dealer's inventory
                 transaction.update(inventoryRef, {
                     quantity: increment(-order.quantity)
+                });
+
+                // 2. Add Debit entry to farmer's ledger
+                const farmerLedgerDescription = `Purchased ${order.productName} from ${dealerName || 'Dealer'}`;
+                const farmerLedgerEntry = {
+                    description: farmerLedgerDescription,
+                    amount: order.totalAmount,
+                    date: new Date().toISOString(),
+                };
+                
+                const farmerLedgerCollection = collection(firestore, `users/${order.farmerUID}/ledger`);
+                const farmerNewLedgerEntryRef = doc(farmerLedgerCollection);
+                transaction.set(farmerNewLedgerEntryRef, {
+                    ...farmerLedgerEntry,
+                    type: 'Debit',
+                    balanceAfter: 0 // Will be calculated by a cloud function or needs a separate balance doc read
+                });
+
+                // 3. Add Credit entry to dealer's ledger
+                // In a real app, you would fetch farmer's name, but for now we'll use their UID
+                const dealerLedgerDescription = `Sold ${order.productName} to farmer ${order.farmerUID.substring(0, 5)}`;
+                 const dealerLedgerEntry = {
+                    description: dealerLedgerDescription,
+                    amount: order.totalAmount,
+                    date: new Date().toISOString(),
+                };
+                const dealerLedgerCollection = collection(firestore, `users/${order.dealerUID}/ledger`);
+                const dealerNewLedgerEntryRef = doc(dealerLedgerCollection);
+                 transaction.set(dealerNewLedgerEntryRef, {
+                    ...dealerLedgerEntry,
+                    type: 'Credit',
+                    balanceAfter: 0 // Will be calculated by a cloud function or needs a separate balance doc read
                 });
             }
         });

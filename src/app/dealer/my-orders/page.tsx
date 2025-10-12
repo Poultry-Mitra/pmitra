@@ -23,11 +23,11 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Loader2, PlusCircle, CheckCircle, XCircle } from "lucide-react";
 import { useToast } from '@/hooks/use-toast';
-import { useUser } from '@/firebase/provider';
+import { useUser, useFirestore } from '@/firebase/provider';
 import { useOrders, updateOrderStatus } from '@/hooks/use-orders';
 import { useUsersByIds } from '@/hooks/use-users';
 import { CreateOrderDialog } from './_components/create-order-dialog';
-import type { Order } from '@/lib/types';
+import type { Order, User } from '@/lib/types';
 
 const statusConfig = {
     Pending: { variant: "outline" as const, color: "text-blue-500 border-blue-500/50 bg-blue-500/10" },
@@ -37,7 +37,8 @@ const statusConfig = {
 
 
 export default function MyOrdersPage() {
-    const user = useUser();
+    const user = useUser() as User;
+    const firestore = useFirestore();
     const { orders, loading: ordersLoading } = useOrders(user?.uid);
     const { toast } = useToast();
     const [isCreateOrderOpen, setCreateOrderOpen] = useState(false);
@@ -56,8 +57,9 @@ export default function MyOrdersPage() {
     const loading = ordersLoading || farmersLoading;
 
     const handleUpdateStatus = async (order: Order, status: 'Approved' | 'Rejected') => {
+        if (!firestore) return;
         try {
-            await updateOrderStatus(order.id, status, order);
+            await updateOrderStatus(firestore, order.id, status, order, user.name);
             toast({
                 title: `Order ${status}`,
                 description: `The order for ${order.productName} has been successfully ${status.toLowerCase()}.`

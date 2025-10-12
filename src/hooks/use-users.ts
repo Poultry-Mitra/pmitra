@@ -12,6 +12,9 @@ import {
   query,
   where,
   getDocs,
+  doc,
+  updateDoc,
+  arrayUnion,
 } from 'firebase/firestore';
 import { useFirestore } from '@/firebase/provider';
 import type { User, UserRole } from '@/lib/types';
@@ -111,7 +114,9 @@ export async function findUserByUniqueCode(firestore: Firestore, uniqueCode: str
     if (!firestore) throw new Error("Firestore not initialized");
 
     const usersCollection = collection(firestore, 'users');
-    const q = query(usersCollection, where("uniqueDealerCode", "==", uniqueCode), where("role", "==", role));
+    const fieldToQuery = role === 'dealer' ? 'uniqueDealerCode' : 'poultryMitraId'; // Assuming farmers have a poultryMitraId
+    
+    const q = query(usersCollection, where(fieldToQuery, "==", uniqueCode), where("role", "==", role));
     
     try {
         const querySnapshot = await getDocs(q);
@@ -123,4 +128,36 @@ export async function findUserByUniqueCode(firestore: Firestore, uniqueCode: str
         console.error("Error finding user by unique code:", error);
         throw error;
     }
+}
+
+
+export async function connectFarmerToDealer(firestore: Firestore, farmerUID: string, dealerCode: string): Promise<User> {
+    if (!firestore) throw new Error("Firestore not initialized");
+
+    // 1. Find the dealer by their unique code
+    const dealerUser = await findUserByUniqueCode(firestore, dealerCode, 'dealer');
+    if (!dealerUser) {
+        throw new Error("Dealer not found with that code.");
+    }
+    
+    // 2. Check if dealer has reached their farmer limit on the free plan
+    const dealerIsPremium = dealerUser.planType === 'premium';
+    const farmerLimit = 2;
+    if (!dealerIsPremium && (dealerUser.connectedFarmers || []).length >= farmerLimit) {
+        throw new Error("This dealer has reached the maximum number of connected farmers on their current plan.");
+    }
+
+    // 3. Update both the farmer's and dealer's documents
+    const dealerRef = doc(firestore, 'users', dealerUser.id);
+    const farmerRef = doc(firestore, 'users', farmerUID);
+
+    await updateDoc(dealerRef, {
+        connectedFarmers: arrayUnion(farmerUID)
+    });
+
+    await updateDoc(farmerRef, {
+        connectedDealers: arrayUnion(dealerUser.id)
+    });
+    
+    return dealerUser;
 }
