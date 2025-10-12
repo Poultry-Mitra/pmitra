@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { AppIcon } from '@/app/icon';
 import { ThemeToggle } from '@/components/theme-toggle';
-import { LanguageToggle } from '@/components/language-provider';
+import { LanguageToggle } from '@/components/language-toggle';
 import { useLanguage } from '@/components/language-provider';
 import { RateTicker } from './_components/rate-ticker';
 import { useUser, useAuth } from '@/firebase/provider';
@@ -270,5 +270,3 @@ export default function LandingPage() {
     </div>
   );
 }
-
-    
