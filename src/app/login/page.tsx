@@ -55,6 +55,9 @@ export default function LoginPage() {
 
 
   const handleAnonymousLogin = (role: 'farmer' | 'dealer' | 'admin') => {
+    // In a real production app, you might use the 'role' to create a custom token
+    // with a specific role claim. For this anonymous sign-in, the role is determined
+    // by the document in Firestore, so we don't need to pass the role here.
     if(auth) {
         initiateAnonymousSignIn(auth);
     }

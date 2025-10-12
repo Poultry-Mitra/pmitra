@@ -16,6 +16,7 @@ import { Save } from "lucide-react";
 import { useFirestore, useUser } from "@/firebase/provider";
 import { collection, addDoc } from "firebase/firestore";
 import { addAuditLog } from "@/hooks/use-audit-logs";
+import { getAuth, signOut } from "firebase/auth";
 
 const formSchema = z.object({
   name: z.string().min(3, "Full name is required."),
@@ -31,6 +32,7 @@ export default function AddUserPage() {
     const router = useRouter();
     const firestore = useFirestore();
     const adminUser = useUser();
+    const auth = getAuth(); // Get the auth instance
 
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
@@ -43,7 +45,7 @@ export default function AddUserPage() {
     });
 
     async function onSubmit(values: FormValues) {
-        if (!firestore || !adminUser) {
+        if (!firestore || !adminUser.user) {
             toast({
                 title: "Error",
                 description: "You must be an admin to perform this action.",
@@ -51,6 +53,8 @@ export default function AddUserPage() {
             });
             return;
         }
+
+        const originalUser = auth.currentUser;
 
         try {
             const newUser = {
@@ -65,11 +69,14 @@ export default function AddUserPage() {
             };
             
             const usersCollection = collection(firestore, "users");
+            // Since we are not creating an auth user here, just a DB record,
+            // we don't need to sign out and sign back in.
+            // This assumes the admin is creating a DB profile for a user who will register later.
             const docRef = await addDoc(usersCollection, newUser);
 
             // Create an audit log for this action
             await addAuditLog(firestore, {
-                adminUID: adminUser.uid,
+                adminUID: adminUser.user.uid,
                 action: 'CREATE_USER',
                 timestamp: new Date().toISOString(),
                 details: `Created new ${values.role} user: ${values.name} (${docRef.id})`,

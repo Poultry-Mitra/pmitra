@@ -83,7 +83,7 @@ export default function DailyRateManagementPage() {
 
 
     async function onSubmit(values: FormValues) {
-        if (!firestore || !adminUser) {
+        if (!firestore || !adminUser.user) {
             toast({ title: "Error", description: "You must be an admin to perform this action.", variant: "destructive" });
             return;
         }
@@ -109,7 +109,7 @@ export default function DailyRateManagementPage() {
             await setDoc(ratesDocRef, dailyRateData, { merge: true });
             
             await addAuditLog(firestore, {
-                adminUID: adminUser.uid,
+                adminUID: adminUser.user.uid,
                 action: 'UPDATE_DAILY_RATES',
                 timestamp: new Date().toISOString(),
                 details: `Updated daily rates for ${values.district}, ${values.state}.`,
