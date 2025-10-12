@@ -22,7 +22,6 @@ const formSchema = z.object({
     readyBirdMedium: z.coerce.number().min(0, "Rate must be non-negative"),
     readyBirdBig: z.coerce.number().min(0, "Rate must be non-negative"),
     chickRate: z.coerce.number().min(0, "Rate must be non-negative"),
-    feedCostIndex: z.coerce.number().min(0, "Index must be non-negative"),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -45,7 +44,6 @@ export default function DailyRateManagementPage() {
             readyBirdMedium: mockDailyRates.readyBird.medium,
             readyBirdBig: mockDailyRates.readyBird.big,
             chickRate: mockDailyRates.chickRate,
-            feedCostIndex: mockDailyRates.feedCostIndex,
         },
     });
 
@@ -151,7 +149,7 @@ export default function DailyRateManagementPage() {
                                                         <Input type="number" placeholder="140" {...field} />
                                                     </FormControl>
                                                     <FormMessage />
-                                                </FormItem>
+                                                </Item>
                                             )}
                                         />
                                     </CardContent>
@@ -166,19 +164,6 @@ export default function DailyRateManagementPage() {
                                                 <FormLabel>Chick Rate (₹/chick)</FormLabel>
                                                 <FormControl>
                                                     <Input type="number" placeholder="35" {...field} />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-                                     <FormField
-                                        control={form.control}
-                                        name="feedCostIndex"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Feed Cost Index</FormLabel>
-                                                <FormControl>
-                                                    <Input type="number" placeholder="45.5" {...field} />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
