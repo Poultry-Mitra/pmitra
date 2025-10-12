@@ -1,6 +1,7 @@
 
 "use client";
 
+import { useState, useEffect } from 'react';
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -28,6 +29,11 @@ type FormValues = z.infer<typeof formSchema>;
 
 export default function DailyRateManagementPage() {
     const { toast } = useToast();
+    const [lastUpdated, setLastUpdated] = useState('');
+
+    useEffect(() => {
+        setLastUpdated(new Date(mockDailyRates.lastUpdated).toLocaleString());
+    }, []);
 
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
@@ -49,6 +55,7 @@ export default function DailyRateManagementPage() {
             title: "Rates Updated",
             description: "Daily rates have been successfully updated.",
         });
+        setLastUpdated(new Date().toLocaleString());
     }
 
     return (
@@ -60,7 +67,7 @@ export default function DailyRateManagementPage() {
                         <CardTitle>Update Market Rates</CardTitle>
                         <CardDescription>
                             Set the rates for today. This will be visible to all premium users.
-                            Last updated: {new Date(mockDailyRates.lastUpdated).toLocaleString()}
+                            {lastUpdated && ` Last updated: ${lastUpdated}`}
                         </CardDescription>
                     </CardHeader>
                     <CardContent>

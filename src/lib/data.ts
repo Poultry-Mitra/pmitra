@@ -44,7 +44,7 @@ export const mockDailyRates: DailyRates = {
     },
     chickRate: 35,
     feedCostIndex: 45.5,
-    lastUpdated: new Date().toISOString(),
+    lastUpdated: '2023-10-27T10:00:00Z',
     location: {
         state: "Maharashtra",
         district: "Pune",

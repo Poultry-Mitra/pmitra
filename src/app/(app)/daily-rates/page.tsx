@@ -1,4 +1,7 @@
 
+"use client";
+
+import { useState, useEffect } from 'react';
 import { PageHeader } from "../_components/page-header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { mockDailyRates } from "@/lib/data";
@@ -6,6 +9,11 @@ import { IndianRupee, MapPin } from "lucide-react";
 
 export default function DailyRatesPage() {
     const { readyBird, chickRate, feedCostIndex, lastUpdated, location } = mockDailyRates;
+    const [lastUpdatedTime, setLastUpdatedTime] = useState('');
+
+    useEffect(() => {
+        setLastUpdatedTime(new Date(lastUpdated).toLocaleTimeString());
+    }, [lastUpdated]);
     
     return (
         <>
@@ -16,7 +24,7 @@ export default function DailyRatesPage() {
 
             <div className="mt-4 text-sm text-muted-foreground flex items-center gap-2">
                 <MapPin className="size-4" />
-                <span>Showing rates for <span className="font-semibold text-foreground">{location.district}, {location.state}</span>. Last updated: {new Date(lastUpdated).toLocaleTimeString()}</span>
+                <span>Showing rates for <span className="font-semibold text-foreground">{location.district}, {location.state}</span>. {lastUpdatedTime && `Last updated: ${lastUpdatedTime}`}</span>
             </div>
 
             <div className="mt-6 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
