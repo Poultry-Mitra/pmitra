@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useState } from "react";
@@ -27,6 +26,13 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -37,6 +43,7 @@ import Link from "next/link";
 import type { User } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type UserStatus = "active" | "suspended" | "pending";
 
@@ -58,6 +65,7 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
     const [users, setUsers] = useState(allUsers);
     
     const [dialogState, setDialogState] = useState<{ action: 'delete' | 'suspend' | null, user: User | null }>({ action: null, user: null });
+    const [detailsUser, setDetailsUser] = useState<User | null>(null);
     const { toast } = useToast();
 
     const filteredUsers = users.filter(user => 
@@ -101,6 +109,10 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
         setDialogState({ user, action });
     };
 
+    const openDetailsDialog = (user: User) => {
+        setDetailsUser(user);
+    };
+    
     return (
         <>
             <Card>
@@ -161,7 +173,7 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
                                                 </Button>
                                             </DropdownMenuTrigger>
                                             <DropdownMenuContent align="end">
-                                                <DropdownMenuItem onClick={() => alert('Viewing details for user: ' + user.name)}>View Details</DropdownMenuItem>
+                                                <DropdownMenuItem onClick={() => openDetailsDialog(user)}>View Details</DropdownMenuItem>
                                                 <DropdownMenuItem onClick={() => openDialog(user, 'suspend')}>
                                                     {user.status === 'active' ? 'Suspend' : 'Unsuspend'}
                                                 </DropdownMenuItem>
@@ -175,6 +187,81 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
                     </Table>
                 </CardContent>
             </Card>
+
+            <Dialog open={!!detailsUser} onOpenChange={(open) => !open && setDetailsUser(null)}>
+                 <DialogContent className="sm:max-w-2xl">
+                    <DialogHeader>
+                        <DialogTitle>User Details</DialogTitle>
+                        <DialogDescription>
+                            Comprehensive details for {detailsUser?.name}.
+                        </DialogDescription>
+                    </DialogHeader>
+                    {detailsUser && (
+                        <div className="py-4">
+                            <Tabs defaultValue="overview">
+                                <TabsList>
+                                    <TabsTrigger value="overview">Overview</TabsTrigger>
+                                    <TabsTrigger value="subscription">Subscription</TabsTrigger>
+                                    <TabsTrigger value="orders">Orders</TabsTrigger>
+                                    <TabsTrigger value="activity">Recent Activity</TabsTrigger>
+                                </TabsList>
+                                <TabsContent value="overview" className="mt-4">
+                                     <Card>
+                                        <CardContent className="pt-6 space-y-4">
+                                            <div className="flex items-center gap-4">
+                                                <Avatar className="h-16 w-16">
+                                                    <AvatarFallback className="text-2xl">{detailsUser.name.charAt(0)}</AvatarFallback>
+                                                </Avatar>
+                                                <div>
+                                                    <h3 className="text-xl font-bold">{detailsUser.name}</h3>
+                                                    <p className="text-muted-foreground">{detailsUser.email}</p>
+                                                    <Badge className="capitalize mt-1">{detailsUser.role}</Badge>
+                                                </div>
+                                            </div>
+                                             <div className="grid grid-cols-2 gap-2 text-sm">
+                                                <p><strong className="font-medium">Date Joined:</strong> {new Date(detailsUser.dateJoined).toLocaleDateString()}</p>
+                                                <p><strong className="font-medium">User ID:</strong> <span className="font-mono text-xs">{detailsUser.id}</span></p>
+                                             </div>
+                                        </CardContent>
+                                     </Card>
+                                </TabsContent>
+                                <TabsContent value="subscription" className="mt-4">
+                                    <p>Subscription Plan: <Badge>Premium Farmer</Badge></p>
+                                    <p>Status: <Badge variant="outline" className="text-green-500 border-green-500">Active</Badge></p>
+                                    <p>Next Billing Date: 2023-12-01</p>
+                                </TabsContent>
+                                <TabsContent value="orders" className="mt-4">
+                                     <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead>Order ID</TableHead>
+                                                <TableHead>Date</TableHead>
+                                                <TableHead>Amount</TableHead>
+                                                <TableHead>Status</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            <TableRow>
+                                                <TableCell>ORD-101</TableCell>
+                                                <TableCell>2023-10-15</TableCell>
+                                                <TableCell>₹1,250</TableCell>
+                                                <TableCell><Badge>Completed</Badge></TableCell>
+                                            </TableRow>
+                                        </TableBody>
+                                     </Table>
+                                </TabsContent>
+                                <TabsContent value="activity" className="mt-4">
+                                    <ul className="space-y-2 text-sm text-muted-foreground">
+                                        <li>Logged in - 2 hours ago</li>
+                                        <li>Viewed Dashboard - 1 hour ago</li>
+                                        <li>Started an AI Chat - 30 minutes ago</li>
+                                    </ul>
+                                </TabsContent>
+                            </Tabs>
+                        </div>
+                    )}
+                 </DialogContent>
+            </Dialog>
 
             <AlertDialog open={!!dialogState.action} onOpenChange={() => setDialogState({ action: null, user: null })}>
                 <AlertDialogContent>
@@ -201,3 +288,5 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
         </>
     )
 }
+
+    
