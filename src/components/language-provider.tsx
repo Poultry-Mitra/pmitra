@@ -9,7 +9,7 @@ type Language = "en" | "hi";
 type LanguageContextType = {
   language: Language;
   toggleLanguage: () => void;
-  t: (key: string) => string;
+  t: (key: string, options?: { [key: string]: string | number }) => string;
 };
 
 const translations = {
@@ -23,8 +23,8 @@ const translations = {
       login: "Login",
       signup: "Sign Up",
     },
-    "change_language": "Change Language",
-    "toggle_theme": "Toggle Theme",
+    change_language: "Change Language",
+    toggle_theme: "Toggle Theme",
     hero: {
       title: "Smart Poultry Management with AI",
       subtitle: "Empowering farmers, dealers, and admins to manage flocks, sales, and insights — all in one powerful dashboard.",
@@ -123,6 +123,126 @@ const translations = {
       dealer_button: "Register as Dealer",
       have_account: "Already have an account?",
       login_here: "Login here",
+    },
+    actions: {
+      logout: "Logout",
+      cancel: "Cancel",
+      view_details: "View Details",
+      suspend: "Suspend",
+      unsuspend: "Unsuspend",
+      delete: "Delete",
+      toggle_menu: "Toggle menu",
+      yes_delete: "Yes, Delete",
+      yes_suspend: "Yes, Suspend",
+      yes_unsuspend: "Yes, Unsuspend"
+    },
+    dialog: {
+        are_you_sure_title: "Are you sure?",
+        logout_title: "Logout",
+        logout_desc: "Are you sure you want to logout?",
+        delete_user_desc: "This will permanently delete {name} and all their data. This action cannot be undone.",
+        suspend_user_desc: "Are you sure you want to suspend {name}?",
+        unsuspend_user_desc: "Are you sure you want to unsuspend {name}?",
+    },
+    admin: {
+      dashboard: {
+        title: "Admin Dashboard",
+        description: "Welcome to the central control panel for PoultryMitra.",
+        kpi_total_users: "Total Users",
+        kpi_total_users_change: "+15 this month",
+        kpi_total_revenue: "Total Revenue",
+        kpi_total_revenue_change: "+12% from last month",
+        kpi_ai_chats_used: "AI Chats Used (24h)",
+        kpi_ai_chats_used_change: "30% increase",
+        kpi_platform_activity: "Platform Activity",
+        kpi_platform_activity_value: "High",
+        kpi_platform_activity_change: "vs last week",
+        revenue_analytics_title: "Revenue Analytics",
+        revenue_analytics_desc: "Monthly subscription revenue overview.",
+        send_notification_button: "Send Notification",
+        add_user_button: "Add New User",
+      },
+      users: {
+        title_recent: "Recent Users",
+        description_recent: "The last 5 users who joined the platform.",
+        title_farmer: "Farmer Management",
+        description_farmer: "View, manage, and add new farmers.",
+        title_dealer: "Dealer Management",
+        description_dealer: "View, manage, and add new dealers.",
+        add_user_button: "Add New User",
+        reason_required_title: "Reason Required",
+        reason_required_desc: "Please provide a reason for suspending the user.",
+        reason_required_title_delete: "Reason Required",
+        reason_required_desc_delete: "Please provide a reason for deleting the user.",
+        user_suspended_title: "User Suspended",
+        user_suspended_desc: "{name} has been suspended for: {reason}.",
+        user_unsuspended_title: "User Unsuspended",
+        user_unsuspended_desc: "{name} has been unsuspended.",
+        user_deleted_title: "User Deleted",
+        user_deleted_desc: "{name} has been permanently deleted.",
+        delete_failed_title: "Deletion Failed",
+        delete_failed_desc: "Could not delete the user.",
+        details_title: "User Details",
+        details_desc: "Viewing comprehensive details for {name}.",
+      },
+      farmers_page: {
+        title: "All Farmers",
+        description: "A complete list of all farmers on the platform."
+      },
+      dealers_page: {
+        title: "All Dealers",
+        description: "A complete list of all dealers on the platform."
+      },
+    },
+    roles: {
+      admin: "Admin",
+      farmer: "Farmer",
+      dealer: "Dealer",
+    },
+    status: {
+      active: "Active",
+      suspended: "Suspended",
+      pending: "Pending",
+    },
+    tables: {
+      user: "User",
+      role: "Role",
+      status: "Status",
+      date_joined: "Date Joined",
+      actions: "Actions",
+    },
+    tabs: {
+      overview: "Overview",
+      subscription: "Subscription",
+      activity: "Activity",
+    },
+    labels: {
+      date_joined: "Date Joined",
+      user_id: "User ID",
+      subscription_plan: "Subscription Plan",
+      next_billing_date: "Next Billing Date",
+      reason: "Reason",
+      please_specify: "Please specify",
+    },
+    placeholders: {
+      select_reason: "Select a reason",
+      provide_reason: "Provide a detailed reason...",
+    },
+    reasons: {
+      user_request: "User Request",
+      payment_failed: "Payment Failed",
+      policy_violation: "Policy Violation",
+      spam_activity: "Spam Activity",
+      other: "Other",
+    },
+    activity: {
+      logged_in: "Logged in - 2 hours ago",
+      viewed_dashboard: "Viewed dashboard - 1 hour ago",
+      started_chat: "Started AI chat - 30 minutes ago",
+    },
+    messages: {
+      loading_users: "Loading users...",
+      no_users_found: "No users found.",
     }
   },
   hi: {
@@ -135,8 +255,8 @@ const translations = {
       login: "लॉगिन",
       signup: "पंजीकरण करें",
     },
-    "change_language": "भाषा बदलें",
-    "toggle_theme": "थीम बदलें",
+    change_language: "भाषा बदलें",
+    toggle_theme: "थीम बदलें",
     hero: {
         title: "एआई के साथ स्मार्ट पोल्ट्री प्रबंधन",
         subtitle: "किसानों, डीलरों और एडमिन को झुंड, बिक्री और अंतर्दृष्टि का प्रबंधन करने के लिए सशक्त बनाना - सब कुछ एक शक्तिशाली डैशबोर्ड में।",
@@ -235,6 +355,127 @@ const translations = {
         dealer_button: "डीलर के रूप में पंजीकरण करें",
         have_account: "पहले से ही एक खाता है?",
         login_here: "यहां लॉगिन करें",
+    },
+    actions: {
+      logout: "लॉगआउट",
+      cancel: "रद्द करें",
+      view_details: "विवरण देखें",
+      suspend: "निलंबित करें",
+      unsuspend: "निलंबन हटाएं",
+      delete: "हटाएं",
+      toggle_menu: "मेन्यू टॉगल करें",
+      yes_delete: "हाँ, हटाएं",
+      yes_suspend: "हाँ, निलंबित करें",
+      yes_unsuspend: "हाँ, निलंबन हटाएं"
+    },
+    dialog: {
+        are_you_sure_title: "क्या आप निश्चित हैं?",
+        logout_title: "लॉगआउट",
+        logout_desc: "क्या आप वाकई लॉगआउट करना चाहते हैं?",
+        delete_user_desc: "यह {name} और उनके सभी डेटा को स्थायी रूप से हटा देगा। यह क्रिया पूर्ववत नहीं की जा सकती है।",
+        suspend_user_desc: "क्या आप वाकई {name} को निलंबित करना चाहते हैं?",
+        unsuspend_user_desc: "क्या आप वाकई {name} का निलंबन हटाना चाहते हैं?",
+    },
+    admin: {
+      dashboard: {
+        title: "एडमिन डैशबोर्ड",
+        description: "पोल्ट्रीमित्र के केंद्रीय नियंत्रण कक्ष में आपका स्वागत है।",
+        kpi_total_users: "कुल उपयोगकर्ता",
+        kpi_total_users_change: "इस महीने +15",
+        kpi_total_revenue: "कुल राजस्व",
+        kpi_total_revenue_change: "पिछले महीने से +12%",
+        kpi_ai_chats_used: "एआई चैट का उपयोग (24 घंटे)",
+        kpi_ai_chats_used_change: "30% की वृद्धि",
+        kpi_platform_activity: "प्लेटफ़ॉर्म गतिविधि",
+        kpi_platform_activity_value: "उच्च",
+        kpi_platform_activity_change: "पिछले सप्ताह की तुलना में",
+        revenue_analytics_title: "राजस्व विश्लेषिकी",
+        revenue_analytics_desc: "मासिक सदस्यता राजस्व का अवलोकन।",
+        send_notification_button: "अधिसूचना भेजें",
+        add_user_button: "नया उपयोगकर्ता जोड़ें",
+      },
+      users: {
+        title_recent: "हाल के उपयोगकर्ता",
+        description_recent: "प्लेटफ़ॉर्म से जुड़ने वाले अंतिम 5 उपयोगकर्ता।",
+        title_farmer: "किसान प्रबंधन",
+        description_farmer: "नए किसानों को देखें, प्रबंधित करें और जोड़ें।",
+        title_dealer: "डीलर प्रबंधन",
+        description_dealer: "नए डीलरों को देखें, प्रबंधित करें और जोड़ें।",
+        add_user_button: "नया उपयोगकर्ता जोड़ें",
+        reason_required_title: "कारण आवश्यक है",
+        reason_required_desc: "कृपया उपयोगकर्ता को निलंबित करने का कारण बताएं।",
+        reason_required_title_delete: "कारण आवश्यक है",
+        reason_required_desc_delete: "कृपया उपयोगकर्ता को हटाने का कारण बताएं।",
+        user_suspended_title: "उपयोगकर्ता निलंबित",
+        user_suspended_desc: "{name} को इस कारण से निलंबित कर दिया गया है: {reason}।",
+        user_unsuspended_title: "उपयोगकर्ता का निलंबन हटा",
+        user_unsuspended_desc: "{name} का निलंबन हटा दिया गया है।",
+        user_deleted_title: "उपयोगकर्ता हटाया गया",
+        user_deleted_desc: "{name} को स्थायी रूप से हटा दिया गया है।",
+        delete_failed_title: "हटाने में विफल",
+        delete_failed_desc: "उपयोगकर्ता को हटाया नहीं जा सका।",
+        details_title: "उपयोगकर्ता विवरण",
+        details_desc: "{name} के लिए व्यापक विवरण देखना।",
+      },
+      farmers_page: {
+        title: "सभी किसान",
+        description: "मंच पर सभी किसानों की पूरी सूची।"
+      },
+      dealers_page: {
+        title: "सभी डीलर",
+        description: "मंच पर सभी डीलरों की पूरी सूची।"
+      },
+    },
+    roles: {
+      admin: "एडमिन",
+      farmer: "किसान",
+      dealer: "डीलर",
+    },
+    status: {
+      active: "सक्रिय",
+      suspended: "निलंबित",
+      pending: "लंबित",
+    },
+    tables: {
+      user: "उपयोगकर्ता",
+      role: "भूमिका",
+      status: "स्थिति",
+      date_joined: "शामिल होने की तिथि",
+      actions: "क्रियाएँ",
+    },
+    tabs: {
+      overview: "अवलोकन",
+      subscription: "सदस्यता",
+      activity: "गतिविधि",
+    },
+    labels: {
+      date_joined: "शामिल होने की तिथि",
+      user_id: "उपयोगकर्ता आईडी",
+      subscription_plan: "सदस्यता योजना",
+      next_billing_date: "अगली बिलिंग तिथि",
+      reason: "कारण",
+      please_specify: "कृपया निर्दिष्ट करें",
+    },
+    placeholders: {
+      select_reason: "एक कारण चुनें",
+      provide_reason: "एक विस्तृत कारण प्रदान करें...",
+    },
+    reasons: {
+      user_request: "उपयोगकर्ता अनुरोध",
+      payment_failed: "भुगतान विफल",
+      policy_violation: "नीति का उल्लंघन",
+      spam_activity: "स्पैम गतिविधि",
+      other: "अन्य",
+    },
+    activity: {
+      logged_in: "2 घंटे पहले लॉग इन किया",
+      viewed_dashboard: "1 घंटा पहले डैशबोर्ड देखा",
+      started_chat: "30 मिनट पहले एआई चैट शुरू की",
+    },
+    messages: {
+      loading: "लोड हो रहा है...",
+      loading_users: "उपयोगकर्ताओं को लोड किया जा रहा है...",
+      no_users_found: "कोई उपयोगकर्ता नहीं मिला।",
     }
   }
 };
@@ -248,22 +489,31 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     setLanguage((prev) => (prev === "en" ? "hi" : "en"));
   };
 
-  const t = (key: string): string => {
+  const t = (key: string, options?: { [key: string]: string | number }): string => {
     const keys = key.split('.');
     let result: any = translations[language];
     for (const k of keys) {
       result = result?.[k];
       if (result === undefined) {
-        // Fallback to English if translation not found
         let fallbackResult: any = translations.en;
         for (const fk of keys) {
             fallbackResult = fallbackResult?.[fk];
             if(fallbackResult === undefined) return key;
         }
-        return fallbackResult;
+        result = fallbackResult;
+        break;
       }
     }
-    return typeof result === 'string' ? result : key;
+    
+    let finalResult = typeof result === 'string' ? result : key;
+
+    if (options) {
+      Object.keys(options).forEach(optKey => {
+        finalResult = finalResult.replace(`{${optKey}}`, String(options[optKey]));
+      });
+    }
+
+    return finalResult;
   };
 
   const value = useMemo(() => ({
@@ -286,5 +536,3 @@ export function useLanguage() {
   }
   return context;
 }
-
-    
