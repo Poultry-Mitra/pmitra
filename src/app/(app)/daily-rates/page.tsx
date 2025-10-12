@@ -2,15 +2,19 @@
 "use client";
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { PageHeader } from "../_components/page-header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { mockDailyRates } from "@/lib/data";
-import { IndianRupee, MapPin } from "lucide-react";
+import { mockDailyRates, currentUser } from "@/lib/data";
+import { IndianRupee, MapPin, Zap } from "lucide-react";
+import { Button } from '@/components/ui/button';
 
 export default function DailyRatesPage() {
     const firstRate = mockDailyRates[0];
     const { readyBird, chickRate, feedCostIndex, lastUpdated, location } = firstRate;
     const [lastUpdatedTime, setLastUpdatedTime] = useState('');
+
+    const userIsPremium = currentUser.planType === 'premium';
 
     useEffect(() => {
         setLastUpdatedTime(new Date(lastUpdated).toLocaleTimeString());
@@ -70,6 +74,23 @@ export default function DailyRatesPage() {
                     </CardContent>
                 </Card>
             </div>
+            
+            {!userIsPremium && (
+                 <Card className="mt-8 bg-accent/20 border-accent">
+                    <CardHeader className="text-center">
+                        <CardTitle className="font-headline text-2xl flex items-center justify-center gap-2">
+                            <Zap className="text-accent" />
+                            Unlock Full Market Access
+                        </CardTitle>
+                        <CardDescription>Upgrade to Premium to view live rates from all locations, receive rate change alerts, and access historical data charts.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="text-center">
+                        <Button asChild>
+                            <Link href="/pricing">Upgrade to Premium</Link>
+                        </Button>
+                    </CardContent>
+                </Card>
+            )}
         </>
     )
 }
