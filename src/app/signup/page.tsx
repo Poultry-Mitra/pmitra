@@ -48,7 +48,7 @@ export default function SignupPage() {
                         <CardDescription>{t('signup.dealer_description')}</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <Button className="w-full" variant="secondary" asChild>
+                        <Button className="w-full" asChild>
                             <Link href="/signup/dealer">
                                 {t('signup.dealer_button')} <ArrowRight className="ml-2" />
                             </Link>
