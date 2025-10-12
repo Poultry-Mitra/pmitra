@@ -53,11 +53,13 @@ export function AdminSidebar() {
   const currentUser = useClientState<UserType | undefined>(currentDealer);
 
   if (!currentUser) {
-      // Could be a loading state or a redirect
+      // Render a skeleton or loading state to prevent hydration mismatch
       return (
         <Sidebar>
             <SidebarHeader />
-            <SidebarContent />
+            <SidebarContent>
+                {/* You can add skeleton loaders here if you want */}
+            </SidebarContent>
             <SidebarFooter />
         </Sidebar>
       );
