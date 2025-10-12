@@ -166,7 +166,7 @@ export default function DetailedSignupPage() {
                                         <FormLabel>State</FormLabel>
                                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                                             <FormControl><SelectTrigger><SelectValue placeholder="Select your state" /></SelectTrigger></FormControl>
-                                            <SelectContent><SelectItem value="" disabled>Select a state</SelectItem>{indianStates.states.map(s => <SelectItem key={s.state} value={s.state}>{s.state}</SelectItem>)}</SelectContent>
+                                            <SelectContent>{indianStates.states.map(s => <SelectItem key={s.state} value={s.state}>{s.state}</SelectItem>)}</SelectContent>
                                         </Select>
                                         <FormMessage />
                                     </FormItem>
@@ -176,7 +176,7 @@ export default function DetailedSignupPage() {
                                         <FormLabel>District</FormLabel>
                                         <Select onValueChange={field.onChange} value={field.value} disabled={!selectedState}>
                                             <FormControl><SelectTrigger><SelectValue placeholder="Select your district" /></SelectTrigger></FormControl>
-                                            <SelectContent><SelectItem value="" disabled>Select a district</SelectItem>{districts.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent>
+                                            <SelectContent>{districts.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent>
                                         </Select>
                                         <FormMessage />
                                     </FormItem>
