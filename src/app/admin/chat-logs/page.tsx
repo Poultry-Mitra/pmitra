@@ -32,6 +32,15 @@ const chatLogs = [
 
 
 export default function ChatLogsPage() {
+
+    const handleViewChat = (logId: string) => {
+        alert(`Viewing chat log: ${logId}`);
+    }
+
+    const handleExportLog = (logId: string) => {
+        alert(`Exporting chat log: ${logId}`);
+    }
+
     return (
         <>
             <PageHeader title="AI Chat Logs" description="Review and search all user chat sessions.">
@@ -80,8 +89,8 @@ export default function ChatLogsPage() {
                                                     </Button>
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent align="end">
-                                                    <DropdownMenuItem>View Chat</DropdownMenuItem>
-                                                    <DropdownMenuItem>Export Log</DropdownMenuItem>
+                                                    <DropdownMenuItem onClick={() => handleViewChat(log.id)}>View Chat</DropdownMenuItem>
+                                                    <DropdownMenuItem onClick={() => handleExportLog(log.id)}>Export Log</DropdownMenuItem>
                                                 </DropdownMenuContent>
                                             </DropdownMenu>
                                         </TableCell>
