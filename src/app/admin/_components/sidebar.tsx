@@ -21,17 +21,19 @@ import {
   LayoutGrid,
   Users,
   Bot,
-  BarChart2,
   Settings,
   LogOut,
-  Tags,
   TrendingUp,
   Bell,
+  CreditCard,
+  Tags,
+  DollarSign,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { useLanguage } from "@/components/language-provider";
 import { mockUsers } from "@/lib/data";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
-import { ChevronDown, ChevronUp } from "lucide-react";
 import { useState } from "react";
 import { useClientState } from "@/hooks/use-client-state";
 import type { User as UserType } from "@/lib/types";
@@ -42,6 +44,7 @@ export function AdminSidebar() {
   const { t } = useLanguage();
   const { state } = useSidebar();
   const [managementOpen, setManagementOpen] = useState(pathname.startsWith("/admin/user-management"));
+  const [settingsOpen, setSettingsOpen] = useState(pathname.startsWith("/admin/settings"));
 
   const adminUser = mockUsers.find(u => u.role === 'admin');
   const currentUser = useClientState<UserType | undefined>(adminUser);
@@ -79,6 +82,14 @@ export function AdminSidebar() {
                 <SidebarMenuButton isActive={pathname === "/admin/dashboard"} tooltip={"Dashboard"}>
                   <LayoutGrid />
                   <span>{"Dashboard"}</span>
+                </SidebarMenuButton>
+              </Link>
+          </SidebarMenuItem>
+           <SidebarMenuItem>
+              <Link href="/admin/transactions">
+                <SidebarMenuButton isActive={pathname.startsWith("/admin/transactions")} tooltip={"Transactions"}>
+                  <CreditCard />
+                  <span>{"Transactions"}</span>
                 </SidebarMenuButton>
               </Link>
           </SidebarMenuItem>
@@ -164,14 +175,49 @@ export function AdminSidebar() {
       </SidebarContent>
       <SidebarFooter>
          <SidebarMenu>
-            <SidebarMenuItem>
-                 <Link href="/admin/settings">
-                    <SidebarMenuButton isActive={pathname.startsWith("/admin/settings")} tooltip="Settings">
-                        <Settings/>
-                        <span>{"Settings"}</span>
+            <Collapsible open={settingsOpen} onOpenChange={setSettingsOpen}>
+                <SidebarMenuItem className="relative">
+                <CollapsibleTrigger asChild>
+                    <SidebarMenuButton tooltip="Settings" className="w-full justify-between pr-8" isActive={pathname.startsWith("/admin/settings")}>
+                        <div className="flex items-center gap-3">
+                            <Settings />
+                            <span>Settings</span>
+                        </div>
                     </SidebarMenuButton>
-                 </Link>
-            </SidebarMenuItem>
+                </CollapsibleTrigger>
+                { state === 'expanded' && (
+                    <div className="absolute right-2 top-1/2 -translate-y-1/2">
+                        {settingsOpen ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
+                    </div>
+                )}
+                </SidebarMenuItem>
+
+                <CollapsibleContent>
+                    <SidebarMenu className="ml-7 mt-1 border-l pl-3">
+                        <SidebarMenuItem>
+                            <Link href="/admin/settings">
+                                <SidebarMenuButton size="sm" isActive={pathname === "/admin/settings"}>
+                                App Settings
+                                </SidebarMenuButton>
+                            </Link>
+                        </SidebarMenuItem>
+                        <SidebarMenuItem>
+                            <Link href="/admin/settings/pricing">
+                                <SidebarMenuButton size="sm" isActive={pathname === "/admin/settings/pricing"}>
+                                Pricing Plans
+                                </SidebarMenuButton>
+                            </Link>
+                        </SidebarMenuItem>
+                         <SidebarMenuItem>
+                            <Link href="/admin/settings/promo-codes">
+                                <SidebarMenuButton size="sm" isActive={pathname === "/admin/settings/promo-codes"}>
+                                Promo Codes
+                                </SidebarMenuButton>
+                            </Link>
+                        </SidebarMenuItem>
+                    </SidebarMenu>
+                </CollapsibleContent>
+            </Collapsible>
             <SidebarMenuItem>
                 <Link href="/login">
                   <SidebarMenuButton tooltip="Logout">
