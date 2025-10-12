@@ -30,6 +30,8 @@ import {
   Tags,
   TrendingUp,
   TicketPercent,
+  Warehouse,
+  ShoppingBag,
 } from "lucide-react";
 import { useLanguage } from "@/components/language-provider";
 import { useState } from "react";
@@ -38,6 +40,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible"
+import { mockUsers } from "@/lib/data";
 
 
 export function AdminSidebar() {
@@ -46,6 +49,10 @@ export function AdminSidebar() {
   const { state } = useSidebar();
   const [userManagementOpen, setUserManagementOpen] = useState(pathname.startsWith('/admin/user-management'));
   const [contentManagementOpen, setContentManagementOpen] = useState(pathname.startsWith('/admin/daily-rates'));
+
+  // This is a mock. In a real app, you'd get the current user from an auth context.
+  const currentUser = mockUsers[3]; // Assuming the dealer is logged in
+  const isAdmin = currentUser.role === 'admin';
 
 
   return (
@@ -71,71 +78,87 @@ export function AdminSidebar() {
           </SidebarMenuItem>
 
           <SidebarSeparator />
-          <SidebarGroupLabel>Management</SidebarGroupLabel>
+          <SidebarGroupLabel>{isAdmin ? "Management" : "My Business"}</SidebarGroupLabel>
 
-          <Collapsible open={userManagementOpen} onOpenChange={setUserManagementOpen}>
-            <SidebarMenuItem className="relative">
-              <CollapsibleTrigger asChild>
-                  <SidebarMenuButton tooltip="User Management" className="w-full justify-between pr-8" isActive={pathname.startsWith("/admin/user-management")}>
-                      <div className="flex items-center gap-3">
-                          <Users />
-                          <span>User Management</span>
-                      </div>
-                  </SidebarMenuButton>
-              </CollapsibleTrigger>
-              { state === 'expanded' && (
-                  <div className="absolute right-2 top-1/2 -translate-y-1/2">
-                      {userManagementOpen ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
-                  </div>
-              )}
+          {isAdmin && (
+            <Collapsible open={userManagementOpen} onOpenChange={setUserManagementOpen}>
+              <SidebarMenuItem className="relative">
+                <CollapsibleTrigger asChild>
+                    <SidebarMenuButton tooltip="User Management" className="w-full justify-between pr-8" isActive={pathname.startsWith("/admin/user-management")}>
+                        <div className="flex items-center gap-3">
+                            <Users />
+                            <span>User Management</span>
+                        </div>
+                    </SidebarMenuButton>
+                </CollapsibleTrigger>
+                { state === 'expanded' && (
+                    <div className="absolute right-2 top-1/2 -translate-y-1/2">
+                        {userManagementOpen ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
+                    </div>
+                )}
+              </SidebarMenuItem>
+
+              <CollapsibleContent>
+                  <SidebarMenu className="ml-7 mt-1 border-l pl-3">
+                      <SidebarMenuItem>
+                          <Link href="/admin/user-management/farmers">
+                              <SidebarMenuButton size="sm" isActive={pathname === "/admin/user-management/farmers"}>
+                              Farmers List
+                              </SidebarMenuButton>
+                          </Link>
+                      </SidebarMenuItem>
+                      <SidebarMenuItem>
+                          <Link href="/admin/user-management/dealers">
+                              <SidebarMenuButton size="sm" isActive={pathname === "/admin/user-management/dealers"}>
+                              Dealers List
+                              </SidebarMenuButton>
+                          </Link>
+                      </SidebarMenuItem>
+                      <SidebarMenuItem>
+                          <Link href="/admin/user-management/add-user">
+                              <SidebarMenuButton size="sm" isActive={pathname === "/admin/user-management/add-user"}>
+                              Add New User
+                              </SidebarMenuButton>
+                          </Link>
+                      </SidebarMenuItem>
+                  </SidebarMenu>
+              </CollapsibleContent>
+            </Collapsible>
+          )}
+
+          {!isAdmin && (
+             <SidebarMenuItem>
+              <Link href="/admin/my-farmers">
+                <SidebarMenuButton
+                  isActive={pathname.startsWith("/admin/my-farmers")}
+                  tooltip={"My Farmers"}
+                >
+                  <Users />
+                  <span>{"My Farmers"}</span>
+                </SidebarMenuButton>
+              </Link>
             </SidebarMenuItem>
-
-            <CollapsibleContent>
-                 <SidebarMenu className="ml-7 mt-1 border-l pl-3">
-                    <SidebarMenuItem>
-                        <Link href="/admin/user-management/farmers">
-                            <SidebarMenuButton size="sm" isActive={pathname === "/admin/user-management/farmers"}>
-                            Farmers List
-                            </SidebarMenuButton>
-                        </Link>
-                    </SidebarMenuItem>
-                    <SidebarMenuItem>
-                        <Link href="/admin/user-management/dealers">
-                            <SidebarMenuButton size="sm" isActive={pathname === "/admin/user-management/dealers"}>
-                            Dealers List
-                            </SidebarMenuButton>
-                        </Link>
-                    </SidebarMenuItem>
-                     <SidebarMenuItem>
-                        <Link href="/admin/user-management/add-user">
-                            <SidebarMenuButton size="sm" isActive={pathname === "/admin/user-management/add-user"}>
-                            Add New User
-                            </SidebarMenuButton>
-                        </Link>
-                    </SidebarMenuItem>
-                 </SidebarMenu>
-            </CollapsibleContent>
-          </Collapsible>
+          )}
           
           <SidebarMenuItem>
-              <Link href="/admin/subscription-management">
+              <Link href={isAdmin ? "/admin/subscription-management" : "/admin/my-orders"}>
                 <SidebarMenuButton
-                  isActive={pathname.startsWith("/admin/subscription-management")}
-                  tooltip={"Subscriptions"}
+                  isActive={pathname.startsWith(isAdmin ? "/admin/subscription-management" : "/admin/my-orders")}
+                  tooltip={isAdmin ? "Subscriptions" : "Farmer Orders"}
                 >
-                  <Tags />
-                  <span>{"Subscriptions"}</span>
+                  {isAdmin ? <Tags /> : <ShoppingBag />}
+                  <span>{isAdmin ? "Subscriptions" : "Farmer Orders"}</span>
                 </SidebarMenuButton>
               </Link>
           </SidebarMenuItem>
-          <SidebarMenuItem>
-              <Link href="/admin/transactions">
+           <SidebarMenuItem>
+              <Link href={isAdmin ? "/admin/transactions" : "/admin/my-inventory"}>
                 <SidebarMenuButton
-                  isActive={pathname.startsWith("/admin/transactions")}
-                  tooltip={"Transactions"}
+                  isActive={pathname.startsWith(isAdmin ? "/admin/transactions" : "/admin/my-inventory")}
+                  tooltip={isAdmin ? "Transactions" : "My Inventory"}
                 >
-                  <CreditCard />
-                  <span>{"Transactions"}</span>
+                  {isAdmin ? <CreditCard /> : <Warehouse />}
+                  <span>{isAdmin ? "Transactions" : "My Inventory"}</span>
                 </SidebarMenuButton>
               </Link>
           </SidebarMenuItem>
@@ -176,41 +199,45 @@ export function AdminSidebar() {
               </Link>
           </SidebarMenuItem>
 
-          <SidebarSeparator />
-          <SidebarGroupLabel>Configuration</SidebarGroupLabel>
-           <SidebarMenuItem>
-              <Link href="/admin/promo-codes">
-                <SidebarMenuButton
-                  isActive={pathname.startsWith("/admin/promo-codes")}
-                  tooltip={"Promo Codes"}
-                >
-                  <TicketPercent />
-                  <span>{"Promo Codes"}</span>
-                </SidebarMenuButton>
-              </Link>
-          </SidebarMenuItem>
-           <SidebarMenuItem>
-              <Link href="/admin/settings">
-                <SidebarMenuButton
-                  isActive={pathname.startsWith("/admin/settings")}
-                  tooltip={"System Settings"}
-                >
-                  <Settings />
-                  <span>System Settings</span>
-                </SidebarMenuButton>
-              </Link>
-          </SidebarMenuItem>
-           <SidebarMenuItem>
-              <Link href="/admin/notifications">
-                <SidebarMenuButton
-                  isActive={pathname.startsWith("/admin/notifications")}
-                  tooltip={"Notifications"}
-                >
-                  <Bell />
-                  <span>Notifications</span>
-                </SidebarMenuButton>
-              </Link>
-          </SidebarMenuItem>
+          {isAdmin && (
+            <>
+              <SidebarSeparator />
+              <SidebarGroupLabel>Configuration</SidebarGroupLabel>
+              <SidebarMenuItem>
+                  <Link href="/admin/promo-codes">
+                    <SidebarMenuButton
+                      isActive={pathname.startsWith("/admin/promo-codes")}
+                      tooltip={"Promo Codes"}
+                    >
+                      <TicketPercent />
+                      <span>{"Promo Codes"}</span>
+                    </SidebarMenuButton>
+                  </Link>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                  <Link href="/admin/settings">
+                    <SidebarMenuButton
+                      isActive={pathname.startsWith("/admin/settings")}
+                      tooltip={"System Settings"}
+                    >
+                      <Settings />
+                      <span>System Settings</span>
+                    </SidebarMenuButton>
+                  </Link>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                  <Link href="/admin/notifications">
+                    <SidebarMenuButton
+                      isActive={pathname.startsWith("/admin/notifications")}
+                      tooltip={"Notifications"}
+                    >
+                      <Bell />
+                      <span>Notifications</span>
+                    </SidebarMenuButton>
+                  </Link>
+              </SidebarMenuItem>
+            </>
+          )}
         </SidebarMenu>
       </SidebarContent>
       <SidebarFooter>

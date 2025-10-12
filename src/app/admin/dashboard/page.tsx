@@ -88,9 +88,43 @@ function Sparkline({ data, color }: { data: { value: number }[], color: string }
 }
 
 export default function AdminDashboardPage() {
+    // This is a mock. In a real app, you'd get the current user from an auth context.
+    const currentUser = mockUsers[3]; // Assuming the dealer is logged in
+    const isAdmin = currentUser.role === 'admin';
+    const pageTitle = isAdmin ? "Admin Dashboard" : "Dealer Dashboard";
+    const pageDescription = isAdmin ? "Overview of the PoultryMitra ecosystem." : "Here's an overview of your business.";
+
+
+    if (!isAdmin) {
+      // Render Dealer specific dashboard
+      return (
+         <>
+          <PageHeader title={pageTitle} description={pageDescription}>
+              <div className="flex items-center gap-2">
+                  <Button variant="outline" asChild>
+                      <Link href="/admin/my-orders">
+                          View All Orders
+                      </Link>
+                  </Button>
+                  <Button asChild>
+                      <Link href="/admin/my-inventory">
+                          <PlusCircle className="mr-2" />
+                          Add Stock
+                      </Link>
+                  </Button>
+              </div>
+          </PageHeader>
+           <div className="mt-8">
+            <p>Dealer-specific content will go here. This includes sales analytics, farmer management, and inventory status.</p>
+           </div>
+         </>
+      )
+    }
+
+    // Render Admin specific dashboard
     return (
         <>
-            <PageHeader title="Admin Dashboard" description="Overview of the PoultryMitra ecosystem.">
+            <PageHeader title={pageTitle} description={pageDescription}>
                 <div className="flex items-center gap-2">
                     <Button variant="outline" asChild>
                         <Link href="/admin/notifications">

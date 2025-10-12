@@ -14,11 +14,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Bell, Search } from 'lucide-react';
+import { Bell, Search, Copy } from 'lucide-react';
 import { mockUsers } from '@/lib/data';
 import { LanguageToggle } from '@/components/language-toggle';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Input } from '@/components/ui/input';
+import { useToast } from '@/hooks/use-toast';
 
 function Breadcrumbs() {
     const pathname = usePathname();
@@ -31,7 +32,7 @@ function Breadcrumbs() {
             <ol className="flex items-center space-x-2 text-sm">
                 <li>
                     <Link href="/admin/dashboard" className="text-muted-foreground hover:text-foreground">
-                        Admin
+                        Dashboard
                     </Link>
                 </li>
                 {segments.slice(1).map((segment, index) => {
@@ -59,18 +60,35 @@ function Breadcrumbs() {
 
 
 export function AdminHeader() {
-  const user = mockUsers[0];
+  // This is a mock. In a real app, you'd get the current user from an auth context.
+  const user = mockUsers[3]; // Assuming the dealer is logged in
+  const { toast } = useToast();
+
+  const handleCopyCode = () => {
+    if(user.uniqueDealerCode) {
+        navigator.clipboard.writeText(user.uniqueDealerCode);
+        toast({ title: "Copied!", description: "Your unique dealer code has been copied to the clipboard." });
+    }
+  }
 
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background/80 px-4 backdrop-blur-sm sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
       <SidebarTrigger className="md:hidden" />
       <div className="hidden md:block">
-        <Breadcrumbs />
+        {user.role === 'admin' && <Breadcrumbs />}
+        {user.role === 'dealer' && user.uniqueDealerCode && (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <span>Your Code: <span className="font-mono text-base text-foreground font-semibold">{user.uniqueDealerCode}</span></span>
+                 <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handleCopyCode}>
+                    <Copy className="size-3.5" />
+                </Button>
+            </div>
+        )}
       </div>
       <div className="ml-auto flex items-center gap-2">
         <div className="relative">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Search users..." className="w-full rounded-full bg-background/50 pl-8 md:w-[200px] lg:w-[320px]" />
+          <Input placeholder="Search..." className="w-full rounded-full bg-background/50 pl-8 md:w-[200px] lg:w-[320px]" />
         </div>
         <LanguageToggle />
         <ThemeToggle />

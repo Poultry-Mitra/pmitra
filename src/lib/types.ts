@@ -11,6 +11,9 @@ export type User = {
   role: UserRole;
   dateJoined: string;
   avatarUrl?: string;
+  planType?: 'free' | 'premium';
+  uniqueDealerCode?: string;
+  connectedFarmers?: string[];
 };
 
 export type Batch = {
