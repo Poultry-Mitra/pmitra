@@ -1,19 +1,32 @@
 
+"use client";
 
+import { useState } from "react";
 import { PageHeader } from "../_components/page-header";
 import { Button } from "@/components/ui/button";
-import { MoreHorizontal, PlusCircle } from "lucide-react";
+import { MoreHorizontal, PlusCircle, AlertTriangle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { mockBatches } from "@/lib/data";
+import { mockBatches, currentUser } from "@/lib/data";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
+import Link from "next/link";
 
 const statusVariant: { [key in 'Active' | 'Completed' | 'Planned']: "default" | "secondary" | "outline" } = {
     Active: "default",
@@ -29,13 +42,27 @@ const statusColorScheme = {
 
 
 export default function BatchesPage() {
+  const [showUpgradeAlert, setShowUpgradeAlert] = useState(false);
+  // Assuming a mock user plan for now. In a real app, this would come from user data.
+  const isPremiumUser = true; // Change to false to test the free user experience
+  const activeBatches = mockBatches.filter(b => b.status === 'Active').length;
+
+  const handleAddNewBatch = () => {
+    if (!isPremiumUser && activeBatches >= 1) {
+      setShowUpgradeAlert(true);
+    } else {
+      // Logic to add a new batch would go here
+      alert("Navigating to Add New Batch page...");
+    }
+  };
+  
   return (
     <>
       <PageHeader 
         title="My Batches"
         description="Manage all your poultry batches in one place."
       >
-        <Button>
+        <Button onClick={handleAddNewBatch}>
             <PlusCircle className="mr-2" />
             Add New Batch
         </Button>
@@ -94,6 +121,27 @@ export default function BatchesPage() {
             </CardContent>
         </Card>
       </div>
+
+       <AlertDialog open={showUpgradeAlert} onOpenChange={setShowUpgradeAlert}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+                <AlertTriangle className="text-orange-500"/>
+                Free Plan Limit Reached
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              You can only manage 1 active batch on the Free Plan. Please upgrade to the Premium Plan to add and manage unlimited batches.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction asChild>
+              <Link href="/pricing">Upgrade to Premium</Link>
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
+
