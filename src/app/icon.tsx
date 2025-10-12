@@ -13,11 +13,11 @@ export function AppIcon(props: SVGProps<SVGSVGElement>) {
             strokeLinejoin="round"
             {...props}
         >
-          <path d="M18.16 13.91A6.5 6.5 0 0 1 12 20a6.5 6.5 0 0 1-6.16-6.09" />
-          <path d="M12 4a2 2 0 0 1 2 2v2a2 2 0 1 1-4 0V6a2 2 0 0 1 2-2z" />
-          <path d="M11 14.15V15.5a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1.35" />
-          <path d="M8.42 12.38a2 2 0 0 0-1.84-3.53" />
-          <path d="M17.42 8.85a2 2 0 0 0-1.84 3.53" />
+          <path d="M16 7h.01" />
+          <path d="M3.4 18H12a8 8 0 0 0 8-8V7a4 4 0 0 0-7.28-2.3L2 20" />
+          <path d="m20 7 2 .5-2 .5" />
+          <path d="M10 18v3" />
+          <path d="M14 18v3" />
         </svg>
     )
 }
@@ -30,11 +30,11 @@ export default function Favicon() {
       fill="currentColor"
       className="size-full text-primary"
     >
-        <path d="M18.16 13.91A6.5 6.5 0 0 1 12 20a6.5 6.5 0 0 1-6.16-6.09" />
-        <path d="M12 4a2 2 0 0 1 2 2v2a2 2_0 1 1-4 0V6a2 2 0 0 1 2-2z" />
-        <path d="M11 14.15V15.5a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1.35" />
-        <path d="M8.42 12.38a2 2 0 0 0-1.84-3.53" />
-        <path d="M17.42 8.85a2 2 0 0 0-1.84 3.53" />
+        <path d="M16 7h.01" />
+        <path d="M3.4 18H12a8 8 0 0 0 8-8V7a4 4 0 0 0-7.28-2.3L2 20" />
+        <path d="m20 7 2 .5-2 .5" />
+        <path d="M10 18v3" />
+        <path d="M14 18v3" />
     </svg>
   );
 }
