@@ -14,9 +14,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { Save } from "lucide-react";
 import { useFirestore, useUser } from "@/firebase/provider";
-import { collection, addDoc } from "firebase/firestore";
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { addAuditLog } from "@/hooks/use-audit-logs";
-import { getAuth, signOut } from "firebase/auth";
 
 const formSchema = z.object({
   name: z.string().min(3, "Full name is required."),
@@ -32,7 +31,6 @@ export default function AddUserPage() {
     const router = useRouter();
     const firestore = useFirestore();
     const adminUser = useUser();
-    const auth = getAuth(); // Get the auth instance
 
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
@@ -54,13 +52,13 @@ export default function AddUserPage() {
             return;
         }
 
-        const originalUser = auth.currentUser;
-
         try {
-            const newUser = {
-                ...values,
+            const newUserProfile = {
+                name: values.name,
+                email: values.email,
+                role: values.role,
+                planType: values.planType,
                 dateJoined: new Date().toISOString(),
-                // Generate a unique code only for dealers
                 uniqueDealerCode: values.role === 'dealer' ? `DL-${Math.random().toString(36).substring(2, 8).toUpperCase()}` : null,
                 connectedFarmers: [],
                 connectedDealers: [],
@@ -69,30 +67,33 @@ export default function AddUserPage() {
             };
             
             const usersCollection = collection(firestore, "users");
-            // Since we are not creating an auth user here, just a DB record,
-            // we don't need to sign out and sign back in.
-            // This assumes the admin is creating a DB profile for a user who will register later.
-            const docRef = await addDoc(usersCollection, newUser);
+            const docRef = await addDoc(usersCollection, newUserProfile);
 
             // Create an audit log for this action
             await addAuditLog(firestore, {
                 adminUID: adminUser.user.uid,
                 action: 'CREATE_USER',
                 timestamp: new Date().toISOString(),
-                details: `Created new ${values.role} user: ${values.name} (${docRef.id})`,
+                details: `Created new ${values.role} user profile: ${values.name} (${docRef.id})`,
             });
             
             toast({
-                title: "User Created",
-                description: `${values.name} has been added as a new ${values.role}.`,
+                title: "User Profile Created",
+                description: `A profile for ${values.name} has been added. They will need to sign up with this email to access their account.`,
             });
             router.push(values.role === 'farmer' ? '/admin/user-management/farmers' : '/admin/user-management/dealers');
 
         } catch(error) {
-            console.error("Error creating user:", error);
+            console.error("Error creating user profile:", error);
+            const permissionError = new FirestorePermissionError({
+                path: 'users',
+                operation: 'create',
+                requestResourceData: newUserProfile
+            });
+            errorEmitter.emit('permission-error', permissionError);
             toast({
                 title: "Error",
-                description: "Failed to create user in the database.",
+                description: "Failed to create user profile in the database.",
                 variant: "destructive",
             });
         }
@@ -105,7 +106,7 @@ export default function AddUserPage() {
                 <Card>
                     <CardHeader>
                         <CardTitle>User Details</CardTitle>
-                        <CardDescription>Fill in the form below to create a new user.</CardDescription>
+                        <CardDescription>Fill in the form below to create a new user profile. The user must sign up with the same email to claim this profile.</CardDescription>
                     </CardHeader>
                     <CardContent>
                         <Form {...form}>
@@ -178,7 +179,7 @@ export default function AddUserPage() {
                                 </div>
                                 <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
                                     <Save className="mr-2" />
-                                    {form.formState.isSubmitting ? "Creating User..." : "Create User"}
+                                    {form.formState.isSubmitting ? "Creating Profile..." : "Create User Profile"}
                                 </Button>
                             </form>
                         </Form>
