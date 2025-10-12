@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import Link from "next/link";
@@ -30,6 +31,7 @@ import {
   ChevronUp,
   Tags,
   TrendingUp,
+  TicketPercent,
 } from "lucide-react";
 import { useLanguage } from "@/components/language-provider";
 import { useState } from "react";
@@ -125,6 +127,17 @@ export function AdminSidebar() {
                 >
                   <Tags />
                   <span>{"Subscriptions"}</span>
+                </SidebarMenuButton>
+              </Link>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+              <Link href="/admin/promo-codes">
+                <SidebarMenuButton
+                  isActive={pathname.startsWith("/admin/promo-codes")}
+                  tooltip={"Promo Codes"}
+                >
+                  <TicketPercent />
+                  <span>{"Promo Codes"}</span>
                 </SidebarMenuButton>
               </Link>
           </SidebarMenuItem>
