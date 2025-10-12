@@ -1,5 +1,3 @@
-
-
 import { Timestamp } from "firebase/firestore";
 
 export type UserRole = 'farmer' | 'dealer' | 'admin';
@@ -72,8 +70,8 @@ export type DealerInventoryItem = {
 
 export type LedgerEntry = {
   id: string;
-  farmerUID: string;
-  dealerUID?: string;
+  userId: string; // Generic field for both farmer and dealer
+  orderId?: string;
   batchId?: string;
   type: "Debit" | "Credit";
   description: string;
@@ -151,6 +149,7 @@ export type Order = {
     
 
     
+
 
 
 

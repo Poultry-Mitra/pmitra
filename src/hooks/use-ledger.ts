@@ -1,4 +1,3 @@
-
 // src/hooks/use-ledger.ts
 'use client';
 
@@ -17,6 +16,7 @@ import {
   doc,
   getDocs,
   limit,
+  Transaction,
 } from 'firebase/firestore';
 import { useFirestore } from '@/firebase/provider';
 import type { LedgerEntry } from '@/lib/types';
@@ -33,13 +33,13 @@ function toLedgerEntry(doc: QueryDocumentSnapshot<DocumentData>): LedgerEntry {
     } as LedgerEntry;
 }
 
-export function useLedger(farmerUID: string) {
+export function useLedger(userId: string) {
   const firestore = useFirestore();
   const [entries, setEntries] = useState<LedgerEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!firestore || !farmerUID) {
+    if (!firestore || !userId) {
         setEntries([]);
         setLoading(false);
         return;
@@ -47,7 +47,7 @@ export function useLedger(farmerUID: string) {
     
     setLoading(true);
     const ledgerCollection = collection(firestore, 'ledger');
-    const q = query(ledgerCollection, where("farmerUID", "==", farmerUID), orderBy("date", "desc"));
+    const q = query(ledgerCollection, where("userId", "==", userId), orderBy("date", "desc"));
 
     const unsubscribe = onSnapshot(
       q,
@@ -58,7 +58,7 @@ export function useLedger(farmerUID: string) {
       },
       (err) => {
         const permissionError = new FirestorePermissionError({
-          path: `ledger where farmerUID == ${farmerUID}`,
+          path: `ledger where userId == ${userId}`,
           operation: 'list',
         });
         errorEmitter.emit('permission-error', permissionError);
@@ -68,15 +68,15 @@ export function useLedger(farmerUID: string) {
     );
 
     return () => unsubscribe();
-  }, [firestore, farmerUID]);
+  }, [firestore, userId]);
 
   return { entries, loading };
 }
 
 export async function addLedgerEntry(
     firestore: Firestore, 
-    farmerUID: string, 
-    data: Omit<LedgerEntry, 'id' | 'farmerUID' | 'type' | 'balanceAfter'>,
+    userId: string, 
+    data: Omit<LedgerEntry, 'id' | 'userId' | 'type' | 'balanceAfter'>,
     type: 'Debit' | 'Credit'
 ) {
     if (!firestore) throw new Error("Firestore not initialized");
@@ -87,19 +87,16 @@ export async function addLedgerEntry(
         await runTransaction(firestore, async (transaction) => {
             const lastEntryQuery = query(
                 ledgerCollection, 
-                where("farmerUID", "==", farmerUID),
+                where("userId", "==", userId),
                 orderBy("date", "desc"),
                 limit(1)
             );
             
-            // Note: In a real-world high-concurrency app, you might need a separate document
-            // to hold the current balance to avoid race conditions.
-            // For this app's scale, querying the last entry is acceptable.
-            const lastEntrySnapshot = await getDocs(lastEntryQuery);
+            const lastEntryDocs = await transaction.get(lastEntryQuery);
             
             let lastBalance = 0;
-            if (!lastEntrySnapshot.empty) {
-                const lastEntry = lastEntrySnapshot.docs[0].data() as LedgerEntry;
+            if (!lastEntryDocs.empty) {
+                const lastEntry = lastEntryDocs.docs[0].data() as LedgerEntry;
                 lastBalance = lastEntry.balanceAfter;
             }
 
@@ -113,10 +110,9 @@ export async function addLedgerEntry(
             const newEntryRef = doc(ledgerCollection); // Create a new doc ref in the collection
             transaction.set(newEntryRef, {
                 ...data,
-                farmerUID,
+                userId,
                 type,
                 balanceAfter: newBalance,
-                // date is already in ISO string format from the form
             });
         });
     } catch (e: any) {
@@ -124,10 +120,51 @@ export async function addLedgerEntry(
         const permissionError = new FirestorePermissionError({
             path: 'ledger',
             operation: 'create',
-            requestResourceData: { ...data, farmerUID },
+            requestResourceData: { ...data, userId },
         });
         errorEmitter.emit('permission-error', permissionError);
-        // Re-throw the original error to be caught by the calling form/component
         throw e;
     }
+}
+
+
+// Transaction-safe version of addLedgerEntry
+export async function addLedgerEntryInTransaction(
+    transaction: Transaction,
+    firestore: Firestore,
+    userId: string,
+    data: Omit<LedgerEntry, 'id' | 'userId' | 'type' | 'balanceAfter'>,
+    type: 'Debit' | 'Credit'
+) {
+    const ledgerCollection = collection(firestore, 'ledger');
+    const lastEntryQuery = query(
+        ledgerCollection,
+        where("userId", "==", userId),
+        orderBy("date", "desc"),
+        limit(1)
+    );
+
+    // We get the last entry using the transaction to ensure a consistent read.
+    const lastEntryDocs = await transaction.get(lastEntryQuery);
+
+    let lastBalance = 0;
+    if (!lastEntryDocs.empty) {
+        const lastEntry = lastEntryDocs.docs[0].data() as LedgerEntry;
+        lastBalance = lastEntry.balanceAfter;
+    }
+
+    let newBalance = lastBalance;
+    if (type === 'Credit') {
+        newBalance += data.amount;
+    } else {
+        newBalance -= data.amount;
+    }
+
+    const newEntryRef = doc(ledgerCollection); // Create a new doc ref for the new entry.
+    transaction.set(newEntryRef, {
+        ...data,
+        userId,
+        type,
+        balanceAfter: newBalance,
+    });
 }
