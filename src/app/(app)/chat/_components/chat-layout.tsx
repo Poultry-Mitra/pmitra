@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useRef, useEffect } from "react";
@@ -25,10 +26,11 @@ export function ChatLayout() {
   const user = currentUser;
 
   useEffect(() => {
-    if (scrollAreaRef.current) {
-      scrollAreaRef.current.scrollTo({ top: scrollAreaRef.current.scrollHeight, behavior: 'smooth' });
+    const viewport = scrollAreaRef.current?.querySelector('div[data-radix-scroll-area-viewport]');
+    if (viewport) {
+      viewport.scrollTo({ top: viewport.scrollHeight, behavior: 'smooth' });
     }
-  }, [messages]);
+  }, [messages, loading]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -87,7 +89,7 @@ export function ChatLayout() {
                   "max-w-md rounded-lg px-4 py-3 text-sm",
                   message.sender === "user"
                     ? "bg-primary text-primary-foreground"
-                    : "bg-secondary text-secondary-foreground"
+                    : "bg-secondary"
                 )}
               >
                 <p className="whitespace-pre-wrap">{message.text}</p>
@@ -106,7 +108,7 @@ export function ChatLayout() {
                     <AppIcon className="size-5 text-primary-foreground"/>
                    </div>
                 </Avatar>
-                <div className="max-w-md rounded-lg px-4 py-3 text-sm bg-secondary text-secondary-foreground">
+                <div className="max-w-md rounded-lg px-4 py-3 text-sm bg-secondary">
                     <div className="flex items-center gap-2">
                         <span className="h-2 w-2 animate-pulse rounded-full bg-primary"></span>
                         <span className="h-2 w-2 animate-pulse rounded-full bg-primary [animation-delay:0.2s]"></span>
@@ -117,7 +119,7 @@ export function ChatLayout() {
           )}
         </div>
       </ScrollArea>
-      <div className="border-t bg-card p-4">
+      <div className="border-t bg-background p-4">
         <form onSubmit={handleSubmit} className="flex items-center gap-2">
           <Input
             value={input}

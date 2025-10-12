@@ -18,13 +18,14 @@ import {
   LayoutDashboard,
   MessageSquare,
   Landmark,
-  CreditCard,
+  ShieldCheck,
   LogOut,
   Settings,
   TrendingUp,
   FileText,
   Users,
   Rocket,
+  WandSparkles,
   LineChart,
 } from "lucide-react";
 import { useLanguage } from "@/components/language-provider";
@@ -37,10 +38,14 @@ const navItems = [
   { href: "/batches", icon: FileText, label: "My Batches" },
   { href: "/expenses", icon: Landmark, label: "Expenses" },
   { href: "/dealers", icon: Users, label: "Dealers" },
-  { href: "/chat", icon: MessageSquare, label: "AI Chat" },
-  { href: "/analytics", icon: LineChart, label: "Analytics" },
-  { href: "/daily-rates", icon: TrendingUp, label: "Market Rates", premium: true },
 ];
+
+const aiNavItems = [
+    { href: "/chat", icon: MessageSquare, label: "AI Chat" },
+    { href: "/feed-recommendation", icon: WandSparkles, label: "Feed AI" },
+    { href: "/monitoring", icon: ShieldCheck, label: "Monitoring" },
+];
+
 
 export function AppSidebar() {
   const pathname = usePathname();
@@ -84,20 +89,64 @@ export function AppSidebar() {
                 >
                   <item.icon />
                   <span>{item.label}</span>
-                   {item.premium && state === 'expanded' && <Badge variant="secondary" className="ml-auto">PRO</Badge>}
                 </SidebarMenuButton>
               </Link>
             </SidebarMenuItem>
           ))}
         </SidebarMenu>
+
+        <SidebarMenu>
+             {aiNavItems.map((item) => (
+            <SidebarMenuItem key={item.href}>
+              <Link href={item.href}>
+                <SidebarMenuButton
+                  isActive={pathname.startsWith(item.href)}
+                  tooltip={item.label}
+                >
+                  <item.icon />
+                  <span>{item.label}</span>
+                </SidebarMenuButton>
+              </Link>
+            </SidebarMenuItem>
+          ))}
+        </SidebarMenu>
+
+
+        <SidebarMenu>
+            <SidebarMenuItem>
+                 <Link href="/analytics">
+                    <SidebarMenuButton
+                         isActive={pathname.startsWith("/analytics")}
+                         tooltip="Analytics"
+                    >
+                        <LineChart/>
+                        <span>Analytics</span>
+                    </SidebarMenuButton>
+                 </Link>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+                <Link href="/daily-rates">
+                    <SidebarMenuButton
+                        isActive={pathname.startsWith("/daily-rates")}
+                        tooltip="Market Rates"
+                    >
+                        <TrendingUp/>
+                        <span>Market Rates</span>
+                        {state === 'expanded' && <Badge variant="secondary" className="ml-auto">PRO</Badge>}
+                    </SidebarMenuButton>
+                 </Link>
+            </SidebarMenuItem>
+        </SidebarMenu>
       </SidebarContent>
       <SidebarFooter>
          <SidebarMenu>
             <SidebarMenuItem>
-                 <SidebarMenuButton tooltip="Upgrade">
-                    <Rocket/>
-                    <span>Upgrade Plan</span>
-                </SidebarMenuButton>
+                 <Link href="/pricing">
+                    <SidebarMenuButton tooltip="Upgrade">
+                        <Rocket/>
+                        <span>Upgrade Plan</span>
+                    </SidebarMenuButton>
+                 </Link>
             </SidebarMenuItem>
             <SidebarMenuItem>
                  <SidebarMenuButton tooltip="Settings">

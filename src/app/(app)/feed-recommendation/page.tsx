@@ -8,7 +8,7 @@ export default function FeedRecommendationPage() {
         title="AI Feed Recommendation"
         description="Fill in your farm's current data to receive an AI-powered feed recommendation."
       />
-      <div className="mt-8 max-w-2xl mx-auto">
+      <div className="mt-8">
         <FeedRecommendationForm />
       </div>
     </>
