@@ -92,18 +92,20 @@ export default function AdminDashboardPage() {
     return (
         <>
             <PageHeader title="Admin Dashboard" description="Overview of the PoultryMitra ecosystem.">
-                <Button variant="outline" asChild>
-                    <Link href="/admin/notifications">
-                        <Send />
-                        Send Notification
-                    </Link>
-                </Button>
-                <Button asChild>
-                    <Link href="/admin/user-management/add-user">
-                        <PlusCircle />
-                        Add User
-                    </Link>
-                </Button>
+                <div className="flex items-center gap-2">
+                    <Button variant="outline" asChild>
+                        <Link href="/admin/notifications">
+                            <Send />
+                            Send Notification
+                        </Link>
+                    </Button>
+                    <Button asChild>
+                        <Link href="/admin/user-management/add-user">
+                            <PlusCircle />
+                            Add User
+                        </Link>
+                    </Button>
+                </div>
             </PageHeader>
             <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 {kpiData.map(kpi => (
@@ -177,45 +179,10 @@ export default function AdminDashboardPage() {
                  </div>
             </div>
             
-            <div className="mt-8 grid grid-cols-1 gap-4 lg:grid-cols-2">
-                <UserManagementSummary />
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Recent Transactions</CardTitle>
-                        <CardDescription>Latest payments from all users.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>User</TableHead>
-                                    <TableHead>Plan</TableHead>
-                                    <TableHead>Amount</TableHead>
-                                    <TableHead>Status</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {transactions.map(txn => (
-                                    <TableRow key={txn.id}>
-                                        <TableCell>
-                                            <div className="font-medium">{txn.user.name}</div>
-                                            <div className="text-sm text-muted-foreground">{txn.user.email}</div>
-                                        </TableCell>
-                                        <TableCell>{txn.plan}</TableCell>
-                                        <TableCell>{txn.amount}</TableCell>
-                                        <TableCell>
-                                            <Badge variant={statusVariant[txn.status as keyof typeof statusVariant]}>{txn.status}</Badge>
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    </CardContent>
-                </Card>
+            <div className="mt-8 grid grid-cols-1 gap-4">
+                 <UserManagementSummary />
             </div>
 
         </>
     )
 }
-
-    

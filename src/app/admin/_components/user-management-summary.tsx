@@ -49,24 +49,24 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 type UserStatus = "active" | "suspended" | "pending";
 
 const statusVariant: { [key in UserStatus]: "default" | "secondary" | "destructive" | "outline" } = {
-    active: "outline",
+    active: "default",
     suspended: "secondary",
-    pending: "default",
+    pending: "outline",
 };
 
 const statusColorScheme = {
-    active: "text-green-500 border-green-500/50",
-    suspended: "text-orange-500 border-orange-500/50",
-    pending: "text-blue-500 border-blue-500/50",
+    active: "text-green-500 border-green-500/50 bg-green-500/10",
+    suspended: "text-orange-500 border-orange-500/50 bg-orange-500/10",
+    pending: "text-blue-500 border-blue-500/50 bg-blue-500/10",
 };
 
 
 export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 'dealer' }) {
-    const allUsers = mockUsers.filter(user => user.role !== 'admin').map(user => ({...user, status: 'active' as UserStatus}));
+    const allUsers = mockUsers.filter(user => user.role !== 'admin').map(user => ({...user, status: (['active', 'suspended', 'pending'] as UserStatus[])[Math.floor(Math.random() * 3)] }));
     const [users, setUsers] = useState(allUsers);
     
     const [dialogState, setDialogState] = useState<{ action: 'delete' | 'suspend' | null, user: User | null }>({ action: null, user: null });
-    const [detailsUser, setDetailsUser] = useState<User | null>(null);
+    const [detailsUser, setDetailsUser] = useState<(User & { status: UserStatus }) | null>(null);
     const { toast } = useToast();
 
     const filteredUsers = users.filter(user => 
@@ -110,7 +110,7 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
         setDialogState({ user, action });
     };
 
-    const openDetailsDialog = (user: User) => {
+    const openDetailsDialog = (user: User & { status: UserStatus }) => {
         setDetailsUser(user);
     };
     
@@ -216,20 +216,25 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
                                                 <div>
                                                     <h3 className="text-xl font-bold">{detailsUser.name}</h3>
                                                     <p className="text-muted-foreground">{detailsUser.email}</p>
-                                                    <Badge className="capitalize mt-1">{detailsUser.role}</Badge>
+                                                    <div className="flex items-center gap-2 mt-1">
+                                                        <Badge className="capitalize">{detailsUser.role}</Badge>
+                                                        <Badge variant={statusVariant[detailsUser.status]} className={cn("capitalize", statusColorScheme[detailsUser.status])}>
+                                                            {detailsUser.status}
+                                                        </Badge>
+                                                    </div>
                                                 </div>
                                             </div>
                                              <div className="grid grid-cols-2 gap-2 text-sm">
-                                                <p><strong className="font-medium">Date Joined:</strong> {new Date(detailsUser.dateJoined).toLocaleDateString()}</p>
-                                                <p><strong className="font-medium">User ID:</strong> <span className="font-mono text-xs">{detailsUser.id}</span></p>
+                                                <div><strong className="font-medium">Date Joined:</strong> {new Date(detailsUser.dateJoined).toLocaleDateString()}</div>
+                                                <div><strong className="font-medium">User ID:</strong> <span className="font-mono text-xs">{detailsUser.id}</span></div>
                                              </div>
                                         </CardContent>
                                      </Card>
                                 </TabsContent>
                                 <TabsContent value="subscription" className="mt-4 space-y-2">
-                                    <div>Subscription Plan: <Badge>Premium Farmer</Badge></div>
-                                    <div>Status: <Badge variant="outline" className="text-green-500 border-green-500">Active</Badge></div>
-                                    <div>Next Billing Date: 2023-12-01</div>
+                                    <div><strong className="font-medium">Subscription Plan:</strong> <Badge>Premium Farmer</Badge></div>
+                                    <div><strong className="font-medium">Status:</strong> <Badge variant="outline" className="text-green-500 border-green-500">Active</Badge></div>
+                                    <div><strong className="font-medium">Next Billing Date:</strong> 2023-12-01</div>
                                 </TabsContent>
                                 <TabsContent value="orders" className="mt-4">
                                      <Table>
@@ -289,5 +294,3 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
         </>
     )
 }
-
-    

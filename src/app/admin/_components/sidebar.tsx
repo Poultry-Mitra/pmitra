@@ -43,7 +43,7 @@ export function AdminSidebar() {
   const pathname = usePathname();
   const { t } = useLanguage();
   const { state } = useSidebar();
-  const [userManagementOpen, setUserManagementOpen] = useState(false);
+  const [userManagementOpen, setUserManagementOpen] = useState(pathname.startsWith('/admin/user-management'));
 
 
   return (
@@ -71,7 +71,7 @@ export function AdminSidebar() {
           <Collapsible open={userManagementOpen} onOpenChange={setUserManagementOpen}>
             <SidebarMenuItem className="relative">
               <CollapsibleTrigger asChild>
-                  <SidebarMenuButton tooltip="User Management" className="w-full justify-between pr-8">
+                  <SidebarMenuButton tooltip="User Management" className="w-full justify-between pr-8" isActive={pathname.startsWith("/admin/user-management")}>
                       <div className="flex items-center gap-3">
                           <Users />
                           <span>User Management</span>
