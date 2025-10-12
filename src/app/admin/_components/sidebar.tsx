@@ -129,17 +129,6 @@ export function AdminSidebar() {
               </Link>
           </SidebarMenuItem>
           <SidebarMenuItem>
-              <Link href="/admin/promo-codes">
-                <SidebarMenuButton
-                  isActive={pathname.startsWith("/admin/promo-codes")}
-                  tooltip={"Promo Codes"}
-                >
-                  <TicketPercent />
-                  <span>{"Promo Codes"}</span>
-                </SidebarMenuButton>
-              </Link>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
               <Link href="/admin/transactions">
                 <SidebarMenuButton
                   isActive={pathname.startsWith("/admin/transactions")}
@@ -189,6 +178,17 @@ export function AdminSidebar() {
 
           <SidebarSeparator />
           <SidebarGroupLabel>Configuration</SidebarGroupLabel>
+           <SidebarMenuItem>
+              <Link href="/admin/promo-codes">
+                <SidebarMenuButton
+                  isActive={pathname.startsWith("/admin/promo-codes")}
+                  tooltip={"Promo Codes"}
+                >
+                  <TicketPercent />
+                  <span>{"Promo Codes"}</span>
+                </SidebarMenuButton>
+              </Link>
+          </SidebarMenuItem>
            <SidebarMenuItem>
               <Link href="/admin/settings">
                 <SidebarMenuButton
