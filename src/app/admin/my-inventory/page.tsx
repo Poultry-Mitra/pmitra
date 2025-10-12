@@ -31,7 +31,7 @@ export default function MyInventoryPage() {
                 <Button asChild>
                     <Link href="/admin/my-inventory/add">
                         <PlusCircle className="mr-2" />
-                        Add Product
+                        Add Stock / Purchase
                     </Link>
                 </Button>
             </PageHeader>
@@ -87,3 +87,5 @@ export default function MyInventoryPage() {
         </>
     );
 }
+
+    
