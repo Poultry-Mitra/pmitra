@@ -134,7 +134,7 @@ export default function DetailedSignupPage() {
             } else {
                 toast({
                     title: "Signup Failed",
-                    description: "error kyu hai",
+                    description: "An unknown error occurred during signup.",
                     variant: "destructive",
                 });
             }
