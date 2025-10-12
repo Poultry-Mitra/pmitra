@@ -1,0 +1,102 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+  
+    // Helper functions
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+    
+    function isAdmin() {
+      return exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    function isFarmer() {
+      return exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'farmer';
+    }
+
+    function isDealer() {
+      return exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'dealer';
+    }
+    
+    function isConnected(farmerUID, dealerUID) {
+      let farmerData = get(/databases/$(database)/documents/users/$(farmerUID)).data;
+      return dealerUID in farmerData.connectedDealers;
+    }
+
+    // Rules for 'users' collection
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow list: if isAdmin();
+      allow create: if request.auth != null; // Anyone can sign up
+      allow update: if isOwner(userId) || isAdmin();
+      allow delete: if isAdmin();
+    }
+    
+    // Rules for 'batches' collection
+    match /batches/{batchId} {
+      allow read, write: if isOwner(resource.data.farmerUID) || isAdmin();
+      
+      // Daily records can be read/written by the owner of the parent batch
+      match /dailyRecords/{recordId} {
+        allow read, write: if isOwner(get(/databases/$(database)/documents/batches/$(batchId)).data.farmerUID) || isAdmin();
+      }
+    }
+
+    // Rules for farmer 'inventory'
+    match /inventory/{itemId} {
+        allow read, write: if isOwner(resource.data.farmerUID) || isAdmin();
+    }
+
+    // Rules for 'dealerInventory'
+    match /dealerInventory/{itemId} {
+        // Dealer owner or admin can do anything
+        allow write: if isOwner(request.resource.data.dealerUID) || isAdmin();
+        
+        // A farmer can read a dealer's inventory if they are connected
+        allow read: if isDealer() && isOwner(resource.data.dealerUID) || 
+                      (isFarmer() && isConnected(request.auth.uid, resource.data.dealerUID)) ||
+                      isAdmin();
+    }
+
+    // Rules for 'orders'
+    match /orders/{orderId} {
+        // Farmer can create an order for themselves from a connected dealer
+        allow create: if isOwner(request.resource.data.farmerUID) && isConnected(request.resource.data.farmerUID, request.resource.data.dealerUID);
+
+        // Dealer can create an order for a connected farmer
+        allow create: if isOwner(request.resource.data.dealerUID) && isConnected(request.resource.data.farmerUID, request.resource.data.dealerUID);
+
+        // Farmer, Dealer, or Admin can read
+        allow read: if isOwner(resource.data.farmerUID) || isOwner(resource.data.dealerUID) || isAdmin();
+        
+        // Only the dealer can approve/reject. Farmer cannot change status.
+        allow update: if isOwner(resource.data.dealerUID) || isAdmin();
+    }
+
+    // Rules for 'ledger'
+    match /ledger/{entryId} {
+        // A user can only create/read/write their own ledger entries.
+        allow read, write: if isOwner(resource.data.userId) || isAdmin();
+    }
+    
+    // Rules for 'settings' (e.g. app settings)
+    match /settings/app {
+        allow read: if true; // Publicly readable
+        allow write: if isAdmin(); // Only admins can write
+    }
+    
+    // Rules for 'chat_logs'
+    // This assumes a structure like /chat_logs/{userId}/messages/{messageId}
+    match /chat_logs/{userId} {
+        allow read, write: if isOwner(userId) || isAdmin();
+        match /messages/{messageId} {
+           allow read, write: if isOwner(userId) || isAdmin();
+        }
+    }
+  }
+}

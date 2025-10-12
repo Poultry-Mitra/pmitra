@@ -89,7 +89,7 @@ export default function MyOrdersPage() {
                     <CardHeader>
                         <CardTitle>All Orders</CardTitle>
                         <CardDescription>
-                            A list of all pending, approved, and rejected orders sent to your farmers.
+                            A list of all pending, approved, and rejected orders from your farmers.
                         </CardDescription>
                     </CardHeader>
                     <CardContent>

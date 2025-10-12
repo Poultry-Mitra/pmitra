@@ -17,9 +17,10 @@ import {
   serverTimestamp,
   runTransaction,
   increment,
+  Transaction,
 } from 'firebase/firestore';
 import { useFirestore, useUser } from '@/firebase/provider';
-import type { Order } from '@/lib/types';
+import type { Order, User } from '@/lib/types';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { addLedgerEntryInTransaction } from './use-ledger';
@@ -146,8 +147,10 @@ export async function createOrder(firestore: Firestore, data: Omit<Order, 'id' |
     }
 }
 
-export async function updateOrderStatus(firestore: Firestore, order: Order, newStatus: Order['status']) {
+export async function updateOrderStatus(firestore: Firestore, order: Order, newStatus: Order['status'], dealer: User) {
     if (!firestore) throw new Error("Firestore not initialized");
+    if (!dealer) throw new Error("Dealer performing the action must be provided");
+
 
     const orderRef = doc(firestore, 'orders', order.id);
     
@@ -156,6 +159,7 @@ export async function updateOrderStatus(firestore: Firestore, order: Order, newS
             // Update the order status
             transaction.update(orderRef, { status: newStatus });
 
+            // If the order is approved, deduct inventory and create ledger entries
             if (newStatus === 'Approved') {
                 if (!order.productId) {
                     throw new Error("Order is missing a product ID.");
@@ -176,6 +180,20 @@ export async function updateOrderStatus(firestore: Firestore, order: Order, newS
                 transaction.update(dealerInventoryRef, {
                     quantity: increment(-order.quantity)
                 });
+                
+                // 2. Add credit entry to dealer's ledger
+                await addLedgerEntryInTransaction(transaction, firestore, order.dealerUID, {
+                    description: `Sale to ${dealer.name} (Order: ${order.id.substring(0, 5)})`,
+                    amount: order.totalAmount,
+                    date: new Date().toISOString(),
+                }, 'Credit');
+
+                // 3. Add debit entry to farmer's ledger
+                 await addLedgerEntryInTransaction(transaction, firestore, order.farmerUID, {
+                    description: `Purchase from ${dealer.name} (Order: ${order.id.substring(0, 5)})`,
+                    amount: order.totalAmount,
+                    date: new Date().toISOString(),
+                }, 'Debit');
             }
         });
     } catch (e: any) {
