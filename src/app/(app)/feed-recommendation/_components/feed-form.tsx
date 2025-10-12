@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -20,10 +20,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { recommendOptimalFeed, type RecommendOptimalFeedOutput } from '@/ai/flows/recommend-optimal-feed';
 import { WandSparkles, Loader2 } from 'lucide-react';
-import { mockFarmMetrics } from '@/lib/data';
+import { useBatches } from '@/hooks/use-batches';
+import { useUser } from '@/firebase/provider';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const formSchema = z.object({
-  productionRate: z.coerce.number().min(0, "Must be non-negative").max(100, "Cannot exceed 100"),
+  productionRate: z.coerce.number().min(0, "Must be non-negative"),
   mortalityRate: z.coerce.number().min(0, "Must be non-negative").max(100, "Cannot exceed 100"),
   feedConsumption: z.coerce.number().min(0, "Must be non-negative"),
   chickenAgeWeeks: z.coerce.number().int().min(0, "Must be a non-negative integer"),
@@ -35,18 +37,52 @@ type FormValues = z.infer<typeof formSchema>;
 export function FeedRecommendationForm() {
   const [loading, setLoading] = useState(false);
   const [recommendation, setRecommendation] = useState<RecommendOptimalFeedOutput | null>(null);
-  const latestMetrics = mockFarmMetrics[mockFarmMetrics.length - 1];
+  const { user } = useUser();
+  const { batches, loading: batchesLoading } = useBatches(user?.uid);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      productionRate: latestMetrics.productionRate,
-      mortalityRate: latestMetrics.mortalityRate,
-      feedConsumption: latestMetrics.feedConsumption,
-      chickenAgeWeeks: 24,
+      productionRate: 0,
+      mortalityRate: 0,
+      feedConsumption: 0,
+      chickenAgeWeeks: 0,
       environmentalConditions: "Temperate climate, controlled indoor environment with automated lighting.",
     },
   });
+
+  useEffect(() => {
+    if (!batchesLoading && batches && batches.length > 0) {
+        const activeBatches = batches.filter(b => b.status === 'Active');
+        if (activeBatches.length > 0) {
+            const totalChicks = activeBatches.reduce((sum, b) => sum + b.totalChicks, 0);
+            const totalMortality = activeBatches.reduce((sum, b) => sum + b.mortalityCount, 0);
+            const totalFeedConsumed = activeBatches.reduce((sum, b) => sum + b.feedConsumed, 0);
+            const liveBirds = totalChicks - totalMortality;
+
+            const avgMortalityRate = totalChicks > 0 ? (totalMortality / totalChicks) * 100 : 0;
+            
+            const totalDays = activeBatches.reduce((sum, b) => {
+                 const ageInMs = new Date().getTime() - new Date(b.batchStartDate).getTime();
+                 return sum + Math.floor(ageInMs / (1000 * 60 * 60 * 24));
+            }, 0);
+            const avgDays = totalDays / activeBatches.length;
+            
+            const avgFeedPerBirdPerDay = (liveBirds > 0 && avgDays > 0) ? (totalFeedConsumed / liveBirds / avgDays) * 1000 : 0; // in grams
+
+            const avgAgeWeeks = Math.floor(avgDays / 7);
+
+            form.reset({
+                ...form.getValues(),
+                productionRate: activeBatches.some(b => b.batchType === 'Layer') ? 85 : 0, // Placeholder for layers
+                mortalityRate: parseFloat(avgMortalityRate.toFixed(2)),
+                feedConsumption: parseFloat(avgFeedPerBirdPerDay.toFixed(2)),
+                chickenAgeWeeks: avgAgeWeeks,
+            });
+        }
+    }
+  }, [batches, batchesLoading, form]);
+
 
   async function onSubmit(values: FormValues) {
     setLoading(true);
@@ -61,13 +97,45 @@ export function FeedRecommendationForm() {
       setLoading(false);
     }
   }
+
+  if (batchesLoading) {
+      return (
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+              <Card>
+                  <CardHeader>
+                      <Skeleton className="h-6 w-1/2" />
+                      <Skeleton className="h-4 w-3/4" />
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <Skeleton className="h-16 w-full" />
+                        <Skeleton className="h-16 w-full" />
+                        <Skeleton className="h-16 w-full" />
+                        <Skeleton className="h-16 w-full" />
+                      </div>
+                      <Skeleton className="h-20 w-full" />
+                      <Skeleton className="h-10 w-full" />
+                  </CardContent>
+              </Card>
+              <Card className="flex flex-col">
+                 <CardHeader>
+                     <Skeleton className="h-6 w-1/2" />
+                      <Skeleton className="h-4 w-3/4" />
+                </CardHeader>
+                <CardContent className="flex-1 flex items-center justify-center">
+                    <WandSparkles className="mx-auto h-12 w-12 text-muted-foreground" />
+                </CardContent>
+              </Card>
+          </div>
+      )
+  }
   
   return (
     <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
         <Card>
             <CardHeader>
                 <CardTitle>Farm Data Input</CardTitle>
-                <CardDescription>Default values are based on your latest metrics.</CardDescription>
+                <CardDescription>Default values are based on your latest active batch metrics.</CardDescription>
             </CardHeader>
             <CardContent>
                 <Form {...form}>
@@ -82,6 +150,7 @@ export function FeedRecommendationForm() {
                             <FormControl>
                                 <Input type="number" placeholder="e.g., 92" {...field} />
                             </FormControl>
+                             <FormDescription className="text-xs">For layer batches. Keep 0 for broilers.</FormDescription>
                             <FormMessage />
                             </FormItem>
                         )}
@@ -93,8 +162,9 @@ export function FeedRecommendationForm() {
                             <FormItem>
                             <FormLabel>Mortality Rate (%)</FormLabel>
                             <FormControl>
-                                <Input type="number" placeholder="e.g., 0.8" {...field} />
+                                <Input type="number" step="0.01" placeholder="e.g., 0.8" {...field} />
                             </FormControl>
+                             <FormDescription className="text-xs">Overall mortality of active batches.</FormDescription>
                             <FormMessage />
                             </FormItem>
                         )}
@@ -104,10 +174,11 @@ export function FeedRecommendationForm() {
                         name="feedConsumption"
                         render={({ field }) => (
                             <FormItem>
-                            <FormLabel>Feed Consumption (g/day)</FormLabel>
+                            <FormLabel>Avg. Feed/Bird (g/day)</FormLabel>
                             <FormControl>
                                 <Input type="number" placeholder="e.g., 120" {...field} />
                             </FormControl>
+                             <FormDescription className="text-xs">Avg. daily feed per live bird.</FormDescription>
                             <FormMessage />
                             </FormItem>
                         )}
@@ -119,8 +190,9 @@ export function FeedRecommendationForm() {
                             <FormItem>
                             <FormLabel>Average Chicken Age (weeks)</FormLabel>
                             <FormControl>
-                                <Input type="number" placeholder="e.g., 24" {...field} />
+                                <Input type="number" placeholder="e.g., 4" {...field} />
                             </FormControl>
+                            <FormDescription className="text-xs">Avg. age of active batches.</FormDescription>
                             <FormMessage />
                             </FormItem>
                         )}
@@ -176,3 +248,5 @@ export function FeedRecommendationForm() {
     </div>
   );
 }
+
+    
