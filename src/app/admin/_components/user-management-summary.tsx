@@ -47,7 +47,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { useUsers } from "@/hooks/use-users";
+import { useUsers, deleteUser } from "@/hooks/use-users";
+import { useFirestore, useUser as useAuthUser } from "@/firebase/provider";
+import { addAuditLog } from "@/hooks/use-audit-logs";
+
 
 type UserStatus = "active" | "suspended" | "pending";
 type UserWithStatus = User & { status: UserStatus };
@@ -69,8 +72,8 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
     const { users, loading } = useUsers(roleToShow);
     const [usersWithStatus, setUsersWithStatus] = useState<UserWithStatus[]>([]);
     
+    // This effect now simulates the status on the client side based on fetched user data
     useEffect(() => {
-        // This logic runs only on the client-side, preventing hydration mismatch.
         if (users) {
             const usersWithRandomStatus = users.map(user => ({...user, status: (['active', 'suspended', 'pending'] as UserStatus[])[Math.floor(Math.random() * 3)] }));
             setUsersWithStatus(usersWithRandomStatus);
@@ -82,6 +85,8 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
     const [otherReason, setOtherReason] = useState("");
     const [detailsUser, setDetailsUser] = useState<UserWithStatus | null>(null);
     const { toast } = useToast();
+    const firestore = useFirestore();
+    const adminUser = useAuthUser();
 
     const filteredUsers = roleToShow ? usersWithStatus : usersWithStatus.slice(0, 5); // Show only 5 recent users on dashboard view
 
@@ -102,6 +107,8 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
             return;
         }
 
+        // In a real app, this would update the user's status in Firestore.
+        // For now, we simulate by updating local state.
         setUsersWithStatus(usersWithStatus.map(u => u.id === dialogState.user!.id ? { ...u, status: u.status === 'active' ? 'suspended' : 'active' } : u));
         
         toast({
@@ -113,8 +120,8 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
         setOtherReason("");
     };
 
-    const handleDelete = () => {
-        if (!dialogState.user) return;
+    const handleDelete = async () => {
+        if (!dialogState.user || !firestore || !adminUser.user) return;
 
         const finalReason = reason === 'other' ? otherReason : reason;
          if (!finalReason) {
@@ -126,13 +133,28 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
             return;
         }
 
-        setUsersWithStatus(usersWithStatus.filter(u => u.id !== dialogState.user!.id));
+        try {
+            await deleteUser(firestore, dialogState.user.id);
+            await addAuditLog(firestore, {
+                adminUID: adminUser.user.uid,
+                action: 'DELETE_USER',
+                timestamp: new Date().toISOString(),
+                details: `Deleted user: ${dialogState.user.name} (${dialogState.user.id}). Reason: ${finalReason}`,
+            });
 
-        toast({
-            title: "User Deleted",
-            description: `${dialogState.user.name} has been permanently deleted. Reason: ${finalReason}`,
-            variant: "destructive",
-        });
+            toast({
+                title: "User Deleted",
+                description: `${dialogState.user.name} has been permanently deleted from the database.`,
+                variant: "destructive",
+            });
+        } catch (error: any) {
+            toast({
+                title: "Deletion Failed",
+                description: error.message || "Could not delete the user from the database.",
+                variant: "destructive",
+            });
+        }
+        
         setDialogState({ action: null, user: null });
         setReason("");
         setOtherReason("");

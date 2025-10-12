@@ -18,6 +18,7 @@ import {
   addDoc,
   serverTimestamp,
   DocumentSnapshot,
+  deleteDoc,
 } from 'firebase/firestore';
 import { useFirestore } from '@/firebase/provider';
 import type { User, UserRole } from '@/lib/types';
@@ -171,4 +172,18 @@ export async function requestDealerConnection(firestore: Firestore, farmerUID: s
     });
     
     return dealerUser;
+}
+
+export function deleteUser(firestore: Firestore, userId: string) {
+    if (!firestore) throw new Error("Firestore not initialized");
+    const docRef = doc(firestore, 'users', userId);
+
+    return deleteDoc(docRef).catch((e) => {
+        const permissionError = new FirestorePermissionError({
+            path: `users/${userId}`,
+            operation: 'delete',
+        });
+        errorEmitter.emit('permission-error', permissionError);
+        throw e;
+    });
 }
