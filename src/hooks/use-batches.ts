@@ -205,7 +205,7 @@ export async function addDailyRecord(
     
     const batchRef = doc(firestore, 'batches', batchId);
     const dailyRecordRef = doc(collection(firestore, `batches/${batchId}/dailyRecords`));
-    const inventoryItemRef = data.feedItemId ? doc(firestore, `users/${farmerUID}/inventory`, data.feedItemId) : null;
+    const inventoryItemRef = data.feedItemId ? doc(firestore, `inventory`, data.feedItemId) : null;
 
 
     try {
@@ -250,12 +250,15 @@ export async function addDailyRecord(
         });
     } catch(e: any) {
         console.error("Add daily record transaction failed: ", e);
-        const permissionError = new FirestorePermissionError({
-            path: `batches/${batchId}/dailyRecords`,
-            operation: 'create',
-            requestResourceData: data,
-        });
-        errorEmitter.emit('permission-error', permissionError);
+        // Avoid double-emitting if it's already a permission error from a sub-operation
+        if (!(e instanceof FirestorePermissionError)) {
+             const permissionError = new FirestorePermissionError({
+                path: batchRef.path, // Use the main batch path for the overall transaction
+                operation: 'update',
+                requestResourceData: data,
+            });
+            errorEmitter.emit('permission-error', permissionError);
+        }
         throw e;
     }
 }

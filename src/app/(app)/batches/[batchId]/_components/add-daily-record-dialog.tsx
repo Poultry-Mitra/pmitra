@@ -185,7 +185,9 @@ export function AddDailyRecordDialog({ open, onOpenChange, batchId }: { open: bo
                         
                         <DialogFooter>
                             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-                            <Button type="submit">Save Record</Button>
+                            <Button type="submit" disabled={form.formState.isSubmitting}>
+                                {form.formState.isSubmitting ? "Saving..." : "Save Record"}
+                            </Button>
                         </DialogFooter>
                     </form>
                 </Form>

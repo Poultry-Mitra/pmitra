@@ -13,6 +13,7 @@ import {
   QueryDocumentSnapshot,
   query,
   where,
+  doc,
 } from 'firebase/firestore';
 import { useFirestore } from '@/firebase/provider';
 import type { InventoryItem } from '@/lib/types';
@@ -42,6 +43,8 @@ export function useInventory(farmerUID: string) {
     }
     
     setLoading(true);
+    // Note: The collection is named 'inventory', not 'users/${farmerUID}/inventory'
+    // Security rules will enforce that a user can only read their own inventory.
     const inventoryCollection = collection(firestore, 'inventory');
     const q = query(inventoryCollection, where("farmerUID", "==", farmerUID));
 
@@ -85,7 +88,8 @@ export function useInventoryByCategory(farmerUID: string, category: InventoryIte
     const q = query(
       inventoryCollection, 
       where("farmerUID", "==", farmerUID),
-      where("category", "==", category)
+      where("category", "==", category),
+      where("stockQuantity", ">", 0) // Only show items that are in stock
     );
 
     const unsubscribe = onSnapshot(
@@ -112,21 +116,26 @@ export function useInventoryByCategory(farmerUID: string, category: InventoryIte
 }
 
 
-export function addInventoryItem(firestore: Firestore, farmerUID: string, data: Omit<InventoryItem, 'id' | 'farmerUID' | 'lastUpdated'>) {
+export async function addInventoryItem(firestore: Firestore, farmerUID: string, data: Omit<InventoryItem, 'id' | 'farmerUID' | 'lastUpdated'>) {
     if (!firestore) throw new Error("Firestore not initialized");
 
     const collectionRef = collection(firestore, 'inventory');
     
-    addDoc(collectionRef, {
+    const docData = {
         ...data,
         farmerUID,
         lastUpdated: serverTimestamp(),
-    }).catch(async (serverError) => {
+    };
+
+    try {
+        await addDoc(collectionRef, docData);
+    } catch (serverError: any) {
         const permissionError = new FirestorePermissionError({
             path: 'inventory',
             operation: 'create',
-            requestResourceData: { ...data, farmerUID },
+            requestResourceData: docData,
         });
         errorEmitter.emit('permission-error', permissionError);
-    });
+        throw serverError; // Re-throw for form error handling
+    }
 }
