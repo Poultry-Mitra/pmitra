@@ -7,7 +7,6 @@ import {
   collection,
   onSnapshot,
   addDoc,
-  serverTimestamp,
   type Firestore,
   type DocumentData,
   QueryDocumentSnapshot,
@@ -54,10 +53,6 @@ export function useLedger(farmerUID: string) {
       q,
       (snapshot) => {
         const fetchedEntries = snapshot.docs.map(toLedgerEntry);
-        // Balance calculation can be done on client for simplicity here
-        // Note: For large datasets, this should be handled server-side or with more sophisticated client-side logic.
-        let runningBalance = fetchedEntries.length > 0 ? fetchedEntries[0].balanceAfter : 0;
-        
         setEntries(fetchedEntries);
         setLoading(false);
       },
@@ -101,8 +96,12 @@ export async function addLedgerEntry(
             // to hold the current balance to avoid race conditions.
             // For this app's scale, querying the last entry is acceptable.
             const lastEntrySnapshot = await getDocs(lastEntryQuery);
-            const lastEntry = lastEntrySnapshot.docs[0]?.data() as LedgerEntry | undefined;
-            const lastBalance = lastEntry?.balanceAfter || 0;
+            
+            let lastBalance = 0;
+            if (!lastEntrySnapshot.empty) {
+                const lastEntry = lastEntrySnapshot.docs[0].data() as LedgerEntry;
+                lastBalance = lastEntry.balanceAfter;
+            }
 
             let newBalance = lastBalance;
             if (type === 'Credit') {
@@ -120,14 +119,15 @@ export async function addLedgerEntry(
                 // date is already in ISO string format from the form
             });
         });
-    } catch (e) {
-        console.error("Transaction failed: ", e);
+    } catch (e: any) {
+        console.error("Ledger transaction failed: ", e);
         const permissionError = new FirestorePermissionError({
             path: 'ledger',
             operation: 'create',
             requestResourceData: { ...data, farmerUID },
         });
         errorEmitter.emit('permission-error', permissionError);
-        throw e; // re-throw to be caught by the caller
+        // Re-throw the original error to be caught by the calling form/component
+        throw e;
     }
 }

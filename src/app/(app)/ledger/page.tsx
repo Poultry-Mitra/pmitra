@@ -34,7 +34,7 @@ export default function LedgerPage() {
                 <div className="text-sm text-muted-foreground">Current Balance</div>
                 <div className={cn("text-2xl font-bold", finalBalance >= 0 ? "text-green-600" : "text-destructive")}>
                     <IndianRupee className="inline h-5 w-5 -mt-1" />
-                    {finalBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    {loading ? <Loader2 className="inline-block h-6 w-6 animate-spin" /> : finalBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </div>
             </div>
             <div className="flex items-center gap-2">
@@ -53,7 +53,7 @@ export default function LedgerPage() {
         <Card>
             <CardHeader>
                 <CardTitle>Transaction History</CardTitle>
-                <CardDescription>A complete record of your financial activities.</CardDescription>
+                <CardDescription>A complete record of your financial activities, with the most recent transactions first.</CardDescription>
             </CardHeader>
             <CardContent>
                 <Table>
@@ -79,7 +79,7 @@ export default function LedgerPage() {
                         {!loading && entries.length === 0 && (
                             <TableRow>
                                 <TableCell colSpan={5} className="text-center p-8">
-                                    No transactions found. Add a purchase or manual expense to get started.
+                                    No transactions found. Click "Add Purchase" in inventory or add a manual expense to get started.
                                 </TableCell>
                             </TableRow>
                         )}

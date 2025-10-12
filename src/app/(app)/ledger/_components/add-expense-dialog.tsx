@@ -1,7 +1,6 @@
 
 "use client";
 
-import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -25,7 +24,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { addLedgerEntry, type LedgerEntry } from '@/hooks/use-ledger';
+import { addLedgerEntry } from '@/hooks/use-ledger';
 import { useFirestore, useUser } from '@/firebase/provider';
 import { Calendar as CalendarIcon, IndianRupee } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -64,14 +63,13 @@ export function AddExpenseDialog({ open, onOpenChange }: { open: boolean; onOpen
             return;
         }
 
-        const newEntry: Omit<LedgerEntry, 'id' | 'farmerUID' | 'type' | 'balanceAfter'> = {
-            description: `${values.category}: ${values.description}`,
-            amount: values.amount,
-            date: values.date.toISOString(),
-        };
-
         try {
-            await addLedgerEntry(firestore, user.uid, newEntry, 'Debit');
+            await addLedgerEntry(firestore, user.uid, {
+                description: `${values.category}: ${values.description}`,
+                amount: values.amount,
+                date: values.date.toISOString(),
+            }, 'Debit');
+
             toast({
                 title: "Expense Added",
                 description: `${values.description} has been added to your ledger.`,
@@ -176,7 +174,9 @@ export function AddExpenseDialog({ open, onOpenChange }: { open: boolean; onOpen
                             )}
                         />
                         <DialogFooter>
-                            <Button type="submit">Add Expense</Button>
+                            <Button type="submit" disabled={form.formState.isSubmitting}>
+                                {form.formState.isSubmitting ? "Adding..." : "Add Expense"}
+                            </Button>
                         </DialogFooter>
                     </form>
                 </Form>

@@ -26,7 +26,7 @@ function toInventoryItem(doc: QueryDocumentSnapshot<DocumentData>): InventoryIte
     return {
         id: doc.id,
         ...data,
-        lastUpdated: data.lastUpdated?.toDate(),
+        lastUpdated: data.lastUpdated,
     } as InventoryItem;
 }
 
@@ -127,9 +127,7 @@ export async function addInventoryItem(firestore: Firestore, farmerUID: string, 
         lastUpdated: serverTimestamp(),
     };
 
-    try {
-        await addDoc(collectionRef, docData);
-    } catch (serverError: any) {
+    addDoc(collectionRef, docData).catch(async (serverError) => {
         const permissionError = new FirestorePermissionError({
             path: 'inventory',
             operation: 'create',
@@ -137,5 +135,5 @@ export async function addInventoryItem(firestore: Firestore, farmerUID: string, 
         });
         errorEmitter.emit('permission-error', permissionError);
         throw serverError; // Re-throw for form error handling
-    }
+    });
 }

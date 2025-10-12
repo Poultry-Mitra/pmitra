@@ -1,4 +1,3 @@
-
 // src/app/(app)/inventory/page.tsx
 "use client";
 
@@ -26,7 +25,7 @@ export default function InventoryPage() {
     <>
       <PageHeader 
         title="Inventory Stock"
-        description="Manage your feed and medicine stock."
+        description="Manage your feed, medicine, and other supplies."
       >
         <Button asChild>
             <Link href="/inventory/add">
@@ -39,7 +38,7 @@ export default function InventoryPage() {
         <Card>
             <CardHeader>
                 <CardTitle>Current Stock</CardTitle>
-                <CardDescription>A list of all items in your inventory.</CardDescription>
+                <CardDescription>A list of all items in your inventory. Stock is automatically updated when you add daily records.</CardDescription>
             </CardHeader>
             <CardContent>
                 <Table>
@@ -64,7 +63,7 @@ export default function InventoryPage() {
                         {!loading && inventory.length === 0 && (
                             <TableRow>
                                 <TableCell colSpan={4} className="text-center p-8">
-                                    No inventory items found. Click "Add Purchase" to get started.
+                                    No inventory items found. Click "Add Purchase" to record your first stock entry.
                                 </TableCell>
                             </TableRow>
                         )}

@@ -25,7 +25,7 @@ import { Separator } from "@/components/ui/separator";
 const productSchema = z.object({
   productName: z.string().min(2, "Product name is required."),
   category: z.enum(["Chicks", "Feed", "Medicine", "Equipment", "Supplements", "Bedding", "Sanitizers", "Other"]),
-  quantity: z.coerce.number().min(0, "Quantity must be non-negative."),
+  quantity: z.coerce.number().min(0.01, "Quantity must be greater than 0."),
   unit: z.enum(["kg", "grams", "liters", "ml", "units"]),
   price: z.coerce.number().min(0),
   discount: z.coerce.number().min(0).default(0),
@@ -136,12 +136,12 @@ export default function AddPurchasePage() {
 
             // 2. Add a single debit entry to the ledger for the total purchase amount
             const ledgerDescription = `Purchase from ${values.supplierName || 'Unknown Supplier'}` + (values.invoiceNumber ? ` (Bill: ${values.invoiceNumber})` : '');
-            const newLedgerEntry: Omit<LedgerEntry, 'id' | 'farmerUID' | 'type' | 'balanceAfter'> = {
+            
+            await addLedgerEntry(firestore, user.uid, {
                 description: ledgerDescription,
                 amount: netPayable,
                 date: values.invoiceDate.toISOString(),
-            };
-            await addLedgerEntry(firestore, user.uid, newLedgerEntry, 'Debit');
+            }, 'Debit');
             
             toast({
                 title: "Purchase Recorded",
@@ -380,9 +380,9 @@ export default function AddPurchasePage() {
                                         )} />
                                     </CardContent>
                                 </Card>
-                                 <Button type="submit" size="lg" className="w-full">
+                                 <Button type="submit" size="lg" className="w-full" disabled={form.formState.isSubmitting}>
                                     <Save className="mr-2" />
-                                    Save Purchase
+                                    {form.formState.isSubmitting ? "Saving..." : "Save Purchase"}
                                 </Button>
                             </div>
                         </div>
@@ -392,5 +392,3 @@ export default function AddPurchasePage() {
         </>
     );
 }
-
-    

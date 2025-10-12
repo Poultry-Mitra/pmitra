@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { addLedgerEntry, type LedgerEntry } from '@/hooks/use-ledger';
+import { addLedgerEntry } from '@/hooks/use-ledger';
 import { useFirestore, useUser } from '@/firebase/provider';
 import { Calendar as CalendarIcon, IndianRupee } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -60,14 +60,13 @@ export function AddIncomeDialog({ open, onOpenChange }: { open: boolean; onOpenC
             return;
         }
 
-        const newEntry: Omit<LedgerEntry, 'id' | 'farmerUID' | 'type' | 'balanceAfter'> = {
-            description: values.description,
-            amount: values.amount,
-            date: values.date.toISOString(),
-        };
-
         try {
-            await addLedgerEntry(firestore, user.uid, newEntry, 'Credit');
+            await addLedgerEntry(firestore, user.uid, {
+                description: values.description,
+                amount: values.amount,
+                date: values.date.toISOString(),
+            }, 'Credit');
+            
             toast({
                 title: "Income Added",
                 description: `Credit entry for "${values.description}" has been added to your ledger.`,
@@ -149,7 +148,9 @@ export function AddIncomeDialog({ open, onOpenChange }: { open: boolean; onOpenC
                             )}
                         />
                         <DialogFooter>
-                            <Button type="submit">Add Income</Button>
+                            <Button type="submit" disabled={form.formState.isSubmitting}>
+                                {form.formState.isSubmitting ? "Adding..." : "Add Income"}
+                            </Button>
                         </DialogFooter>
                     </form>
                 </Form>
