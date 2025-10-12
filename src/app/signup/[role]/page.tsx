@@ -121,17 +121,23 @@ export default function DetailedSignupPage() {
 
         } catch (error: any) {
             console.error("Signup failed:", error);
-            let errorMessage = "An unknown error occurred during signup.";
             if (error.code === 'auth/email-already-in-use') {
-                errorMessage = "This email is already registered. Please login or use a different email.";
+                form.setError('email', {
+                    type: 'manual',
+                    message: 'This email is already registered. Please login or use a different email.'
+                });
             } else if (error.code === 'auth/weak-password') {
-                errorMessage = "The password is too weak. Please use at least 6 characters.";
+                form.setError('password', {
+                    type: 'manual',
+                    message: 'The password is too weak. Please use at least 6 characters.'
+                });
+            } else {
+                toast({
+                    title: "Signup Failed",
+                    description: "An unknown error occurred during signup.",
+                    variant: "destructive",
+                });
             }
-            toast({
-                title: "Signup Failed",
-                description: errorMessage,
-                variant: "destructive",
-            });
         }
     }
 
