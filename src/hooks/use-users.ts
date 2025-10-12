@@ -1,4 +1,3 @@
-
 // src/hooks/use-users.ts
 'use client';
 
@@ -15,6 +14,8 @@ import {
   doc,
   updateDoc,
   arrayUnion,
+  addDoc,
+  serverTimestamp,
 } from 'firebase/firestore';
 import { useFirestore } from '@/firebase/provider';
 import type { User, UserRole } from '@/lib/types';
@@ -22,8 +23,9 @@ import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 
 // Helper to convert Firestore doc to User type
-function toUser(doc: QueryDocumentSnapshot<DocumentData>): User {
+function toUser(doc: QueryDocumentSnapshot<DocumentData> | DocumentSnapshot<DocumentData>): User {
     const data = doc.data();
+    if (!data) throw new Error("User document data is empty");
     return {
         id: doc.id,
         ...data,
@@ -50,7 +52,7 @@ export function useUsers(role?: 'farmer' | 'dealer') {
     const unsubscribe = onSnapshot(
       q,
       (snapshot) => {
-        setUsers(snapshot.docs.map(toUser));
+        setUsers(snapshot.docs.map(d => toUser(d)));
         setLoading(false);
       },
       (err) => {
@@ -131,7 +133,7 @@ export async function findUserByUniqueCode(firestore: Firestore, uniqueCode: str
 }
 
 
-export async function connectFarmerToDealer(firestore: Firestore, farmerUID: string, dealerCode: string): Promise<User> {
+export async function requestDealerConnection(firestore: Firestore, farmerUID: string, dealerCode: string): Promise<User> {
     if (!firestore) throw new Error("Firestore not initialized");
 
     // 1. Find the dealer by their unique code
@@ -147,16 +149,14 @@ export async function connectFarmerToDealer(firestore: Firestore, farmerUID: str
         throw new Error("This dealer has reached the maximum number of connected farmers on their current plan.");
     }
 
-    // 3. Update both the farmer's and dealer's documents
-    const dealerRef = doc(firestore, 'users', dealerUser.id);
-    const farmerRef = doc(firestore, 'users', farmerUID);
-
-    await updateDoc(dealerRef, {
-        connectedFarmers: arrayUnion(farmerUID)
-    });
-
-    await updateDoc(farmerRef, {
-        connectedDealers: arrayUnion(dealerUser.id)
+    // 3. Create a connection document with status 'pending'
+    const connectionsCollection = collection(firestore, 'connections');
+    await addDoc(connectionsCollection, {
+        farmerUID,
+        dealerUID: dealerUser.id,
+        status: 'Pending',
+        requestedBy: 'farmer',
+        createdAt: serverTimestamp(),
     });
     
     return dealerUser;

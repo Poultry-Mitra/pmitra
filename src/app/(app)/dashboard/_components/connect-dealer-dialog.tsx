@@ -1,4 +1,3 @@
-
 // src/app/(app)/dashboard/_components/connect-dealer-dialog.tsx
 "use client";
 
@@ -26,7 +25,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Send, Loader2 } from 'lucide-react';
 import { useFirestore, useUser } from '@/firebase/provider';
-import { connectFarmerToDealer } from '@/hooks/use-users';
+import { requestDealerConnection } from '@/hooks/use-users';
 
 const formSchema = z.object({
     dealerCode: z.string().min(1, "Please enter a Dealer Code."),
@@ -53,11 +52,11 @@ export function ConnectDealerDialog({ open, onOpenChange }: { open: boolean; onO
         }
 
         try {
-            const dealer = await connectFarmerToDealer(firestore, farmerUser.uid, values.dealerCode);
+            const dealer = await requestDealerConnection(firestore, farmerUser.uid, values.dealerCode);
 
             toast({
-                title: "Connection Successful!",
-                description: `You are now connected with ${dealer.name}.`,
+                title: "Connection Request Sent!",
+                description: `A connection request has been sent to ${dealer.name}. You will be able to order from them once they approve.`,
             });
             onOpenChange(false);
             form.reset();
@@ -92,7 +91,7 @@ export function ConnectDealerDialog({ open, onOpenChange }: { open: boolean; onO
                             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
                             <Button type="submit" disabled={form.formState.isSubmitting}>
                                 {form.formState.isSubmitting ? <Loader2 className="mr-2 animate-spin" /> : <Send className="mr-2" />}
-                                {form.formState.isSubmitting ? 'Connecting...' : 'Connect'}
+                                {form.formState.isSubmitting ? 'Sending Request...' : 'Send Request'}
                             </Button>
                         </DialogFooter>
                     </form>

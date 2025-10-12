@@ -55,13 +55,13 @@ export default function MyOrdersPage() {
     
     const loading = ordersLoading || farmersLoading;
 
-    const handleUpdateStatus = async (order: Order, status: 'Approved' | 'Rejected') => {
+    const handleUpdateStatus = async (order: Order, newStatus: 'Approved' | 'Rejected') => {
         if (!firestore || !user) return;
         try {
-            await updateOrderStatus(firestore, order, status, user);
+            await updateOrderStatus(order, newStatus, firestore, user);
             toast({
-                title: `Order ${status}`,
-                description: `The order for ${order.productName} has been successfully ${status.toLowerCase()}.`
+                title: `Order ${newStatus}`,
+                description: `The order for ${order.productName} has been successfully ${newStatus.toLowerCase()}.`
             });
         } catch (error: any) {
             toast({

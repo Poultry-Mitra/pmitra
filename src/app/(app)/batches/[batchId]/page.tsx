@@ -59,7 +59,8 @@ export default function BatchDetailPage() {
     
     const liveBirds = batch.totalChicks - batch.mortalityCount;
     const mortalityPercentage = batch.totalChicks > 0 ? ((batch.mortalityCount / batch.totalChicks) * 100).toFixed(2) : 0;
-    const feedConversionRatio = liveBirds > 0 && batch.avgBodyWeight > 0 ? (batch.feedConsumed * 1000 / (liveBirds * batch.avgBodyWeight)).toFixed(2) : 'N/A';
+    const totalWeightGainKg = liveBirds > 0 ? (liveBirds * batch.avgBodyWeight) / 1000 : 0;
+    const feedConversionRatio = totalWeightGainKg > 0 ? (batch.feedConsumed / totalWeightGainKg).toFixed(2) : 'N/A';
 
 
     return (

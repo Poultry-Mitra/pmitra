@@ -157,6 +157,14 @@ export type AuditLog = {
     details: string;
 }
     
+export type Connection = {
+    id: string;
+    farmerUID: string;
+    dealerUID: string;
+    status: 'Pending' | 'Approved' | 'Rejected';
+    requestedBy: 'farmer' | 'dealer';
+    createdAt: string;
+}
 
     
 
@@ -174,3 +182,4 @@ export type AuditLog = {
 
 
     
+

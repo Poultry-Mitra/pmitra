@@ -147,10 +147,8 @@ export async function createOrder(firestore: Firestore, data: Omit<Order, 'id' |
     }
 }
 
-export async function updateOrderStatus(firestore: Firestore, order: Order, newStatus: Order['status'], dealer: User) {
+export async function updateOrderStatus(order: Order, newStatus: Order['status'], firestore: Firestore, actingUser: User) {
     if (!firestore) throw new Error("Firestore not initialized");
-    if (!dealer) throw new Error("Dealer performing the action must be provided");
-
 
     const orderRef = doc(firestore, 'orders', order.id);
     
@@ -164,13 +162,15 @@ export async function updateOrderStatus(firestore: Firestore, order: Order, newS
                 if (!order.productId) {
                     throw new Error("Order is missing a product ID.");
                 }
-                 const dealerInventoryRef = doc(firestore, 'dealerInventory', order.productId);
+                const dealerInventoryRef = doc(firestore, 'dealerInventory', order.productId);
                 const dealerInventoryDoc = await transaction.get(dealerInventoryRef);
+                const farmerDocSnap = await transaction.get(doc(firestore, 'users', order.farmerUID));
 
-                if (!dealerInventoryDoc.exists()) {
-                    throw new Error("Product not found in dealer's inventory.");
-                }
+                if (!dealerInventoryDoc.exists()) throw new Error("Product not found in dealer's inventory.");
+                if (!farmerDocSnap.exists()) throw new Error("Farmer not found.");
 
+                const farmerName = farmerDocSnap.data().name;
+                const dealerName = actingUser.name;
                 const currentQuantity = dealerInventoryDoc.data().quantity;
                 if (currentQuantity < order.quantity) {
                     throw new Error("Not enough stock available to fulfill the order.");
@@ -183,14 +183,14 @@ export async function updateOrderStatus(firestore: Firestore, order: Order, newS
                 
                 // 2. Add credit entry to dealer's ledger
                 await addLedgerEntryInTransaction(transaction, firestore, order.dealerUID, {
-                    description: `Sale to ${dealer.name} (Order: ${order.id.substring(0, 5)})`,
+                    description: `Sale to ${farmerName} (Order: ${order.id.substring(0, 5)})`,
                     amount: order.totalAmount,
                     date: new Date().toISOString(),
                 }, 'Credit');
 
                 // 3. Add debit entry to farmer's ledger
                  await addLedgerEntryInTransaction(transaction, firestore, order.farmerUID, {
-                    description: `Purchase from ${dealer.name} (Order: ${order.id.substring(0, 5)})`,
+                    description: `Purchase from ${dealerName} (Order: ${order.id.substring(0, 5)})`,
                     amount: order.totalAmount,
                     date: new Date().toISOString(),
                 }, 'Debit');

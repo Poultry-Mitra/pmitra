@@ -92,7 +92,7 @@ export async function addLedgerEntry(
                 limit(1)
             );
             
-            const lastEntryDocs = await transaction.get(lastEntryQuery);
+            const lastEntryDocs = await getDocs(lastEntryQuery);
             
             let lastBalance = 0;
             if (!lastEntryDocs.empty) {
