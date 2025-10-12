@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { usePathname } from 'next/navigation';
@@ -15,13 +16,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Bell, Search, Copy } from 'lucide-react';
-import { currentDealer } from '@/lib/data';
 import { LanguageToggle } from '@/components/language-toggle';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { useClientState } from '@/hooks/use-client-state';
 import type { User } from '@/lib/types';
+import { useUser } from '@/firebase/provider';
+import { mockUsers } from '@/lib/data';
 
 
 function Breadcrumbs() {
@@ -63,7 +65,9 @@ function Breadcrumbs() {
 
 
 export function DealerHeader() {
-  const user = useClientState<User | undefined>(currentDealer);
+  const firebaseUser = useUser();
+  // Find the corresponding mock user to get dealer-specific details not on the auth object
+  const user = useClientState<User | undefined>(mockUsers.find(u => u.id === firebaseUser?.uid), undefined);
   const { toast } = useToast();
 
   if (!user) return <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background/80 px-4 backdrop-blur-sm sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6"></header>; // Render empty header to avoid layout shift

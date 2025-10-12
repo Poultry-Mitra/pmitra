@@ -8,10 +8,67 @@ import { Button } from "@/components/ui/button";
 import { LanguageToggle } from "@/components/language-toggle";
 import { useLanguage } from "@/components/language-provider";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowRight, ArrowLeft, Shield } from "lucide-react";
+import { ArrowRight, ArrowLeft, Shield, Loader2 } from "lucide-react";
+import { useUser, useFirestore } from "@/firebase/provider";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { doc, getDoc } from "firebase/firestore";
+import type { User as AppUser } from "@/lib/types";
 
 export default function LoginPage() {
   const { t } = useLanguage();
+  const firebaseUser = useUser();
+  const firestore = useFirestore();
+  const router = useRouter();
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (firebaseUser === null) {
+      // User is not logged in, stop loading.
+      setLoading(false);
+      return;
+    }
+
+    if (firebaseUser && firestore) {
+      // User is logged in, fetch their role from Firestore.
+      const userDocRef = doc(firestore, "users", firebaseUser.uid);
+      getDoc(userDocRef).then(docSnap => {
+        if (docSnap.exists()) {
+          const userData = docSnap.data() as AppUser;
+          // Redirect based on role
+          switch(userData.role) {
+            case 'farmer':
+              router.push('/dashboard');
+              break;
+            case 'dealer':
+              router.push('/dealer/dashboard');
+              break;
+            case 'admin':
+              router.push('/admin/dashboard');
+              break;
+            default:
+              // Fallback if role is not set
+              setLoading(false);
+          }
+        } else {
+          // User document doesn't exist, maybe they need to complete signup
+          setLoading(false);
+        }
+      }).catch(() => {
+        setLoading(false);
+      });
+    }
+  }, [firebaseUser, firestore, router]);
+
+
+  if (loading) {
+    return (
+        <div className="flex min-h-screen w-full flex-col items-center justify-center bg-muted/30 p-4 font-body">
+            <Loader2 className="h-12 w-12 animate-spin text-primary" />
+            <p className="mt-4 text-muted-foreground">Authenticating...</p>
+        </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen w-full flex-col items-center justify-center bg-muted/30 p-4 font-body">

@@ -1,43 +1,54 @@
 
+
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Users, Bot, IndianRupee, Activity, PlusCircle, Send } from "lucide-react";
+import { Users, Bot, IndianRupee, Activity, PlusCircle, Send, Loader2 } from "lucide-react";
 import { RevenueChart } from "../_components/revenue-chart";
 import { PageHeader } from "@/app/admin/_components/page-header";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { UserManagementSummary } from "../_components/user-management-summary";
+import { useUsers } from "@/hooks/use-users";
 
-
-const adminKpiData = [
-    {
-        title: "Total Users",
-        value: "5",
-        change: "+2 this month",
-        icon: Users,
-    },
-    {
-        title: "Total Revenue",
-        value: "₹95,500",
-        change: "+15% from last month",
-        icon: IndianRupee,
-    },
-    {
-        title: "AI Chats Used",
-        value: "1,204",
-        change: "in last 30 days",
-        icon: Bot,
-    },
-     {
-        title: "Platform Activity",
-        value: "High",
-        change: "All systems normal",
-        icon: Activity,
-    },
-]
 
 export default function AdminDashboardPage() {
+    const { users, loading } = useUsers();
+
+    const totalUsers = users.length;
+    // In a real app, revenue and AI chat usage would be fetched from analytics or a separate collection.
+    // We'll keep these as static for now.
+    const totalRevenue = "₹95,500";
+    const aiChatsUsed = "1,204";
+
+
+    const adminKpiData = [
+        {
+            title: "Total Users",
+            value: loading ? <Loader2 className="animate-spin" /> : totalUsers,
+            change: "+2 this month",
+            icon: Users,
+        },
+        {
+            title: "Total Revenue",
+            value: totalRevenue,
+            change: "+15% from last month",
+            icon: IndianRupee,
+        },
+        {
+            title: "AI Chats Used",
+            value: aiChatsUsed,
+            change: "in last 30 days",
+            icon: Bot,
+        },
+        {
+            title: "Platform Activity",
+            value: "High",
+            change: "All systems normal",
+            icon: Activity,
+        },
+    ];
+
     return (
         <>
             <PageHeader title="Admin Dashboard" description="Overview of the PoultryMitra ecosystem.">
@@ -77,7 +88,7 @@ export default function AdminDashboardPage() {
                         <CardDescription>Monthly platform revenue.</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <RevenueChart data={[]} />
+                        <RevenueChart />
                     </CardContent>
                 </Card>
                 <div className="lg:col-span-1">

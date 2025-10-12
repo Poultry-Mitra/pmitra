@@ -38,8 +38,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { MoreHorizontal, PlusCircle } from "lucide-react";
-import { mockUsers } from "@/lib/data";
+import { MoreHorizontal, PlusCircle, Loader2 } from "lucide-react";
 import Link from "next/link";
 import type { User } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
@@ -48,6 +47,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { useUsers } from "@/hooks/use-users";
 
 type UserStatus = "active" | "suspended" | "pending";
 type UserWithStatus = User & { status: UserStatus };
@@ -66,14 +66,16 @@ const statusColorScheme = {
 
 
 export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 'dealer' }) {
-    const allUsers = mockUsers.filter(user => user.role !== 'admin');
+    const { users, loading } = useUsers(roleToShow);
     const [usersWithStatus, setUsersWithStatus] = useState<UserWithStatus[]>([]);
     
     useEffect(() => {
         // This logic runs only on the client-side, preventing hydration mismatch.
-        const usersWithRandomStatus = allUsers.map(user => ({...user, status: (['active', 'suspended', 'pending'] as UserStatus[])[Math.floor(Math.random() * 3)] }));
-        setUsersWithStatus(usersWithRandomStatus);
-    }, []);
+        if (users) {
+            const usersWithRandomStatus = users.map(user => ({...user, status: (['active', 'suspended', 'pending'] as UserStatus[])[Math.floor(Math.random() * 3)] }));
+            setUsersWithStatus(usersWithRandomStatus);
+        }
+    }, [users]);
     
     const [dialogState, setDialogState] = useState<{ action: 'delete' | 'suspend' | null, user: UserWithStatus | null }>({ action: null, user: null });
     const [reason, setReason] = useState("");
@@ -81,9 +83,7 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
     const [detailsUser, setDetailsUser] = useState<UserWithStatus | null>(null);
     const { toast } = useToast();
 
-    const filteredUsers = usersWithStatus.filter(user => 
-        roleToShow ? user.role === roleToShow : true
-    ).slice(0, roleToShow ? undefined : 5); // Show only 5 recent users on dashboard view
+    const filteredUsers = roleToShow ? usersWithStatus : usersWithStatus.slice(0, 5); // Show only 5 recent users on dashboard view
 
     const title = roleToShow ? `${roleToShow.charAt(0).toUpperCase() + roleToShow.slice(1)}s` : "Recent Users";
     const description = roleToShow ? `A list of all ${roleToShow}s in the system.` : "Recently active farmers and dealers.";
@@ -177,7 +177,23 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {filteredUsers.map((user) => (
+                             {loading && (
+                                <TableRow>
+                                    <TableCell colSpan={5} className="text-center">
+                                        <div className="flex justify-center items-center p-4">
+                                            <Loader2 className="animate-spin mr-2" /> Loading users...
+                                        </div>
+                                    </TableCell>
+                                </TableRow>
+                            )}
+                            {!loading && filteredUsers.length === 0 && (
+                                <TableRow>
+                                    <TableCell colSpan={5} className="text-center p-8">
+                                        No users found.
+                                    </TableCell>
+                                </TableRow>
+                            )}
+                            {!loading && filteredUsers.map((user) => (
                                 <TableRow key={user.id}>
                                     <TableCell>
                                         <div className="flex items-center gap-3">

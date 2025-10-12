@@ -1,9 +1,9 @@
 
 
+
 import { Timestamp } from "firebase/firestore";
 
 export type UserRole = 'farmer' | 'dealer' | 'admin';
-export type UserStatus = "active" | "suspended" | "pending";
 
 export type User = {
   id: string;
@@ -15,7 +15,6 @@ export type User = {
   planType?: 'free' | 'premium';
   uniqueDealerCode?: string;
   connectedFarmers?: string[];
-  status: UserStatus;
 };
 
 export type Batch = {
@@ -151,6 +150,7 @@ export type Order = {
     
 
     
+
 
 
 

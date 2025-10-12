@@ -1,9 +1,8 @@
 
+
 "use client";
 
-import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis, Line, ComposedChart, LineChart } from 'recharts';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import type { FarmMetric } from '@/lib/types';
+import { Line, LineChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { ChartConfig, ChartContainer, ChartTooltipContent } from '@/components/ui/chart';
 
 const chartConfig = {
@@ -17,7 +16,7 @@ const chartConfig = {
     },
 } satisfies ChartConfig;
 
-const revenueData = [
+const mockRevenueData = [
   { month: 'Jan', revenue: 65000, revenueLastMonth: 59000 },
   { month: 'Feb', revenue: 72000, revenueLastMonth: 62000 },
   { month: 'Mar', revenue: 78000, revenueLastMonth: 68000 },
@@ -28,11 +27,11 @@ const revenueData = [
 ];
 
 
-export function RevenueChart({ data }: { data: any[] }) {
+export function RevenueChart({ data = mockRevenueData }: { data?: any[] }) {
     return (
         <ChartContainer config={chartConfig} className="min-h-[300px] w-full">
             <ResponsiveContainer>
-                <LineChart data={revenueData}>
+                <LineChart data={data}>
                     <CartesianGrid vertical={false} />
                     <XAxis
                         dataKey="month"
@@ -45,7 +44,7 @@ export function RevenueChart({ data }: { data: any[] }) {
                         tickFormatter={(value) => `₹${value / 1000}k`}
                      />
                     <Tooltip content={<ChartTooltipContent 
-                        formatter={(value, name) => {
+                        formatter={(value) => {
                             if (typeof value === 'number') {
                                 return `₹${value.toLocaleString()}`;
                             }
