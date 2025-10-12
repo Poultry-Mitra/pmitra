@@ -63,14 +63,7 @@ export default function DashboardPage() {
       </div>
       
       <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {batchesLoading ? (
-           <div className="lg:col-span-4 flex h-48 items-center justify-center">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                <span className="ml-4">Loading Farm Stats...</span>
-            </div>
-        ) : (
-          <DashboardStats batches={activeBatches} />
-        )}
+          <DashboardStats batches={activeBatches} loading={batchesLoading} />
       </div>
 
       <div className="mt-8 grid grid-cols-1 gap-4 lg:grid-cols-7">
@@ -89,11 +82,16 @@ export default function DashboardPage() {
             <CardDescription>Get suggestions to improve farm efficiency.</CardDescription>
           </CardHeader>
           <CardContent>
-            {farmDataForAISuggestions ? (
+            {batchesLoading ? (
+                 <div className="text-center text-sm text-muted-foreground p-4">
+                    <Loader2 className="animate-spin mr-2 inline-block" />
+                    Loading data for AI...
+                 </div>
+            ) : farmDataForAISuggestions ? (
               <AISuggestions farmData={farmDataForAISuggestions} />
             ) : (
               <div className="text-center text-sm text-muted-foreground p-4">
-                {batchesLoading ? 'Loading data for AI...' : 'Add an active batch to get AI suggestions.'}
+                Add an active batch to get AI suggestions.
               </div>
             )}
           </CardContent>

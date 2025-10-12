@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { getFarmAnalytics } from '@/ai/flows/get-farm-analytics';
 import type { Batch } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
+import type { FarmAnalyticsOutput } from '@/ai/flows/get-farm-analytics';
 
 function StatCard({ title, value, icon: Icon, unit, description }: { title: string, value: string | number, icon: React.ElementType, unit?: string, description?: string }) {
     return (
@@ -44,7 +45,6 @@ function LoadingState() {
              <Card className="lg:col-span-4">
                 <CardHeader>
                     <Skeleton className="h-5 w-1/3" />
-                    <Skeleton className="h-4 w-2/3" />
                 </CardHeader>
                 <CardContent>
                      <Skeleton className="h-8 w-full" />
@@ -55,36 +55,28 @@ function LoadingState() {
 }
 
 
-export function DashboardStats({ batches }: { batches: Batch[] }) {
-    const [analytics, setAnalytics] = useState<any>(null);
+export function DashboardStats({ batches, loading: batchesLoading }: { batches: Batch[], loading: boolean }) {
+    const [analytics, setAnalytics] = useState<FarmAnalyticsOutput | null>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         async function fetchAnalytics() {
-            if (batches.length > 0) {
-                try {
-                    setLoading(true);
-                    const result = await getFarmAnalytics({ batches });
-                    setAnalytics(result);
-                } catch (error) {
-                    console.error("Failed to fetch farm analytics", error);
-                    setAnalytics(null); // Or set an error state
-                } finally {
-                    setLoading(false);
-                }
-            } else {
-                 setAnalytics({
-                    totalLiveBirds: 0,
-                    overallMortalityRate: 0,
-                    totalFeedConsumed: 0,
-                    averageFCR: 0,
-                    summary: "No active batches to analyze.",
-                });
+            if (batchesLoading) {
+                setLoading(true);
+                return;
+            }
+            try {
+                const result = await getFarmAnalytics({ batches });
+                setAnalytics(result);
+            } catch (error) {
+                console.error("Failed to fetch farm analytics", error);
+                setAnalytics(null); // Or set an error state
+            } finally {
                 setLoading(false);
             }
         }
         fetchAnalytics();
-    }, [batches]);
+    }, [batches, batchesLoading]);
 
     if (loading) {
         return <LoadingState />;
