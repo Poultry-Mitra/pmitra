@@ -1,7 +1,7 @@
 // src/app/admin/daily-rates/page.tsx
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -13,12 +13,14 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { IndianRupee, Loader2 } from "lucide-react";
-import { useFirestore, useUser } from '@/firebase/provider';
-import { doc, setDoc, onSnapshot } from 'firebase/firestore';
+import { useUser, useFirestore, useMemoFirebase } from '@/firebase/provider';
+import { doc, setDoc, onSnapshot, collection, query, orderBy, limit } from 'firebase/firestore';
 import { format } from 'date-fns';
 import { addAuditLog } from '@/hooks/use-audit-logs';
 import type { DailyRates } from '@/lib/types';
 import indianStates from '@/lib/indian-states-districts.json';
+import { useCollection } from '@/firebase/firestore/use-collection';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 
 const formSchema = z.object({
@@ -32,6 +34,64 @@ const formSchema = z.object({
 });
 
 type FormValues = z.infer<typeof formSchema>;
+
+
+function RateHistory() {
+    const firestore = useFirestore();
+
+    const ratesQuery = useMemoFirebase(() => {
+        if (!firestore) return null;
+        return query(collection(firestore, 'dailyRates'), orderBy('lastUpdated', 'desc'), limit(30));
+    }, [firestore]);
+
+    const { data: rates, isLoading } = useCollection<DailyRates>(ratesQuery);
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Rate Update History</CardTitle>
+                <CardDescription>Showing the last 30 daily rate updates.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>Date</TableHead>
+                            <TableHead>Location</TableHead>
+                            <TableHead className="text-right">Ready Bird (Med)</TableHead>
+                            <TableHead className="text-right">Chick Rate</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {isLoading && (
+                            <TableRow>
+                                <TableCell colSpan={4} className="h-24 text-center">
+                                    <Loader2 className="animate-spin mx-auto" />
+                                </TableCell>
+                            </TableRow>
+                        )}
+                        {!isLoading && (!rates || rates.length === 0) && (
+                            <TableRow>
+                                <TableCell colSpan={4} className="h-24 text-center">
+                                    No rate history found.
+                                </TableCell>
+                            </TableRow>
+                        )}
+                        {!isLoading && rates && rates.map(rate => (
+                            <TableRow key={rate.id}>
+                                <TableCell>{format(new Date(rate.lastUpdated), 'PPP')}</TableCell>
+                                <TableCell>{rate.location.district}, {rate.location.state}</TableCell>
+                                <TableCell className="text-right">₹{rate.readyBird.medium}</TableCell>
+                                <TableCell className="text-right">₹{rate.chickRate}</TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </CardContent>
+        </Card>
+    )
+}
+
 
 export default function DailyRateManagementPage() {
     const { toast } = useToast();
@@ -159,141 +219,136 @@ export default function DailyRateManagementPage() {
     return (
         <>
             <PageHeader title="Daily Rate Management" description="Update daily market rates for poultry products." />
-            <div className="mt-8 max-w-4xl mx-auto">
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Update Market Rates for {today}</CardTitle>
-                        <CardDescription>
-                            Set the rates for today. This will be visible to all premium users.
-                            {lastUpdated && ` Last updated: ${lastUpdated}`}
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <Form {...form}>
-                            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <FormField
-                                        control={form.control}
-                                        name="state"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>State</FormLabel>
-                                                <Select onValueChange={field.onChange} value={field.value}>
-                                                    <FormControl>
-                                                        <SelectTrigger>
-                                                            <SelectValue placeholder="Select a state" />
-                                                        </SelectTrigger>
-                                                    </FormControl>
-                                                    <SelectContent>
-                                                        {indianStates.states.map(s => <SelectItem key={s.state} value={s.state}>{s.state}</SelectItem>)}
-                                                    </SelectContent>
-                                                </Select>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-                                    <FormField
-                                        control={form.control}
-                                        name="district"
-                                        render={({ field }) => (
-                                             <FormItem>
-                                                <FormLabel>District</FormLabel>
-                                                <Select onValueChange={field.onChange} value={field.value} disabled={!selectedState}>
-                                                    <FormControl><SelectTrigger><SelectValue placeholder="Select a district" /></SelectTrigger></FormControl>
-                                                    <SelectContent>
-                                                        {districts.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
-                                                    </SelectContent>
-                                                </Select>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-                                </div>
-                                
-                                <Card>
-                                    <CardHeader>
-                                        <CardTitle className="text-lg">Ready Bird Rate (₹/kg)</CardTitle>
-                                    </CardHeader>
-                                    <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                         <FormField
+            <div className="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div className="lg:col-span-2">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Update Market Rates for {today}</CardTitle>
+                            <CardDescription>
+                                Set the rates for today. This will be visible to all premium users.
+                                {lastUpdated && ` Last updated: ${lastUpdated}`}
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <Form {...form}>
+                                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <FormField
                                             control={form.control}
-                                            name="readyBirdSmall"
+                                            name="state"
                                             render={({ field }) => (
                                                 <FormItem>
-                                                    <FormLabel>Small</FormLabel>
-                                                    <FormControl>
-                                                        <Input type="number" {...field} />
-                                                    </FormControl>
+                                                    <FormLabel>State</FormLabel>
+                                                    <Select onValueChange={field.onChange} value={field.value}>
+                                                        <FormControl>
+                                                            <SelectTrigger>
+                                                                <SelectValue placeholder="Select a state" />
+                                                            </SelectTrigger>
+                                                        </FormControl>
+                                                        <SelectContent>
+                                                            {indianStates.states.map(s => <SelectItem key={s.state} value={s.state}>{s.state}</SelectItem>)}
+                                                        </SelectContent>
+                                                    </Select>
                                                     <FormMessage />
                                                 </FormItem>
                                             )}
                                         />
-                                         <FormField
+                                        <FormField
                                             control={form.control}
-                                            name="readyBirdMedium"
+                                            name="district"
                                             render={({ field }) => (
                                                 <FormItem>
-                                                    <FormLabel>Medium</FormLabel>
-                                                    <FormControl>
-                                                        <Input type="number" {...field} />
-                                                    </FormControl>
+                                                    <FormLabel>District</FormLabel>
+                                                    <Select onValueChange={field.onChange} value={field.value} disabled={!selectedState}>
+                                                        <FormControl><SelectTrigger><SelectValue placeholder="Select a district" /></SelectTrigger></FormControl>
+                                                        <SelectContent>
+                                                            {districts.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
+                                                        </SelectContent>
+                                                    </Select>
                                                     <FormMessage />
                                                 </FormItem>
                                             )}
                                         />
-                                         <FormField
-                                            control={form.control}
-                                            name="readyBirdBig"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>Big</FormLabel>
-                                                    <FormControl>
-                                                        <Input type="number" {...field} />
-                                                    </FormControl>
-                                                    <FormMessage />
-                                                </FormItem>
-                                            )}
-                                        />
-                                    </CardContent>
-                                </Card>
+                                    </div>
+                                    
+                                    <Card>
+                                        <CardHeader className="pb-2">
+                                            <CardTitle className="text-base">Ready Bird Rate (₹/kg)</CardTitle>
+                                        </CardHeader>
+                                        <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                            <FormField
+                                                control={form.control}
+                                                name="readyBirdSmall"
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel>Small</FormLabel>
+                                                        <FormControl><Input type="number" {...field} /></FormControl>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}
+                                            />
+                                            <FormField
+                                                control={form.control}
+                                                name="readyBirdMedium"
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel>Medium</FormLabel>
+                                                        <FormControl><Input type="number" {...field} /></FormControl>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}
+                                            />
+                                            <FormField
+                                                control={form.control}
+                                                name="readyBirdBig"
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel>Big</FormLabel>
+                                                        <FormControl><Input type="number" {...field} /></FormControl>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}
+                                            />
+                                        </CardContent>
+                                    </Card>
 
-                               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                     <FormField
-                                        control={form.control}
-                                        name="chickRate"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Chick Rate (₹/chick)</FormLabel>
-                                                <FormControl>
-                                                    <Input type="number" {...field} />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-                                     <FormField
-                                        control={form.control}
-                                        name="feedCostIndex"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Feed Cost Index</FormLabel>
-                                                <FormControl>
-                                                    <Input type="number" {...field} />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-                               </div>
-                                
-                                <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
-                                    {form.formState.isSubmitting ? <Loader2 className="animate-spin" /> : <IndianRupee className="mr-2" />}
-                                    {form.formState.isSubmitting ? "Updating..." : "Update Rates"}
-                                </Button>
-                            </form>
-                        </Form>
-                    </CardContent>
-                </Card>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <FormField
+                                            control={form.control}
+                                            name="chickRate"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Chick Rate (₹/chick)</FormLabel>
+                                                    <FormControl><Input type="number" {...field} /></FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                        <FormField
+                                            control={form.control}
+                                            name="feedCostIndex"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Feed Cost Index</FormLabel>
+                                                    <FormControl><Input type="number" step="0.1" {...field} /></FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                </div>
+                                    
+                                    <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
+                                        {form.formState.isSubmitting ? <Loader2 className="animate-spin" /> : <IndianRupee className="mr-2" />}
+                                        {form.formState.isSubmitting ? "Updating..." : "Update Rates for Today"}
+                                    </Button>
+                                </form>
+                            </Form>
+                        </CardContent>
+                    </Card>
+                </div>
+                <div className="lg:col-span-1">
+                    <RateHistory />
+                </div>
             </div>
         </>
     );
