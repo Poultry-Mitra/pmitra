@@ -12,11 +12,14 @@ import { useLedger } from "@/hooks/use-ledger";
 import { currentUser } from "@/lib/data";
 import { cn } from "@/lib/utils";
 import { AddExpenseDialog } from "./_components/add-expense-dialog";
+import { AddIncomeDialog } from "./_components/add-income-dialog";
 
 export default function LedgerPage() {
   const user = currentUser;
   const { entries, loading } = useLedger(user.id);
   const [isAddExpenseOpen, setAddExpenseOpen] = useState(false);
+  const [isAddIncomeOpen, setAddIncomeOpen] = useState(false);
+
 
   const finalBalance = entries.length > 0 ? entries[0].balanceAfter : 0;
 
@@ -34,10 +37,16 @@ export default function LedgerPage() {
                     {finalBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </div>
             </div>
-            <Button onClick={() => setAddExpenseOpen(true)}>
-                <PlusCircle className="mr-2" />
-                Add Manual Expense
-            </Button>
+            <div className="flex items-center gap-2">
+                 <Button variant="outline" onClick={() => setAddIncomeOpen(true)}>
+                    <PlusCircle className="mr-2" />
+                    Add Income
+                </Button>
+                <Button onClick={() => setAddExpenseOpen(true)}>
+                    <PlusCircle className="mr-2" />
+                    Add Expense
+                </Button>
+            </div>
         </div>
       </PageHeader>
       <div className="mt-8">
@@ -97,6 +106,7 @@ export default function LedgerPage() {
       </div>
 
       <AddExpenseDialog open={isAddExpenseOpen} onOpenChange={setAddExpenseOpen} />
+      <AddIncomeDialog open={isAddIncomeOpen} onOpenChange={setAddIncomeOpen} />
     </>
   );
 }
