@@ -57,6 +57,10 @@ export default function DailyRatesPage() {
                 setRates(null);
             }
             setRatesLoading(false);
+        }, (error) => {
+            console.error("Error fetching daily rates:", error);
+            setRates(null);
+            setRatesLoading(false);
         });
 
         return () => unsubscribe();
