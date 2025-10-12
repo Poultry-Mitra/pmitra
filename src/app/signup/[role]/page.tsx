@@ -134,7 +134,7 @@ export default function DetailedSignupPage() {
             } else {
                 toast({
                     title: "Signup Failed",
-                    description: "An unknown error occurred during signup.",
+                    description: "error kyu hai",
                     variant: "destructive",
                 });
             }
@@ -193,7 +193,7 @@ export default function DetailedSignupPage() {
                                     <FormItem><FormLabel>Mobile Number</FormLabel><FormControl><Input type="tel" placeholder="e.g. 9876543210" {...field} /></FormControl><FormMessage /></FormItem>
                                 )} />
                                 <FormField control={form.control} name="pinCode" render={({ field }) => (
-                                    <FormItem><FormLabel>PIN Code (Optional)</FormLabel><FormControl><Input placeholder="e.g. 411001" {...field} /></FormControl><FormMessage /></FormMessage>
+                                    <FormItem><FormLabel>PIN Code (Optional)</FormLabel><FormControl><Input placeholder="e.g. 411001" {...field} /></FormControl><FormMessage /></FormItem>
                                 )} />
                             </div>
 
