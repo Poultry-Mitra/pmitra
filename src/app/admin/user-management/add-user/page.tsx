@@ -14,10 +14,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { Save } from "lucide-react";
 import { useFirestore, useUser } from "@/firebase/provider";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { createUserProfile } from "@/hooks/use-users";
 import { addAuditLog } from "@/hooks/use-audit-logs";
-import { FirestorePermissionError } from "@/firebase/errors";
-import { errorEmitter } from "@/firebase/error-emitter";
 
 const formSchema = z.object({
   name: z.string().min(3, "Full name is required."),
@@ -71,10 +69,10 @@ export default function AddUserPage() {
             lastQueryDate: '',
         };
         
-        const usersCollection = collection(firestore, "users");
+        try {
+            const docRef = await createUserProfile(firestore, newUserProfile);
 
-        addDoc(usersCollection, newUserProfile).then(async (docRef) => {
-             // Create an audit log for this action
+            // Create an audit log for this action
             await addAuditLog(firestore, {
                 adminUID: adminUser.user!.uid,
                 action: 'CREATE_USER',
@@ -94,14 +92,16 @@ export default function AddUserPage() {
             } else {
                  router.push('/admin/dashboard');
             }
-        }).catch((error) => {
-            const permissionError = new FirestorePermissionError({
-                path: 'users',
-                operation: 'create',
-                requestResourceData: newUserProfile,
+        } catch (error) {
+            // The createUserProfile function now throws the error, which might be a FirestorePermissionError.
+            // The FirebaseErrorListener will catch and display it.
+            // We can still show a generic toast as fallback.
+             toast({
+                title: "User Creation Failed",
+                description: "Could not create the user profile. Check the error details.",
+                variant: "destructive",
             });
-            errorEmitter.emit('permission-error', permissionError);
-        });
+        }
     }
 
     return (
