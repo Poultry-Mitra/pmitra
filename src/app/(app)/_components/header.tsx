@@ -24,14 +24,25 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Bell, Search, AlertTriangle } from 'lucide-react';
+import { Bell, Search, AlertTriangle, Loader2 } from 'lucide-react';
 import { useUser } from '@/firebase/provider';
 import { LanguageToggle } from '@/components/language-toggle';
 import { ThemeToggle } from '@/components/theme-toggle';
 
 export function AppHeader() {
-  const { user: firebaseUser } = useUser();
+  const { user: firebaseUser, isUserLoading } = useUser();
   const [showLogoutAlert, setShowLogoutAlert] = useState(false);
+
+  if (isUserLoading) {
+    return (
+      <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
+        <SidebarTrigger className="md:hidden" />
+        <div className="ml-auto">
+          <Loader2 className="animate-spin" />
+        </div>
+      </header>
+    );
+  }
 
   if (!firebaseUser) {
     return (
