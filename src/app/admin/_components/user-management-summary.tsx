@@ -248,7 +248,7 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
                                                 </Avatar>
                                                 <div>
                                                     <h3 className="text-xl font-bold">{detailsUser.name}</h3>
-                                                    <p className="text-muted-foreground">{detailsUser.email}</p>
+                                                    <div className="text-muted-foreground">{detailsUser.email}</div>
                                                     <div className="flex items-center gap-2 mt-1">
                                                         <Badge className="capitalize">{detailsUser.role}</Badge>
                                                         <Badge variant={statusVariant[detailsUser.status]} className={cn("capitalize", statusColorScheme[detailsUser.status])}>
@@ -355,4 +355,5 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
     )
 }
 
+    
     
