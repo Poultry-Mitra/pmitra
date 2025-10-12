@@ -1,11 +1,25 @@
+
+"use client";
+
+import { useState, useEffect } from 'react';
 import { PageHeader } from "../_components/page-header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { mockSensorData, mockAlerts, mockHistoricalData } from "@/lib/data";
+import { mockSensorData, mockHistoricalData } from "@/lib/data";
+import type { FarmAlert } from '@/lib/types';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertTriangle, Siren, Thermometer, Droplets, Wind } from 'lucide-react';
 import { AIForecast } from "./_components/ai-forecast";
 
 export default function MonitoringPage() {
+    const [alerts, setAlerts] = useState<FarmAlert[]>([]);
+
+    useEffect(() => {
+        setAlerts([
+            { id: 'alert-1', type: 'critical', message: 'High ammonia levels detected in Coop B-2. Immediate ventilation required.', timestamp: new Date(Date.now() - 1000 * 60 * 5).toISOString() },
+            { id: 'alert-2', type: 'warning', message: 'Humidity dropping in Coop A-1. Check water supply.', timestamp: new Date(Date.now() - 1000 * 60 * 30).toISOString() },
+        ]);
+    }, []);
+
     return (
         <>
             <PageHeader
@@ -43,14 +57,14 @@ export default function MonitoringPage() {
                 </div>
                 <div className="lg:col-span-1 space-y-4">
                     <h2 className="font-headline text-xl font-semibold">Active Alerts</h2>
-                    {mockAlerts.map(alert => (
+                    {alerts.map(alert => (
                          <Alert key={alert.id} variant={alert.type === 'critical' ? 'destructive' : 'default'}>
                             {alert.type === 'critical' ? <Siren className="h-4 w-4" /> : <AlertTriangle className="h-4 w-4" />}
                             <AlertTitle>{alert.type === 'critical' ? 'Critical Alert' : 'Warning'}</AlertTitle>
                             <AlertDescription>{alert.message}</AlertDescription>
                         </Alert>
                     ))}
-                    {mockAlerts.length === 0 && <p className="text-sm text-muted-foreground">No active alerts.</p>}
+                    {alerts.length === 0 && <p className="text-sm text-muted-foreground">No active alerts.</p>}
                 </div>
             </div>
 
