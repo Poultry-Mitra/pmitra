@@ -19,17 +19,52 @@ import { ThemeToggle } from '@/components/theme-toggle';
 import { LanguageToggle } from '@/components/language-toggle';
 import { useLanguage } from '@/components/language-provider';
 import { RateTicker } from './_components/rate-ticker';
-import { useUser, useAuth } from '@/firebase/provider';
-import type { User } from '@/lib/types';
+import { useUser, useAuth, useFirestore } from '@/firebase/provider';
+import type { User as AppUser } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { signOut } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { doc, getDoc } from 'firebase/firestore';
+
 
 export default function LandingPage() {
   const { t } = useLanguage();
-  const { user } = useUser();
+  const { user: firebaseUser, isUserLoading } = useUser();
   const auth = useAuth();
+  const firestore = useFirestore();
   const router = useRouter();
+  const [appUser, setAppUser] = useState<AppUser | null>(null);
+
+  useEffect(() => {
+    if (firebaseUser && firestore) {
+      const userDocRef = doc(firestore, "users", firebaseUser.uid);
+      getDoc(userDocRef).then((docSnap) => {
+        if (docSnap.exists()) {
+          setAppUser(docSnap.data() as AppUser);
+        } else {
+          setAppUser(null);
+        }
+      });
+    } else {
+      setAppUser(null);
+    }
+  }, [firebaseUser, firestore]);
+  
+  const getDashboardPath = () => {
+    if (!appUser) return '/login';
+    switch (appUser.role) {
+      case 'farmer':
+        return '/dashboard';
+      case 'dealer':
+        return '/dealer';
+      case 'admin':
+        return '/admin';
+      default:
+        return '/login';
+    }
+  };
+
 
   const handleLogout = () => {
     if (auth) {
@@ -110,15 +145,15 @@ export default function LandingPage() {
           <div className="ml-auto flex items-center space-x-2">
             <LanguageToggle />
             <ThemeToggle />
-             {user === undefined ? (
+             {isUserLoading ? (
               <div className="flex items-center gap-2">
                 <Skeleton className="h-9 w-20" />
                 <Skeleton className="h-9 w-24" />
               </div>
-            ) : user ? (
+            ) : firebaseUser && appUser ? (
               <>
                 <Button asChild>
-                  <Link href={'/dashboard'}>Dashboard</Link>
+                  <Link href={getDashboardPath()}>Dashboard</Link>
                 </Button>
                 <Button variant="outline" onClick={handleLogout}>Logout</Button>
               </>
@@ -147,7 +182,7 @@ export default function LandingPage() {
                 </p>
                 <div className="flex gap-4 mt-4">
                   <Button size="lg" asChild>
-                      <Link href="/dashboard">{t('hero.get_started')}</Link>
+                      <Link href={firebaseUser ? getDashboardPath() : "/signup"}>{t('hero.get_started')}</Link>
                   </Button>
                   <Button size="lg" variant="outline" asChild>
                       <Link href="#features">{t('hero.watch_demo')}</Link>
@@ -243,7 +278,7 @@ export default function LandingPage() {
                  <h2 className="font-headline text-3xl font-bold md:text-4xl">{t('cta.title')}</h2>
                  <p className="mt-4 max-w-xl text-lg text-primary-foreground/80">{t('cta.subtitle')}</p>
                  <Button size="lg" variant="secondary" className="mt-8" asChild>
-                    <Link href="/dashboard">{t('cta.button')}</Link>
+                    <Link href="/signup">{t('cta.button')}</Link>
                  </Button>
             </div>
         </section>
