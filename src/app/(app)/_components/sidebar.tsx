@@ -101,12 +101,9 @@ export function AppSidebar() {
   const [inventoryOpen, setInventoryOpen] = useState(pathname.startsWith('/inventory'));
 
   const handleLogout = () => {
-    if (auth) {
-      signOut(auth).then(() => {
-        router.push('/login');
-      });
-    }
-    setShowLogoutAlert(false);
+    signOut(auth).then(() => {
+      router.push('/login');
+    });
   };
 
   if (!user || !firebaseUser) {

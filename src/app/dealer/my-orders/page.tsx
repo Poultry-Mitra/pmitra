@@ -55,14 +55,13 @@ export default function MyOrdersPage() {
     
     const loading = ordersLoading || farmersLoading || !firebaseUser;
 
-    const handleUpdateStatus = async (order: Order, newStatus: 'Approved' | 'Rejected') => {
-        if (!firestore || !firebaseUser) return;
+    const handleUpdateStatus = async (orderId: string, newStatus: 'Approved' | 'Rejected') => {
+        if (!firestore) return;
         try {
-            const actingUser = { id: firebaseUser.uid, role: 'dealer', name: firebaseUser.displayName || "Dealer" } as User;
-            await updateOrderStatus(order, newStatus, firestore, actingUser);
+            await updateOrderStatus(orderId, newStatus, firestore);
             toast({
                 title: `Order ${newStatus}`,
-                description: `The order for ${order.productName} has been successfully ${newStatus.toLowerCase()}.`
+                description: `The order has been successfully ${newStatus.toLowerCase()}.`
             });
         } catch (error: any) {
             toast({
@@ -136,11 +135,11 @@ export default function MyOrdersPage() {
                                         <TableCell className="text-center space-x-2">
                                             {order.status === 'Pending' && (
                                                 <>
-                                                    <Button size="sm" variant="outline" className="text-green-600 hover:bg-green-50 hover:text-green-700" onClick={() => handleUpdateStatus(order, 'Approved')}>
+                                                    <Button size="sm" variant="outline" className="text-green-600 hover:bg-green-50 hover:text-green-700" onClick={() => handleUpdateStatus(order.id, 'Approved')}>
                                                         <CheckCircle className="mr-2" />
                                                         Approve
                                                     </Button>
-                                                    <Button size="sm" variant="outline" className="text-red-600 hover:bg-red-50 hover:text-red-700" onClick={() => handleUpdateStatus(order, 'Rejected')}>
+                                                    <Button size="sm" variant="outline" className="text-red-600 hover:bg-red-50 hover:text-red-700" onClick={() => handleUpdateStatus(order.id, 'Rejected')}>
                                                         <XCircle className="mr-2" />
                                                         Reject
                                                     </Button>

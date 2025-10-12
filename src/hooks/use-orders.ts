@@ -146,10 +146,10 @@ export async function createOrder(firestore: Firestore, data: Omit<Order, 'id' |
     }
 }
 
-export async function updateOrderStatus(order: Order, newStatus: 'Approved' | 'Rejected', firestore: Firestore, actingUser: User) {
+export async function updateOrderStatus(orderId: string, newStatus: 'Approved' | 'Rejected', firestore: Firestore) {
     if (!firestore) throw new Error("Firestore not initialized");
 
-    const orderRef = doc(firestore, 'orders', order.id);
+    const orderRef = doc(firestore, 'orders', orderId);
     
     try {
         await runTransaction(firestore, async (transaction) => {
@@ -157,12 +157,15 @@ export async function updateOrderStatus(order: Order, newStatus: 'Approved' | 'R
             if (!orderDoc.exists() || orderDoc.data().status !== 'Pending') {
                 throw new Error("Order not found or has already been processed.");
             }
+            
+            const order = { id: orderDoc.id, ...orderDoc.data() } as Order;
+
 
             // Update the order status
             transaction.update(orderRef, { status: newStatus });
 
-            // If the order is approved by the dealer, deduct inventory and create ledger entries
-            if (newStatus === 'Approved' && actingUser.role === 'dealer') {
+            // If the order is approved, deduct inventory and create ledger entries
+            if (newStatus === 'Approved') {
                 if (!order.productId) {
                     throw new Error("Order is missing a product ID.");
                 }
