@@ -28,21 +28,37 @@ import {
   ChevronDown,
   ChevronUp,
   Loader2,
+  AlertTriangle,
 } from "lucide-react";
 import { useLanguage } from "@/components/language-provider";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import { useState, useEffect } from "react";
 import type { User as UserType } from "@/lib/types";
-import { useUser, useFirestore } from "@/firebase/provider";
+import { useUser, useFirestore, useAuth } from "@/firebase/provider";
 import { doc, getDoc } from "firebase/firestore";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { signOut } from 'firebase/auth';
+import { useRouter } from 'next/navigation';
 
 
 export function AdminSidebar() {
   const pathname = usePathname();
   const { t } = useLanguage();
   const { state } = useSidebar();
+  const router = useRouter();
+  const auth = useAuth();
   const [managementOpen, setManagementOpen] = useState(pathname.startsWith("/admin/user-management"));
   const [settingsOpen, setSettingsOpen] = useState(pathname.startsWith("/admin/settings"));
+  const [showLogoutAlert, setShowLogoutAlert] = useState(false);
 
   const { user: firebaseUser } = useUser();
   const firestore = useFirestore();
@@ -62,6 +78,15 @@ export function AdminSidebar() {
       setCurrentUser(null);
     }
   }, [firebaseUser, firestore]);
+  
+  const handleLogout = () => {
+    if (auth) {
+      signOut(auth).then(() => {
+        router.push('/login');
+      });
+    }
+    setShowLogoutAlert(false);
+  };
 
   if (!currentUser) {
       return (
@@ -83,167 +108,187 @@ export function AdminSidebar() {
   }
 
   return (
-    <Sidebar>
-      <SidebarHeader>
-        <div className="flex items-center gap-2">
-            <AppIcon className="size-8 text-primary" />
-            {state === 'expanded' && <h1 className="font-headline text-lg font-bold">PoultryMitra</h1>}
-        </div>
-      </SidebarHeader>
-      <SidebarContent>
-        <SidebarGroupLabel>Analytics</SidebarGroupLabel>
-        <SidebarMenu>
-          <SidebarMenuItem>
-              <Link href="/admin/dashboard">
-                <SidebarMenuButton isActive={pathname === "/admin/dashboard"} tooltip={"Dashboard"}>
-                  <LayoutGrid />
-                  <span>{"Dashboard"}</span>
-                </SidebarMenuButton>
-              </Link>
-          </SidebarMenuItem>
-           <SidebarMenuItem>
-              <Link href="/admin/transactions">
-                <SidebarMenuButton isActive={pathname.startsWith("/admin/transactions")} tooltip={"Transactions"}>
-                  <CreditCard />
-                  <span>{"Transactions"}</span>
-                </SidebarMenuButton>
-              </Link>
-          </SidebarMenuItem>
-        </SidebarMenu>
-
-        <SidebarSeparator />
-        
-        <SidebarGroupLabel>Management</SidebarGroupLabel>
-        <SidebarMenu>
-            <Collapsible open={managementOpen} onOpenChange={setManagementOpen}>
-                <SidebarMenuItem className="relative">
-                <CollapsibleTrigger asChild>
-                    <SidebarMenuButton tooltip="User Management" className="w-full justify-between pr-8" isActive={pathname.startsWith("/admin/user-management")}>
-                        <div className="flex items-center gap-3">
-                            <Users />
-                            <span>User Management</span>
-                        </div>
-                    </SidebarMenuButton>
-                </CollapsibleTrigger>
-                { state === 'expanded' && (
-                    <div className="absolute right-2 top-1/2 -translate-y-1/2">
-                        {managementOpen ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
-                    </div>
-                )}
-                </SidebarMenuItem>
-
-                <CollapsibleContent>
-                    <SidebarMenu className="ml-7 mt-1 border-l pl-3">
-                        <SidebarMenuItem>
-                            <Link href="/admin/user-management/farmers">
-                                <SidebarMenuButton size="sm" isActive={pathname === "/admin/user-management/farmers"}>
-                                Farmers List
-                                </SidebarMenuButton>
-                            </Link>
-                        </SidebarMenuItem>
-                        <SidebarMenuItem>
-                            <Link href="/admin/user-management/dealers">
-                                <SidebarMenuButton size="sm" isActive={pathname === "/admin/user-management/dealers"}>
-                                Dealers List
-                                </SidebarMenuButton>
-                            </Link>
-                        </SidebarMenuItem>
-                        <SidebarMenuItem>
-                            <Link href="/admin/user-management/add-user">
-                                <SidebarMenuButton size="sm" isActive={pathname === "/admin/user-management/add-user"}>
-                                Add New User
-                                </SidebarMenuButton>
-                            </Link>
-                        </SidebarMenuItem>
-                    </SidebarMenu>
-                </CollapsibleContent>
-            </Collapsible>
-        </SidebarMenu>
-        <SidebarSeparator />
-
-        <SidebarGroupLabel>Content & AI</SidebarGroupLabel>
-        <SidebarMenu>
+    <>
+        <Sidebar>
+        <SidebarHeader>
+            <div className="flex items-center gap-2">
+                <AppIcon className="size-8 text-primary" />
+                {state === 'expanded' && <h1 className="font-headline text-lg font-bold">PoultryMitra</h1>}
+            </div>
+        </SidebarHeader>
+        <SidebarContent>
+            <SidebarGroupLabel>Analytics</SidebarGroupLabel>
+            <SidebarMenu>
             <SidebarMenuItem>
-              <Link href="/admin/daily-rates">
-                <SidebarMenuButton isActive={pathname.startsWith("/admin/daily-rates")} tooltip={"Daily Rates"}>
-                  <TrendingUp />
-                  <span>{"Daily Rates"}</span>
-                </SidebarMenuButton>
-              </Link>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-              <Link href="/admin/chat-logs">
-                <SidebarMenuButton isActive={pathname.startsWith("/admin/chat-logs")} tooltip={"AI Chat Logs"}>
-                  <Bot />
-                  <span>{"AI Chat Logs"}</span>
-                </SidebarMenuButton>
-              </Link>
-          </SidebarMenuItem>
-           <SidebarMenuItem>
-              <Link href="/admin/notifications">
-                <SidebarMenuButton isActive={pathname.startsWith("/admin/notifications")} tooltip={"Notifications"}>
-                  <Bell />
-                  <span>{"Notifications"}</span>
-                </SidebarMenuButton>
-              </Link>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarContent>
-      <SidebarFooter>
-         <SidebarMenu>
-            <Collapsible open={settingsOpen} onOpenChange={setSettingsOpen}>
-                <SidebarMenuItem className="relative">
-                <CollapsibleTrigger asChild>
-                    <SidebarMenuButton tooltip="Settings" className="w-full justify-between pr-8" isActive={pathname.startsWith("/admin/settings")}>
-                        <div className="flex items-center gap-3">
-                            <Settings />
-                            <span>Settings</span>
-                        </div>
+                <Link href="/admin/dashboard">
+                    <SidebarMenuButton isActive={pathname === "/admin/dashboard"} tooltip={"Dashboard"}>
+                    <LayoutGrid />
+                    <span>{"Dashboard"}</span>
                     </SidebarMenuButton>
-                </CollapsibleTrigger>
-                { state === 'expanded' && (
-                    <div className="absolute right-2 top-1/2 -translate-y-1/2">
-                        {settingsOpen ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
-                    </div>
-                )}
-                </SidebarMenuItem>
-
-                <CollapsibleContent>
-                    <SidebarMenu className="ml-7 mt-1 border-l pl-3">
-                        <SidebarMenuItem>
-                            <Link href="/admin/settings">
-                                <SidebarMenuButton size="sm" isActive={pathname === "/admin/settings"}>
-                                App Settings
-                                </SidebarMenuButton>
-                            </Link>
-                        </SidebarMenuItem>
-                        <SidebarMenuItem>
-                            <Link href="/admin/settings/pricing">
-                                <SidebarMenuButton size="sm" isActive={pathname === "/admin/settings/pricing"}>
-                                Pricing Plans
-                                </SidebarMenuButton>
-                            </Link>
-                        </SidebarMenuItem>
-                         <SidebarMenuItem>
-                            <Link href="/admin/settings/promo-codes">
-                                <SidebarMenuButton size="sm" isActive={pathname === "/admin/settings/promo-codes"}>
-                                Promo Codes
-                                </SidebarMenuButton>
-                            </Link>
-                        </SidebarMenuItem>
-                    </SidebarMenu>
-                </CollapsibleContent>
-            </Collapsible>
-            <SidebarMenuItem>
-                <Link href="/login">
-                  <SidebarMenuButton tooltip="Logout">
-                      <LogOut />
-                      <span>{t('sidebar_logout')}</span>
-                  </SidebarMenuButton>
                 </Link>
             </SidebarMenuItem>
-         </SidebarMenu>
-      </SidebarFooter>
-    </Sidebar>
+            <SidebarMenuItem>
+                <Link href="/admin/transactions">
+                    <SidebarMenuButton isActive={pathname.startsWith("/admin/transactions")} tooltip={"Transactions"}>
+                    <CreditCard />
+                    <span>{"Transactions"}</span>
+                    </SidebarMenuButton>
+                </Link>
+            </SidebarMenuItem>
+            </SidebarMenu>
+
+            <SidebarSeparator />
+            
+            <SidebarGroupLabel>Management</SidebarGroupLabel>
+            <SidebarMenu>
+                <Collapsible open={managementOpen} onOpenChange={setManagementOpen}>
+                    <SidebarMenuItem className="relative">
+                    <CollapsibleTrigger asChild>
+                        <SidebarMenuButton tooltip="User Management" className="w-full justify-between pr-8" isActive={pathname.startsWith("/admin/user-management")}>
+                            <div className="flex items-center gap-3">
+                                <Users />
+                                <span>User Management</span>
+                            </div>
+                        </SidebarMenuButton>
+                    </CollapsibleTrigger>
+                    { state === 'expanded' && (
+                        <div className="absolute right-2 top-1/2 -translate-y-1/2">
+                            {managementOpen ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
+                        </div>
+                    )}
+                    </SidebarMenuItem>
+
+                    <CollapsibleContent>
+                        <SidebarMenu className="ml-7 mt-1 border-l pl-3">
+                            <SidebarMenuItem>
+                                <Link href="/admin/user-management/farmers">
+                                    <SidebarMenuButton size="sm" isActive={pathname === "/admin/user-management/farmers"}>
+                                    Farmers List
+                                    </SidebarMenuButton>
+                                </Link>
+                            </SidebarMenuItem>
+                            <SidebarMenuItem>
+                                <Link href="/admin/user-management/dealers">
+                                    <SidebarMenuButton size="sm" isActive={pathname === "/admin/user-management/dealers"}>
+                                    Dealers List
+                                    </SidebarMenuButton>
+                                </Link>
+                            </SidebarMenuItem>
+                            <SidebarMenuItem>
+                                <Link href="/admin/user-management/add-user">
+                                    <SidebarMenuButton size="sm" isActive={pathname === "/admin/user-management/add-user"}>
+                                    Add New User
+                                    </SidebarMenuButton>
+                                </Link>
+                            </SidebarMenuItem>
+                        </SidebarMenu>
+                    </CollapsibleContent>
+                </Collapsible>
+            </SidebarMenu>
+            <SidebarSeparator />
+
+            <SidebarGroupLabel>Content & AI</SidebarGroupLabel>
+            <SidebarMenu>
+                <SidebarMenuItem>
+                <Link href="/admin/daily-rates">
+                    <SidebarMenuButton isActive={pathname.startsWith("/admin/daily-rates")} tooltip={"Daily Rates"}>
+                    <TrendingUp />
+                    <span>{"Daily Rates"}</span>
+                    </SidebarMenuButton>
+                </Link>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+                <Link href="/admin/chat-logs">
+                    <SidebarMenuButton isActive={pathname.startsWith("/admin/chat-logs")} tooltip={"AI Chat Logs"}>
+                    <Bot />
+                    <span>{"AI Chat Logs"}</span>
+                    </SidebarMenuButton>
+                </Link>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+                <Link href="/admin/notifications">
+                    <SidebarMenuButton isActive={pathname.startsWith("/admin/notifications")} tooltip={"Notifications"}>
+                    <Bell />
+                    <span>{"Notifications"}</span>
+                    </SidebarMenuButton>
+                </Link>
+            </SidebarMenuItem>
+            </SidebarMenu>
+        </SidebarContent>
+        <SidebarFooter>
+            <SidebarMenu>
+                <Collapsible open={settingsOpen} onOpenChange={setSettingsOpen}>
+                    <SidebarMenuItem className="relative">
+                    <CollapsibleTrigger asChild>
+                        <SidebarMenuButton tooltip="Settings" className="w-full justify-between pr-8" isActive={pathname.startsWith("/admin/settings")}>
+                            <div className="flex items-center gap-3">
+                                <Settings />
+                                <span>Settings</span>
+                            </div>
+                        </SidebarMenuButton>
+                    </CollapsibleTrigger>
+                    { state === 'expanded' && (
+                        <div className="absolute right-2 top-1/2 -translate-y-1/2">
+                            {settingsOpen ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
+                        </div>
+                    )}
+                    </SidebarMenuItem>
+
+                    <CollapsibleContent>
+                        <SidebarMenu className="ml-7 mt-1 border-l pl-3">
+                            <SidebarMenuItem>
+                                <Link href="/admin/settings">
+                                    <SidebarMenuButton size="sm" isActive={pathname === "/admin/settings"}>
+                                    App Settings
+                                    </SidebarMenuButton>
+                                </Link>
+                            </SidebarMenuItem>
+                            <SidebarMenuItem>
+                                <Link href="/admin/settings/pricing">
+                                    <SidebarMenuButton size="sm" isActive={pathname === "/admin/settings/pricing"}>
+                                    Pricing Plans
+                                    </SidebarMenuButton>
+                                </Link>
+                            </SidebarMenuItem>
+                            <SidebarMenuItem>
+                                <Link href="/admin/settings/promo-codes">
+                                    <SidebarMenuButton size="sm" isActive={pathname === "/admin/settings/promo-codes"}>
+                                    Promo Codes
+                                    </SidebarMenuButton>
+                                </Link>
+                            </SidebarMenuItem>
+                        </SidebarMenu>
+                    </CollapsibleContent>
+                </Collapsible>
+                <SidebarMenuItem>
+                    <SidebarMenuButton tooltip={t('actions.logout')} onClick={() => setShowLogoutAlert(true)}>
+                        <LogOut />
+                        <span>{t('sidebar_logout')}</span>
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
+            </SidebarMenu>
+        </SidebarFooter>
+        </Sidebar>
+
+        <AlertDialog open={showLogoutAlert} onOpenChange={setShowLogoutAlert}>
+            <AlertDialogContent>
+            <AlertDialogHeader>
+                <AlertDialogTitle className="flex items-center gap-2">
+                    <AlertTriangle className="text-destructive"/>
+                    {t('dialog.logout_title')}
+                </AlertDialogTitle>
+                <AlertDialogDescription>
+                    {t('dialog.logout_desc')}
+                </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+                <AlertDialogCancel>{t('actions.cancel')}</AlertDialogCancel>
+                <AlertDialogAction onClick={handleLogout}>
+                     {t('actions.logout')}
+                </AlertDialogAction>
+            </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
+    </>
   );
 }

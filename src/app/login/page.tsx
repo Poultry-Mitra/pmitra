@@ -65,7 +65,7 @@ export default function LoginPage() {
     return (
         <div className="flex min-h-screen w-full flex-col items-center justify-center bg-muted/30 p-4 font-body">
             <Loader2 className="h-12 w-12 animate-spin text-primary" />
-            <p className="mt-4 text-muted-foreground">Authenticating & Redirecting...</p>
+            <p className="mt-4 text-muted-foreground">{t('messages.authenticating')}</p>
         </div>
     );
   }

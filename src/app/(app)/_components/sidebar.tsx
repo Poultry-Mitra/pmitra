@@ -33,14 +33,27 @@ import {
   ChevronUp,
   WandSparkles,
   Loader2,
+  AlertTriangle,
 } from "lucide-react";
 import { useLanguage } from "@/components/language-provider";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useState, useEffect } from "react";
 import type { User } from "@/lib/types";
-import { useUser, useFirestore } from "@/firebase/provider";
+import { useUser, useFirestore, useAuth } from "@/firebase/provider";
 import { doc, getDoc } from 'firebase/firestore';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { signOut } from 'firebase/auth';
+import { useRouter } from 'next/navigation';
 
 const mainNavItems = [
   { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
@@ -65,7 +78,10 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const { user: firebaseUser } = useUser();
   const firestore = useFirestore();
+  const auth = useAuth();
+  const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
+  const [showLogoutAlert, setShowLogoutAlert] = useState(false);
 
   useEffect(() => {
     if (firebaseUser && firestore) {
@@ -83,6 +99,15 @@ export function AppSidebar() {
   }, [firebaseUser, firestore]);
   
   const [inventoryOpen, setInventoryOpen] = useState(pathname.startsWith('/inventory'));
+
+  const handleLogout = () => {
+    if (auth) {
+      signOut(auth).then(() => {
+        router.push('/login');
+      });
+    }
+    setShowLogoutAlert(false);
+  };
 
   if (!user || !firebaseUser) {
     return (
@@ -102,163 +127,183 @@ export function AppSidebar() {
   const planName = user.planType === 'premium' ? 'Premium Plan' : 'Free Plan';
 
   return (
-    <Sidebar>
-      <SidebarHeader>
-        <div className="flex w-full flex-col gap-4">
-           <div className="flex items-center gap-2">
-                <AppIcon className="size-8 text-primary" />
-                {state === 'expanded' && <h1 className="font-headline text-lg font-bold">PoultryMitra</h1>}
-            </div>
-            {state === 'expanded' && (
-                <div className="rounded-lg border bg-card p-3 text-sm">
-                    <div className="flex items-start gap-2">
-                        <Avatar className="size-10">
-                            <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1">
-                            <div className="font-bold">{user.name}</div>
-                            <div className="text-xs text-muted-foreground">{poultryMitraId}</div>
-                        </div>
-                    </div>
-                     <Badge className="mt-2 w-full justify-center capitalize" variant={user.planType === 'premium' ? 'default' : 'secondary'}>{planName}</Badge>
+    <>
+        <Sidebar>
+        <SidebarHeader>
+            <div className="flex w-full flex-col gap-4">
+            <div className="flex items-center gap-2">
+                    <AppIcon className="size-8 text-primary" />
+                    {state === 'expanded' && <h1 className="font-headline text-lg font-bold">PoultryMitra</h1>}
                 </div>
-            )}
-        </div>
-      </SidebarHeader>
-      <SidebarContent>
+                {state === 'expanded' && (
+                    <div className="rounded-lg border bg-card p-3 text-sm">
+                        <div className="flex items-start gap-2">
+                            <Avatar className="size-10">
+                                <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1">
+                                <div className="font-bold">{user.name}</div>
+                                <div className="text-xs text-muted-foreground">{poultryMitraId}</div>
+                            </div>
+                        </div>
+                        <Badge className="mt-2 w-full justify-center capitalize" variant={user.planType === 'premium' ? 'default' : 'secondary'}>{planName}</Badge>
+                    </div>
+                )}
+            </div>
+        </SidebarHeader>
+        <SidebarContent>
 
-        <SidebarGroupLabel>Main</SidebarGroupLabel>
-        <SidebarMenu>
-          {mainNavItems.map((item) => (
-            <SidebarMenuItem key={item.href}>
-              <Link href={item.href}>
-                <SidebarMenuButton
-                  isActive={pathname.startsWith(item.href) && (item.href === '/dashboard' ? pathname === item.href : true)}
-                  tooltip={item.label}
-                >
-                  <item.icon />
-                  <span>{item.label}</span>
-                </SidebarMenuButton>
-              </Link>
-            </SidebarMenuItem>
-          ))}
-        </SidebarMenu>
-        
-        <SidebarSeparator />
-        <SidebarGroupLabel>Inventory & Dealers</SidebarGroupLabel>
-        <SidebarMenu>
-           <Collapsible open={inventoryOpen} onOpenChange={setInventoryOpen}>
-            <SidebarMenuItem className="relative">
-              <CollapsibleTrigger asChild>
-                  <SidebarMenuButton tooltip="Inventory" className="w-full justify-between pr-8" isActive={pathname.startsWith("/inventory")}>
-                      <div className="flex items-center gap-3">
-                          <Archive />
-                          <span>Inventory</span>
-                      </div>
-                  </SidebarMenuButton>
-              </CollapsibleTrigger>
-              { state === 'expanded' && (
-                  <div className="absolute right-2 top-1/2 -translate-y-1/2">
-                      {inventoryOpen ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
-                  </div>
-              )}
-            </SidebarMenuItem>
-
-            <CollapsibleContent>
-                 <SidebarMenu className="ml-7 mt-1 border-l pl-3">
-                    <SidebarMenuItem>
-                        <Link href="/inventory">
-                            <SidebarMenuButton size="sm" isActive={pathname === "/inventory"}>
-                            View Stock
-                            </SidebarMenuButton>
-                        </Link>
-                    </SidebarMenuItem>
-                    <SidebarMenuItem>
-                        <Link href="/inventory/add">
-                            <SidebarMenuButton size="sm" isActive={pathname === "/inventory/add"}>
-                            Add Purchase
-                            </SidebarMenuButton>
-                        </Link>
-                    </SidebarMenuItem>
-                 </SidebarMenu>
-            </CollapsibleContent>
-          </Collapsible>
-          {connectNavItems.map((item) => (
-            <SidebarMenuItem key={item.href}>
-              <Link href={item.href}>
-                <SidebarMenuButton
-                  isActive={pathname.startsWith(item.href)}
-                  tooltip={item.label}
-                >
-                  <item.icon />
-                  <span>{item.label}</span>
-                </SidebarMenuButton>
-              </Link>
-            </SidebarMenuItem>
-          ))}
-        </SidebarMenu>
-
-        <SidebarSeparator />
-        <SidebarGroupLabel>AI & Analytics</SidebarGroupLabel>
-        <SidebarMenu>
-             {aiNavItems.map((item) => (
-            <SidebarMenuItem key={item.href}>
-              <Link href={item.href}>
-                <SidebarMenuButton
-                  isActive={pathname.startsWith(item.href)}
-                  tooltip={item.label}
-                >
-                  <item.icon />
-                  <span>{item.label}</span>
-                </SidebarMenuButton>
-              </Link>
-            </SidebarMenuItem>
-          ))}
-        </SidebarMenu>
-        
-        <SidebarSeparator />
-        <SidebarGroupLabel>Market</SidebarGroupLabel>
-        <SidebarMenu>
-            <SidebarMenuItem>
-                <Link href="/daily-rates">
+            <SidebarGroupLabel>Main</SidebarGroupLabel>
+            <SidebarMenu>
+            {mainNavItems.map((item) => (
+                <SidebarMenuItem key={item.href}>
+                <Link href={item.href}>
                     <SidebarMenuButton
-                        isActive={pathname.startsWith("/daily-rates")}
-                        tooltip="Market Rates"
+                    isActive={pathname.startsWith(item.href) && (item.href === '/dashboard' ? pathname === item.href : true)}
+                    tooltip={item.label}
                     >
-                        <TrendingUp/>
-                        <span>Market Rates</span>
-                        {state === 'expanded' && <Badge variant="secondary" className="ml-auto">PRO</Badge>}
+                    <item.icon />
+                    <span>{item.label}</span>
                     </SidebarMenuButton>
-                 </Link>
-            </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarContent>
-      <SidebarFooter>
-         <SidebarMenu>
-            <SidebarMenuItem>
-                 <Link href="/pricing">
-                    <SidebarMenuButton tooltip="Upgrade">
-                        <Rocket/>
-                        <span>Upgrade Plan</span>
-                    </SidebarMenuButton>
-                 </Link>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-                 <SidebarMenuButton tooltip="Settings">
-                    <Settings/>
-                    <span>{t('sidebar_settings')}</span>
-                </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-                <Link href="/login">
-                  <SidebarMenuButton tooltip="Logout">
-                      <LogOut />
-                      <span>{t('sidebar_logout')}</span>
-                  </SidebarMenuButton>
                 </Link>
-            </SidebarMenuItem>
-         </SidebarMenu>
-      </SidebarFooter>
-    </Sidebar>
+                </SidebarMenuItem>
+            ))}
+            </SidebarMenu>
+            
+            <SidebarSeparator />
+            <SidebarGroupLabel>Inventory & Dealers</SidebarGroupLabel>
+            <SidebarMenu>
+            <Collapsible open={inventoryOpen} onOpenChange={setInventoryOpen}>
+                <SidebarMenuItem className="relative">
+                <CollapsibleTrigger asChild>
+                    <SidebarMenuButton tooltip="Inventory" className="w-full justify-between pr-8" isActive={pathname.startsWith("/inventory")}>
+                        <div className="flex items-center gap-3">
+                            <Archive />
+                            <span>Inventory</span>
+                        </div>
+                    </SidebarMenuButton>
+                </CollapsibleTrigger>
+                { state === 'expanded' && (
+                    <div className="absolute right-2 top-1/2 -translate-y-1/2">
+                        {inventoryOpen ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
+                    </div>
+                )}
+                </SidebarMenuItem>
+
+                <CollapsibleContent>
+                    <SidebarMenu className="ml-7 mt-1 border-l pl-3">
+                        <SidebarMenuItem>
+                            <Link href="/inventory">
+                                <SidebarMenuButton size="sm" isActive={pathname === "/inventory"}>
+                                View Stock
+                                </SidebarMenuButton>
+                            </Link>
+                        </SidebarMenuItem>
+                        <SidebarMenuItem>
+                            <Link href="/inventory/add">
+                                <SidebarMenuButton size="sm" isActive={pathname === "/inventory/add"}>
+                                Add Purchase
+                                </SidebarMenuButton>
+                            </Link>
+                        </SidebarMenuItem>
+                    </SidebarMenu>
+                </CollapsibleContent>
+            </Collapsible>
+            {connectNavItems.map((item) => (
+                <SidebarMenuItem key={item.href}>
+                <Link href={item.href}>
+                    <SidebarMenuButton
+                    isActive={pathname.startsWith(item.href)}
+                    tooltip={item.label}
+                    >
+                    <item.icon />
+                    <span>{item.label}</span>
+                    </SidebarMenuButton>
+                </Link>
+                </SidebarMenuItem>
+            ))}
+            </SidebarMenu>
+
+            <SidebarSeparator />
+            <SidebarGroupLabel>AI & Analytics</SidebarGroupLabel>
+            <SidebarMenu>
+                {aiNavItems.map((item) => (
+                <SidebarMenuItem key={item.href}>
+                <Link href={item.href}>
+                    <SidebarMenuButton
+                    isActive={pathname.startsWith(item.href)}
+                    tooltip={item.label}
+                    >
+                    <item.icon />
+                    <span>{item.label}</span>
+                    </SidebarMenuButton>
+                </Link>
+                </SidebarMenuItem>
+            ))}
+            </SidebarMenu>
+            
+            <SidebarSeparator />
+            <SidebarGroupLabel>Market</SidebarGroupLabel>
+            <SidebarMenu>
+                <SidebarMenuItem>
+                    <Link href="/daily-rates">
+                        <SidebarMenuButton
+                            isActive={pathname.startsWith("/daily-rates")}
+                            tooltip="Market Rates"
+                        >
+                            <TrendingUp/>
+                            <span>Market Rates</span>
+                            {state === 'expanded' && <Badge variant="secondary" className="ml-auto">PRO</Badge>}
+                        </SidebarMenuButton>
+                    </Link>
+                </SidebarMenuItem>
+            </SidebarMenu>
+        </SidebarContent>
+        <SidebarFooter>
+            <SidebarMenu>
+                <SidebarMenuItem>
+                    <Link href="/pricing">
+                        <SidebarMenuButton tooltip="Upgrade">
+                            <Rocket/>
+                            <span>Upgrade Plan</span>
+                        </SidebarMenuButton>
+                    </Link>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                    <SidebarMenuButton tooltip="Settings">
+                        <Settings/>
+                        <span>{t('sidebar_settings')}</span>
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                    <SidebarMenuButton tooltip={t('actions.logout')} onClick={() => setShowLogoutAlert(true)}>
+                        <LogOut />
+                        <span>{t('sidebar_logout')}</span>
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
+            </SidebarMenu>
+        </SidebarFooter>
+        </Sidebar>
+
+        <AlertDialog open={showLogoutAlert} onOpenChange={setShowLogoutAlert}>
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle className="flex items-center gap-2">
+                        <AlertTriangle className="text-destructive"/>
+                        {t('dialog.logout_title')}
+                    </AlertDialogTitle>
+                    <AlertDialogDescription>
+                        {t('dialog.logout_desc')}
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                    <AlertDialogCancel>{t('actions.cancel')}</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleLogout}>
+                        {t('actions.logout')}
+                    </AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
+    </>
   );
 }

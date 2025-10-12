@@ -8,6 +8,7 @@ import { getFarmAnalytics } from '@/ai/flows/get-farm-analytics';
 import type { Batch } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { FarmAnalyticsOutput } from '@/ai/flows/get-farm-analytics';
+import { useLanguage } from '@/components/language-provider';
 
 function StatCard({ title, value, icon: Icon, unit, description }: { title: string, value: string | number, icon: React.ElementType, unit?: string, description?: string }) {
     return (
@@ -58,6 +59,7 @@ function LoadingState() {
 export function DashboardStats({ batches, loading: batchesLoading }: { batches: Batch[], loading: boolean }) {
     const [analytics, setAnalytics] = useState<FarmAnalyticsOutput | null>(null);
     const [loading, setLoading] = useState(true);
+    const { t } = useLanguage();
 
     useEffect(() => {
         async function fetchAnalytics() {
@@ -83,20 +85,20 @@ export function DashboardStats({ batches, loading: batchesLoading }: { batches: 
     }
 
     if (!analytics) {
-        return <p>Could not load farm analytics.</p>;
+        return <p>{t('messages.analytics_error')}</p>;
     }
 
     return (
         <>
-            <StatCard title="Total Live Birds" value={analytics.totalLiveBirds.toLocaleString()} icon={Bird} description="Across all active batches" />
-            <StatCard title="Overall Mortality" value={analytics.overallMortalityRate.toFixed(2)} unit="%" icon={Percent} description="Weighted average" />
-            <StatCard title="Total Feed Consumed" value={analytics.totalFeedConsumed.toLocaleString()} unit="kg" icon={Wheat} description="Across all batches" />
-            <StatCard title="Average FCR" value={analytics.averageFCR.toFixed(2)} icon={Droplet} description="Feed Conversion Ratio" />
+            <StatCard title={t('dashboard.stats.live_birds')} value={analytics.totalLiveBirds.toLocaleString()} icon={Bird} description={t('dashboard.stats.live_birds_desc')} />
+            <StatCard title={t('dashboard.stats.mortality')} value={analytics.overallMortalityRate.toFixed(2)} unit="%" icon={Percent} description={t('dashboard.stats.mortality_desc')} />
+            <StatCard title={t('dashboard.stats.feed_consumed')} value={analytics.totalFeedConsumed.toLocaleString()} unit="kg" icon={Wheat} description={t('dashboard.stats.feed_consumed_desc')} />
+            <StatCard title={t('dashboard.stats.fcr')} value={analytics.averageFCR.toFixed(2)} icon={Droplet} description={t('dashboard.stats.fcr_desc')} />
             <Card className="lg:col-span-4">
                 <CardHeader className="pb-4">
                     <CardTitle className="text-base font-medium flex items-center gap-2">
                         <WandSparkles className="text-primary" />
-                        AI Farm Summary
+                        {t('dashboard.stats.ai_summary')}
                     </CardTitle>
                 </CardHeader>
                 <CardContent>

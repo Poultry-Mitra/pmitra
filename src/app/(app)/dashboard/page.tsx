@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useState, useMemo, useEffect } from 'react';
@@ -16,37 +15,41 @@ import { useUser, useFirestore } from "@/firebase/provider";
 import type { User } from "@/lib/types";
 import { ConnectDealerDialog } from './_components/connect-dealer-dialog';
 import { PendingOrders } from './_components/pending-orders';
-import { doc, onSnapshot } from 'firebase/firestore';
+import { doc, getDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/components/language-provider';
 
 
 export default function DashboardPage() {
-  const { user: firebaseUser } = useUser();
+  const { user: firebaseUser, isUserLoading } = useUser();
   const firestore = useFirestore();
   const [user, setUser] = useState<User | null>(null);
   const [isConnectDealerOpen, setConnectDealerOpen] = useState(false);
   const { toast } = useToast();
+  const { t } = useLanguage();
   
   useEffect(() => {
-    if (!firestore || !firebaseUser?.uid) return;
-    const unsub = onSnapshot(doc(firestore, 'users', firebaseUser.uid), (doc) => {
-        if (doc.exists()) {
-            setUser(doc.data() as User);
-        }
-    });
-    return () => unsub();
-  }, [firestore, firebaseUser?.uid]);
+    if (firebaseUser && firestore) {
+      getDoc(doc(firestore, 'users', firebaseUser.uid)).then((doc) => {
+          if (doc.exists()) {
+              setUser(doc.data() as User);
+          }
+      });
+    }
+  }, [firestore, firebaseUser]);
 
   
   const { batches, loading: batchesLoading } = useBatches(firebaseUser?.uid || "");
   
-  if (!user || !firebaseUser) return <div className="flex h-screen items-center justify-center"><Loader2 className="animate-spin size-8" /></div>;
+  const loading = isUserLoading || !user;
+
+  if (loading) return <div className="flex h-screen items-center justify-center"><Loader2 className="animate-spin size-8" /></div>;
 
   const poultryMitraId = `PM-FARM-${firebaseUser.uid.substring(0, 5).toUpperCase()}`;
 
   const handleCopyId = () => {
     navigator.clipboard.writeText(poultryMitraId);
-    toast({ title: "Copied!", description: "Your PoultryMitra Farmer ID has been copied." });
+    toast({ title: t('messages.copied_title'), description: t('messages.copied_desc') });
   }
 
   const activeBatches = batches.filter(b => b.status === 'Active');
@@ -75,7 +78,7 @@ export default function DashboardPage() {
     <>
       <div className="flex flex-col gap-4">
         <div>
-            <h1 className="font-headline text-3xl font-bold tracking-tight">Welcome back, {user.name.split(' ')[0]}! 👋</h1>
+            <h1 className="font-headline text-3xl font-bold tracking-tight">{t('dashboard.welcome', { name: user.name.split(' ')[0] })} 👋</h1>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <span>{poultryMitraId}</span>
                 <Button variant="ghost" size="icon" className="h-6 w-6" onClick={handleCopyId}>
@@ -85,10 +88,10 @@ export default function DashboardPage() {
         </div>
 
         <div className="flex items-center gap-4">
-            <Badge className="capitalize" variant={user.planType === 'premium' ? 'default' : 'secondary'}>{user.planType} Plan</Badge>
+            <Badge className="capitalize" variant={user.planType === 'premium' ? 'default' : 'secondary'}>{t(`plans.${user.planType}`)}</Badge>
              <Button size="sm" variant="outline" className="border-primary text-primary hover:bg-primary/10 hover:text-primary" onClick={() => setConnectDealerOpen(true)}>
                 <LinkIcon className="mr-2" />
-                Connect to Dealer
+                {t('dashboard.connect_dealer')}
             </Button>
         </div>
       </div>
@@ -104,8 +107,8 @@ export default function DashboardPage() {
       <div className="mt-8 grid grid-cols-1 gap-4 lg:grid-cols-7">
         <Card className="lg:col-span-4">
           <CardHeader>
-            <CardTitle>Farm Performance Overview</CardTitle>
-            <CardDescription>Monthly trends for key farm metrics (mock data).</CardDescription>
+            <CardTitle>{t('dashboard.performance.title')}</CardTitle>
+            <CardDescription>{t('dashboard.performance.description')}</CardDescription>
           </CardHeader>
           <CardContent>
             <ProductionChart data={mockFarmMetrics} />
@@ -113,20 +116,20 @@ export default function DashboardPage() {
         </Card>
         <Card className="lg:col-span-3">
           <CardHeader>
-            <CardTitle>AI-Powered Suggestions</CardTitle>
-            <CardDescription>Get suggestions to improve farm efficiency.</CardDescription>
+            <CardTitle>{t('dashboard.ai_suggestions.title')}</CardTitle>
+            <CardDescription>{t('dashboard.ai_suggestions.description')}</CardDescription>
           </CardHeader>
           <CardContent>
             {batchesLoading ? (
                  <div className="text-center text-sm text-muted-foreground p-4">
                     <Loader2 className="animate-spin mr-2 inline-block" />
-                    Loading data for AI...
+                    {t('messages.loading_ai_data')}
                  </div>
             ) : farmDataForAISuggestions ? (
               <AISuggestions farmData={farmDataForAISuggestions} />
             ) : (
               <div className="text-center text-sm text-muted-foreground p-4">
-                Add an active batch to get AI suggestions.
+                {t('messages.add_batch_for_ai')}
               </div>
             )}
           </CardContent>

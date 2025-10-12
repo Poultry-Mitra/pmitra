@@ -25,12 +25,25 @@ import {
   Warehouse,
   ShoppingBag,
   Loader2,
+  AlertTriangle,
 } from "lucide-react";
 import { useLanguage } from "@/components/language-provider";
 import type { User as UserType } from "@/lib/types";
-import { useUser, useFirestore } from "@/firebase/provider";
+import { useUser, useFirestore, useAuth } from "@/firebase/provider";
 import { doc, onSnapshot } from "firebase/firestore";
 import { useEffect, useState } from "react";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { signOut } from 'firebase/auth';
+import { useRouter } from 'next/navigation';
 
 
 export function DealerSidebar() {
@@ -38,8 +51,11 @@ export function DealerSidebar() {
   const { t } = useLanguage();
   const { state } = useSidebar();
   const { user: firebaseUser } = useUser();
+  const auth = useAuth();
+  const router = useRouter();
   const firestore = useFirestore();
   const [currentUser, setCurrentUser] = useState<UserType | null>(null);
+  const [showLogoutAlert, setShowLogoutAlert] = useState(false);
 
   useEffect(() => {
     if (firebaseUser && firestore) {
@@ -57,6 +73,14 @@ export function DealerSidebar() {
     }
   }, [firebaseUser, firestore]);
   
+  const handleLogout = () => {
+    if (auth) {
+      signOut(auth).then(() => {
+        router.push('/login');
+      });
+    }
+    setShowLogoutAlert(false);
+  };
 
   if (!currentUser) {
       return (
@@ -78,78 +102,98 @@ export function DealerSidebar() {
   }
 
   return (
-     <Sidebar>
-      <SidebarHeader>
-        <div className="flex items-center gap-2">
-            <AppIcon className="size-8 text-primary" />
-            {state === 'expanded' && <h1 className="font-headline text-lg font-bold">PoultryMitra</h1>}
-        </div>
-      </SidebarHeader>
-      <SidebarContent>
-          <SidebarGroupLabel>Menu</SidebarGroupLabel>
-          <SidebarMenu>
-              <SidebarMenuItem>
-                  <Link href="/dealer/dashboard">
-                      <SidebarMenuButton isActive={pathname === "/dealer/dashboard"} tooltip={"Dashboard"}>
-                      <LayoutGrid />
-                      <span>{"Dashboard"}</span>
-                      </SidebarMenuButton>
-                  </Link>
-              </SidebarMenuItem>
-               <SidebarMenuItem>
-                  <Link href="/dealer/my-inventory">
-                      <SidebarMenuButton isActive={pathname.startsWith("/dealer/my-inventory")} tooltip={"My Inventory"}>
-                      <Warehouse />
-                      <span>{"My Inventory"}</span>
-                      </SidebarMenuButton>
-                  </Link>
-              </SidebarMenuItem>
-               <SidebarMenuItem>
-                  <Link href="/dealer/my-farmers">
-                      <SidebarMenuButton isActive={pathname.startsWith("/dealer/my-farmers")} tooltip={"My Farmers"}>
-                      <Users />
-                      <span>{"My Farmers"}</span>
-                      </SidebarMenuButton>
-                  </Link>
-              </SidebarMenuItem>
-               <SidebarMenuItem>
-                  <Link href="/dealer/my-orders">
-                      <SidebarMenuButton isActive={pathname.startsWith("/dealer/my-orders")} tooltip={"Farmer Orders"}>
-                      <ShoppingBag />
-                      <span>{"Farmer Orders"}</span>
-                      </SidebarMenuButton>
-                  </Link>
-              </SidebarMenuItem>
-               <SidebarMenuItem>
-                  <Link href="/dealer/transactions">
-                      <SidebarMenuButton isActive={pathname.startsWith("/dealer/transactions")} tooltip={"Ledger"}>
-                      <CreditCard />
-                      <span>{"Ledger"}</span>
-                      </SidebarMenuButton>
-                  </Link>
-              </SidebarMenuItem>
-          </SidebarMenu>
-      </SidebarContent>
-      <SidebarFooter>
-          <SidebarMenu>
-              <SidebarMenuItem>
-                  <Link href="/dealer/settings">
-                      <SidebarMenuButton isActive={pathname.startsWith("/dealer/settings")} tooltip="Profile">
-                          <User/>
-                          <span>{"Profile"}</span>
-                      </SidebarMenuButton>
-                  </Link>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                  <Link href="/login">
-                  <SidebarMenuButton tooltip="Logout">
-                      <LogOut />
-                      <span>{t('sidebar_logout')}</span>
-                  </SidebarMenuButton>
-                  </Link>
-              </SidebarMenuItem>
-          </SidebarMenu>
-      </SidebarFooter>
-    </Sidebar>
+    <>
+        <Sidebar>
+        <SidebarHeader>
+            <div className="flex items-center gap-2">
+                <AppIcon className="size-8 text-primary" />
+                {state === 'expanded' && <h1 className="font-headline text-lg font-bold">PoultryMitra</h1>}
+            </div>
+        </SidebarHeader>
+        <SidebarContent>
+            <SidebarGroupLabel>Menu</SidebarGroupLabel>
+            <SidebarMenu>
+                <SidebarMenuItem>
+                    <Link href="/dealer/dashboard">
+                        <SidebarMenuButton isActive={pathname === "/dealer/dashboard"} tooltip={"Dashboard"}>
+                        <LayoutGrid />
+                        <span>{"Dashboard"}</span>
+                        </SidebarMenuButton>
+                    </Link>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                    <Link href="/dealer/my-inventory">
+                        <SidebarMenuButton isActive={pathname.startsWith("/dealer/my-inventory")} tooltip={"My Inventory"}>
+                        <Warehouse />
+                        <span>{"My Inventory"}</span>
+                        </SidebarMenuButton>
+                    </Link>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                    <Link href="/dealer/my-farmers">
+                        <SidebarMenuButton isActive={pathname.startsWith("/dealer/my-farmers")} tooltip={"My Farmers"}>
+                        <Users />
+                        <span>{"My Farmers"}</span>
+                        </SidebarMenuButton>
+                    </Link>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                    <Link href="/dealer/my-orders">
+                        <SidebarMenuButton isActive={pathname.startsWith("/dealer/my-orders")} tooltip={"Farmer Orders"}>
+                        <ShoppingBag />
+                        <span>{"Farmer Orders"}</span>
+                        </SidebarMenuButton>
+                    </Link>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                    <Link href="/dealer/transactions">
+                        <SidebarMenuButton isActive={pathname.startsWith("/dealer/transactions")} tooltip={"Ledger"}>
+                        <CreditCard />
+                        <span>{"Ledger"}</span>
+                        </SidebarMenuButton>
+                    </Link>
+                </SidebarMenuItem>
+            </SidebarMenu>
+        </SidebarContent>
+        <SidebarFooter>
+            <SidebarMenu>
+                <SidebarMenuItem>
+                    <Link href="/dealer/settings">
+                        <SidebarMenuButton isActive={pathname.startsWith("/dealer/settings")} tooltip="Profile">
+                            <User/>
+                            <span>{"Profile"}</span>
+                        </SidebarMenuButton>
+                    </Link>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                    <SidebarMenuButton tooltip={t('actions.logout')} onClick={() => setShowLogoutAlert(true)}>
+                        <LogOut />
+                        <span>{t('sidebar_logout')}</span>
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
+            </SidebarMenu>
+        </SidebarFooter>
+        </Sidebar>
+
+        <AlertDialog open={showLogoutAlert} onOpenChange={setShowLogoutAlert}>
+            <AlertDialogContent>
+            <AlertDialogHeader>
+                <AlertDialogTitle className="flex items-center gap-2">
+                    <AlertTriangle className="text-destructive"/>
+                    {t('dialog.logout_title')}
+                </AlertDialogTitle>
+                <AlertDialogDescription>
+                    {t('dialog.logout_desc')}
+                </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+                <AlertDialogCancel>{t('actions.cancel')}</AlertDialogCancel>
+                <AlertDialogAction onClick={handleLogout}>
+                     {t('actions.logout')}
+                </AlertDialogAction>
+            </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
+    </>
   );
 }
