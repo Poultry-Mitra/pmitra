@@ -10,8 +10,11 @@ import { Send, WandSparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { aiQueryPoultry } from "@/ai/flows/ai-query-poultry";
 import { AppIcon } from "@/app/icon";
-import { useUser } from "@/firebase/provider";
-import { mockUsers } from "@/lib/data";
+import { useUser, useFirestore } from "@/firebase/provider";
+import { doc, getDoc, updateDoc, serverTimestamp, increment } from 'firebase/firestore';
+import type { User as AppUser } from '@/lib/types';
+import { useToast } from "@/hooks/use-toast";
+import Link from "next/link";
 
 type Message = {
   id: string;
@@ -19,13 +22,17 @@ type Message = {
   sender: "user" | "ai";
 };
 
+const AI_QUERY_LIMIT = 5;
+
 export function ChatLayout() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
-  const user = useUser();
-  const mockUser = mockUsers.find(u => u.role === 'farmer'); // Find a farmer mock user for fallback
+  const firebaseUser = useUser();
+  const firestore = useFirestore();
+  const [appUser, setAppUser] = useState<AppUser | null>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
     const viewport = scrollAreaRef.current?.querySelector('div[data-radix-scroll-area-viewport]');
@@ -34,9 +41,37 @@ export function ChatLayout() {
     }
   }, [messages, loading]);
 
+  useEffect(() => {
+    if (firebaseUser && firestore) {
+      const userDocRef = doc(firestore, 'users', firebaseUser.uid);
+      getDoc(userDocRef).then(docSnap => {
+        if (docSnap.exists()) {
+          setAppUser({ id: docSnap.id, ...docSnap.data() } as AppUser);
+        }
+      });
+    }
+  }, [firebaseUser, firestore]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim() || loading) return;
+    if (!input.trim() || loading || !appUser || !firestore) return;
+
+    // Check AI query limit for free users
+    if (appUser.planType === 'free') {
+      const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM
+      const lastQueryMonth = appUser.lastQueryDate?.slice(0, 7);
+      const queriesThisMonth = lastQueryMonth === currentMonth ? (appUser.aiQueriesCount || 0) : 0;
+
+      if (queriesThisMonth >= AI_QUERY_LIMIT) {
+        toast({
+          title: "AI Chat Limit Reached",
+          description: "You have used all your free AI queries for this month. Please upgrade to Premium for unlimited access.",
+          variant: "destructive",
+          action: <Button asChild size="sm"><Link href="/pricing">Upgrade</Link></Button>
+        });
+        return;
+      }
+    }
 
     const userMessage: Message = { id: Date.now().toString(), text: input, sender: "user" };
     setMessages((prev) => [...prev, userMessage]);
@@ -47,6 +82,24 @@ export function ChatLayout() {
       const result = await aiQueryPoultry({ query: input });
       const aiMessage: Message = { id: (Date.now() + 1).toString(), text: result.answer, sender: "ai" };
       setMessages((prev) => [...prev, aiMessage]);
+
+      // Update user's query count in Firestore
+       if (appUser.planType === 'free') {
+          const userDocRef = doc(firestore, 'users', appUser.id);
+          const currentMonth = new Date().toISOString().slice(0, 7);
+          const lastQueryMonth = appUser.lastQueryDate?.slice(0, 7);
+
+          if (lastQueryMonth === currentMonth) {
+              await updateDoc(userDocRef, { aiQueriesCount: increment(1) });
+          } else {
+              // Reset count for the new month
+              await updateDoc(userDocRef, {
+                  aiQueriesCount: 1,
+                  lastQueryDate: new Date().toISOString()
+              });
+          }
+      }
+
     } catch (error) {
       console.error("AI query failed:", error);
       const errorMessage: Message = {
@@ -60,7 +113,7 @@ export function ChatLayout() {
     }
   };
   
-  const userName = user?.displayName || mockUser?.name || 'User';
+  const userName = appUser?.name || 'User';
 
   return (
     <div className="h-full flex flex-col rounded-lg border bg-card">
