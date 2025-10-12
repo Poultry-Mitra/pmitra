@@ -95,7 +95,7 @@ export default function MyInventoryPage() {
                                                     </DropdownMenuTrigger>
                                                     <DropdownMenuContent align="end">
                                                         <DropdownMenuItem onClick={() => handleEditClick(item)}>
-                                                            <Edit className="mr-2" />
+                                                            <Edit className="mr-2 h-4 w-4" />
                                                             Edit Stock
                                                         </DropdownMenuItem>
                                                     </DropdownMenuContent>

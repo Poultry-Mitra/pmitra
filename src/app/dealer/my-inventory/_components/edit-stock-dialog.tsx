@@ -117,7 +117,7 @@ export function EditStockDialog({ open, onOpenChange, item }: { open: boolean; o
                         <DialogFooter>
                             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
                             <Button type="submit" disabled={form.formState.isSubmitting}>
-                                {form.formState.isSubmitting ? <Loader2 className="mr-2 animate-spin" /> : <Save className="mr-2" />}
+                                {form.formState.isSubmitting ? <Loader2 className="mr-2 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
                                 {form.formState.isSubmitting ? "Saving..." : "Save Changes"}
                             </Button>
                         </DialogFooter>
