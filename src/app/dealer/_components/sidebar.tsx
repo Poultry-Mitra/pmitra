@@ -23,23 +23,14 @@ import {
   Bot,
   BarChart2,
   CreditCard,
-  Settings,
   User,
   LogOut,
-  Tags,
   TrendingUp,
   Warehouse,
   ShoppingBag,
-  Bell,
-  MessageSquare,
-  ShieldQuestion,
-  LifeBuoy,
 } from "lucide-react";
 import { useLanguage } from "@/components/language-provider";
 import { currentDealer } from "@/lib/data";
-import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
-import { ChevronDown, ChevronUp } from "lucide-react";
-import { useState } from "react";
 import { useClientState } from "@/hooks/use-client-state";
 import type { User as UserType } from "@/lib/types";
 
@@ -48,21 +39,44 @@ export function DealerSidebar() {
   const pathname = usePathname();
   const { t } = useLanguage();
   const { state } = useSidebar();
-  const [managementOpen, setManagementOpen] = useState(pathname.startsWith("/dealer/user-management"));
 
   const currentUser = useClientState<UserType | undefined>(currentDealer);
 
-  const isAdmin = currentUser?.role === 'admin';
+  if (!currentUser) {
+      return (
+        <Sidebar>
+            <SidebarHeader>
+                 <div className="flex items-center gap-2">
+                    <AppIcon className="size-8 text-primary" />
+                    {state === 'expanded' && <h1 className="font-headline text-lg font-bold">PoultryMitra</h1>}
+                </div>
+            </SidebarHeader>
+            <SidebarContent />
+            <SidebarFooter />
+        </Sidebar>
+      );
+  }
 
-  const renderLoadingSidebar = () => (
-      <Sidebar>
-          <SidebarHeader />
-          <SidebarContent />
-          <SidebarFooter />
-      </Sidebar>
-  );
+  const isDealer = currentUser?.role === 'dealer';
 
-  const renderDealerSidebar = () => (
+  if (!isDealer) {
+      return (
+          <Sidebar>
+            <SidebarHeader>
+                 <div className="flex items-center gap-2">
+                    <AppIcon className="size-8 text-primary" />
+                    {state === 'expanded' && <h1 className="font-headline text-lg font-bold">PoultryMitra</h1>}
+                </div>
+            </SidebarHeader>
+            <SidebarContent>
+                <p className="p-4 text-sm text-muted-foreground">Invalid user role for this dashboard.</p>
+            </SidebarContent>
+             <SidebarFooter />
+          </Sidebar>
+      )
+  }
+
+  return (
      <Sidebar>
       <SidebarHeader>
         <div className="flex items-center gap-2">
@@ -165,164 +179,4 @@ export function DealerSidebar() {
       </SidebarFooter>
     </Sidebar>
   );
-
-  const renderAdminSidebar = () => (
-    <Sidebar>
-      <SidebarHeader>
-        <div className="flex items-center gap-2">
-            <AppIcon className="size-8 text-primary" />
-            {state === 'expanded' && <h1 className="font-headline text-lg font-bold">PoultryMitra</h1>}
-        </div>
-      </SidebarHeader>
-      <SidebarContent>
-        <SidebarGroupLabel>Analytics</SidebarGroupLabel>
-        <SidebarMenu>
-          <SidebarMenuItem>
-              <Link href="/dealer/dashboard">
-                <SidebarMenuButton isActive={pathname === "/dealer/dashboard"} tooltip={"Dashboard"}>
-                  <LayoutGrid />
-                  <span>{"Dashboard"}</span>
-                </SidebarMenuButton>
-              </Link>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-              <Link href="/dealer/reports">
-                <SidebarMenuButton isActive={pathname.startsWith("/dealer/reports")} tooltip={"Reports"}>
-                  <BarChart2 />
-                  <span>{"Reports"}</span>
-                </SidebarMenuButton>
-              </Link>
-          </SidebarMenuItem>
-        </SidebarMenu>
-
-        <SidebarSeparator />
-        
-        <SidebarGroupLabel>Management</SidebarGroupLabel>
-        <SidebarMenu>
-            <Collapsible open={managementOpen} onOpenChange={setManagementOpen}>
-                <SidebarMenuItem className="relative">
-                <CollapsibleTrigger asChild>
-                    <SidebarMenuButton tooltip="User Management" className="w-full justify-between pr-8" isActive={pathname.startsWith("/dealer/user-management")}>
-                        <div className="flex items-center gap-3">
-                            <Users />
-                            <span>User Management</span>
-                        </div>
-                    </SidebarMenuButton>
-                </CollapsibleTrigger>
-                { state === 'expanded' && (
-                    <div className="absolute right-2 top-1/2 -translate-y-1/2">
-                        {managementOpen ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
-                    </div>
-                )}
-                </SidebarMenuItem>
-
-                <CollapsibleContent>
-                    <SidebarMenu className="ml-7 mt-1 border-l pl-3">
-                        <SidebarMenuItem>
-                            <Link href="/dealer/user-management/farmers">
-                                <SidebarMenuButton size="sm" isActive={pathname === "/dealer/user-management/farmers"}>
-                                Farmers List
-                                </SidebarMenuButton>
-                            </Link>
-                        </SidebarMenuItem>
-                        <SidebarMenuItem>
-                            <Link href="/dealer/user-management/dealers">
-                                <SidebarMenuButton size="sm" isActive={pathname === "/dealer/user-management/dealers"}>
-                                Dealers List
-                                </SidebarMenuButton>
-                            </Link>
-                        </SidebarMenuItem>
-                        <SidebarMenuItem>
-                            <Link href="/dealer/user-management/add-user">
-                                <SidebarMenuButton size="sm" isActive={pathname === "/dealer/user-management/add-user"}>
-                                Add New User
-                                </SidebarMenuButton>
-                            </Link>
-                        </SidebarMenuItem>
-                    </SidebarMenu>
-                </CollapsibleContent>
-            </Collapsible>
-             <SidebarMenuItem>
-                <Link href="/dealer/subscription-management">
-                  <SidebarMenuButton isActive={pathname.startsWith("/dealer/subscription-management")} tooltip={"Subscriptions"}>
-                    <Tags />
-                    <span>{"Subscriptions"}</span>
-                  </SidebarMenuButton>
-                </Link>
-            </SidebarMenuItem>
-             <SidebarMenuItem>
-                <Link href="/dealer/transactions">
-                  <SidebarMenuButton isActive={pathname.startsWith("/dealer/transactions")} tooltip={"Transactions"}>
-                    <CreditCard />
-                    <span>{"Transactions"}</span>
-                  </SidebarMenuButton>
-                </Link>
-            </SidebarMenuItem>
-        </SidebarMenu>
-        <SidebarSeparator />
-
-        <SidebarGroupLabel>Content & AI</SidebarGroupLabel>
-        <SidebarMenu>
-            <SidebarMenuItem>
-              <Link href="/dealer/daily-rates">
-                <SidebarMenuButton isActive={pathname.startsWith("/dealer/daily-rates")} tooltip={"Daily Rates"}>
-                  <TrendingUp />
-                  <span>{"Daily Rates"}</span>
-                </SidebarMenuButton>
-              </Link>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-              <Link href="/dealer/chat-logs">
-                <SidebarMenuButton isActive={pathname.startsWith("/dealer/chat-logs")} tooltip={"AI Chat Logs"}>
-                  <Bot />
-                  <span>{"AI Chat Logs"}</span>
-                </SidebarMenuButton>
-              </Link>
-          </SidebarMenuItem>
-           <SidebarMenuItem>
-              <Link href="/dealer/notifications">
-                <SidebarMenuButton isActive={pathname.startsWith("/dealer/notifications")} tooltip={"Notifications"}>
-                  <Bell />
-                  <span>{"Notifications"}</span>
-                </SidebarMenuButton>
-              </Link>
-          </SidebarMenuItem>
-           <SidebarMenuItem>
-              <Link href="/dealer/promo-codes">
-                <SidebarMenuButton isActive={pathname.startsWith("/dealer/promo-codes")} tooltip={"Promo Codes"}>
-                  <Tags />
-                  <span>{"Promo Codes"}</span>
-                </SidebarMenuButton>
-              </Link>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarContent>
-      <SidebarFooter>
-         <SidebarMenu>
-            <SidebarMenuItem>
-                 <Link href="/dealer/settings">
-                    <SidebarMenuButton isActive={pathname.startsWith("/dealer/settings")} tooltip="Settings">
-                        <Settings/>
-                        <span>{"Settings"}</span>
-                    </SidebarMenuButton>
-                 </Link>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-                <Link href="/login">
-                  <SidebarMenuButton tooltip="Logout">
-                      <LogOut />
-                      <span>{t('sidebar_logout')}</span>
-                  </SidebarMenuButton>
-                </Link>
-            </SidebarMenuItem>
-         </SidebarMenu>
-      </SidebarFooter>
-    </Sidebar>
-  );
-
-  if (!currentUser) {
-      return renderLoadingSidebar();
-  }
-
-  return isAdmin ? renderAdminSidebar() : renderDealerSidebar();
 }

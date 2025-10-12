@@ -4,7 +4,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { mockUsers, currentDealer as dealerUser } from "@/lib/data";
-import { Users, Bot, IndianRupee, Activity, PlusCircle, Send, ShoppingBag } from "lucide-react";
+import { Users, IndianRupee, Activity, PlusCircle, ShoppingBag } from "lucide-react";
 import { RevenueChart } from "../_components/revenue-chart";
 import { PageHeader } from "@/app/dealer/_components/page-header";
 import { Button } from "@/components/ui/button";
@@ -22,9 +22,6 @@ import {
 } from 'recharts';
 
 const kpiData = {
-    admin: [
-        // ... admin specific kpi data
-    ],
     dealer: [
         {
             title: "Total Farmers",
@@ -106,18 +103,13 @@ export default function DealerDashboardPage() {
             <PageHeader title="Loading..." description="Please wait while we load your dashboard." />
         );
     }
-
-    const isAdmin = user.role === 'admin';
-    const pageTitle = isAdmin ? "Admin Dashboard" : `Welcome back, ${user.name.split(' ')[0]}! 👋`;
-    const pageDescription = isAdmin ? "Overview of the PoultryMitra ecosystem." : "Here's an overview of your business.";
-
+    const pageTitle = `Welcome back, ${user.name.split(' ')[0]}! 👋`;
+    const pageDescription = "Here's an overview of your business.";
+    
     const handleTransactionClick = (txn: any) => {
         alert(`Transaction Details:\n\nID: ${txn.id}\nFarmer: ${txn.user.name}\nAmount: ${txn.amount}\nStatus: ${txn.status}\nDate: ${txn.date}`);
     }
 
-
-    if (!isAdmin) {
-      // Render Dealer specific dashboard
       return (
          <>
           <PageHeader title={pageTitle} description={pageDescription}>
@@ -197,30 +189,4 @@ export default function DealerDashboardPage() {
             </div>
          </>
       )
-    }
-
-    // Render Admin specific dashboard
-    return (
-        <>
-            <PageHeader title={pageTitle} description={pageDescription}>
-                <div className="flex items-center gap-2">
-                    <Button variant="outline" asChild>
-                        <Link href="/dealer/notifications">
-                            <Send className="mr-2" />
-                            Send Notification
-                        </Link>
-                    </Button>
-                    <Button asChild>
-                        <Link href="/dealer/user-management/add-user">
-                            <PlusCircle className="mr-2" />
-                            Add User
-                        </Link>
-                    </Button>
-                </div>
-            </PageHeader>
-            <div className="mt-8">
-               <p>Admin-specific content will go here.</p>
-            </div>
-        </>
-    )
 }

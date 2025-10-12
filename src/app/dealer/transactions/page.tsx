@@ -20,8 +20,6 @@ const allTransactions = [
     { id: 'txn_5', farmerUID: 'usr_farmer_002', plan: 'Order #ORD-3 Payment', amount: 'INR 1,750', status: 'Failed', date: '2023-10-26' },
     { id: 'txn_6', farmerUID: 'usr_farmer_004', plan: 'Order #ORD-4 Payment', amount: 'INR 43,000', status: 'Success', date: '2023-10-25' },
     { id: 'txn_7', farmerUID: 'usr_farmer_002', plan: 'Advance Payment', amount: 'INR 10,000', status: 'Success', date: '2023-10-24' },
-    // This is an admin-level transaction that a dealer should not see
-    { id: 'txn_admin_1', farmerUID: 'usr_farmer_001', plan: 'Platform Fee', amount: 'INR 5,000', status: 'Success', date: '2023-10-23' },
 ];
 
 const statusVariant = {
@@ -37,14 +35,11 @@ export default function TransactionsPage() {
          return <PageHeader title="Loading Transactions..." />;
     }
 
-    const isAdmin = user.role === 'admin';
-    const pageTitle = isAdmin ? "All Transactions" : "My Transactions";
-    const pageDescription = isAdmin ? "View all transactions across the platform." : "View and manage all transactions related to your account.";
+    const pageTitle = "My Transactions";
+    const pageDescription = "View and manage all transactions related to your account.";
 
-    // Filter transactions to show only those related to the dealer's connected farmers, or all for admin
-    const transactions = isAdmin 
-        ? allTransactions 
-        : allTransactions.filter(txn => user.connectedFarmers?.includes(txn.farmerUID));
+    // Filter transactions to show only those related to the dealer's connected farmers
+    const transactions = allTransactions.filter(txn => user.connectedFarmers?.includes(txn.farmerUID));
 
 
     const handleTransactionClick = (txn: any) => {
