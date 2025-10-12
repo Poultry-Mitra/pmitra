@@ -20,30 +20,20 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuLabel,
-    DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import { MoreHorizontal, AlertTriangle, CheckCircle, XCircle, Loader2 } from "lucide-react";
+import { MoreHorizontal, Loader2, PlusCircle } from "lucide-react";
 import type { Order } from "@/lib/types";
 import { useToast } from '@/hooks/use-toast';
 import { useUser } from '@/firebase/provider';
 import { useOrders, updateOrderStatus } from '@/hooks/use-orders';
 import { useUsersByIds } from '@/hooks/use-users';
+import { CreateOrderDialog } from './_components/create-order-dialog';
 
 const statusConfig = {
     Pending: { variant: "outline" as const, color: "text-blue-500 border-blue-500/50 bg-blue-500/10" },
@@ -56,6 +46,7 @@ export default function MyOrdersPage() {
     const user = useUser();
     const { orders, loading: ordersLoading } = useOrders(user?.uid);
     const { toast } = useToast();
+    const [isCreateOrderOpen, setCreateOrderOpen] = useState(false);
     
     const farmerIds = useMemo(() => {
         if (!orders) return [];
@@ -63,37 +54,11 @@ export default function MyOrdersPage() {
     }, [orders]);
 
     const { users: farmers, loading: farmersLoading } = useUsersByIds(farmerIds);
-
-    const [dialogState, setDialogState] = useState<{ action: 'approve' | 'reject' | null, order: Order | null }>({ action: null, order: null });
     
     const getFarmerName = (farmerUID: string) => {
         return farmers.find(f => f.id === farmerUID)?.name || "Loading...";
     }
     
-    const handleAction = async () => {
-        if (!dialogState.action || !dialogState.order) return;
-
-        const newStatus = dialogState.action === 'approve' ? 'Approved' : 'Rejected';
-        
-        try {
-            await updateOrderStatus(dialogState.order.id, newStatus);
-            toast({
-                title: `Order ${newStatus}`,
-                description: `Order #${dialogState.order.id.slice(-4)} has been ${newStatus.toLowerCase()}.`,
-                variant: newStatus === 'Rejected' ? 'destructive' : 'default',
-            });
-        } catch (error) {
-             toast({
-                title: "Error",
-                description: "Failed to update order status.",
-                variant: "destructive",
-            });
-            console.error("Failed to update order:", error);
-        }
-
-        setDialogState({ action: null, order: null });
-    };
-
     const loading = ordersLoading || farmersLoading;
 
     return (
@@ -101,14 +66,19 @@ export default function MyOrdersPage() {
             <PageHeader
                 title="Farmer Orders"
                 description="Review and manage incoming orders from your connected farmers."
-            />
+            >
+                <Button onClick={() => setCreateOrderOpen(true)}>
+                    <PlusCircle className="mr-2" />
+                    Create Order
+                </Button>
+            </PageHeader>
 
             <div className="mt-8">
                 <Card>
                     <CardHeader>
-                        <CardTitle>Incoming Orders</CardTitle>
+                        <CardTitle>All Orders</CardTitle>
                         <CardDescription>
-                            A list of all pending, approved, and rejected orders.
+                            A list of all pending, approved, and rejected orders sent to your farmers.
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
@@ -154,21 +124,14 @@ export default function MyOrdersPage() {
                                         <TableCell className="text-right">
                                              <DropdownMenu>
                                                 <DropdownMenuTrigger asChild>
-                                                    <Button aria-haspopup="true" size="icon" variant="ghost" disabled={order.status !== 'Pending'}>
+                                                    <Button aria-haspopup="true" size="icon" variant="ghost">
                                                         <MoreHorizontal className="h-4 w-4" />
                                                         <span className="sr-only">Order menu</span>
                                                     </Button>
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent align="end">
                                                     <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                                     <DropdownMenuItem onClick={() => setDialogState({ action: 'approve', order })} disabled={order.status !== 'Pending'}>
-                                                        <CheckCircle className="mr-2 h-4 w-4" />
-                                                        Approve
-                                                    </DropdownMenuItem>
-                                                    <DropdownMenuItem className="text-destructive" onClick={() => setDialogState({ action: 'reject', order })} disabled={order.status !== 'Pending'}>
-                                                        <XCircle className="mr-2 h-4 w-4" />
-                                                        Reject
-                                                    </DropdownMenuItem>
+                                                     <DropdownMenuItem disabled>View Details</DropdownMenuItem>
                                                 </DropdownMenuContent>
                                             </DropdownMenu>
                                         </TableCell>
@@ -179,30 +142,7 @@ export default function MyOrdersPage() {
                     </CardContent>
                 </Card>
             </div>
-            
-            <AlertDialog open={!!dialogState.action} onOpenChange={() => setDialogState({ action: null, order: null })}>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle className="flex items-center gap-2">
-                             {dialogState.action === 'approve' ? <CheckCircle className="text-green-500"/> : <AlertTriangle className="text-orange-500"/>}
-                            Confirm Action: {dialogState.action === 'approve' ? 'Approve Order' : 'Reject Order'}
-                        </AlertDialogTitle>
-                        <AlertDialogDescription>
-                            Are you sure you want to {dialogState.action} this order for {dialogState.order?.productName} (Qty: {dialogState.order?.quantity})?
-                             {dialogState.action === 'approve' && " This will notify the farmer."}
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction 
-                            onClick={handleAction}
-                            className={dialogState.action === 'reject' ? 'bg-destructive hover:bg-destructive/90 text-destructive-foreground' : ''}
-                        >
-                            Yes, {dialogState.action === 'approve' ? 'Approve' : 'Reject'}
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
+            <CreateOrderDialog open={isCreateOrderOpen} onOpenChange={setCreateOrderOpen} />
         </>
     );
 }
