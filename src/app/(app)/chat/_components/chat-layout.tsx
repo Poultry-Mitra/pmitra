@@ -9,8 +9,9 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Send, WandSparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { aiQueryPoultry } from "@/ai/flows/ai-query-poultry";
-import { currentUser } from "@/lib/data";
 import { AppIcon } from "@/app/icon";
+import { useUser } from "@/firebase/provider";
+import { mockUsers } from "@/lib/data";
 
 type Message = {
   id: string;
@@ -23,7 +24,8 @@ export function ChatLayout() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
-  const user = currentUser;
+  const user = useUser();
+  const mockUser = mockUsers.find(u => u.role === 'farmer'); // Find a farmer mock user for fallback
 
   useEffect(() => {
     const viewport = scrollAreaRef.current?.querySelector('div[data-radix-scroll-area-viewport]');
@@ -58,6 +60,8 @@ export function ChatLayout() {
     }
   };
   
+  const userName = user?.displayName || mockUser?.name || 'User';
+
   return (
     <div className="h-full flex flex-col rounded-lg border bg-card">
       <ScrollArea className="flex-1 p-4" ref={scrollAreaRef}>
@@ -96,7 +100,7 @@ export function ChatLayout() {
               </div>
                {message.sender === "user" && (
                 <Avatar className="size-8">
-                  <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                  <AvatarFallback>{userName.charAt(0)}</AvatarFallback>
                 </Avatar>
               )}
             </div>

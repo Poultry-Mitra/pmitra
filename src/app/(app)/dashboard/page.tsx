@@ -2,7 +2,7 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { mockFarmMetrics, currentUser } from "@/lib/data";
+import { mockFarmMetrics, mockUsers } from "@/lib/data";
 import { Button } from "@/components/ui/button";
 import { FileDown, Plus, Copy, Zap, Loader2 } from "lucide-react";
 import { ProductionChart } from "./_components/production-chart";
@@ -10,13 +10,20 @@ import { AISuggestions } from "./_components/ai-suggestions";
 import { Badge } from "@/components/ui/badge";
 import { useBatches } from "@/hooks/use-batches";
 import { DashboardStats } from "./_components/DashboardStats";
+import { useUser } from "@/firebase/provider";
+import { useClientState } from "@/hooks/use-client-state";
+import type { User } from "@/lib/types";
 
 export default function DashboardPage() {
-  const user = currentUser;
-  const poultryMitraId = `PM-FARM-${user.id.substring(0, 5).toUpperCase()}`;
-
-  const { batches, loading: batchesLoading } = useBatches(user.id);
+  const firebaseUser = useUser();
+  const user = useClientState<User | undefined>(mockUsers.find(u => u.role === 'farmer'), undefined);
   
+  const { batches, loading: batchesLoading } = useBatches(firebaseUser?.uid || "");
+  
+  if (!user || !firebaseUser) return <div className="flex h-screen items-center justify-center"><Loader2 className="animate-spin size-8" /></div>;
+
+  const poultryMitraId = `PM-FARM-${firebaseUser.uid.substring(0, 5).toUpperCase()}`;
+
   const activeBatches = batches.filter(b => b.status === 'Active');
 
   const farmDataForAISuggestions = activeBatches.length > 0 ? {
@@ -95,4 +102,3 @@ export default function DashboardPage() {
     </>
   );
 }
-

@@ -30,9 +30,10 @@ import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
-import { useFirestore } from "@/firebase/provider";
-import { currentUser } from "@/lib/data";
+import { useFirestore, useUser } from '@/firebase/provider';
 import { AddBatchDialog } from "./_components/add-batch-dialog";
+import { useClientState } from "@/hooks/use-client-state";
+import { mockUsers } from "@/lib/data";
 
 const statusVariant: { [key in 'Active' | 'Completed' | 'Planned']: "default" | "secondary" | "outline" } = {
     Active: "default",
@@ -48,8 +49,9 @@ const statusColorScheme = {
 
 export default function BatchesPage() {
   const firestore = useFirestore();
-  const user = currentUser; // In a real app, this would come from useUser()
-  const { batches, loading } = useBatches(user.id);
+  const firebaseUser = useUser();
+  const mockUser = useClientState(mockUsers.find(u => u.role === 'farmer'), undefined)
+  const { batches, loading } = useBatches(firebaseUser?.uid || '');
   const [isAddBatchOpen, setAddBatchOpen] = useState(false);
   const [showUpgradeAlert, setShowUpgradeAlert] = useState(false);
   const [showDeleteAlert, setShowDeleteAlert] = useState<Batch | null>(null);
@@ -57,7 +59,7 @@ export default function BatchesPage() {
   const router = useRouter();
 
   // This should be dynamic based on the user's subscription status.
-  const isPremiumUser = user.role !== 'admin'; // Assuming admin is not a farmer plan, and we have another way to check premium
+  const isPremiumUser = mockUser?.planType === 'premium';
   const activeBatchesCount = batches.filter(b => b.status === 'Active').length;
 
   const handleAddNewBatchClick = () => {
@@ -84,6 +86,8 @@ export default function BatchesPage() {
     router.push(`/batches/${batchId}`);
   };
   
+  if (!firebaseUser) return <div className="flex justify-center items-center h-64"><Loader2 className="animate-spin" /></div>
+
   return (
     <>
       <PageHeader 

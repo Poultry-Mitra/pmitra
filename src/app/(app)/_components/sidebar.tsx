@@ -36,10 +36,11 @@ import {
 import { useLanguage } from "@/components/language-provider";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { currentUser } from "@/lib/data";
 import { useState } from "react";
 import { useClientState } from "@/hooks/use-client-state";
 import type { User } from "@/lib/types";
+import { useUser } from "@/firebase/provider";
+import { mockUsers } from "@/lib/data";
 
 const mainNavItems = [
   { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
@@ -62,10 +63,11 @@ export function AppSidebar() {
   const pathname = usePathname();
   const { t } = useLanguage();
   const { state } = useSidebar();
-  const user = useClientState<User | undefined>(currentUser);
+  const firebaseUser = useUser();
+  const user = useClientState<User | undefined>(mockUsers.find(u => u.role === 'farmer'), undefined);
   const [inventoryOpen, setInventoryOpen] = useState(pathname.startsWith('/inventory'));
 
-  if (!user) {
+  if (!user || !firebaseUser) {
     return (
         <Sidebar>
             <SidebarHeader />
@@ -75,7 +77,7 @@ export function AppSidebar() {
     );
   }
 
-  const poultryMitraId = `PM-FARM-${user.id.substring(0, 5).toUpperCase()}`;
+  const poultryMitraId = `PM-FARM-${firebaseUser.uid.substring(0, 5).toUpperCase()}`;
 
   return (
     <Sidebar>

@@ -11,8 +11,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { useFirestore } from "@/firebase/provider";
-import { currentUser } from "@/lib/data";
+import { useFirestore, useUser } from "@/firebase/provider";
 import { addInventoryItem, type InventoryItem } from "@/hooks/use-inventory";
 import { addLedgerEntry, type LedgerEntry } from "@/hooks/use-ledger";
 import { useRouter } from "next/navigation";
@@ -89,7 +88,7 @@ function SummaryCard({ control }: { control: any }) {
 export default function AddPurchasePage() {
     const { toast } = useToast();
     const firestore = useFirestore();
-    const user = currentUser;
+    const user = useUser();
     const router = useRouter();
 
     const form = useForm<FormValues>({
@@ -118,7 +117,7 @@ export default function AddPurchasePage() {
 
     async function onSubmit(values: FormValues) {
         if (!firestore || !user) {
-            toast({ title: "Error", description: "Could not add purchase.", variant: "destructive" });
+            toast({ title: "Error", description: "You must be logged in to add a purchase.", variant: "destructive" });
             return;
         }
 
@@ -132,7 +131,7 @@ export default function AddPurchasePage() {
                     unit: product.unit,
                     lowStockThreshold: 10, // Default for now
                 };
-                await addInventoryItem(firestore, user.id, newItem);
+                await addInventoryItem(firestore, user.uid, newItem);
             }
 
             // 2. Add a single debit entry to the ledger for the total purchase amount
@@ -142,7 +141,7 @@ export default function AddPurchasePage() {
                 amount: netPayable,
                 date: values.invoiceDate.toISOString(),
             };
-            await addLedgerEntry(firestore, user.id, newLedgerEntry, 'Debit');
+            await addLedgerEntry(firestore, user.uid, newLedgerEntry, 'Debit');
             
             toast({
                 title: "Purchase Recorded",

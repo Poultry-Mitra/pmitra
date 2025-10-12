@@ -16,11 +16,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { currentUser } from "@/lib/data";
+import { useUser } from "@/firebase/provider";
 
 export default function InventoryPage() {
-  const user = currentUser;
-  const { inventory, loading } = useInventory(user.id);
+  const user = useUser();
+  const { inventory, loading } = useInventory(user?.uid || '');
 
   return (
     <>

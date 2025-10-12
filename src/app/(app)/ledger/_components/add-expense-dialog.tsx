@@ -26,8 +26,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { addLedgerEntry, type LedgerEntry } from '@/hooks/use-ledger';
-import { useFirestore } from '@/firebase/provider';
-import { currentUser } from '@/lib/data';
+import { useFirestore, useUser } from '@/firebase/provider';
 import { Calendar as CalendarIcon, IndianRupee } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
@@ -47,7 +46,7 @@ type FormValues = z.infer<typeof formSchema>;
 export function AddExpenseDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
     const { toast } = useToast();
     const firestore = useFirestore();
-    const user = currentUser;
+    const user = useUser();
 
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
@@ -61,7 +60,7 @@ export function AddExpenseDialog({ open, onOpenChange }: { open: boolean; onOpen
 
     async function onSubmit(values: FormValues) {
         if (!firestore || !user) {
-            toast({ title: "Error", description: "Could not add expense.", variant: "destructive" });
+            toast({ title: "Error", description: "You must be logged in to add an expense.", variant: "destructive" });
             return;
         }
 
@@ -72,7 +71,7 @@ export function AddExpenseDialog({ open, onOpenChange }: { open: boolean; onOpen
         };
 
         try {
-            await addLedgerEntry(firestore, user.id, newEntry, 'Debit');
+            await addLedgerEntry(firestore, user.uid, newEntry, 'Debit');
             toast({
                 title: "Expense Added",
                 description: `${values.description} has been added to your ledger.`,

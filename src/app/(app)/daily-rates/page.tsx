@@ -5,16 +5,18 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { PageHeader } from "../_components/page-header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { mockDailyRates, currentUser } from "@/lib/data";
+import { mockDailyRates, mockUsers } from "@/lib/data";
 import { IndianRupee, MapPin, Zap } from "lucide-react";
 import { Button } from '@/components/ui/button';
+import { useClientState } from '@/hooks/use-client-state';
 
 export default function DailyRatesPage() {
     const firstRate = mockDailyRates[0];
     const { readyBird, chickRate, feedCostIndex, lastUpdated, location } = firstRate;
     const [lastUpdatedTime, setLastUpdatedTime] = useState('');
 
-    const userIsPremium = currentUser.planType === 'premium';
+    const user = useClientState(mockUsers.find(u => u.role === 'farmer'), undefined);
+    const userIsPremium = user?.planType === 'premium';
 
     useEffect(() => {
         setLastUpdatedTime(new Date(lastUpdated).toLocaleTimeString());

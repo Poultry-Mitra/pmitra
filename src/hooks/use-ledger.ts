@@ -41,6 +41,7 @@ export function useLedger(farmerUID: string) {
 
   useEffect(() => {
     if (!firestore || !farmerUID) {
+        setEntries([]);
         setLoading(false);
         return;
     }
@@ -54,16 +55,10 @@ export function useLedger(farmerUID: string) {
       (snapshot) => {
         const fetchedEntries = snapshot.docs.map(toLedgerEntry);
         // Balance calculation can be done on client for simplicity here
-        let runningBalance = 0;
-        const entriesWithBalance = [...fetchedEntries].reverse().map(entry => {
-            if (entry.type === 'Credit') {
-                runningBalance += entry.amount;
-            } else {
-                runningBalance -= entry.amount;
-            }
-            return { ...entry, balanceAfter: runningBalance };
-        });
-        setEntries(entriesWithBalance.reverse());
+        // Note: For large datasets, this should be handled server-side or with more sophisticated client-side logic.
+        let runningBalance = fetchedEntries.length > 0 ? fetchedEntries[0].balanceAfter : 0;
+        
+        setEntries(fetchedEntries);
         setLoading(false);
       },
       (err) => {
@@ -101,6 +96,10 @@ export async function addLedgerEntry(
                 orderBy("date", "desc"),
                 limit(1)
             );
+            
+            // Note: In a real-world high-concurrency app, you might need a separate document
+            // to hold the current balance to avoid race conditions.
+            // For this app's scale, querying the last entry is acceptable.
             const lastEntrySnapshot = await getDocs(lastEntryQuery);
             const lastEntry = lastEntrySnapshot.docs[0]?.data() as LedgerEntry | undefined;
             const lastBalance = lastEntry?.balanceAfter || 0;
@@ -118,6 +117,7 @@ export async function addLedgerEntry(
                 farmerUID,
                 type,
                 balanceAfter: newBalance,
+                // date is already in ISO string format from the form
             });
         });
     } catch (e) {

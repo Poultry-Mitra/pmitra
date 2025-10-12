@@ -15,10 +15,21 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Bell, Search } from 'lucide-react';
-import { currentUser } from '@/lib/data';
+import { useUser } from '@/firebase/provider';
+import { mockUsers } from '@/lib/data';
 
 export function AppHeader() {
-  const user = currentUser;
+  const firebaseUser = useUser();
+  const user = mockUsers.find(u => u.role === 'farmer'); // This should be dynamic based on the logged in user
+
+  if (!firebaseUser || !user) {
+    return (
+        <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
+            <SidebarTrigger className="md:hidden" />
+        </header>
+    )
+  }
+
 
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">

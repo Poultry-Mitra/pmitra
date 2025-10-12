@@ -36,6 +36,7 @@ export function useInventory(farmerUID: string) {
 
   useEffect(() => {
     if (!firestore || !farmerUID) {
+        setInventory([]);
         setLoading(false);
         return;
     }
@@ -74,6 +75,7 @@ export function useInventoryByCategory(farmerUID: string, category: InventoryIte
 
   useEffect(() => {
     if (!firestore || !farmerUID) {
+        setInventory([]);
         setLoading(false);
         return;
     }

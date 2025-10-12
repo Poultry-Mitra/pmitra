@@ -25,7 +25,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { addDailyRecord } from '@/hooks/use-batches';
-import { useFirestore } from '@/firebase/provider';
+import { useFirestore, useUser } from '@/firebase/provider';
 import { Calendar as CalendarIcon } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
@@ -33,7 +33,6 @@ import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useInventoryByCategory } from '@/hooks/use-inventory';
-import { currentUser } from '@/lib/data';
 
 const formSchema = z.object({
     date: z.date(),
@@ -48,8 +47,8 @@ type FormValues = z.infer<typeof formSchema>;
 export function AddDailyRecordDialog({ open, onOpenChange, batchId }: { open: boolean; onOpenChange: (open: boolean) => void, batchId: string }) {
     const { toast } = useToast();
     const firestore = useFirestore();
-    const user = currentUser;
-    const { inventory: feedItems, loading: feedLoading } = useInventoryByCategory(user.id, "Feed");
+    const user = useUser();
+    const { inventory: feedItems, loading: feedLoading } = useInventoryByCategory(user?.uid || '', "Feed");
 
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
@@ -62,13 +61,13 @@ export function AddDailyRecordDialog({ open, onOpenChange, batchId }: { open: bo
     });
 
     async function onSubmit(values: FormValues) {
-        if (!firestore || !batchId) {
+        if (!firestore || !batchId || !user) {
             toast({ title: "Error", description: "Could not add daily record.", variant: "destructive" });
             return;
         }
 
         try {
-            await addDailyRecord(firestore, batchId, values);
+            await addDailyRecord(firestore, user.uid, batchId, values);
             toast({
                 title: "Daily Record Added",
                 description: `Record for ${format(values.date, "PPP")} has been successfully added.`,

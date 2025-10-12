@@ -10,7 +10,6 @@ export const mockUsers: User[] = [
   { id: 'usr_dealer_005', name: 'Dealer Bob', email: 'bob@dealer.com', role: 'dealer', dateJoined: '2023-05-21', planType: 'free', uniqueDealerCode: 'DEAL-BOB', connectedFarmers: ['usr_farmer_002'] },
 ];
 
-export const currentUser: User = mockUsers[1];
 export const currentDealer: User | undefined = mockUsers.find(u => u.id === 'usr_dealer_003');
 
 

@@ -1,3 +1,4 @@
+
 // src/hooks/use-batches.ts
 'use client';
 
@@ -54,6 +55,7 @@ export function useBatches(farmerUID: string) {
 
   useEffect(() => {
     if (!firestore || !farmerUID) {
+        setBatches([]);
         setLoading(false);
         return;
     }
@@ -195,6 +197,7 @@ export function deleteBatch(firestore: Firestore, batchId: string) {
 
 export async function addDailyRecord(
     firestore: Firestore, 
+    farmerUID: string,
     batchId: string, 
     data: { date: Date; mortality: number; feedItemId?: string; feedConsumed: number; avgBodyWeight: number; }
 ) {
@@ -202,7 +205,7 @@ export async function addDailyRecord(
     
     const batchRef = doc(firestore, 'batches', batchId);
     const dailyRecordRef = doc(collection(firestore, `batches/${batchId}/dailyRecords`));
-    const inventoryItemRef = data.feedItemId ? doc(firestore, 'inventory', data.feedItemId) : null;
+    const inventoryItemRef = data.feedItemId ? doc(firestore, `users/${farmerUID}/inventory`, data.feedItemId) : null;
 
 
     try {

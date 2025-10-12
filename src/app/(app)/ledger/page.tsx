@@ -9,14 +9,14 @@ import { Loader2, PlusCircle, IndianRupee } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useLedger } from "@/hooks/use-ledger";
-import { currentUser } from "@/lib/data";
+import { useUser } from "@/firebase/provider";
 import { cn } from "@/lib/utils";
 import { AddExpenseDialog } from "./_components/add-expense-dialog";
 import { AddIncomeDialog } from "./_components/add-income-dialog";
 
 export default function LedgerPage() {
-  const user = currentUser;
-  const { entries, loading } = useLedger(user.id);
+  const user = useUser();
+  const { entries, loading } = useLedger(user?.uid || '');
   const [isAddExpenseOpen, setAddExpenseOpen] = useState(false);
   const [isAddIncomeOpen, setAddIncomeOpen] = useState(false);
 

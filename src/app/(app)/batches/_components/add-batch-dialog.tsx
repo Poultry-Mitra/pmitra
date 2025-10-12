@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from 'react';
@@ -25,8 +26,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { addBatch, type Batch } from '@/hooks/use-batches';
-import { useFirestore } from '@/firebase/provider';
-import { currentUser } from '@/lib/data';
+import { useFirestore, useUser } from '@/firebase/provider';
 import { Calendar as CalendarIcon } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
@@ -45,7 +45,7 @@ type FormValues = z.infer<typeof formSchema>;
 export function AddBatchDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
     const { toast } = useToast();
     const firestore = useFirestore();
-    const user = currentUser;
+    const user = useUser();
 
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
@@ -59,7 +59,7 @@ export function AddBatchDialog({ open, onOpenChange }: { open: boolean; onOpenCh
 
     async function onSubmit(values: FormValues) {
         if (!firestore || !user) {
-            toast({ title: "Error", description: "Could not add batch.", variant: "destructive" });
+            toast({ title: "Error", description: "You must be logged in to add a batch.", variant: "destructive" });
             return;
         }
 
@@ -74,7 +74,7 @@ export function AddBatchDialog({ open, onOpenChange }: { open: boolean; onOpenCh
         };
 
         try {
-            addBatch(firestore, user.id, newBatch);
+            addBatch(firestore, user.uid, newBatch);
             toast({
                 title: "Batch Added",
                 description: `${newBatch.batchName} has been successfully created.`,
