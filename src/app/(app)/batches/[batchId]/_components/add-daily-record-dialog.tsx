@@ -25,16 +25,19 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { addDailyRecord } from '@/hooks/use-batches';
 import { useFirestore } from '@/firebase/provider';
-import { Calendar as CalendarIcon, IndianRupee } from 'lucide-react';
+import { Calendar as CalendarIcon } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
-import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useInventoryByCategory } from '@/hooks/use-inventory';
+import { currentUser } from '@/lib/data';
 
 const formSchema = z.object({
     date: z.date(),
     mortality: z.coerce.number().int().min(0, "Mortality must be non-negative."),
+    feedItemId: z.string().optional(),
     feedConsumed: z.coerce.number().min(0, "Feed consumption must be non-negative."),
     avgBodyWeight: z.coerce.number().min(0, "Weight must be non-negative."),
 });
@@ -44,6 +47,8 @@ type FormValues = z.infer<typeof formSchema>;
 export function AddDailyRecordDialog({ open, onOpenChange, batchId }: { open: boolean; onOpenChange: (open: boolean) => void, batchId: string }) {
     const { toast } = useToast();
     const firestore = useFirestore();
+    const user = currentUser;
+    const { inventory: feedItems, loading: feedLoading } = useInventoryByCategory(user.id, "Feed");
 
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
@@ -68,7 +73,7 @@ export function AddDailyRecordDialog({ open, onOpenChange, batchId }: { open: bo
                 description: `Record for ${format(values.date, "PPP")} has been successfully added.`,
             });
             onOpenChange(false);
-            form.reset({ date: new Date(), mortality: 0, feedConsumed: 0, avgBodyWeight: 0 });
+            form.reset({ date: new Date(), mortality: 0, feedConsumed: 0, avgBodyWeight: 0, feedItemId: "" });
         } catch (error: any) {
              toast({ title: "Error", description: error.message || "Failed to add daily record.", variant: "destructive" });
              console.error("Failed to add daily record", error);
@@ -80,7 +85,7 @@ export function AddDailyRecordDialog({ open, onOpenChange, batchId }: { open: bo
             <DialogContent>
                 <DialogHeader>
                     <DialogTitle>Add Daily Record</DialogTitle>
-                    <DialogDescription>Enter daily statistics for this batch. The main batch details will be updated automatically.</DialogDescription>
+                    <DialogDescription>Enter daily statistics. Feed consumption will automatically update your inventory.</DialogDescription>
                 </DialogHeader>
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -117,7 +122,7 @@ export function AddDailyRecordDialog({ open, onOpenChange, batchId }: { open: bo
                             )}
                         />
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <FormField
+                             <FormField
                                 control={form.control}
                                 name="mortality"
                                 render={({ field }) => (
@@ -130,27 +135,55 @@ export function AddDailyRecordDialog({ open, onOpenChange, batchId }: { open: bo
                             />
                             <FormField
                                 control={form.control}
-                                name="feedConsumed"
+                                name="avgBodyWeight"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Feed Consumed (kg)</FormLabel>
-                                        <FormControl><Input type="number" step="0.1" {...field} /></FormControl>
+                                        <FormLabel>Avg. Body Weight (g)</FormLabel>
+                                        <FormControl><Input type="number" {...field} /></FormControl>
                                         <FormMessage />
                                     </FormItem>
                                 )}
                             />
                         </div>
-                         <FormField
-                            control={form.control}
-                            name="avgBodyWeight"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Avg. Body Weight (g)</FormLabel>
-                                    <FormControl><Input type="number" {...field} /></FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
+                        <Card>
+                            <CardContent className="pt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                               <FormField
+                                    control={form.control}
+                                    name="feedItemId"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                        <FormLabel>Feed Used</FormLabel>
+                                        <Select onValueChange={field.onChange} defaultValue={field.value} disabled={feedLoading}>
+                                            <FormControl>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder={feedLoading ? "Loading feeds..." : "Select feed from inventory"} />
+                                            </SelectTrigger>
+                                            </FormControl>
+                                            <SelectContent>
+                                                {feedItems.map(item => (
+                                                    <SelectItem key={item.id} value={item.id}>
+                                                        {item.productName} ({item.stockQuantity.toFixed(2)} {item.unit})
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                        <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="feedConsumed"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Feed Consumed (kg)</FormLabel>
+                                            <FormControl><Input type="number" step="0.1" {...field} /></FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            </CardContent>
+                        </Card>
                         
                         <DialogFooter>
                             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>

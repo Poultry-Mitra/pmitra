@@ -67,6 +67,49 @@ export function useInventory(farmerUID: string) {
   return { inventory, loading };
 }
 
+export function useInventoryByCategory(farmerUID: string, category: InventoryItem['category']) {
+  const firestore = useFirestore();
+  const [inventory, setInventory] = useState<InventoryItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!firestore || !farmerUID) {
+        setLoading(false);
+        return;
+    }
+    
+    setLoading(true);
+    const inventoryCollection = collection(firestore, 'inventory');
+    const q = query(
+      inventoryCollection, 
+      where("farmerUID", "==", farmerUID),
+      where("category", "==", category)
+    );
+
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        setInventory(snapshot.docs.map(toInventoryItem));
+        setLoading(false);
+      },
+      (err) => {
+        const permissionError = new FirestorePermissionError({
+          path: `inventory where farmerUID == ${farmerUID} and category == ${category}`,
+          operation: 'list',
+        });
+        errorEmitter.emit('permission-error', permissionError);
+        console.error(`Error fetching inventory for category ${category}:`, err);
+        setLoading(false);
+      }
+    );
+
+    return () => unsubscribe();
+  }, [firestore, farmerUID, category]);
+
+  return { inventory, loading };
+}
+
+
 export function addInventoryItem(firestore: Firestore, farmerUID: string, data: Omit<InventoryItem, 'id' | 'farmerUID' | 'lastUpdated'>) {
     if (!firestore) throw new Error("Firestore not initialized");
 

@@ -17,6 +17,7 @@ import {
   where,
   runTransaction,
   orderBy,
+  increment,
 } from 'firebase/firestore';
 import { useFirestore } from '@/firebase/provider';
 import type { Batch, DailyRecord } from '@/lib/types';
@@ -195,12 +196,14 @@ export function deleteBatch(firestore: Firestore, batchId: string) {
 export async function addDailyRecord(
     firestore: Firestore, 
     batchId: string, 
-    data: { date: Date; mortality: number; feedConsumed: number; avgBodyWeight: number; }
+    data: { date: Date; mortality: number; feedItemId?: string; feedConsumed: number; avgBodyWeight: number; }
 ) {
     if (!firestore) throw new Error("Firestore not initialized");
     
     const batchRef = doc(firestore, 'batches', batchId);
     const dailyRecordRef = doc(collection(firestore, `batches/${batchId}/dailyRecords`));
+    const inventoryItemRef = data.feedItemId ? doc(firestore, 'inventory', data.feedItemId) : null;
+
 
     try {
         await runTransaction(firestore, async (transaction) => {
@@ -209,16 +212,11 @@ export async function addDailyRecord(
                 throw new Error("Batch does not exist!");
             }
 
-            const currentBatchData = batchDoc.data() as Batch;
-
             // Update main batch document
-            const newMortality = currentBatchData.mortalityCount + data.mortality;
-            const newFeedConsumed = currentBatchData.feedConsumed + data.feedConsumed;
-
             transaction.update(batchRef, {
-                mortalityCount: newMortality,
-                feedConsumed: newFeedConsumed,
-                avgBodyWeight: data.avgBodyWeight, // Update with the latest avg body weight
+                mortalityCount: increment(data.mortality),
+                feedConsumed: increment(data.feedConsumed),
+                avgBodyWeight: data.avgBodyWeight,
             });
             
             // Create new daily record in subcollection
@@ -227,8 +225,25 @@ export async function addDailyRecord(
                 mortality: data.mortality,
                 feedConsumed: data.feedConsumed,
                 avgBodyWeight: data.avgBodyWeight,
+                feedItemId: data.feedItemId || null,
                 createdAt: serverTimestamp(),
             });
+
+            // If feed was consumed, update inventory
+            if (inventoryItemRef && data.feedConsumed > 0) {
+                 const inventoryDoc = await transaction.get(inventoryItemRef);
+                 if (!inventoryDoc.exists()) {
+                    throw new Error("Feed item does not exist in inventory!");
+                 }
+                 const currentStock = inventoryDoc.data().stockQuantity;
+                 if (currentStock < data.feedConsumed) {
+                    throw new Error("Not enough feed in stock!");
+                 }
+                 transaction.update(inventoryItemRef, {
+                    stockQuantity: increment(-data.feedConsumed),
+                    lastUpdated: serverTimestamp()
+                 });
+            }
         });
     } catch(e: any) {
         console.error("Add daily record transaction failed: ", e);
