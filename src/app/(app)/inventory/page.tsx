@@ -2,198 +2,37 @@
 // src/app/(app)/inventory/page.tsx
 "use client";
 
-import { useState } from "react";
+import Link from "next/link";
 import { PageHeader } from "../_components/page-header";
 import { Button } from "@/components/ui/button";
-import { MoreHorizontal, PlusCircle, AlertTriangle, Loader2 } from "lucide-react";
+import { MoreHorizontal, PlusCircle, Loader2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { useInventory, addInventoryItem } from "@/hooks/use-inventory";
-import type { InventoryItem } from "@/lib/types";
+import { useInventory } from "@/hooks/use-inventory";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useToast } from "@/hooks/use-toast";
 import { currentUser } from "@/lib/data";
-import { useFirestore } from "@/firebase/provider";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-
-
-const formSchema = z.object({
-  productName: z.string().min(2, "Product name is required."),
-  category: z.enum(["Feed", "Medicine"]),
-  stockQuantity: z.coerce.number().min(0, "Stock must be non-negative."),
-  unit: z.enum(["kg", "grams", "liters", "ml", "units"]),
-  lowStockThreshold: z.coerce.number().min(0, "Threshold must be non-negative."),
-});
-
-type FormValues = z.infer<typeof formSchema>;
-
-
-function AddPurchaseDialog({ open, onOpenChange }: { open: boolean, onOpenChange: (open: boolean) => void }) {
-  const firestore = useFirestore();
-  const user = currentUser;
-  const { toast } = useToast();
-  
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      productName: "",
-      category: "Feed",
-      stockQuantity: 0,
-      unit: "kg",
-      lowStockThreshold: 10,
-    },
-  });
-
-  const onSubmit = (values: FormValues) => {
-    if (!firestore || !user) {
-        toast({
-            title: "Error",
-            description: "Could not add item. User or database not available.",
-            variant: "destructive",
-        });
-        return;
-    }
-    const newItem: Omit<InventoryItem, 'id' | 'farmerUID' | 'lastUpdated'> = {
-        ...values
-    };
-    addInventoryItem(firestore, user.id, newItem);
-    toast({
-        title: "Purchase Added",
-        description: `${values.productName} has been added to your inventory.`,
-    });
-    onOpenChange(false);
-    form.reset();
-  };
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Add Manual Purchase</DialogTitle>
-          <DialogDescription>
-            Record a new feed or medicine purchase to add it to your inventory.
-          </DialogDescription>
-        </DialogHeader>
-        <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <FormField
-                    control={form.control}
-                    name="productName"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Product Name</FormLabel>
-                            <FormControl><Input placeholder="e.g., Broiler Starter Feed" {...field} /></FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-                 <FormField
-                    control={form.control}
-                    name="category"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Category</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
-                                <SelectContent>
-                                    <SelectItem value="Feed">Feed</SelectItem>
-                                    <SelectItem value="Medicine">Medicine</SelectItem>
-                                </SelectContent>
-                            </Select>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-                <div className="grid grid-cols-2 gap-4">
-                     <FormField
-                        control={form.control}
-                        name="stockQuantity"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Quantity</FormLabel>
-                                <FormControl><Input type="number" {...field} /></FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                     <FormField
-                        control={form.control}
-                        name="unit"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Unit</FormLabel>
-                                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                    <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
-                                    <SelectContent>
-                                        <SelectItem value="kg">kg</SelectItem>
-                                        <SelectItem value="grams">grams</SelectItem>
-                                        <SelectItem value="liters">liters</SelectItem>
-                                        <SelectItem value="ml">ml</SelectItem>
-                                        <SelectItem value="units">units</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                </div>
-                 <FormField
-                    control={form.control}
-                    name="lowStockThreshold"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Low Stock Alert Threshold</FormLabel>
-                            <FormControl><Input type="number" {...field} /></FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-                 <DialogFooter>
-                    <Button type="submit">Add to Inventory</Button>
-                </DialogFooter>
-            </form>
-        </Form>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
 
 export default function InventoryPage() {
   const user = currentUser;
   const { inventory, loading } = useInventory(user.id);
-  const [isAddPurchaseOpen, setAddPurchaseOpen] = useState(false);
 
   return (
     <>
       <PageHeader 
-        title="Inventory"
+        title="Inventory Stock"
         description="Manage your feed and medicine stock."
       >
-        <Button onClick={() => setAddPurchaseOpen(true)}>
-            <PlusCircle className="mr-2" />
-            Add Purchase
+        <Button asChild>
+            <Link href="/inventory/add">
+                <PlusCircle className="mr-2" />
+                Add Purchase
+            </Link>
         </Button>
       </PageHeader>
       <div className="mt-8">
@@ -262,9 +101,6 @@ export default function InventoryPage() {
             </CardContent>
         </Card>
       </div>
-
-      <AddPurchaseDialog open={isAddPurchaseOpen} onOpenChange={setAddPurchaseOpen} />
     </>
   );
 }
-

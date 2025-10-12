@@ -13,6 +13,9 @@ import {
   SidebarMenuButton,
   SidebarFooter,
   useSidebar,
+  Collapsible,
+  CollapsibleTrigger,
+  CollapsibleContent,
 } from "@/components/ui/sidebar";
 import { AppIcon } from "@/app/icon";
 import {
@@ -29,16 +32,18 @@ import {
   WandSparkles,
   Archive,
   BookText,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { useLanguage } from "@/components/language-provider";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { currentUser } from "@/lib/data";
+import { useState } from "react";
 
 const navItems = [
   { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
   { href: "/batches", icon: FileText, label: "My Batches" },
-  { href: "/inventory", icon: Archive, label: "Inventory" },
   { href: "/ledger", icon: BookText, label: "Ledger" },
   { href: "/dealers", icon: Users, label: "Dealers" },
 ];
@@ -56,6 +61,8 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const user = currentUser;
   const poultryMitraId = `PM-FARM-${user.id.substring(0, 5).toUpperCase()}`;
+  const [inventoryOpen, setInventoryOpen] = useState(pathname.startsWith('/inventory'));
+
 
   return (
     <Sidebar>
@@ -87,7 +94,7 @@ export function AppSidebar() {
             <SidebarMenuItem key={item.href}>
               <Link href={item.href}>
                 <SidebarMenuButton
-                  isActive={pathname.startsWith(item.href)}
+                  isActive={pathname.startsWith(item.href) && item.href !== '/'}
                   tooltip={item.label}
                 >
                   <item.icon />
@@ -96,6 +103,43 @@ export function AppSidebar() {
               </Link>
             </SidebarMenuItem>
           ))}
+          
+           <Collapsible open={inventoryOpen} onOpenChange={setInventoryOpen}>
+            <SidebarMenuItem className="relative">
+              <CollapsibleTrigger asChild>
+                  <SidebarMenuButton tooltip="Inventory" className="w-full justify-between pr-8" isActive={pathname.startsWith("/inventory")}>
+                      <div className="flex items-center gap-3">
+                          <Archive />
+                          <span>Inventory</span>
+                      </div>
+                  </SidebarMenuButton>
+              </CollapsibleTrigger>
+              { state === 'expanded' && (
+                  <div className="absolute right-2 top-1/2 -translate-y-1/2">
+                      {inventoryOpen ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
+                  </div>
+              )}
+            </SidebarMenuItem>
+
+            <CollapsibleContent>
+                 <SidebarMenu className="ml-7 mt-1 border-l pl-3">
+                    <SidebarMenuItem>
+                        <Link href="/inventory">
+                            <SidebarMenuButton size="sm" isActive={pathname === "/inventory"}>
+                            View Stock
+                            </SidebarMenuButton>
+                        </Link>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                        <Link href="/inventory/add">
+                            <SidebarMenuButton size="sm" isActive={pathname === "/inventory/add"}>
+                            Add Purchase
+                            </SidebarMenuButton>
+                        </Link>
+                    </SidebarMenuItem>
+                 </SidebarMenu>
+            </CollapsibleContent>
+          </Collapsible>
         </SidebarMenu>
 
         <SidebarMenu>
