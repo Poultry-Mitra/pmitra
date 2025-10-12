@@ -50,7 +50,7 @@ export default function LoginPage() {
                     </CardHeader>
                     <CardContent>
                         <Button className="w-full" variant="secondary" asChild>
-                            <Link href="/admin">
+                            <Link href="/dealer">
                                 {t('login.dealer_button')} <ArrowRight className="ml-2" />
                             </Link>
                         </Button>
@@ -60,7 +60,7 @@ export default function LoginPage() {
 
              <div className="mt-8">
                  <Button variant="ghost" asChild className="text-sm">
-                    <Link href="/admin">
+                    <Link href="/dealer">
                         <Shield className="mr-2" /> {t('login.admin_login')}
                     </Link>
                  </Button>
