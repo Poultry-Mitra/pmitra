@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useUser, useFirestore } from '@/firebase/provider';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Loader2, Save } from 'lucide-react';
 import type { User as AppUser } from '@/lib/types';
 import { useLanguage } from '@/components/language-provider';

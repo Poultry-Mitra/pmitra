@@ -61,8 +61,6 @@ export default function LoginPage() {
               }[userData.role] || '/';
             router.replace(targetPath);
           } else {
-            // User in Auth but not Firestore, likely during signup.
-            // Let them proceed or send to signup. For now, stop loading.
             setIsCheckingUser(false);
           }
         })
@@ -71,7 +69,6 @@ export default function LoginPage() {
           setIsCheckingUser(false);
         });
     } else {
-      // No user, stop loading.
       setIsCheckingUser(false);
     }
   }, [firebaseUser, isUserLoading, firestore, router]);
@@ -83,7 +80,6 @@ export default function LoginPage() {
     }
     try {
       await signInWithEmailAndPassword(auth, values.email, values.password);
-      // onAuthStateChanged in provider will handle redirection
     } catch (error: any) {
       let message = 'An unknown error occurred.';
       if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
@@ -100,7 +96,7 @@ export default function LoginPage() {
     return (
       <div className="flex min-h-screen w-full flex-col items-center justify-center bg-muted/30 p-4 font-body">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />
-        <p className="mt-4 text-muted-foreground">Loading...</p>
+        <p className="mt-4 text-muted-foreground">{t('messages.loading')}</p>
       </div>
     );
   }
@@ -147,7 +143,7 @@ export default function LoginPage() {
               />
               <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading && <Loader2 className="mr-2 animate-spin" />}
-                {isLoading ? 'Logging in...' : 'Login'}
+                {isLoading ? t('messages.loading') : 'Login'}
               </Button>
             </form>
           </Form>
@@ -159,6 +155,9 @@ export default function LoginPage() {
           <Link href="/signup" className="font-semibold text-primary hover:underline">
             {t('login.register_here')}
           </Link>
+        </p>
+         <p className="mt-2">
+            {t('login.admin_login_text')}
         </p>
       </div>
     </div>

@@ -103,18 +103,12 @@ const translations = {
       market: "Market",
     },
     login: {
-      welcome_title: "Welcome to PoultryMitra",
-      welcome_subtitle: "Choose your login type to continue",
-      farmer_title: "Farmer Login",
-      farmer_description: "Access farm management tools, track expenses, monitor crops, and more.",
-      farmer_button: "Continue as Farmer",
-      dealer_title: "Dealer Login",
-      dealer_description: "Manage orders, customers, products, and see market rates.",
-      dealer_button: "Continue as Dealer",
+      welcome_title: "Welcome Back!",
       no_account: "Don't have an account?",
       register_here: "Register here",
       back_to_home: "Back to Home",
-      admin_login: "Admin Login"
+      admin_login: "Admin Login",
+      admin_login_text: "Admins use the same login form."
     },
     signup: {
       welcome_title: "Join PoultryMitra Today",
@@ -226,6 +220,7 @@ const translations = {
       authenticating: "Authenticating, please wait...",
       error: "Error",
       must_be_logged_in: "You must be logged in to perform this action.",
+      loading: "Loading...",
     },
     labels: {
       full_name: "Full Name",
@@ -332,7 +327,6 @@ const translations = {
       started_chat: "Started AI chat - 30 minutes ago",
     },
     messages: {
-      loading: "Loading...",
       loading_users: "Loading users...",
       no_users_found: "No users found.",
     }
@@ -427,18 +421,12 @@ const translations = {
       market: "बाजार",
     },
     login: {
-      welcome_title: "पोल्ट्री मित्र में आपका स्वागत है",
-      welcome_subtitle: "जारी रखने के लिए अपना लॉगिन प्रकार चुनें",
-      farmer_title: "किसान लॉगिन",
-      farmer_description: "फार्म प्रबंधन उपकरण, ट्रैक खर्च, फसल की निगरानी और अधिक एक्सेस करें।",
-      farmer_button: "किसान के रूप में जारी रखें",
-      dealer_title: "डीलर लॉगिन",
-      dealer_description: "ऑर्डर, ग्राहक, उत्पाद प्रबंधित करें और बाजार दरें देखें।",
-      dealer_button: "डीलर के रूप में जारी रखें",
+      welcome_title: "वापस स्वागत है!",
       no_account: "कोई खाता नहीं है?",
       register_here: "यहाँ रजिस्टर करें",
       back_to_home: "होम पर वापस जाएं",
-      admin_login: "एडमिन लॉगिन"
+      admin_login: "एडमिन लॉगिन",
+      admin_login_text: "एडमिन उसी लॉगिन फॉर्म का उपयोग करते हैं।"
     },
     signup: {
         welcome_title: "आज ही पोल्ट्री मित्र से जुड़ें",
@@ -550,6 +538,7 @@ const translations = {
       authenticating: "प्रमाणित किया जा रहा है, कृपया प्रतीक्षा करें...",
       error: "त्रुटि",
       must_be_logged_in: "यह क्रिया करने के लिए आपको लॉग इन होना चाहिए।",
+      loading: "लोड हो रहा है...",
     },
     labels: {
       full_name: "पूरा नाम",
@@ -656,7 +645,6 @@ const translations = {
       started_chat: "30 मिनट पहले एआई चैट शुरू की",
     },
     messages: {
-      loading: "लोड हो रहा है...",
       loading_users: "उपयोगकर्ताओं को लोड किया जा रहा है...",
       no_users_found: "कोई उपयोगकर्ता नहीं मिला।",
     }
@@ -719,5 +707,3 @@ export function useLanguage() {
   }
   return context;
 }
-
-    
