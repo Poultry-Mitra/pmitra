@@ -8,7 +8,7 @@ import { MoreHorizontal, PlusCircle, AlertTriangle, Loader2 } from "lucide-react
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { useBatches, addBatch, deleteBatch } from "@/hooks/use-batches";
+import { useBatches, deleteBatch } from "@/hooks/use-batches";
 import type { Batch } from "@/lib/types";
 import {
   DropdownMenu,
@@ -30,8 +30,9 @@ import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
-import { useFirestore, useUser } from "@/firebase/provider";
+import { useFirestore } from "@/firebase/provider";
 import { currentUser } from "@/lib/data";
+import { AddBatchDialog } from "./_components/add-batch-dialog";
 
 const statusVariant: { [key in 'Active' | 'Completed' | 'Planned']: "default" | "secondary" | "outline" } = {
     Active: "default",
@@ -49,6 +50,7 @@ export default function BatchesPage() {
   const firestore = useFirestore();
   const user = currentUser; // In a real app, this would come from useUser()
   const { batches, loading } = useBatches(user.id);
+  const [isAddBatchOpen, setAddBatchOpen] = useState(false);
   const [showUpgradeAlert, setShowUpgradeAlert] = useState(false);
   const [showDeleteAlert, setShowDeleteAlert] = useState<Batch | null>(null);
   const { toast } = useToast();
@@ -58,28 +60,11 @@ export default function BatchesPage() {
   const isPremiumUser = user.role !== 'admin'; // Assuming admin is not a farmer plan, and we have another way to check premium
   const activeBatchesCount = batches.filter(b => b.status === 'Active').length;
 
-  const handleAddNewBatch = () => {
-    if (!firestore || !user) return;
-
+  const handleAddNewBatchClick = () => {
     if (!isPremiumUser && activeBatchesCount >= 1) {
       setShowUpgradeAlert(true);
     } else {
-      const newBatch: Omit<Batch, 'id' | 'createdAt' | 'farmerUID'> = {
-        batchName: `New Batch #${batches.length + 1}`,
-        batchType: "Broiler",
-        totalChicks: Math.floor(Math.random() * 100 + 450),
-        batchStartDate: new Date().toISOString(),
-        feedPhase: "Starter",
-        mortalityCount: 0,
-        avgBodyWeight: 100,
-        feedConsumed: 0,
-        status: "Active",
-      };
-      addBatch(firestore, user.id, newBatch);
-      toast({
-        title: "Batch Added",
-        description: `${newBatch.batchName} has been successfully created.`,
-      })
+      setAddBatchOpen(true);
     }
   };
 
@@ -105,7 +90,7 @@ export default function BatchesPage() {
         title="My Batches"
         description="Manage all your poultry batches in one place."
       >
-        <Button onClick={handleAddNewBatch}>
+        <Button onClick={handleAddNewBatchClick}>
             <PlusCircle className="mr-2" />
             Add New Batch
         </Button>
@@ -187,6 +172,8 @@ export default function BatchesPage() {
         </Card>
       </div>
 
+      <AddBatchDialog open={isAddBatchOpen} onOpenChange={setAddBatchOpen} />
+
        <AlertDialog open={showUpgradeAlert} onOpenChange={setShowUpgradeAlert}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -227,5 +214,3 @@ export default function BatchesPage() {
     </>
   );
 }
-
-    
