@@ -31,7 +31,7 @@ import {
   Bell,
 } from "lucide-react";
 import { useLanguage } from "@/components/language-provider";
-import { currentDealer } from "@/lib/data";
+import { mockUsers } from "@/lib/data";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { useState } from "react";
@@ -45,7 +45,8 @@ export function AdminSidebar() {
   const { state } = useSidebar();
   const [managementOpen, setManagementOpen] = useState(pathname.startsWith("/admin/user-management"));
 
-  const currentUser = useClientState<UserType | undefined>(currentDealer);
+  const adminUser = mockUsers.find(u => u.role === 'admin');
+  const currentUser = useClientState<UserType | undefined>(adminUser);
 
   if (!currentUser || currentUser.role !== 'admin') {
       return (
