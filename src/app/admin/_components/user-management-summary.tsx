@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
     Table,
     TableBody,
@@ -47,6 +47,7 @@ import { cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type UserStatus = "active" | "suspended" | "pending";
+type UserWithStatus = User & { status: UserStatus };
 
 const statusVariant: { [key in UserStatus]: "default" | "secondary" | "destructive" | "outline" } = {
     active: "default",
@@ -62,14 +63,19 @@ const statusColorScheme = {
 
 
 export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 'dealer' }) {
-    const allUsers = mockUsers.filter(user => user.role !== 'admin').map(user => ({...user, status: (['active', 'suspended', 'pending'] as UserStatus[])[Math.floor(Math.random() * 3)] }));
-    const [users, setUsers] = useState(allUsers);
+    const allUsers = mockUsers.filter(user => user.role !== 'admin');
+    const [usersWithStatus, setUsersWithStatus] = useState<UserWithStatus[]>([]);
     
-    const [dialogState, setDialogState] = useState<{ action: 'delete' | 'suspend' | null, user: User | null }>({ action: null, user: null });
-    const [detailsUser, setDetailsUser] = useState<(User & { status: UserStatus }) | null>(null);
+    useEffect(() => {
+        const usersWithRandomStatus = allUsers.map(user => ({...user, status: (['active', 'suspended', 'pending'] as UserStatus[])[Math.floor(Math.random() * 3)] }));
+        setUsersWithStatus(usersWithRandomStatus);
+    }, []);
+    
+    const [dialogState, setDialogState] = useState<{ action: 'delete' | 'suspend' | null, user: UserWithStatus | null }>({ action: null, user: null });
+    const [detailsUser, setDetailsUser] = useState<UserWithStatus | null>(null);
     const { toast } = useToast();
 
-    const filteredUsers = users.filter(user => 
+    const filteredUsers = usersWithStatus.filter(user => 
         roleToShow ? user.role === roleToShow : true
     );
 
@@ -80,9 +86,7 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
     const handleSuspend = () => {
         if (!dialogState.user) return;
         
-        // This is where you would call a Firebase Function to disable the user
-        // For now, we'll just update the local state
-        setUsers(users.map(u => u.id === dialogState.user!.id ? { ...u, status: u.status === 'active' ? 'suspended' : 'active' } : u));
+        setUsersWithStatus(usersWithStatus.map(u => u.id === dialogState.user!.id ? { ...u, status: u.status === 'active' ? 'suspended' : 'active' } : u));
         
         toast({
             title: `User ${dialogState.user.status === 'active' ? 'Suspended' : 'Unsuspended'}`,
@@ -94,9 +98,7 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
     const handleDelete = () => {
         if (!dialogState.user) return;
 
-        // This is where you would call a Firebase Function to delete the user from Auth and Firestore
-        // For now, we'll just filter the user from local state
-        setUsers(users.filter(u => u.id !== dialogState.user!.id));
+        setUsersWithStatus(usersWithStatus.filter(u => u.id !== dialogState.user!.id));
 
         toast({
             title: "User Deleted",
@@ -106,11 +108,11 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
         setDialogState({ action: null, user: null });
     };
 
-    const openDialog = (user: User, action: 'delete' | 'suspend') => {
+    const openDialog = (user: UserWithStatus, action: 'delete' | 'suspend') => {
         setDialogState({ user, action });
     };
 
-    const openDetailsDialog = (user: User & { status: UserStatus }) => {
+    const openDetailsDialog = (user: UserWithStatus) => {
         setDetailsUser(user);
     };
     
@@ -141,7 +143,7 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {filteredUsers.map((user: User & { status: UserStatus }) => (
+                            {filteredUsers.map((user) => (
                                 <TableRow key={user.id}>
                                     <TableCell>
                                         <div className="flex items-center gap-3">
@@ -233,7 +235,7 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
                                 </TabsContent>
                                 <TabsContent value="subscription" className="mt-4 space-y-2">
                                     <div><strong className="font-medium">Subscription Plan:</strong> <Badge>Premium Farmer</Badge></div>
-                                    <div><strong className="font-medium">Status:</strong> <Badge variant="outline" className="text-green-500 border-green-500">Active</Badge></div>
+                                    <div className="flex items-center gap-2"><strong className="font-medium">Status:</strong> <Badge variant="outline" className="text-green-500 border-green-500">Active</Badge></div>
                                     <div><strong className="font-medium">Next Billing Date:</strong> 2023-12-01</div>
                                 </TabsContent>
                                 <TabsContent value="orders" className="mt-4">
