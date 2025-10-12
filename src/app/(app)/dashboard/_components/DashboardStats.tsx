@@ -66,7 +66,8 @@ export function DashboardStats({ batches, loading: batchesLoading }: { batches: 
                 return;
             }
             try {
-                const result = await getFarmAnalytics({ batches });
+                // Pass a deep copy of batches to the AI flow to avoid any serialization issues with complex objects
+                const result = await getFarmAnalytics({ batches: JSON.parse(JSON.stringify(batches)) });
                 setAnalytics(result);
             } catch (error) {
                 console.error("Failed to fetch farm analytics", error);

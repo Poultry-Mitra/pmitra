@@ -1,27 +1,41 @@
 
 "use client";
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { mockFarmMetrics, mockUsers } from "@/lib/data";
+import { mockFarmMetrics } from "@/lib/data";
 import { Button } from "@/components/ui/button";
-import { FileDown, Plus, Copy, Zap, Loader2, Link as LinkIcon } from "lucide-react";
+import { Copy, Loader2, Link as LinkIcon } from "lucide-react";
 import { ProductionChart } from "./_components/production-chart";
 import { AISuggestions } from "./_components/ai-suggestions";
 import { Badge } from "@/components/ui/badge";
 import { useBatches } from "@/hooks/use-batches";
 import { DashboardStats } from "./_components/DashboardStats";
-import { useUser } from "@/firebase/provider";
-import { useClientState } from "@/hooks/use-client-state";
+import { useUser, useFirestore } from "@/firebase/provider";
 import type { User } from "@/lib/types";
 import { ConnectDealerDialog } from './_components/connect-dealer-dialog';
 import { PendingOrders } from './_components/pending-orders';
+import { doc, onSnapshot } from 'firebase/firestore';
+import { useToast } from '@/hooks/use-toast';
 
 
 export default function DashboardPage() {
   const firebaseUser = useUser();
-  const user = useClientState<User | undefined>(mockUsers.find(u => u.role === 'farmer'), undefined);
+  const firestore = useFirestore();
+  const [user, setUser] = useState<User | null>(null);
   const [isConnectDealerOpen, setConnectDealerOpen] = useState(false);
+  const { toast } = useToast();
+  
+  useEffect(() => {
+    if (!firestore || !firebaseUser?.uid) return;
+    const unsub = onSnapshot(doc(firestore, 'users', firebaseUser.uid), (doc) => {
+        if (doc.exists()) {
+            setUser(doc.data() as User);
+        }
+    });
+    return () => unsub();
+  }, [firestore, firebaseUser?.uid]);
+
   
   const { batches, loading: batchesLoading } = useBatches(firebaseUser?.uid || "");
   
@@ -29,20 +43,31 @@ export default function DashboardPage() {
 
   const poultryMitraId = `PM-FARM-${firebaseUser.uid.substring(0, 5).toUpperCase()}`;
 
+  const handleCopyId = () => {
+    navigator.clipboard.writeText(poultryMitraId);
+    toast({ title: "Copied!", description: "Your PoultryMitra Farmer ID has been copied." });
+  }
+
   const activeBatches = batches.filter(b => b.status === 'Active');
 
-  const farmDataForAISuggestions = activeBatches.length > 0 ? {
-      productionRate: 90, // This would be calculated from layer batches if they existed
-      mortalityRate: (activeBatches.reduce((acc, b) => acc + b.mortalityCount, 0) / activeBatches.reduce((acc, b) => acc + b.totalChicks, 0)) * 100,
-      feedConsumption: activeBatches.reduce((acc, b) => {
-        const liveBirds = b.totalChicks - b.mortalityCount;
-        if(liveBirds <= 0) return acc;
-        const ageInDays = (new Date().getTime() - new Date(b.batchStartDate).getTime()) / (1000 * 60 * 60 * 24);
-        if(ageInDays <= 0) return acc;
-        return acc + (b.feedConsumed * 1000) / liveBirds / ageInDays;
-      }, 0) / activeBatches.length, // avg feed consumption in g/bird/day
-      farmSize: activeBatches.reduce((acc, b) => acc + (b.totalChicks - b.mortalityCount), 0),
-  } : null;
+  const farmDataForAISuggestions = useMemo(() => {
+      if (activeBatches.length === 0) return null;
+
+      const totalInitialChicks = activeBatches.reduce((acc, b) => acc + b.totalChicks, 0);
+      const totalMortality = activeBatches.reduce((acc, b) => acc + b.mortalityCount, 0);
+      const liveBirds = totalInitialChicks - totalMortality;
+      const totalFeedConsumed = activeBatches.reduce((acc, b) => acc + b.feedConsumed, 0);
+      
+      const overallMortalityRate = totalInitialChicks > 0 ? (totalMortality / totalInitialChicks) * 100 : 0;
+      const avgFeedConsumptionPerBirdPerDay = liveBirds > 0 ? (totalFeedConsumed * 1000) / liveBirds / 30 : 0; // rough estimate over 30 days
+
+      return {
+          productionRate: 0, // Assuming broiler, so production rate is 0.
+          mortalityRate: overallMortalityRate,
+          feedConsumption: avgFeedConsumptionPerBirdPerDay,
+          farmSize: liveBirds,
+      };
+  }, [activeBatches]);
 
 
   return (
@@ -52,14 +77,14 @@ export default function DashboardPage() {
             <h1 className="font-headline text-3xl font-bold tracking-tight">Welcome back, {user.name.split(' ')[0]}! 👋</h1>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <span>{poultryMitraId}</span>
-                <Button variant="ghost" size="icon" className="h-6 w-6">
+                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={handleCopyId}>
                     <Copy className="size-3" />
                 </Button>
             </div>
         </div>
 
         <div className="flex items-center gap-4">
-            <Badge>Premium Plan</Badge>
+            <Badge className="capitalize" variant={user.planType === 'premium' ? 'default' : 'secondary'}>{user.planType} Plan</Badge>
              <Button size="sm" variant="outline" className="border-primary text-primary hover:bg-primary/10 hover:text-primary" onClick={() => setConnectDealerOpen(true)}>
                 <LinkIcon className="mr-2" />
                 Connect to Dealer
