@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState } from "react";
@@ -225,10 +226,10 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
                                         </CardContent>
                                      </Card>
                                 </TabsContent>
-                                <TabsContent value="subscription" className="mt-4">
-                                    <p>Subscription Plan: <Badge>Premium Farmer</Badge></p>
-                                    <p>Status: <Badge variant="outline" className="text-green-500 border-green-500">Active</Badge></p>
-                                    <p>Next Billing Date: 2023-12-01</p>
+                                <TabsContent value="subscription" className="mt-4 space-y-2">
+                                    <div>Subscription Plan: <Badge>Premium Farmer</Badge></div>
+                                    <div>Status: <Badge variant="outline" className="text-green-500 border-green-500">Active</Badge></div>
+                                    <div>Next Billing Date: 2023-12-01</div>
                                 </TabsContent>
                                 <TabsContent value="orders" className="mt-4">
                                      <Table>
