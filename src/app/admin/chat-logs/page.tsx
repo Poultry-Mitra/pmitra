@@ -76,7 +76,7 @@ export default function ChatLogsPage() {
                             </TableHeader>
                             <TableBody>
                                 {chatLogs.map(log => (
-                                    <TableRow key={log.id}>
+                                    <TableRow key={log.id} onClick={() => handleViewChat(log.id)} className="cursor-pointer">
                                         <TableCell>
                                             <div className="font-medium">{log.user.name}</div>
                                             <div className="text-sm text-muted-foreground">{log.user.email}</div>
@@ -91,7 +91,7 @@ export default function ChatLogsPage() {
                                         <TableCell className="hidden md:table-cell">
                                             {new Date(log.date).toLocaleDateString('en-CA')}
                                         </TableCell>
-                                        <TableCell>
+                                        <TableCell onClick={(e) => e.stopPropagation()}>
                                             <DropdownMenu>
                                                 <DropdownMenuTrigger asChild>
                                                     <Button aria-haspopup="true" size="icon" variant="ghost">
