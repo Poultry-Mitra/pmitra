@@ -26,7 +26,6 @@ import {
   Users,
   Rocket,
   WandSparkles,
-  LineChart,
 } from "lucide-react";
 import { useLanguage } from "@/components/language-provider";
 import { Badge } from "@/components/ui/badge";
@@ -119,7 +118,7 @@ export function AppSidebar() {
                          isActive={pathname.startsWith("/analytics")}
                          tooltip="Analytics"
                     >
-                        <LineChart/>
+                        <TrendingUp/>
                         <span>Analytics</span>
                     </SidebarMenuButton>
                  </Link>
