@@ -1,8 +1,9 @@
+
 // src/app/admin/dashboard/page.tsx
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { mockUsers } from "@/lib/data";
+import { mockUsers, mockFarmMetrics } from "@/lib/data";
 import { Users, Bot, IndianRupee, Activity, PlusCircle, Send } from "lucide-react";
 import { RevenueChart } from "../_components/revenue-chart";
 import { PageHeader } from "@/app/admin/_components/page-header";
