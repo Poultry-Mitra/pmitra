@@ -52,7 +52,8 @@ export default function LandingPage() {
   }, [firebaseUser, firestore]);
   
   const getDashboardPath = () => {
-    if (!appUser) return '/login';
+    if (isUserLoading) return '/login';
+    if (!firebaseUser || !appUser) return '/login';
     switch (appUser.role) {
       case 'farmer':
         return '/dashboard';
@@ -127,6 +128,12 @@ export default function LandingPage() {
     },
   ];
 
+  const getStartedHref = () => {
+    if (isUserLoading) return "/login"; // Default during load to prevent mismatch
+    if (firebaseUser) return getDashboardPath();
+    return "/signup";
+  };
+
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -182,7 +189,7 @@ export default function LandingPage() {
                 </p>
                 <div className="flex gap-4 mt-4">
                   <Button size="lg" asChild>
-                      <Link href={firebaseUser ? getDashboardPath() : "/signup"}>{t('hero.get_started')}</Link>
+                      <Link href={getStartedHref()}>{t('hero.get_started')}</Link>
                   </Button>
                   <Button size="lg" variant="outline" asChild>
                       <Link href="#features">{t('hero.watch_demo')}</Link>
