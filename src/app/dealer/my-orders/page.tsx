@@ -1,4 +1,3 @@
-
 // src/app/dealer/my-orders/page.tsx
 "use client";
 
@@ -59,7 +58,8 @@ export default function MyOrdersPage() {
     const handleUpdateStatus = async (order: Order, newStatus: 'Approved' | 'Rejected') => {
         if (!firestore || !firebaseUser) return;
         try {
-            await updateOrderStatus(order, newStatus, firestore, { id: firebaseUser.uid, role: 'dealer' } as User);
+            const actingUser = { id: firebaseUser.uid, role: 'dealer', name: firebaseUser.displayName || "Dealer" } as User;
+            await updateOrderStatus(order, newStatus, firestore, actingUser);
             toast({
                 title: `Order ${newStatus}`,
                 description: `The order for ${order.productName} has been successfully ${newStatus.toLowerCase()}.`

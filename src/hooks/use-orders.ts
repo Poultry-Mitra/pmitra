@@ -170,12 +170,15 @@ export async function updateOrderStatus(order: Order, newStatus: 'Approved' | 'R
                 const farmerDocSnap = await transaction.get(doc(firestore, 'users', order.farmerUID));
                 const dealerInventoryDoc = await transaction.get(dealerInventoryRef);
                 
+                const dealerDocSnap = await transaction.get(doc(firestore, 'users', order.dealerUID));
+
 
                 if (!dealerInventoryDoc.exists()) throw new Error("Product not found in dealer's inventory.");
                 if (!farmerDocSnap.exists()) throw new Error("Farmer not found.");
+                if (!dealerDocSnap.exists()) throw new Error("Dealer not found.");
 
                 const farmerName = farmerDocSnap.data().name;
-                const dealerName = actingUser.name;
+                const dealerName = dealerDocSnap.data().name;
                 const currentQuantity = dealerInventoryDoc.data().quantity;
                 if (currentQuantity < order.quantity) {
                     throw new Error("Not enough stock available to fulfill the order.");

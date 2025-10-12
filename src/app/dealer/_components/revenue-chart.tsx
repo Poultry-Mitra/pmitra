@@ -29,9 +29,11 @@ export function RevenueChart({ orders }: { orders: Order[] }) {
         }
 
         successfulOrders.forEach(order => {
-            const date = format(startOfDay(new Date(order.createdAt)), 'yyyy-MM-dd');
-            if (date in dailyRevenue) {
-                dailyRevenue[date] += order.totalAmount;
+            if (order.createdAt) {
+                const date = format(startOfDay(new Date(order.createdAt)), 'yyyy-MM-dd');
+                if (date in dailyRevenue) {
+                    dailyRevenue[date] += order.totalAmount;
+                }
             }
         });
 

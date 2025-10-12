@@ -1,4 +1,3 @@
-
 // src/app/dealer/my-orders/_components/create-order-dialog.tsx
 "use client";
 
@@ -30,8 +29,9 @@ import { useUsersByIds } from "@/hooks/use-users";
 import { useDealerInventory } from "@/hooks/use-dealer-inventory";
 import { createOrder } from "@/hooks/use-orders";
 import { Send, Loader2 } from "lucide-react";
-import { useMemo } from "react";
+import { useMemo, useEffect, useState } from "react";
 import type { User } from "@/lib/types";
+import { doc, onSnapshot } from "firebase/firestore";
 
 const formSchema = z.object({
     farmerUID: z.string().min(1, "Please select a farmer."),

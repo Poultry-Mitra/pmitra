@@ -1,4 +1,3 @@
-
 // src/app/dealer/dashboard/page.tsx
 "use client";
 
@@ -160,7 +159,7 @@ export default function DealerDashboardPage() {
                             change="" 
                             changeColor="text-muted-foreground"
                             icon={Users}
-                            chartData={[{ value: 1 }, { value: 1 }, { value: 1 }, { value: kpiData.totalFarmers }]} // Mock chart
+                            chartData={[{ value: 1 }, { value: 1 }, { value: kpiData.totalFarmers }, { value: kpiData.totalFarmers }]}
                             chartColor="hsl(var(--chart-1))"
                         />
                         <KpiCard 
@@ -169,7 +168,7 @@ export default function DealerDashboardPage() {
                             change="Pending approval" 
                             changeColor="text-muted-foreground"
                             icon={ShoppingBag}
-                            chartData={[{ value: 2 }, { value: 3 }, { value: 2 }, { value: kpiData.activeOrders }]} // Mock chart
+                            chartData={[{ value: 2 }, { value: 3 }, { value: 1 }, { value: kpiData.activeOrders }]}
                             chartColor="hsl(var(--chart-1))"
                         />
                         <KpiCard 
@@ -178,7 +177,7 @@ export default function DealerDashboardPage() {
                             change="+20.1% from last month"
                             changeColor="text-green-500" 
                             icon={IndianRupee}
-                            chartData={[{ value: 10000 }, { value: 12000 }, { value: 15000 }, { value: 18000 }]} // Mock chart
+                            chartData={[{ value: 10000 }, { value: 12000 }, { value: 15000 }, { value: 18000 }]}
                             chartColor="hsl(var(--chart-1))"
                         />
                         <KpiCard 
@@ -187,7 +186,7 @@ export default function DealerDashboardPage() {
                             change="this month" 
                             changeColor="text-muted-foreground"
                             icon={Activity}
-                            chartData={[{ value: 5 }, { value: 6 }, { value: 8 }, { value: kpiData.ordersFulfilled }]} // Mock chart
+                            chartData={[{ value: 5 }, { value: 8 }, { value: 6 }, { value: kpiData.ordersFulfilled }]}
                             chartColor="hsl(var(--chart-2))"
                         />
                    </>
