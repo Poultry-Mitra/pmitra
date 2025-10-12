@@ -93,7 +93,7 @@ export default function AdminSettingsPage() {
                         </CardHeader>
                         <CardContent className="space-y-6">
                             <div className="space-y-2 rounded-lg border p-4">
-                                <Label htmlFor="language" className="text-base">Monthly AI Chat Limit (Free Plan)</Label>
+                                <Label htmlFor="ai-chat-limit" className="text-base">Monthly AI Chat Limit (Free Plan)</Label>
                                 <p className="text-sm text-muted-foreground pb-2">
                                     Set the number of free AI chat queries per month for users on the free plan.
                                 </p>
