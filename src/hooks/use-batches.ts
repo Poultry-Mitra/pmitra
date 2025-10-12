@@ -70,7 +70,7 @@ export function useBatches(farmerUID: string) {
         setBatches(snapshot.docs.map(toBatch));
         setLoading(false);
       },
-      async (err) => {
+      (err) => {
         const permissionError = new FirestorePermissionError({
           path: 'batches',
           operation: 'list',
@@ -109,7 +109,7 @@ export function useBatch(batchId: string) {
             }
             setLoading(false);
         },
-        async (err) => {
+        (err) => {
             const permissionError = new FirestorePermissionError({
               path: docRef.path,
               operation: 'get',
@@ -167,15 +167,17 @@ export function addBatch(firestore: Firestore, farmerUID: string, data: Omit<Bat
 
     const collectionRef = collection(firestore, 'batches');
     
-    addDoc(collectionRef, {
+    const batchData = {
         ...data,
         farmerUID,
         createdAt: serverTimestamp(),
-    }).catch(async (serverError) => {
+    };
+
+    addDoc(collectionRef, batchData).catch((serverError) => {
         const permissionError = new FirestorePermissionError({
             path: 'batches',
             operation: 'create',
-            requestResourceData: { ...data, farmerUID },
+            requestResourceData: batchData,
         });
         errorEmitter.emit('permission-error', permissionError);
     });
@@ -186,7 +188,7 @@ export function deleteBatch(firestore: Firestore, batchId: string) {
 
     const docRef = doc(firestore, 'batches', batchId);
 
-    deleteDoc(docRef).catch(async (serverError) => {
+    deleteDoc(docRef).catch((serverError) => {
         const permissionError = new FirestorePermissionError({
             path: docRef.path,
             operation: 'delete',

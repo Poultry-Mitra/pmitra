@@ -127,7 +127,7 @@ export async function addInventoryItem(firestore: Firestore, farmerUID: string, 
         lastUpdated: serverTimestamp(),
     };
 
-    addDoc(collectionRef, docData).catch(async (serverError) => {
+    addDoc(collectionRef, docData).catch((serverError) => {
         const permissionError = new FirestorePermissionError({
             path: 'inventory',
             operation: 'create',

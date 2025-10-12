@@ -99,7 +99,7 @@ export function addDealerInventoryItem(firestore: Firestore, dealerUID: string, 
         updatedAt: serverTimestamp(),
     };
 
-    addDoc(collectionRef, itemData).catch(async (serverError) => {
+    addDoc(collectionRef, itemData).catch((serverError) => {
         const permissionError = new FirestorePermissionError({
             path: 'dealerInventory',
             operation: 'create',
@@ -120,7 +120,7 @@ export function updateDealerInventoryItem(firestore: Firestore, itemId: string, 
         updatedAt: serverTimestamp(),
     };
 
-    updateDoc(docRef, itemData).catch(async (serverError) => {
+    updateDoc(docRef, itemData).catch((serverError) => {
         const permissionError = new FirestorePermissionError({
             path: docRef.path,
             operation: 'update',
