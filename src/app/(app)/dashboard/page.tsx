@@ -27,6 +27,7 @@ export default function DashboardPage() {
   const [isConnectDealerOpen, setConnectDealerOpen] = useState(false);
   const { toast } = useToast();
   const { t } = useLanguage();
+  const { batches, loading: batchesLoading } = useBatches(firebaseUser?.uid || "");
   
   useEffect(() => {
     if (firebaseUser && firestore) {
@@ -38,8 +39,6 @@ export default function DashboardPage() {
     }
   }, [firestore, firebaseUser]);
 
-  
-  const { batches, loading: batchesLoading } = useBatches(firebaseUser?.uid || "");
   
   const loading = isUserLoading || !user;
 
