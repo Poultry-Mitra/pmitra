@@ -146,7 +146,7 @@ export async function createOrder(firestore: Firestore, data: Omit<Order, 'id' |
     }
 }
 
-export async function updateOrderStatus(orderId: string, newStatus: 'Approved' | 'Rejected', firestore: Firestore) {
+export async function updateOrderStatus(orderId: string, newStatus: 'Approved' | 'Rejected', firestore: Firestore | null) {
     if (!firestore) throw new Error("Firestore not initialized");
 
     const orderRef = doc(firestore, 'orders', orderId);
@@ -158,7 +158,7 @@ export async function updateOrderStatus(orderId: string, newStatus: 'Approved' |
                 throw new Error("Order not found or has already been processed.");
             }
             
-            const order = { id: orderDoc.id, ...orderDoc.data() } as Order;
+            const orderData = { id: orderDoc.id, ...orderDoc.data() } as Order;
 
 
             // Update the order status
@@ -166,14 +166,14 @@ export async function updateOrderStatus(orderId: string, newStatus: 'Approved' |
 
             // If the order is approved, deduct inventory and create ledger entries
             if (newStatus === 'Approved') {
-                if (!order.productId) {
+                if (!orderData.productId) {
                     throw new Error("Order is missing a product ID.");
                 }
-                const dealerInventoryRef = doc(firestore, 'dealerInventory', order.productId);
-                const farmerDocSnap = await transaction.get(doc(firestore, 'users', order.farmerUID));
+                const dealerInventoryRef = doc(firestore, 'dealerInventory', orderData.productId);
+                const farmerDocSnap = await transaction.get(doc(firestore, 'users', orderData.farmerUID));
                 const dealerInventoryDoc = await transaction.get(dealerInventoryRef);
                 
-                const dealerDocSnap = await transaction.get(doc(firestore, 'users', order.dealerUID));
+                const dealerDocSnap = await transaction.get(doc(firestore, 'users', orderData.dealerUID));
 
 
                 if (!dealerInventoryDoc.exists()) throw new Error("Product not found in dealer's inventory.");
@@ -183,26 +183,26 @@ export async function updateOrderStatus(orderId: string, newStatus: 'Approved' |
                 const farmerName = farmerDocSnap.data().name;
                 const dealerName = dealerDocSnap.data().name;
                 const currentQuantity = dealerInventoryDoc.data().quantity;
-                if (currentQuantity < order.quantity) {
+                if (currentQuantity < orderData.quantity) {
                     throw new Error("Not enough stock available to fulfill the order.");
                 }
 
                 // 1. Reduce dealer's inventory
                 transaction.update(dealerInventoryRef, {
-                    quantity: increment(-order.quantity)
+                    quantity: increment(-orderData.quantity)
                 });
                 
                 // 2. Add credit entry to dealer's ledger
-                await addLedgerEntryInTransaction(transaction, firestore, order.dealerUID, {
-                    description: `Sale to ${farmerName} (Order: ${order.id.substring(0, 5)})`,
-                    amount: order.totalAmount,
+                await addLedgerEntryInTransaction(transaction, firestore, orderData.dealerUID, {
+                    description: `Sale to ${farmerName} (Order: ${orderData.id.substring(0, 5)})`,
+                    amount: orderData.totalAmount,
                     date: new Date().toISOString(),
                 }, 'Credit');
 
                 // 3. Add debit entry to farmer's ledger
-                 await addLedgerEntryInTransaction(transaction, firestore, order.farmerUID, {
-                    description: `Purchase from ${dealerName} (Order: ${order.id.substring(0, 5)})`,
-                    amount: order.totalAmount,
+                 await addLedgerEntryInTransaction(transaction, firestore, orderData.farmerUID, {
+                    description: `Purchase from ${dealerName} (Order: ${orderData.id.substring(0, 5)})`,
+                    amount: orderData.totalAmount,
                     date: new Date().toISOString(),
                 }, 'Debit');
             }
