@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import Link from "next/link";
@@ -26,6 +27,7 @@ import {
   Users,
   Rocket,
   WandSparkles,
+  Archive,
 } from "lucide-react";
 import { useLanguage } from "@/components/language-provider";
 import { Badge } from "@/components/ui/badge";
@@ -35,6 +37,7 @@ import { currentUser } from "@/lib/data";
 const navItems = [
   { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
   { href: "/batches", icon: FileText, label: "My Batches" },
+  { href: "/inventory", icon: Archive, label: "Inventory" },
   { href: "/expenses", icon: Landmark, label: "Expenses" },
   { href: "/dealers", icon: Users, label: "Dealers" },
 ];

@@ -1,4 +1,5 @@
 
+
 import { Timestamp } from "firebase/firestore";
 
 export type UserRole = 'farmer' | 'dealer' | 'admin';
@@ -27,6 +28,18 @@ export type Batch = {
   status: 'Active' | 'Completed' | 'Planned';
   createdAt?: Timestamp;
 };
+
+export type InventoryItem = {
+    id: string;
+    farmerUID: string;
+    dealerUID?: string;
+    productName: string;
+    category: "Feed" | "Medicine";
+    stockQuantity: number;
+    unit: "kg" | "grams" | "liters" | "ml" | "units";
+    lowStockThreshold: number;
+    lastUpdated: Timestamp;
+}
 
 export type FarmMetric = {
   month: string;
