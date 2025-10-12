@@ -92,6 +92,10 @@ export default function ReportsPage() {
         alert("Downloading report...");
     }
 
+    const handleRowClick = (row: any) => {
+        alert(`Viewing details for ${row.month}`);
+    }
+
     return (
         <>
             <PageHeader title="Reports & Analytics" description="Generate and download reports for users, revenue, and system usage." />
@@ -152,7 +156,7 @@ export default function ReportsPage() {
                                 </TableHeader>
                                 <TableBody>
                                     {reportData.rows.map((row: any) => (
-                                        <TableRow key={row.month}>
+                                        <TableRow key={row.month} onClick={() => handleRowClick(row)} className="cursor-pointer">
                                             <TableCell>{row.month}</TableCell>
                                             <TableCell>{row.users}</TableCell>
                                             <TableCell>{row.revenue}</TableCell>
