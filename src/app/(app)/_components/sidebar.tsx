@@ -27,6 +27,7 @@ import {
   FileText,
   Users,
   Rocket,
+  LineChart,
 } from "lucide-react";
 import { useLanguage } from "@/components/language-provider";
 import { Badge } from "@/components/ui/badge";
@@ -39,8 +40,8 @@ const navItems = [
   { href: "/expenses", icon: Landmark, label: "Expenses" },
   { href: "/dealers", icon: Users, label: "Dealers" },
   { href: "/chat", icon: MessageSquare, label: "AI Chat" },
-  { href: "/analytics", icon: TrendingUp, label: "Analytics" },
-  { href: "/market-rates", icon: CreditCard, label: "Market Rates", premium: true },
+  { href: "/analytics", icon: LineChart, label: "Analytics" },
+  { href: "/daily-rates", icon: TrendingUp, label: "Market Rates", premium: true },
 ];
 
 export function AppSidebar() {
