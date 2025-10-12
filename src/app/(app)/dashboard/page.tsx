@@ -43,16 +43,13 @@ export default function DashboardPage() {
   
   const loading = isUserLoading || !user;
 
-  if (loading) return <div className="flex h-screen items-center justify-center"><Loader2 className="animate-spin size-8" /></div>;
+  const poultryMitraId = useMemo(() => 
+    firebaseUser ? `PM-FARM-${firebaseUser.uid.substring(0, 5).toUpperCase()}` : '',
+  [firebaseUser]);
 
-  const poultryMitraId = `PM-FARM-${firebaseUser.uid.substring(0, 5).toUpperCase()}`;
-
-  const handleCopyId = () => {
-    navigator.clipboard.writeText(poultryMitraId);
-    toast({ title: t('messages.copied_title'), description: t('messages.copied_desc') });
-  }
-
-  const activeBatches = batches.filter(b => b.status === 'Active');
+  const activeBatches = useMemo(() => 
+    batches.filter(b => b.status === 'Active'),
+  [batches]);
 
   const farmDataForAISuggestions = useMemo(() => {
       if (activeBatches.length === 0) return null;
@@ -73,6 +70,12 @@ export default function DashboardPage() {
       };
   }, [activeBatches]);
 
+  const handleCopyId = () => {
+    navigator.clipboard.writeText(poultryMitraId);
+    toast({ title: t('messages.copied_title'), description: t('messages.copied_desc') });
+  }
+
+  if (loading) return <div className="flex h-screen items-center justify-center"><Loader2 className="animate-spin size-8" /></div>;
 
   return (
     <>
