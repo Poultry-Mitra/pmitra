@@ -49,7 +49,7 @@ export function AdminSidebar() {
   const [managementOpen, setManagementOpen] = useState(pathname.startsWith("/admin/user-management"));
 
   // This is a mock. In a real app, you'd get the current user from an auth context.
-  const currentUser = mockUsers.find(u => u.role === 'admin') as UserType & { role: 'admin' | 'dealer' };
+  const currentUser = mockUsers.find(u => u.role === 'dealer') as UserType & { role: 'admin' | 'dealer' };
   const isAdmin = currentUser?.role === 'admin';
 
 
