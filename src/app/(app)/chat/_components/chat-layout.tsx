@@ -97,13 +97,11 @@ export function ChatLayout() {
           const userDocRef = doc(firestore, 'users', appUser.id);
           const currentMonth = new Date().toISOString().slice(0, 7);
           
-          const queriesThisMonth = (appUser.lastQueryDate?.slice(0, 7) === currentMonth) ? (appUser.aiQueriesCount || 0) : 0;
-          
           let updatedCount;
 
           if (appUser.lastQueryDate?.slice(0, 7) === currentMonth) {
               await updateDoc(userDocRef, { aiQueriesCount: increment(1), lastQueryDate: new Date().toISOString() });
-              updatedCount = queriesThisMonth + 1;
+              updatedCount = (appUser.aiQueriesCount || 0) + 1;
           } else {
               // Reset count for the new month
               await updateDoc(userDocRef, {

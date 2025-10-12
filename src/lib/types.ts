@@ -14,7 +14,7 @@ export type User = {
   connectedFarmers?: string[];
   connectedDealers?: string[];
   aiQueriesCount?: number;
-  lastQueryDate?: string;
+  lastQueryDate?: string; // Optional: will not exist for new users
 };
 
 export type Batch = {
