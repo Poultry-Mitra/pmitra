@@ -1,3 +1,4 @@
+
 // src/app/admin/user-management/add-user/page.tsx
 "use client";
 
@@ -13,6 +14,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { Save } from "lucide-react";
+import { useFirestore } from "@/firebase/provider";
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 
 const formSchema = z.object({
   name: z.string().min(3, "Full name is required."),
@@ -26,6 +29,7 @@ type FormValues = z.infer<typeof formSchema>;
 export default function AddUserPage() {
     const { toast } = useToast();
     const router = useRouter();
+    const firestore = useFirestore();
 
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
@@ -38,14 +42,39 @@ export default function AddUserPage() {
     });
 
     async function onSubmit(values: FormValues) {
-        console.log("Creating new user:", values);
-        // In a real app, this would create a new user document in Firestore and potentially an auth user.
-        
-        toast({
-            title: "User Created",
-            description: `${values.name} has been added as a new ${values.role}.`,
-        });
-        router.push(values.role === 'farmer' ? '/admin/user-management/farmers' : '/admin/user-management/dealers');
+        if (!firestore) {
+            toast({
+                title: "Error",
+                description: "Firestore is not available. Could not create user.",
+                variant: "destructive",
+            });
+            return;
+        }
+
+        try {
+            const newUser = {
+                ...values,
+                dateJoined: new Date().toISOString(),
+                uniqueDealerCode: values.role === 'dealer' ? `DEAL-${Math.random().toString(36).substring(2, 8).toUpperCase()}` : null,
+            };
+            
+            const usersCollection = collection(firestore, "users");
+            await addDoc(usersCollection, newUser);
+            
+            toast({
+                title: "User Created",
+                description: `${values.name} has been added as a new ${values.role}.`,
+            });
+            router.push(values.role === 'farmer' ? '/admin/user-management/farmers' : '/admin/user-management/dealers');
+
+        } catch(error) {
+            console.error("Error creating user:", error);
+            toast({
+                title: "Error",
+                description: "Failed to create user in the database.",
+                variant: "destructive",
+            });
+        }
     }
 
     return (
@@ -126,9 +155,9 @@ export default function AddUserPage() {
                                         )}
                                     />
                                 </div>
-                                <Button type="submit" className="w-full">
+                                <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
                                     <Save className="mr-2" />
-                                    Create User
+                                    {form.formState.isSubmitting ? "Creating User..." : "Create User"}
                                 </Button>
                             </form>
                         </Form>

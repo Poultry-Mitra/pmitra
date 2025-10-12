@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -22,6 +23,7 @@ const formSchema = z.object({
     readyBirdMedium: z.coerce.number().min(0, "Rate must be non-negative"),
     readyBirdBig: z.coerce.number().min(0, "Rate must be non-negative"),
     chickRate: z.coerce.number().min(0, "Rate must be non-negative"),
+    feedCostIndex: z.coerce.number().min(0, "Index must be non-negative"),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -45,12 +47,17 @@ export default function DailyRateManagementPage() {
             readyBirdMedium: firstRate.readyBird.medium,
             readyBirdBig: firstRate.readyBird.big,
             chickRate: firstRate.chickRate,
+            feedCostIndex: firstRate.feedCostIndex,
         },
     });
 
     function onSubmit(values: FormValues) {
-        console.log(values);
-        // In a real app, you would call an API to update these rates in the database
+        // In a real app, this would call a hook to write to a `/dailyRates/{date}` document.
+        const dailyRateData = {
+            ...values,
+            lastUpdated: new Date().toISOString(),
+        }
+        console.log("Updating daily rates:", dailyRateData);
         toast({
             title: "Rates Updated",
             description: "Daily rates have been successfully updated.",
@@ -165,6 +172,19 @@ export default function DailyRateManagementPage() {
                                                 <FormLabel>Chick Rate (₹/chick)</FormLabel>
                                                 <FormControl>
                                                     <Input type="number" placeholder="35" {...field} />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                     <FormField
+                                        control={form.control}
+                                        name="feedCostIndex"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Feed Cost Index</FormLabel>
+                                                <FormControl>
+                                                    <Input type="number" placeholder="45.5" {...field} />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>

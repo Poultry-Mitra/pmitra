@@ -15,17 +15,16 @@ import { useUsers } from "@/hooks/use-users";
 export default function AdminDashboardPage() {
     const { users, loading } = useUsers();
 
-    const totalUsers = users.length;
     // In a real app, revenue and AI chat usage would be fetched from analytics or a separate collection.
-    // We'll keep these as static for now.
-    const totalRevenue = "₹95,500";
-    const aiChatsUsed = "1,204";
+    // We'll keep these as static for now as the data sources don't exist.
+    const totalRevenue = "₹95,500"; // MOCK DATA
+    const aiChatsUsed = "1,204"; // MOCK DATA
 
 
     const adminKpiData = [
         {
             title: "Total Users",
-            value: loading ? <Loader2 className="animate-spin" /> : totalUsers,
+            value: loading ? <Loader2 className="animate-spin" /> : users.length,
             change: "+2 this month",
             icon: Users,
         },
@@ -85,7 +84,7 @@ export default function AdminDashboardPage() {
                 <Card className="lg:col-span-1">
                     <CardHeader>
                         <CardTitle>Revenue Analytics</CardTitle>
-                        <CardDescription>Monthly platform revenue.</CardDescription>
+                        <CardDescription>Monthly platform revenue (mock data).</CardDescription>
                     </CardHeader>
                     <CardContent>
                         <RevenueChart />

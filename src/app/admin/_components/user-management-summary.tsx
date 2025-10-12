@@ -255,7 +255,6 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
                                 <TabsList>
                                     <TabsTrigger value="overview">Overview</TabsTrigger>
                                     <TabsTrigger value="subscription">Subscription</TabsTrigger>
-                                    <TabsTrigger value="orders">Orders</TabsTrigger>
                                     <TabsTrigger value="activity">Recent Activity</TabsTrigger>
                                 </TabsList>
                                 <TabsContent value="overview" className="mt-4">
@@ -284,29 +283,9 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
                                      </Card>
                                 </TabsContent>
                                 <TabsContent value="subscription" className="mt-4 space-y-2">
-                                    <div className="font-medium">Subscription Plan: <Badge>Premium Farmer</Badge></div>
+                                    <div className="font-medium">Subscription Plan: <Badge>{detailsUser.planType}</Badge></div>
                                     <div className="flex items-center gap-2 font-medium">Status: <Badge variant="outline" className="text-green-500 border-green-500">Active</Badge></div>
                                     <div className="font-medium">Next Billing Date: 2023-12-01</div>
-                                </TabsContent>
-                                <TabsContent value="orders" className="mt-4">
-                                     <Table>
-                                        <TableHeader>
-                                            <TableRow>
-                                                <TableHead>Order ID</TableHead>
-                                                <TableHead>Date</TableHead>
-                                                <TableHead>Amount</TableHead>
-                                                <TableHead>Status</TableHead>
-                                            </TableRow>
-                                        </TableHeader>
-                                        <TableBody>
-                                            <TableRow>
-                                                <TableCell>ORD-101</TableCell>
-                                                <TableCell>2023-10-15</TableCell>
-                                                <TableCell>₹1,250</TableCell>
-                                                <TableCell><Badge>Completed</Badge></TableCell>
-                                            </TableRow>
-                                        </TableBody>
-                                     </Table>
                                 </TabsContent>
                                 <TabsContent value="activity" className="mt-4">
                                     <ul className="space-y-2 text-sm text-muted-foreground">

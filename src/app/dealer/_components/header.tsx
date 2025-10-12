@@ -15,15 +15,16 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Bell, Search, Copy } from 'lucide-react';
+import { Bell, Search, Copy, Loader2 } from 'lucide-react';
 import { LanguageToggle } from '@/components/language-toggle';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { useClientState } from '@/hooks/use-client-state';
 import type { User } from '@/lib/types';
-import { useUser } from '@/firebase/provider';
-import { mockUsers } from '@/lib/data';
+import { useUser, useFirestore } from '@/firebase/provider';
+import { doc, getDoc } from "firebase/firestore";
+import { useEffect, useState } from 'react';
 
 
 function Breadcrumbs() {
@@ -66,11 +67,35 @@ function Breadcrumbs() {
 
 export function DealerHeader() {
   const firebaseUser = useUser();
-  // Find the corresponding mock user to get dealer-specific details not on the auth object
-  const user = useClientState<User | undefined>(mockUsers.find(u => u.id === firebaseUser?.uid), undefined);
+  const firestore = useFirestore();
+  const [user, setUser] = useState<User | null>(null);
   const { toast } = useToast();
 
-  if (!user) return <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background/80 px-4 backdrop-blur-sm sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6"></header>; // Render empty header to avoid layout shift
+  useEffect(() => {
+    if (firebaseUser && firestore) {
+      const userDocRef = doc(firestore, "users", firebaseUser.uid);
+      getDoc(userDocRef).then((docSnap) => {
+        if (docSnap.exists()) {
+          setUser({ id: docSnap.id, ...docSnap.data() } as User);
+        } else {
+            setUser(null);
+        }
+      });
+    } else {
+        setUser(null);
+    }
+  }, [firebaseUser, firestore]);
+
+  if (!user) {
+     return (
+         <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background/80 px-4 backdrop-blur-sm sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
+            <SidebarTrigger className="md:hidden" />
+            <div className="ml-auto">
+                <Loader2 className="animate-spin" />
+            </div>
+         </header>
+     );
+  }
 
   const handleCopyCode = () => {
     if(user.uniqueDealerCode) {
@@ -83,13 +108,15 @@ export function DealerHeader() {
     <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background/80 px-4 backdrop-blur-sm sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
       <SidebarTrigger className="md:hidden" />
       <div className="hidden md:block">
-        {user.role === 'admin' ? <Breadcrumbs /> : ( user.uniqueDealerCode &&
+        {user.role === 'dealer' && user.uniqueDealerCode ? (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <span>Your Code: <span className="font-mono text-base text-foreground font-semibold">{user.uniqueDealerCode}</span></span>
                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handleCopyCode}>
                     <Copy className="size-3.5" />
                 </Button>
             </div>
+        ) : (
+            <Breadcrumbs />
         )}
       </div>
       <div className="ml-auto flex items-center gap-2">

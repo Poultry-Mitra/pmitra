@@ -31,6 +31,7 @@ export default function LoginPage() {
 
     if (firebaseUser && firestore) {
       // User is logged in, fetch their role from Firestore.
+      setLoading(true); // Start loading while we fetch the role
       const userDocRef = doc(firestore, "users", firebaseUser.uid);
       getDoc(userDocRef).then(docSnap => {
         if (docSnap.exists()) {
@@ -47,12 +48,14 @@ export default function LoginPage() {
               router.push('/admin/dashboard');
               break;
             default:
-              // Fallback if role is not set
+              // Fallback if role is not set or unknown
               setLoading(false);
+              router.push('/'); // Or a generic welcome page
           }
         } else {
           // User document doesn't exist, maybe they need to complete signup
           setLoading(false);
+          router.push('/signup'); // Redirect to signup if no user doc
         }
       }).catch(() => {
         setLoading(false);
@@ -65,7 +68,7 @@ export default function LoginPage() {
     return (
         <div className="flex min-h-screen w-full flex-col items-center justify-center bg-muted/30 p-4 font-body">
             <Loader2 className="h-12 w-12 animate-spin text-primary" />
-            <p className="mt-4 text-muted-foreground">Authenticating...</p>
+            <p className="mt-4 text-muted-foreground">Authenticating & Redirecting...</p>
         </div>
     );
   }

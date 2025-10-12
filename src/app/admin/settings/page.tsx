@@ -1,6 +1,8 @@
 
+
 "use client";
 
+import { useState } from "react";
 import { PageHeader } from "@/app/admin/_components/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,13 +11,19 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import { IndianRupee } from "lucide-react";
-import { currentDealer } from "@/lib/data";
 
 function AdminSettings() {
     const { toast } = useToast();
+    const [aiChatEnabled, setAiChatEnabled] = useState(true);
+    const [paymentsEnabled, setPaymentsEnabled] = useState(true);
 
     const handleSave = () => {
+        // In a real app, this would write to a `/settings/app` document in Firestore.
+        console.log({
+            aiChatEnabled,
+            paymentsEnabled,
+            // other settings...
+        });
         toast({
             title: "Settings Saved",
             description: "Your changes have been saved successfully.",
@@ -37,7 +45,7 @@ function AdminSettings() {
                                 Enable or disable the AI chat support feature for users.
                             </p>
                         </div>
-                        <Switch id="ai-chat" defaultChecked />
+                        <Switch id="ai-chat" checked={aiChatEnabled} onCheckedChange={setAiChatEnabled} />
                     </div>
                     <div className="flex items-center justify-between rounded-lg border p-4">
                         <div className="space-y-0.5">
@@ -46,7 +54,7 @@ function AdminSettings() {
                                 Enable or disable subscription payments via Razorpay.
                             </p>
                         </div>
-                        <Switch id="payments" defaultChecked />
+                        <Switch id="payments" checked={paymentsEnabled} onCheckedChange={setPaymentsEnabled} />
                     </div>
                         <div className="space-y-2 rounded-lg border p-4">
                             <Label htmlFor="language" className="text-base">Default Language</Label>

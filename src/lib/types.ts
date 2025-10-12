@@ -1,6 +1,5 @@
 
 
-
 import { Timestamp } from "firebase/firestore";
 
 export type UserRole = 'farmer' | 'dealer' | 'admin';
@@ -62,7 +61,7 @@ export type DealerInventoryItem = {
     productName: string;
     unit: "bag" | "packet" | "bottle" | "pcs" | "chick";
     unitWeight?: number; // For feed, e.g., 50kg
-    stockQuantity: number;
+    quantity: number;
     ratePerUnit: number;
     phaseApplicable?: ("Pre-Starter" | "Starter" | "Finisher")[];
     updatedAt: Timestamp;
@@ -150,6 +149,7 @@ export type Order = {
     
 
     
+
 
 
 
