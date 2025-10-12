@@ -3,40 +3,68 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { mockDailyRates } from '@/lib/data';
-import { TrendingUp, Bird, IndianRupee } from 'lucide-react';
+import { TrendingUp, Bird, IndianRupee, Loader2 } from 'lucide-react';
 import type { DailyRates } from '@/lib/types';
-import { cn } from '@/lib/utils';
+import { useFirestore } from '@/firebase/provider';
+import { collection, onSnapshot, query, orderBy, limit } from 'firebase/firestore';
 
 export function RateTicker() {
+    const firestore = useFirestore();
+    const [rates, setRates] = useState<DailyRates[]>([]);
+    const [loading, setLoading] = useState(true);
     const [currentIndex, setCurrentIndex] = useState(0);
-    const [currentItem, setCurrentItem] = useState<DailyRates | null>(null);
 
     useEffect(() => {
-        // Set initial item on client mount to avoid hydration mismatch
-        setCurrentItem(mockDailyRates[0]);
-
-        const interval = setInterval(() => {
-            setCurrentIndex(prevIndex => (prevIndex + 1) % mockDailyRates.length);
-        }, 5000); // Change location every 5 seconds
-
-        return () => clearInterval(interval);
-    }, []);
+        if (!firestore) return;
+        setLoading(true);
+        const q = query(collection(firestore, 'dailyRates'), orderBy('lastUpdated', 'desc'), limit(5));
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            if (!snapshot.empty) {
+                const fetchedRates = snapshot.docs.map(doc => doc.data() as DailyRates);
+                setRates(fetchedRates);
+            } else {
+                setRates([]);
+            }
+            setLoading(false);
+        }, (error) => {
+            console.error("Error fetching live rates:", error);
+            setLoading(false);
+            setRates([]);
+        });
+        return () => unsubscribe();
+    }, [firestore]);
 
     useEffect(() => {
-        // Update the displayed item when currentIndex changes
-        setCurrentItem(mockDailyRates[currentIndex]);
-    }, [currentIndex]);
+        if (rates.length > 1) {
+            const interval = setInterval(() => {
+                setCurrentIndex(prevIndex => (prevIndex + 1) % rates.length);
+            }, 5000); // Change location every 5 seconds
+            return () => clearInterval(interval);
+        }
+    }, [rates.length]);
 
-    if (!currentItem) {
+    if (loading) {
         return (
              <div className="bg-secondary text-secondary-foreground">
                 <div className="container mx-auto px-4 h-10 flex items-center justify-center text-sm">
+                    <Loader2 className="animate-spin mr-2 size-4" />
                     Loading live rates...
                 </div>
             </div>
         );
     }
+    
+    if (rates.length === 0) {
+        return (
+             <div className="bg-secondary text-secondary-foreground">
+                <div className="container mx-auto px-4 h-10 flex items-center justify-center text-sm">
+                    Live rates not available right now.
+                </div>
+            </div>
+        );
+    }
+
+    const currentItem = rates[currentIndex];
     
     return (
         <Link href="/pricing" className="bg-secondary text-secondary-foreground hover:bg-secondary/90 transition-colors cursor-pointer">
@@ -76,7 +104,6 @@ export function RateTicker() {
                     100% { transform: translateX(-100%); }
                 }
                 .animate-ticker {
-                    // animation: ticker 20s linear infinite; // This can be enabled for a continuous scroll effect
                     display: flex;
                     align-items: center;
                     white-space: nowrap;
@@ -85,4 +112,3 @@ export function RateTicker() {
         </Link>
     );
 }
-

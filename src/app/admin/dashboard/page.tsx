@@ -10,16 +10,19 @@ import Link from "next/link";
 import { UserManagementSummary } from "../_components/user-management-summary";
 import { useUsers } from "@/hooks/use-users";
 import { useLanguage } from "@/components/language-provider";
+import { useLedger } from "@/hooks/use-ledger";
 
 
 export default function AdminDashboardPage() {
     const { users, loading } = useUsers();
     const { t } = useLanguage();
+    // Assuming you want to see the ledger for all users, which might need a dedicated admin hook.
+    // For now, let's just get all ledger entries. A real implementation would need to adjust security rules.
+    const { entries: transactions, loading: ledgerLoading } = useLedger();
 
     // In a real app, revenue and AI chat usage would be fetched from analytics or a separate collection.
-    // We'll keep these as static for now as the data sources don't exist.
-    const totalRevenue = "₹95,500"; // MOCK DATA
-    const aiChatsUsed = "1,204"; // MOCK DATA
+    const totalRevenue = ledgerLoading ? <Loader2 className="animate-spin" /> : `₹${transactions.filter(t => t.type === 'Credit').reduce((acc, t) => acc + t.amount, 0).toLocaleString()}`;
+    const aiChatsUsed = "0"; // Placeholder, needs real data source
 
 
     const adminKpiData = [
@@ -88,7 +91,7 @@ export default function AdminDashboardPage() {
                         <CardDescription>{t('admin.dashboard.revenue_analytics_desc')}</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <RevenueChart />
+                        <RevenueChart data={[]} />
                     </CardContent>
                 </Card>
                 <div className="lg:col-span-1">

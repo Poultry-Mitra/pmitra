@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { Line, LineChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
@@ -16,18 +15,15 @@ const chartConfig = {
     },
 } satisfies ChartConfig;
 
-const mockRevenueData = [
-  { month: 'Jan', revenue: 65000, revenueLastMonth: 59000 },
-  { month: 'Feb', revenue: 72000, revenueLastMonth: 62000 },
-  { month: 'Mar', revenue: 78000, revenueLastMonth: 68000 },
-  { month: 'Apr', revenue: 82000, revenueLastMonth: 75000 },
-  { month: 'May', revenue: 85000, revenueLastMonth: 78000 },
-  { month: 'Jun', revenue: 92000, revenueLastMonth: 81000 },
-  { month: 'Jul', revenue: 88000, revenueLastMonth: 85000 },
-];
+export function RevenueChart({ data = [] }: { data?: any[] }) {
+    if (data.length === 0) {
+        return (
+            <div className="flex h-[300px] w-full items-center justify-center text-sm text-muted-foreground">
+                Not enough data to display chart.
+            </div>
+        )
+    }
 
-
-export function RevenueChart({ data = mockRevenueData }: { data?: any[] }) {
     return (
         <ChartContainer config={chartConfig} className="min-h-[300px] w-full">
             <ResponsiveContainer>

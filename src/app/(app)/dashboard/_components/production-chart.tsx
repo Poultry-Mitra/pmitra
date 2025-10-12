@@ -25,6 +25,14 @@ const chartConfig = {
 export function ProductionChart({ data }: { data: FarmMetric[] }) {
     const { t } = useLanguage();
 
+    if (!data || data.length === 0) {
+        return (
+            <div className="flex items-center justify-center h-[300px] text-muted-foreground">
+                No performance data available yet.
+            </div>
+        );
+    }
+
     const localizedData = data.map(item => ({
         ...item,
         month: new Date(2024, parseInt(item.month.split('-')[1]) - 1).toLocaleString(t('nav.home') === 'Home' ? 'en-US' : 'hi-IN', { month: 'short' })
@@ -50,5 +58,3 @@ export function ProductionChart({ data }: { data: FarmMetric[] }) {
         </ChartContainer>
     );
 }
-
-    
