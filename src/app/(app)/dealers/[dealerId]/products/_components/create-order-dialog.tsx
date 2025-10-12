@@ -135,5 +135,3 @@ export function CreateOrderDialog({ open, onOpenChange, product, dealer }: Creat
         </Dialog>
     )
 }
-
-    
