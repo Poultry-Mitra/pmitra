@@ -27,7 +27,6 @@ export default function DashboardPage() {
   const [isConnectDealerOpen, setConnectDealerOpen] = useState(false);
   const { toast } = useToast();
   const { t } = useLanguage();
-  const { batches, loading: batchesLoading } = useBatches(firebaseUser?.uid || "");
   
   useEffect(() => {
     if (firebaseUser && firestore) {
@@ -39,6 +38,7 @@ export default function DashboardPage() {
     }
   }, [firestore, firebaseUser]);
 
+  const { batches, loading: batchesLoading } = useBatches(firebaseUser?.uid || "");
   
   const loading = isUserLoading || !user;
 
@@ -91,10 +91,12 @@ export default function DashboardPage() {
 
         <div className="flex items-center gap-4">
             <Badge className="capitalize" variant={user.planType === 'premium' ? 'default' : 'secondary'}>{t(`plans.${user.planType}`)}</Badge>
-             <Button size="sm" variant="outline" className="border-primary text-primary hover:bg-primary/10 hover:text-primary" onClick={() => setConnectDealerOpen(true)}>
-                <LinkIcon className="mr-2" />
-                {t('dashboard.connect_dealer')}
-            </Button>
+             {user.role === 'farmer' && (
+                <Button size="sm" variant="outline" className="border-primary text-primary hover:bg-primary/10 hover:text-primary" onClick={() => setConnectDealerOpen(true)}>
+                    <LinkIcon className="mr-2" />
+                    {t('dashboard.connect_dealer')}
+                </Button>
+             )}
         </div>
       </div>
       
