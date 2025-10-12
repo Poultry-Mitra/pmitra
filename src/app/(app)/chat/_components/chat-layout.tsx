@@ -11,10 +11,11 @@ import { cn } from "@/lib/utils";
 import { aiQueryPoultry } from "@/ai/flows/ai-query-poultry";
 import { AppIcon } from "@/app/icon";
 import { useUser, useFirestore } from "@/firebase/provider";
-import { doc, getDoc, updateDoc, serverTimestamp, increment } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, increment, onSnapshot } from 'firebase/firestore';
 import type { User as AppUser } from '@/lib/types';
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type Message = {
   id: string;
@@ -32,6 +33,7 @@ export function ChatLayout() {
   const firebaseUser = useUser();
   const firestore = useFirestore();
   const [appUser, setAppUser] = useState<AppUser | null>(null);
+  const [userLoading, setUserLoading] = useState(true);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -43,12 +45,19 @@ export function ChatLayout() {
 
   useEffect(() => {
     if (firebaseUser && firestore) {
+      setUserLoading(true);
       const userDocRef = doc(firestore, 'users', firebaseUser.uid);
-      getDoc(userDocRef).then(docSnap => {
+      const unsubscribe = onSnapshot(userDocRef, (docSnap) => {
         if (docSnap.exists()) {
           setAppUser({ id: docSnap.id, ...docSnap.data() } as AppUser);
+        } else {
+          setAppUser(null);
         }
+        setUserLoading(false);
       });
+      return () => unsubscribe();
+    } else {
+        setUserLoading(false);
     }
   }, [firebaseUser, firestore]);
 
@@ -67,7 +76,7 @@ export function ChatLayout() {
           title: "AI Chat Limit Reached",
           description: "You have used all your free AI queries for this month. Please upgrade to Premium for unlimited access.",
           variant: "destructive",
-          action: <Button asChild size="sm"><Link href="/pricing">Upgrade</Link></Button>
+          action: <Button asChild size="sm" variant="secondary"><Link href="/pricing">Upgrade</Link></Button>
         });
         return;
       }
@@ -89,15 +98,21 @@ export function ChatLayout() {
           const currentMonth = new Date().toISOString().slice(0, 7);
           const lastQueryMonth = appUser.lastQueryDate?.slice(0, 7);
 
+          let updatedCount;
           if (lastQueryMonth === currentMonth) {
               await updateDoc(userDocRef, { aiQueriesCount: increment(1) });
+              updatedCount = (appUser.aiQueriesCount || 0) + 1;
           } else {
               // Reset count for the new month
               await updateDoc(userDocRef, {
                   aiQueriesCount: 1,
                   lastQueryDate: new Date().toISOString()
               });
+              updatedCount = 1;
           }
+
+          // Also update the local state to ensure limit is enforced immediately
+          setAppUser(prevUser => prevUser ? ({ ...prevUser, aiQueriesCount: updatedCount, lastQueryDate: new Date().toISOString() }) : null);
       }
 
     } catch (error) {
@@ -113,6 +128,17 @@ export function ChatLayout() {
     }
   };
   
+  if (userLoading) {
+      return (
+          <div className="h-full flex flex-col rounded-lg border bg-card p-4 space-y-4">
+              <Skeleton className="flex-1" />
+              <div className="flex gap-2">
+                  <Skeleton className="flex-1 h-10" />
+                  <Skeleton className="size-10" />
+              </div>
+          </div>
+      )
+  }
   const userName = appUser?.name || 'User';
 
   return (
@@ -188,6 +214,11 @@ export function ChatLayout() {
             <Send className="size-4" />
           </Button>
         </form>
+         {appUser?.planType === 'free' && (
+             <div className="text-xs text-muted-foreground mt-2 text-center">
+                 Queries used this month: {appUser.lastQueryDate?.slice(0, 7) === new Date().toISOString().slice(0, 7) ? (appUser.aiQueriesCount || 0) : 0} / {AI_QUERY_LIMIT}
+            </div>
+         )}
       </div>
     </div>
   );

@@ -14,7 +14,7 @@ export type User = {
   connectedFarmers?: string[];
   connectedDealers?: string[];
   aiQueriesCount?: number;
-  lastQueryDate?: string; // ISO string for the month (e.g., "2023-10")
+  lastQueryDate?: string;
 };
 
 export type Batch = {
@@ -151,6 +151,7 @@ export type Order = {
     
 
     
+
 
 
 
