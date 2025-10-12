@@ -18,6 +18,8 @@ import { createUserWithEmailAndPassword } from "firebase/auth";
 import { doc, setDoc, writeBatch } from "firebase/firestore";
 import { AppIcon } from "@/app/icon";
 import { Loader2, ShieldCheck } from "lucide-react";
+import { FirestorePermissionError } from "@/firebase/errors";
+import { errorEmitter } from "@/firebase/error-emitter";
 
 const formSchema = z.object({
     fullName: z.string().min(3, { message: "Full name must be at least 3 characters." }),
@@ -76,7 +78,17 @@ export default function SetupAdminPage() {
             batch.set(adminRoleRef, { email: values.email, joinedAt: new Date().toISOString() });
 
             // Commit the batch write
-            await batch.commit();
+            await batch.commit().catch(error => {
+                 // Emit a contextual error for the batch write failure
+                 const permissionError = new FirestorePermissionError({
+                    path: `batch write for user ${user.uid}`,
+                    operation: 'write',
+                    requestResourceData: { userProfile: userProfile, adminRole: { email: values.email } },
+                });
+                errorEmitter.emit('permission-error', permissionError);
+                // We re-throw the original error to be caught by the outer catch block
+                throw error;
+            });
 
             toast({
                 title: "Admin Account Created!",
@@ -87,17 +99,21 @@ export default function SetupAdminPage() {
 
         } catch (error: any) {
             console.error("Admin setup failed:", error);
-            let errorMessage = "An unknown error occurred during setup.";
-            if (error.code === 'auth/email-already-in-use') {
-                errorMessage = "This email is already registered. Please login or use the main signup page if this is not an admin account.";
-            } else if (error.code === 'auth/weak-password') {
-                errorMessage = "The password is too weak. Please use at least 6 characters.";
+            // This part handles both Auth errors and re-thrown Firestore errors.
+            // Avoid emitting another Firestore error if it has already been handled.
+            if (!(error instanceof FirestorePermissionError)) {
+                 let errorMessage = "An unknown error occurred during setup.";
+                if (error.code === 'auth/email-already-in-use') {
+                    errorMessage = "This email is already registered. Please login or use the main signup page if this is not an admin account.";
+                } else if (error.code === 'auth/weak-password') {
+                    errorMessage = "The password is too weak. Please use at least 6 characters.";
+                }
+                toast({
+                    title: "Admin Setup Failed",
+                    description: errorMessage,
+                    variant: "destructive",
+                });
             }
-            toast({
-                title: "Admin Setup Failed",
-                description: errorMessage,
-                variant: "destructive",
-            });
         }
     }
 
