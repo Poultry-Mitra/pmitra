@@ -30,6 +30,7 @@ import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
+import { useFirestore } from "@/firebase/provider";
 
 const statusVariant: { [key in 'Active' | 'Completed' | 'Planned']: "default" | "secondary" | "outline" } = {
     Active: "default",
@@ -44,6 +45,7 @@ const statusColorScheme = {
 };
 
 export default function BatchesPage() {
+  const firestore = useFirestore();
   const { batches, loading } = useBatches();
   const [showUpgradeAlert, setShowUpgradeAlert] = useState(false);
   const [showDeleteAlert, setShowDeleteAlert] = useState<Batch | null>(null);
@@ -55,6 +57,7 @@ export default function BatchesPage() {
   const activeBatchesCount = batches.filter(b => b.status === 'Active').length;
 
   const handleAddNewBatch = () => {
+    if (!firestore) return;
     if (!isPremiumUser && activeBatchesCount >= 1) {
       setShowUpgradeAlert(true);
     } else {
@@ -70,7 +73,7 @@ export default function BatchesPage() {
         feedConsumed: 0,
         status: "Active",
       };
-      addBatch(newBatch);
+      addBatch(firestore, newBatch);
       toast({
         title: "Batch Added",
         description: `${newBatch.batchName} has been successfully created.`,
@@ -79,8 +82,8 @@ export default function BatchesPage() {
   };
 
   const handleDeleteBatch = () => {
-    if(showDeleteAlert) {
-      deleteBatch(showDeleteAlert.id);
+    if(showDeleteAlert && firestore) {
+      deleteBatch(firestore, showDeleteAlert.id);
       toast({
         title: "Batch Deleted",
         description: `Batch ${showDeleteAlert.batchName} has been deleted.`,

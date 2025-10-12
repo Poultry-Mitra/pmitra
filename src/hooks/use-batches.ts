@@ -106,8 +106,7 @@ export function useBatch(batchId: string) {
 }
 
 
-export function addBatch(data: Omit<Batch, 'id' | 'createdAt'>) {
-    const { firestore } = initializeFirebase();
+export function addBatch(firestore: Firestore, data: Omit<Batch, 'id' | 'createdAt'>) {
     if (!firestore) throw new Error("Firestore not initialized");
 
     const collectionRef = collection(firestore, 'batches');
@@ -125,8 +124,7 @@ export function addBatch(data: Omit<Batch, 'id' | 'createdAt'>) {
     });
 }
 
-export function deleteBatch(batchId: string) {
-    const { firestore } = initializeFirebase();
+export function deleteBatch(firestore: Firestore, batchId: string) {
     if (!firestore) throw new Error("Firestore not initialized");
 
     const docRef = doc(firestore, 'batches', batchId);
@@ -139,7 +137,3 @@ export function deleteBatch(batchId: string) {
         errorEmitter.emit('permission-error', permissionError);
     });
 }
-
-// HACK: Need to re-import this because of circular dependencies
-// This should be solved by having a single entry point for firebase services
-import { initializeFirebase } from '@/firebase';
