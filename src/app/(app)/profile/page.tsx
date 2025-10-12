@@ -76,18 +76,17 @@ export default function ProfilePage() {
             pinCode: values.pinCode
         };
 
-        updateDoc(userDocRef, updatedData)
-            .then(() => {
-                toast({ title: t('profile.update_success_title'), description: t('profile.update_success_desc') });
-            })
-            .catch((error) => {
-                 const permissionError = new FirestorePermissionError({
-                    path: userDocRef.path,
-                    operation: 'update',
-                    requestResourceData: updatedData,
-                });
-                errorEmitter.emit('permission-error', permissionError);
+        try {
+            await updateDoc(userDocRef, updatedData);
+            toast({ title: t('profile.update_success_title'), description: t('profile.update_success_desc') });
+        } catch (error) {
+             const permissionError = new FirestorePermissionError({
+                path: userDocRef.path,
+                operation: 'update',
+                requestResourceData: updatedData,
             });
+            errorEmitter.emit('permission-error', permissionError);
+        }
     }
 
     if (isUserLoading || !user) {

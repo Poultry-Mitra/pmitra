@@ -126,7 +126,7 @@ export default function AddStockPage() {
     const paymentMethod = form.watch("paymentMethod");
 
     async function onSubmit(values: FormValues) {
-        if (!firestore || !user) {
+        if (!firestore || !user.user) {
             toast({ title: "Error", description: "You must be logged in to add stock.", variant: "destructive" });
             return;
         }
@@ -144,7 +144,7 @@ export default function AddStockPage() {
                     lowStockThreshold: product.lowStockThreshold,
                     phaseApplicable: [], // Default empty for now
                 };
-                await addDealerInventoryItem(firestore, user.uid, newItem);
+                await addDealerInventoryItem(firestore, user.user.uid, newItem);
             }
             
             // 2. Add a single debit entry to the ledger for the total purchase amount
@@ -154,7 +154,7 @@ export default function AddStockPage() {
 
             const ledgerDescription = `Purchase from ${values.supplierName || 'Unknown Supplier'}` + (values.invoiceNumber ? ` (Bill: ${values.invoiceNumber})` : '');
             
-            await addLedgerEntry(firestore, user.uid, {
+            await addLedgerEntry(firestore, user.user.uid, {
                 description: ledgerDescription,
                 amount: netPayable,
                 date: new Date(values.invoiceDate).toISOString(),
