@@ -36,7 +36,7 @@ import {
   LifeBuoy,
 } from "lucide-react";
 import { useLanguage } from "@/components/language-provider";
-import { mockUsers, type User as UserType } from "@/lib/data";
+import { currentDealer } from "@/lib/data";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { useState } from "react";
@@ -48,9 +48,14 @@ export function AdminSidebar() {
   const { state } = useSidebar();
   const [managementOpen, setManagementOpen] = useState(pathname.startsWith("/admin/user-management"));
 
-  // This is a mock. In a real app, you'd get the current user from an auth context.
-  const currentUser = mockUsers.find(u => u.role === 'dealer') as UserType & { role: 'admin' | 'dealer' };
-  const isAdmin = currentUser?.role === 'admin';
+  const currentUser = currentDealer;
+
+  if (!currentUser) {
+      // Could be a loading state or a redirect
+      return null; 
+  }
+
+  const isAdmin = currentUser.role === 'admin';
 
 
   if (!isAdmin) {

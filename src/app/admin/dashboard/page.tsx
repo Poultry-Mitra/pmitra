@@ -3,8 +3,8 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { mockUsers, mockFarmMetrics } from "@/lib/data";
-import { Users, Bot, IndianRupee, Activity, PlusCircle, Send } from "lucide-react";
+import { mockUsers, mockFarmMetrics, currentDealer } from "@/lib/data";
+import { Users, Bot, IndianRupee, Activity, PlusCircle, Send, ShoppingBag } from "lucide-react";
 import { RevenueChart } from "../_components/revenue-chart";
 import { PageHeader } from "@/app/admin/_components/page-header";
 import { Button } from "@/components/ui/button";
@@ -18,49 +18,55 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 
-const kpiData = [
-    {
-        title: "Total Farmers",
-        value: "2",
-        change: "+1 this month",
-        changeColor: "text-green-500",
-        icon: Users,
-        chartData: [{ value: 1 }, { value: 1 }, { value: 1 }, { value: 2 }, { value: 2 }, { value: 2 }],
-        chartColor: "hsl(var(--chart-1))"
-    },
-    {
-        title: "Active Orders",
-        value: "2",
-        change: "+50%",
-        changeColor: "text-green-500",
-        icon: Activity,
-        chartData: [{ value: 2 }, { value: 3 }, { value: 2 }, { value: 4 }, { value: 5 }, { value: 4 }],
-        chartColor: "hsl(var(--chart-1))"
-    },
-    {
-        title: "Monthly Revenue",
-        value: "₹45,249",
-        change: "+20.1%",
-        changeColor: "text-green-500",
-        icon: IndianRupee,
-        chartData: [{ value: 10 }, { value: 12 }, { value: 15 }, { value: 14 }, { value: 18 }, { value: 20 }],
-        chartColor: "hsl(var(--chart-1))"
-    },
-    {
-        title: "AI Chats Used",
-        value: "3/5",
-        change: "Free Plan Limit",
-        changeColor: "text-orange-500",
-        icon: Bot,
-        chartData: [{ value: 1 }, { value: 1 }, { value: 2 }, { value: 2 }, { value: 3 }, { value: 3 }],
-        chartColor: "hsl(var(--chart-2))"
-    }
-];
+const kpiData = {
+    admin: [
+        // ... admin specific kpi data
+    ],
+    dealer: [
+        {
+            title: "Total Farmers",
+            value: "2",
+            change: "+1 this month",
+            changeColor: "text-green-500",
+            icon: Users,
+            chartData: [{ value: 1 }, { value: 1 }, { value: 1 }, { value: 2 }, { value: 2 }, { value: 2 }],
+            chartColor: "hsl(var(--chart-1))"
+        },
+        {
+            title: "Active Orders",
+            value: "2",
+            change: "+50%",
+            changeColor: "text-green-500",
+            icon: ShoppingBag,
+            chartData: [{ value: 2 }, { value: 3 }, { value: 2 }, { value: 4 }, { value: 5 }, { value: 4 }],
+            chartColor: "hsl(var(--chart-1))"
+        },
+        {
+            title: "Monthly Revenue",
+            value: "₹45,249",
+            change: "+20.1%",
+            changeColor: "text-green-500",
+            icon: IndianRupee,
+            chartData: [{ value: 10000 }, { value: 12000 }, { value: 15000 }, { value: 14000 }, { value: 18000 }, { value: 20000 }],
+            chartColor: "hsl(var(--chart-1))"
+        },
+        {
+            title: "Orders Fulfilled",
+            value: "12",
+            change: "this month",
+            changeColor: "text-muted-foreground",
+            icon: Activity,
+            chartData: [{ value: 5 }, { value: 6 }, { value: 8 }, { value: 10 }, { value: 11 }, { value: 12 }],
+            chartColor: "hsl(var(--chart-2))"
+        }
+    ]
+};
 
+// Mock data, in real app this would be filtered by dealerUID
 const transactions = [
-    { id: 'txn_1', user: mockUsers.find(u => u.id === 'usr_farmer_002'), plan: 'Order #ORD-2', amount: 'INR 22,500', status: 'Success', date: '2023-10-28' },
-    { id: 'txn_2', user: mockUsers.find(u => u.id === 'usr_farmer_004'), plan: 'Order #ORD-4', amount: 'INR 43,000', status: 'Pending', date: '2023-10-28' },
-    { id: 'txn_3', user: mockUsers.find(u => u.id === 'usr_farmer_002'), plan: 'Farmer Plan Subscription', amount: 'INR 249', status: 'Success', date: '2023-10-27' },
+    { id: 'txn_2', user: mockUsers.find(u => u.id === 'usr_farmer_004'), plan: 'Order #ORD-2 Payment', amount: 'INR 22,500', status: 'Success', date: '2023-10-28' },
+    { id: 'txn_3', user: mockUsers.find(u => u.id === 'usr_farmer_002'), plan: 'Order #ORD-1 Payment', amount: 'INR 22,000', status: 'Pending', date: '2023-10-27' },
+    { id: 'txn_5', user: mockUsers.find(u => u.id === 'usr_farmer_002'), plan: 'Order #ORD-3 Payment', amount: 'INR 1,750', status: 'Failed', date: '2023-10-26' },
 ];
 
 const statusVariant = {
@@ -89,12 +95,11 @@ function Sparkline({ data, color }: { data: { value: number }[], color: string }
 }
 
 export default function AdminDashboardPage() {
-    // This is a mock. In a real app, you'd get the current user from an auth context.
-    const currentUser = mockUsers.find(u => u.role === 'dealer');
+    const currentUser = currentDealer;
     if (!currentUser) return null;
 
     const isAdmin = currentUser.role === 'admin';
-    const pageTitle = isAdmin ? "Admin Dashboard" : "Dealer Dashboard";
+    const pageTitle = isAdmin ? "Admin Dashboard" : `Welcome back, ${currentUser.name.split(' ')[0]}! 👋`;
     const pageDescription = isAdmin ? "Overview of the PoultryMitra ecosystem." : "Here's an overview of your business.";
 
     const handleTransactionClick = (txn: any) => {
@@ -122,7 +127,7 @@ export default function AdminDashboardPage() {
               </div>
           </PageHeader>
            <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                {kpiData.map(kpi => (
+                {kpiData.dealer.map(kpi => (
                     <Card key={kpi.title}>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium">{kpi.title}</CardTitle>

@@ -15,7 +15,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Bell, Search, Copy } from 'lucide-react';
-import { mockUsers } from '@/lib/data';
+import { currentDealer } from '@/lib/data';
 import { LanguageToggle } from '@/components/language-toggle';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Input } from '@/components/ui/input';
@@ -60,9 +60,10 @@ function Breadcrumbs() {
 
 
 export function AdminHeader() {
-  // This is a mock. In a real app, you'd get the current user from an auth context.
-  const user = mockUsers[3]; // Assuming the dealer is logged in
+  const user = currentDealer; 
   const { toast } = useToast();
+
+  if (!user) return null; // Don't render if not a dealer/admin context
 
   const handleCopyCode = () => {
     if(user.uniqueDealerCode) {

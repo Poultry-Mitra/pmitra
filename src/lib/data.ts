@@ -5,12 +5,14 @@ import type { User, FarmMetric, SensorData, FarmAlert, DailyRates, Batch } from 
 export const mockUsers: User[] = [
   { id: 'usr_admin_001', name: 'Admin User', email: 'admin@poultrymitra.com', role: 'admin', dateJoined: '2023-01-15', planType: 'premium' },
   { id: 'usr_farmer_002', name: 'Farmer John', email: 'john@farm.com', role: 'farmer', dateJoined: '2023-02-20', planType: 'premium' },
-  { id: 'usr_dealer_003', name: 'Dealer Jane', email: 'jane@dealer.com', role: 'dealer', dateJoined: '2023-03-10', planType: 'premium', uniqueDealerCode: 'DEAL-JANE' },
+  { id: 'usr_dealer_003', name: 'Dealer Jane', email: 'jane@dealer.com', role: 'dealer', dateJoined: '2023-03-10', planType: 'premium', uniqueDealerCode: 'DEAL-JANE', connectedFarmers: ['usr_farmer_002', 'usr_farmer_004'] },
   { id: 'usr_farmer_004', name: 'Farmer Alice', email: 'alice@farm.com', role: 'farmer', dateJoined: '2023-04-05', planType: 'free' },
-  { id: 'usr_dealer_005', name: 'Dealer Bob', email: 'bob@dealer.com', role: 'dealer', dateJoined: '2023-05-21', planType: 'free', uniqueDealerCode: 'DEAL-BOB' },
+  { id: 'usr_dealer_005', name: 'Dealer Bob', email: 'bob@dealer.com', role: 'dealer', dateJoined: '2023-05-21', planType: 'free', uniqueDealerCode: 'DEAL-BOB', connectedFarmers: ['usr_farmer_002'] },
 ];
 
 export const currentUser: User = mockUsers[1];
+export const currentDealer: User | undefined = mockUsers.find(u => u.id === 'usr_dealer_003');
+
 
 export const mockFarmMetrics: FarmMetric[] = [
   { month: 'Jan', productionRate: 85, mortalityRate: 1.2, feedConsumption: 110 },

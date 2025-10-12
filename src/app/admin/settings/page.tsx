@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { IndianRupee } from "lucide-react";
-import { mockUsers } from "@/lib/data";
+import { currentDealer } from "@/lib/data";
 
 function AdminSettings() {
     const { toast } = useToast();
@@ -142,11 +142,13 @@ function AdminSettings() {
 
 function DealerSettings() {
     const { toast } = useToast();
-    const dealer = mockUsers.find(u => u.role === 'dealer');
+    const dealer = currentDealer;
 
     const handleProfileSave = () => {
         toast({ title: "Profile Updated", description: "Your profile information has been saved." });
     };
+
+    if (!dealer) return null;
     
     return (
          <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-3">
@@ -180,7 +182,7 @@ function DealerSettings() {
 
 
 export default function SettingsPage() {
-    const currentUser = mockUsers.find(u => u.role === 'admin' || u.role === 'dealer');
+    const currentUser = currentDealer;
     const isAdmin = currentUser?.role === 'admin';
     const pageTitle = isAdmin ? "System Settings" : "My Profile & Settings";
     const pageDescription = isAdmin ? "Configure global application settings." : "Manage your account and preferences.";
