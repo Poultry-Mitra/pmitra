@@ -12,7 +12,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { IndianRupee, Loader2 } from "lucide-react";
+import { IndianRupee, Loader2, Calendar as CalendarIcon } from "lucide-react";
 import { useUser, useFirestore, useMemoFirebase } from '@/firebase/provider';
 import { doc, setDoc, onSnapshot, collection, query, orderBy, limit } from 'firebase/firestore';
 import { format } from 'date-fns';
@@ -21,9 +21,13 @@ import type { DailyRates } from '@/lib/types';
 import indianStates from '@/lib/indian-states-districts.json';
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { cn } from '@/lib/utils';
+import { Calendar } from '@/components/ui/calendar';
 
 
 const formSchema = z.object({
+    date: z.date(),
     state: z.string().min(1, "State is required"),
     district: z.string().min(1, "District is required"),
     readyBirdSmall: z.coerce.number().min(0, "Rate must be non-negative"),
@@ -77,7 +81,7 @@ function RateHistory() {
                                 </TableCell>
                             </TableRow>
                         )}
-                        {!isLoading && rates && rates.map(rate => (
+                        {!isLoading && rates && rates.map((rate: any) => (
                             <TableRow key={rate.id}>
                                 <TableCell>{format(new Date(rate.lastUpdated), 'PPP')}</TableCell>
                                 <TableCell>{rate.location.district}, {rate.location.state}</TableCell>
@@ -105,6 +109,7 @@ export default function DailyRateManagementPage() {
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
         defaultValues: {
+            date: new Date(),
             state: "Maharashtra",
             district: "Pune",
             readyBirdSmall: 110,
@@ -114,8 +119,9 @@ export default function DailyRateManagementPage() {
             feedCostIndex: 45.5,
         },
     });
-
+    
     const selectedState = form.watch("state");
+    const selectedDate = form.watch("date");
 
     useEffect(() => {
         if (selectedState) {
@@ -127,12 +133,12 @@ export default function DailyRateManagementPage() {
         }
     }, [selectedState, form]);
     
-    const today = format(new Date(), 'yyyy-MM-dd');
-
     useEffect(() => {
-        if (!firestore) return;
+        if (!firestore || !selectedDate) return;
+
         setLoading(true);
-        const ratesDocRef = doc(firestore, 'dailyRates', today);
+        const dateString = format(selectedDate, 'yyyy-MM-dd');
+        const ratesDocRef = doc(firestore, 'dailyRates', dateString);
 
         const unsubscribe = onSnapshot(ratesDocRef, (docSnap) => {
             if (docSnap.exists()) {
@@ -142,6 +148,7 @@ export default function DailyRateManagementPage() {
                     setDistricts(stateData.districts);
                 }
                 form.reset({
+                    date: selectedDate, // Keep the selected date
                     state: data.location.state,
                     district: data.location.district,
                     readyBirdSmall: data.readyBird.small,
@@ -153,12 +160,24 @@ export default function DailyRateManagementPage() {
                 if (data.lastUpdated) {
                     setLastUpdated(new Date(data.lastUpdated).toLocaleString());
                 }
+            } else {
+                // If no data exists for this date, reset form fields but keep date and location
+                form.reset({
+                    ...form.getValues(),
+                    date: selectedDate,
+                    readyBirdSmall: 0,
+                    readyBirdMedium: 0,
+                    readyBirdBig: 0,
+                    chickRate: 0,
+                    feedCostIndex: 0,
+                });
+                setLastUpdated('');
             }
             setLoading(false);
         });
 
         return () => unsubscribe();
-    }, [firestore, today, form]);
+    }, [firestore, selectedDate, form]);
 
 
     async function onSubmit(values: FormValues) {
@@ -167,7 +186,10 @@ export default function DailyRateManagementPage() {
             return;
         }
 
+        const dateString = format(values.date, 'yyyy-MM-dd');
+
         const dailyRateData = {
+            id: dateString,
             location: {
                 state: values.state,
                 district: values.district,
@@ -182,7 +204,7 @@ export default function DailyRateManagementPage() {
             lastUpdated: new Date().toISOString(),
         };
 
-        const ratesDocRef = doc(firestore, 'dailyRates', today);
+        const ratesDocRef = doc(firestore, 'dailyRates', dateString);
         
         try {
             await setDoc(ratesDocRef, dailyRateData, { merge: true });
@@ -191,30 +213,19 @@ export default function DailyRateManagementPage() {
                 adminUID: adminUser.user.uid,
                 action: 'UPDATE_DAILY_RATES',
                 timestamp: new Date().toISOString(),
-                details: `Updated daily rates for ${values.district}, ${values.state}.`,
+                details: `Updated daily rates for ${dateString} in ${values.district}, ${values.state}.`,
             });
             
             toast({
                 title: "Rates Updated",
-                description: `Daily rates for ${today} have been successfully updated.`,
+                description: `Daily rates for ${dateString} have been successfully updated.`,
             });
-            setLastUpdated(new Date().toLocaleString());
         } catch (error) {
             console.error("Error updating daily rates:", error);
             toast({ title: "Error", description: "Failed to update daily rates.", variant: "destructive" });
         }
     }
 
-    if (loading) {
-        return (
-            <>
-                <PageHeader title="Daily Rate Management" description="Update daily market rates for poultry products." />
-                <div className="flex justify-center items-center mt-8">
-                    <Loader2 className="animate-spin" />
-                </div>
-            </>
-        )
-    }
 
     return (
         <>
@@ -223,15 +234,48 @@ export default function DailyRateManagementPage() {
                 <div className="lg:col-span-2">
                     <Card>
                         <CardHeader>
-                            <CardTitle>Update Market Rates for {today}</CardTitle>
+                            <CardTitle>Update Market Rates</CardTitle>
                             <CardDescription>
-                                Set the rates for today. This will be visible to all premium users.
+                                Set the rates for the selected date. This will be visible to all premium users.
                                 {lastUpdated && ` Last updated: ${lastUpdated}`}
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
                             <Form {...form}>
                                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                                     <FormField
+                                        control={form.control}
+                                        name="date"
+                                        render={({ field }) => (
+                                            <FormItem className="flex flex-col">
+                                            <FormLabel>Date</FormLabel>
+                                            <Popover>
+                                                <PopoverTrigger asChild>
+                                                <FormControl>
+                                                    <Button
+                                                    variant={"outline"}
+                                                    className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}
+                                                    >
+                                                    {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                                                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                                    </Button>
+                                                </FormControl>
+                                                </PopoverTrigger>
+                                                <PopoverContent className="w-auto p-0" align="start">
+                                                <Calendar
+                                                    mode="single"
+                                                    selected={field.value}
+                                                    onSelect={field.onChange}
+                                                    initialFocus
+                                                />
+                                                </PopoverContent>
+                                            </Popover>
+                                            <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                    {loading ? <div className="flex justify-center p-8"><Loader2 className="animate-spin" /></div> : (
+                                        <>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <FormField
                                             control={form.control}
@@ -339,8 +383,10 @@ export default function DailyRateManagementPage() {
                                     
                                     <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
                                         {form.formState.isSubmitting ? <Loader2 className="animate-spin" /> : <IndianRupee className="mr-2" />}
-                                        {form.formState.isSubmitting ? "Updating..." : "Update Rates for Today"}
+                                        {form.formState.isSubmitting ? "Updating..." : `Update Rates for ${format(selectedDate, 'dd MMM yyyy')}`}
                                     </Button>
+                                    </>
+                                    )}
                                 </form>
                             </Form>
                         </CardContent>
