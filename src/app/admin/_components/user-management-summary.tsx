@@ -90,9 +90,9 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
                                             </Button>
                                         </DropdownMenuTrigger>
                                         <DropdownMenuContent align="end">
-                                            <DropdownMenuItem>Edit</DropdownMenuItem>
-                                            <DropdownMenuItem>View Details</DropdownMenuItem>
-                                            <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
+                                            <DropdownMenuItem onClick={() => alert('Editing user: ' + user.name)}>Edit</DropdownMenuItem>
+                                            <DropdownMenuItem onClick={() => alert('Viewing details for user: ' + user.name)}>View Details</DropdownMenuItem>
+                                            <DropdownMenuItem className="text-destructive" onClick={() => alert('Deleting user: ' + user.name)}>Delete</DropdownMenuItem>
                                         </DropdownMenuContent>
                                     </DropdownMenu>
                                 </TableCell>
