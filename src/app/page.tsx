@@ -19,9 +19,13 @@ import { ThemeToggle } from '@/components/theme-toggle';
 import { LanguageToggle } from '@/components/language-toggle';
 import { useLanguage } from '@/components/language-provider';
 import { RateTicker } from './_components/rate-ticker';
+import { useClientState } from '@/hooks/use-client-state';
+import { currentUser } from '@/lib/data';
+import type { User } from '@/lib/types';
 
 export default function LandingPage() {
   const { t } = useLanguage();
+  const user = useClientState<User | undefined>(currentUser);
 
   const features = [
     {
@@ -98,12 +102,20 @@ export default function LandingPage() {
           <div className="ml-auto flex items-center space-x-2">
             <LanguageToggle />
             <ThemeToggle />
-            <Button variant="outline" asChild>
-              <Link href="/login">{t('nav.login')}</Link>
-            </Button>
-            <Button asChild>
-              <Link href="/signup">{t('nav.signup')}</Link>
-            </Button>
+            {user ? (
+                <Button asChild>
+                    <Link href="/dashboard">Dashboard</Link>
+                </Button>
+            ) : (
+                <>
+                    <Button variant="outline" asChild>
+                    <Link href="/login">{t('nav.login')}</Link>
+                    </Button>
+                    <Button asChild>
+                    <Link href="/signup">{t('nav.signup')}</Link>
+                    </Button>
+                </>
+            )}
           </div>
         </div>
         <RateTicker />
