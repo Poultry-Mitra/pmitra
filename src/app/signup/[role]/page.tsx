@@ -40,7 +40,7 @@ export default function DetailedSignupPage() {
     const auth = useAuth();
     const firestore = useFirestore();
 
-    const role = (params.role as string) || "farmer";
+    const initialRole = (params.role as string) || "farmer";
     const [districts, setDistricts] = useState<string[]>([]);
 
     const form = useForm<FormValues>({
@@ -78,23 +78,28 @@ export default function DetailedSignupPage() {
             const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
             const user = userCredential.user;
 
+            // Special handling for the admin email
+            const isAdminEmail = values.email.toLowerCase() === 'ipoultrymitra@gmail.com';
+            const finalRole = isAdminEmail ? 'admin' : initialRole;
+            const finalPlan = isAdminEmail ? 'premium' : 'free';
+
             const userProfile = {
-                fullName: values.fullName,
+                name: values.fullName,
                 email: values.email,
-                role,
+                role: finalRole,
                 mobileNumber: values.mobileNumber || "",
                 state: values.state,
                 district: values.district,
                 pinCode: values.pinCode || "",
-                planType: "free",
+                planType: finalPlan,
                 aiQueriesCount: 0,
                 lastQueryDate: "",
-                dateJoined: serverTimestamp(),
-                ...(role === 'dealer' && { 
+                dateJoined: new Date().toISOString(),
+                ...(finalRole === 'dealer' && { 
                     uniqueDealerCode: `DL-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
                     connectedFarmers: [],
                 }),
-                ...(role === 'farmer' && {
+                ...(finalRole === 'farmer' && {
                     connectedDealers: [],
                 }),
             };
@@ -106,7 +111,13 @@ export default function DetailedSignupPage() {
                 description: "You have been successfully registered. Redirecting to dashboard...",
             });
 
-            router.push(role === 'dealer' ? '/dealer/dashboard' : '/dashboard');
+            const redirectPath = {
+                admin: '/admin/dashboard',
+                dealer: '/dealer/dashboard',
+                farmer: '/dashboard',
+            }[finalRole];
+
+            router.push(redirectPath);
 
         } catch (error: any) {
             console.error("Signup failed:", error);
@@ -131,7 +142,7 @@ export default function DetailedSignupPage() {
             <Card className="w-full max-w-xl">
                 <CardHeader className="text-center">
                      <AppIcon className="mx-auto size-10 text-primary" />
-                    <CardTitle className="font-headline text-2xl">Create Your {role === 'farmer' ? 'Farmer' : 'Dealer'} Account</CardTitle>
+                    <CardTitle className="font-headline text-2xl">Create Your {initialRole === 'farmer' ? 'Farmer' : 'Dealer'} Account</CardTitle>
                     <CardDescription>Fill in your details to get started.</CardDescription>
                 </CardHeader>
                 <CardContent>

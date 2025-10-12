@@ -46,6 +46,7 @@ export type DailyRecord = {
     feedConsumed: number; // kg
     avgBodyWeight: number; // grams
     notes?: string;
+    feedItemId?: string;
 };
 
 
