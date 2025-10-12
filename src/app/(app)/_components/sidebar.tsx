@@ -34,6 +34,7 @@ import {
   WandSparkles,
   Loader2,
   AlertTriangle,
+  User as UserIcon,
 } from "lucide-react";
 import { useLanguage } from "@/components/language-provider";
 import { Badge } from "@/components/ui/badge";
@@ -56,20 +57,20 @@ import { signOut } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 
 const mainNavItems = [
-  { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
-  { href: "/batches", icon: FileText, label: "My Batches" },
-  { href: "/ledger", icon: BookText, label: "Ledger" },
+  { href: "/dashboard", icon: LayoutDashboard, label: "dashboard.title" },
+  { href: "/batches", icon: FileText, label: "batches.title" },
+  { href: "/ledger", icon: BookText, label: "ledger.title" },
 ];
 
 const connectNavItems = [
-  { href: "/dealers", icon: Users, label: "Dealers" },
+  { href: "/dealers", icon: Users, label: "dealers.title" },
 ];
 
 const aiNavItems = [
-    { href: "/chat", icon: MessageSquare, label: "AI Chat" },
-    { href: "/monitoring", icon: ShieldCheck, label: "Monitoring" },
-    { href: "/analytics", icon: TrendingUp, label: "Analytics"},
-    { href: "/feed-recommendation", icon: WandSparkles, label: "Feed AI"},
+    { href: "/chat", icon: MessageSquare, label: "ai_chat.title" },
+    { href: "/monitoring", icon: ShieldCheck, label: "monitoring.title" },
+    { href: "/analytics", icon: TrendingUp, label: "analytics.title"},
+    { href: "/feed-recommendation", icon: WandSparkles, label: "feed_ai.title"},
 ];
 
 export function AppSidebar() {
@@ -101,9 +102,12 @@ export function AppSidebar() {
   const [inventoryOpen, setInventoryOpen] = useState(pathname.startsWith('/inventory'));
 
   const handleLogout = () => {
-    signOut(auth).then(() => {
-      router.push('/login');
-    });
+    if (auth) {
+      signOut(auth).then(() => {
+        router.push('/login');
+      });
+    }
+    setShowLogoutAlert(false);
   };
 
   if (!user || !firebaseUser) {
@@ -143,24 +147,24 @@ export function AppSidebar() {
                                 <div className="text-xs text-muted-foreground">{poultryMitraId}</div>
                             </div>
                         </div>
-                        <Badge className="mt-2 w-full justify-center capitalize" variant={user.planType === 'premium' ? 'default' : 'secondary'}>{planName}</Badge>
+                        <Badge className="mt-2 w-full justify-center capitalize" variant={user.planType === 'premium' ? 'default' : 'secondary'}>{t(`plans.${user.planType}`)}</Badge>
                     </div>
                 )}
             </div>
         </SidebarHeader>
         <SidebarContent>
 
-            <SidebarGroupLabel>Main</SidebarGroupLabel>
+            <SidebarGroupLabel>{t('sidebar.main')}</SidebarGroupLabel>
             <SidebarMenu>
             {mainNavItems.map((item) => (
                 <SidebarMenuItem key={item.href}>
                 <Link href={item.href}>
                     <SidebarMenuButton
                     isActive={pathname.startsWith(item.href) && (item.href === '/dashboard' ? pathname === item.href : true)}
-                    tooltip={item.label}
+                    tooltip={t(item.label)}
                     >
                     <item.icon />
-                    <span>{item.label}</span>
+                    <span>{t(item.label)}</span>
                     </SidebarMenuButton>
                 </Link>
                 </SidebarMenuItem>
@@ -168,15 +172,15 @@ export function AppSidebar() {
             </SidebarMenu>
             
             <SidebarSeparator />
-            <SidebarGroupLabel>Inventory & Dealers</SidebarGroupLabel>
+            <SidebarGroupLabel>{t('sidebar.inventory_dealers')}</SidebarGroupLabel>
             <SidebarMenu>
             <Collapsible open={inventoryOpen} onOpenChange={setInventoryOpen}>
                 <SidebarMenuItem className="relative">
                 <CollapsibleTrigger asChild>
-                    <SidebarMenuButton tooltip="Inventory" className="w-full justify-between pr-8" isActive={pathname.startsWith("/inventory")}>
+                    <SidebarMenuButton tooltip={t('inventory.title')} className="w-full justify-between pr-8" isActive={pathname.startsWith("/inventory")}>
                         <div className="flex items-center gap-3">
                             <Archive />
-                            <span>Inventory</span>
+                            <span>{t('inventory.title')}</span>
                         </div>
                     </SidebarMenuButton>
                 </CollapsibleTrigger>
@@ -192,14 +196,14 @@ export function AppSidebar() {
                         <SidebarMenuItem>
                             <Link href="/inventory">
                                 <SidebarMenuButton size="sm" isActive={pathname === "/inventory"}>
-                                View Stock
+                                {t('inventory.view_stock')}
                                 </SidebarMenuButton>
                             </Link>
                         </SidebarMenuItem>
                         <SidebarMenuItem>
                             <Link href="/inventory/add">
                                 <SidebarMenuButton size="sm" isActive={pathname === "/inventory/add"}>
-                                Add Purchase
+                                {t('inventory.add_purchase')}
                                 </SidebarMenuButton>
                             </Link>
                         </SidebarMenuItem>
@@ -211,10 +215,10 @@ export function AppSidebar() {
                 <Link href={item.href}>
                     <SidebarMenuButton
                     isActive={pathname.startsWith(item.href)}
-                    tooltip={item.label}
+                    tooltip={t(item.label)}
                     >
                     <item.icon />
-                    <span>{item.label}</span>
+                    <span>{t(item.label)}</span>
                     </SidebarMenuButton>
                 </Link>
                 </SidebarMenuItem>
@@ -222,17 +226,17 @@ export function AppSidebar() {
             </SidebarMenu>
 
             <SidebarSeparator />
-            <SidebarGroupLabel>AI & Analytics</SidebarGroupLabel>
+            <SidebarGroupLabel>{t('sidebar.ai_analytics')}</SidebarGroupLabel>
             <SidebarMenu>
                 {aiNavItems.map((item) => (
                 <SidebarMenuItem key={item.href}>
                 <Link href={item.href}>
                     <SidebarMenuButton
                     isActive={pathname.startsWith(item.href)}
-                    tooltip={item.label}
+                    tooltip={t(item.label)}
                     >
                     <item.icon />
-                    <span>{item.label}</span>
+                    <span>{t(item.label)}</span>
                     </SidebarMenuButton>
                 </Link>
                 </SidebarMenuItem>
@@ -240,17 +244,17 @@ export function AppSidebar() {
             </SidebarMenu>
             
             <SidebarSeparator />
-            <SidebarGroupLabel>Market</SidebarGroupLabel>
+            <SidebarGroupLabel>{t('sidebar.market')}</SidebarGroupLabel>
             <SidebarMenu>
                 <SidebarMenuItem>
                     <Link href="/daily-rates">
                         <SidebarMenuButton
                             isActive={pathname.startsWith("/daily-rates")}
-                            tooltip="Market Rates"
+                            tooltip={t('daily_rates.title')}
                         >
                             <TrendingUp/>
-                            <span>Market Rates</span>
-                            {state === 'expanded' && <Badge variant="secondary" className="ml-auto">PRO</Badge>}
+                            <span>{t('daily_rates.title')}</span>
+                            {state === 'expanded' && <Badge variant="secondary" className="ml-auto">{t('plans.pro')}</Badge>}
                         </SidebarMenuButton>
                     </Link>
                 </SidebarMenuItem>
@@ -258,19 +262,21 @@ export function AppSidebar() {
         </SidebarContent>
         <SidebarFooter>
             <SidebarMenu>
-                <SidebarMenuItem>
-                    <Link href="/pricing">
-                        <SidebarMenuButton tooltip="Upgrade">
-                            <Rocket/>
-                            <span>Upgrade Plan</span>
+                 <SidebarMenuItem>
+                    <Link href="/profile">
+                        <SidebarMenuButton tooltip={t('profile.title')} isActive={pathname === '/profile'}>
+                            <UserIcon />
+                            <span>{t('profile.title')}</span>
                         </SidebarMenuButton>
                     </Link>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                    <SidebarMenuButton tooltip="Settings">
-                        <Settings/>
-                        <span>{t('sidebar_settings')}</span>
-                    </SidebarMenuButton>
+                    <Link href="/pricing">
+                        <SidebarMenuButton tooltip={t('pricing.upgrade_plan')}>
+                            <Rocket/>
+                            <span>{t('pricing.upgrade_plan')}</span>
+                        </SidebarMenuButton>
+                    </Link>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
                     <SidebarMenuButton tooltip={t('actions.logout')} onClick={() => setShowLogoutAlert(true)}>

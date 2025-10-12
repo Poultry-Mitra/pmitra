@@ -73,6 +73,7 @@ const translations = {
         free_plan_cta: "Continue with Free",
         farmer_plan_cta: "Choose Farmer Plan",
         dealer_plan_cta: "Choose Dealer Plan",
+        upgrade_plan: "Upgrade Plan",
     },
     testimonials: {
       title: "What Our Users Say",
@@ -96,8 +97,13 @@ const translations = {
         contact: "Contact Us",
         copyright: "© 2025 PoultryMitra. All rights reserved.",
     },
-    sidebar_settings: "Settings",
     sidebar_logout: "Logout",
+    sidebar: {
+      main: "Main",
+      inventory_dealers: "Inventory & Dealers",
+      ai_analytics: "AI & Analytics",
+      market: "Market",
+    },
     login: {
       welcome_title: "Welcome to PoultryMitra",
       welcome_subtitle: "Choose your login type to continue",
@@ -134,7 +140,9 @@ const translations = {
       toggle_menu: "Toggle menu",
       yes_delete: "Yes, Delete",
       yes_suspend: "Yes, Suspend",
-      yes_unsuspend: "Yes, Unsuspend"
+      yes_unsuspend: "Yes, Unsuspend",
+      saving: "Saving...",
+      save_changes: "Save Changes",
     },
     dialog: {
         are_you_sure_title: "Are you sure?",
@@ -143,6 +151,91 @@ const translations = {
         delete_user_desc: "This will permanently delete {name} and all their data. This action cannot be undone.",
         suspend_user_desc: "Are you sure you want to suspend {name}?",
         unsuspend_user_desc: "Are you sure you want to unsuspend {name}?",
+    },
+    dashboard: {
+      title: "Dashboard",
+      welcome: "Welcome back, {name}",
+      connect_dealer: "Connect to a Dealer",
+      stats: {
+        live_birds: "Live Birds",
+        live_birds_desc: "Total birds in active batches",
+        mortality: "Overall Mortality",
+        mortality_desc: "Across all active batches",
+        feed_consumed: "Total Feed Consumed",
+        feed_consumed_desc: "Across all active batches",
+        fcr: "Average FCR",
+        fcr_desc: "Feed Conversion Ratio",
+        ai_summary: "AI Summary",
+      },
+      performance: {
+        title: "Farm Performance",
+        description: "Key metrics over the last 6 months.",
+      },
+      ai_suggestions: {
+        title: "AI Suggestions",
+        description: "Get recommendations to improve farm efficiency.",
+      }
+    },
+    batches: {
+      title: "My Batches",
+    },
+    ledger: {
+      title: "Ledger",
+    },
+    inventory: {
+      title: "Inventory",
+      view_stock: "View Stock",
+      add_purchase: "Add Purchase",
+    },
+    dealers: {
+      title: "Dealers",
+    },
+    ai_chat: {
+      title: "AI Chat",
+    },
+    monitoring: {
+      title: "Monitoring",
+    },
+    analytics: {
+      title: "Analytics",
+    },
+    feed_ai: {
+      title: "Feed AI",
+    },
+    daily_rates: {
+      title: "Market Rates",
+    },
+    plans: {
+      premium: "Premium Plan",
+      free: "Free Plan",
+      pro: "PRO",
+    },
+    profile: {
+      title: "My Profile",
+      description: "Update your personal information and settings.",
+      card_title: "Personal Information",
+      card_description: "Keep your contact details up to date.",
+      update_success_title: "Profile Updated",
+      update_success_desc: "Your information has been successfully saved.",
+      update_fail_desc: "Failed to update your profile.",
+    },
+    messages: {
+      copied_title: "Copied!",
+      copied_desc: "Your unique farm ID has been copied.",
+      loading_ai_data: "Loading data for AI analysis...",
+      add_batch_for_ai: "Add an active batch to get AI suggestions.",
+      analytics_error: "Could not load analytics data.",
+      authenticating: "Authenticating, please wait...",
+      error: "Error",
+      must_be_logged_in: "You must be logged in to perform this action.",
+    },
+    labels: {
+      full_name: "Full Name",
+      mobile_number: "Mobile Number",
+      pincode: "PIN Code",
+    },
+    placeholders: {
+      your_name: "Your full name",
     },
     admin: {
       dashboard: {
@@ -241,6 +334,7 @@ const translations = {
       started_chat: "Started AI chat - 30 minutes ago",
     },
     messages: {
+      loading: "Loading...",
       loading_users: "Loading users...",
       no_users_found: "No users found.",
     }
@@ -305,6 +399,7 @@ const translations = {
         free_plan_cta: "मुफ्त में जारी रखें",
         farmer_plan_cta: "किसान योजना चुनें",
         dealer_plan_cta: "डीलर योजना चुनें",
+        upgrade_plan: "योजना अपग्रेड करें",
     },
     testimonials: {
       title: "हमारे उपयोगकर्ता क्या कहते हैं",
@@ -328,8 +423,13 @@ const translations = {
         contact: "हमसे संपर्क करें",
         copyright: "© 2025 पोल्ट्रीमित्र। सर्वाधिकार सुरक्षित।",
     },
-    sidebar_settings: "सेटिंग्स",
     sidebar_logout: "लॉगआउट",
+    sidebar: {
+      main: "मुख्य",
+      inventory_dealers: "इन्वेंटरी और डीलर",
+      ai_analytics: "एआई और एनालिटिक्स",
+      market: "बाजार",
+    },
     login: {
       welcome_title: "पोल्ट्री मित्र में आपका स्वागत है",
       welcome_subtitle: "जारी रखने के लिए अपना लॉगिन प्रकार चुनें",
@@ -366,7 +466,9 @@ const translations = {
       toggle_menu: "मेन्यू टॉगल करें",
       yes_delete: "हाँ, हटाएं",
       yes_suspend: "हाँ, निलंबित करें",
-      yes_unsuspend: "हाँ, निलंबन हटाएं"
+      yes_unsuspend: "हाँ, निलंबन हटाएं",
+      saving: "सहेज रहा है...",
+      save_changes: "परिवर्तन सहेजें",
     },
     dialog: {
         are_you_sure_title: "क्या आप निश्चित हैं?",
@@ -375,6 +477,91 @@ const translations = {
         delete_user_desc: "यह {name} और उनके सभी डेटा को स्थायी रूप से हटा देगा। यह क्रिया पूर्ववत नहीं की जा सकती है।",
         suspend_user_desc: "क्या आप वाकई {name} को निलंबित करना चाहते हैं?",
         unsuspend_user_desc: "क्या आप वाकई {name} का निलंबन हटाना चाहते हैं?",
+    },
+    dashboard: {
+      title: "डैशबोर्ड",
+      welcome: "वापस स्वागत है, {name}",
+      connect_dealer: "डीलर से जुड़ें",
+       stats: {
+        live_birds: "जीवित पक्षी",
+        live_birds_desc: "सक्रिय बैचों में कुल पक्षी",
+        mortality: "समग्र मृत्यु दर",
+        mortality_desc: "सभी सक्रिय बैचों में",
+        feed_consumed: "कुल चारा खपत",
+        feed_consumed_desc: "सभी सक्रिय बैचों में",
+        fcr: "औसत FCR",
+        fcr_desc: "फ़ीड रूपांतरण अनुपात",
+        ai_summary: "एआई सारांश",
+      },
+      performance: {
+        title: "फार्म प्रदर्शन",
+        description: "पिछले 6 महीनों के प्रमुख मेट्रिक्स।",
+      },
+      ai_suggestions: {
+        title: "एआई सुझाव",
+        description: "खेत की दक्षता में सुधार के लिए सिफारिशें प्राप्त करें।",
+      },
+    },
+    batches: {
+      title: "मेरे बैच",
+    },
+    ledger: {
+      title: "लेजर",
+    },
+    inventory: {
+      title: "इन्वेंटरी",
+      view_stock: "स्टॉक देखें",
+      add_purchase: "खरीद जोड़ें",
+    },
+    dealers: {
+      title: "डीलर",
+    },
+    ai_chat: {
+      title: "एआई चैट",
+    },
+    monitoring: {
+      title: "निगरानी",
+    },
+    analytics: {
+      title: "एनालिटिक्स",
+    },
+    feed_ai: {
+      title: "फ़ीड एआई",
+    },
+    daily_rates: {
+      title: "बाजार दरें",
+    },
+    plans: {
+      premium: "प्रीमियम योजना",
+      free: "मुफ्त योजना",
+      pro: "प्रो",
+    },
+    profile: {
+      title: "मेरी प्रोफाइल",
+      description: "अपनी व्यक्तिगत जानकारी और सेटिंग्स अपडेट करें।",
+      card_title: "व्यक्तिगत जानकारी",
+      card_description: "अपने संपर्क विवरण को अद्यतित रखें।",
+      update_success_title: "प्रोफ़ाइल अपडेट की गई",
+      update_success_desc: "आपकी जानकारी सफलतापूर्वक सहेज ली गई है।",
+      update_fail_desc: "आपकी प्रोफ़ाइल अपडेट करने में विफल।",
+    },
+    messages: {
+      copied_title: "कॉपी किया गया!",
+      copied_desc: "आपकी अनूठी फार्म आईडी कॉपी कर ली गई है।",
+      loading_ai_data: "एआई विश्लेषण के लिए डेटा लोड हो रहा है...",
+      add_batch_for_ai: "एआई सुझाव प्राप्त करने के लिए एक सक्रिय बैच जोड़ें।",
+      analytics_error: "एनालिटिक्स डेटा लोड नहीं किया जा सका।",
+      authenticating: "प्रमाणित किया जा रहा है, कृपया प्रतीक्षा करें...",
+      error: "त्रुटि",
+      must_be_logged_in: "यह क्रिया करने के लिए आपको लॉग इन होना चाहिए।",
+    },
+    labels: {
+      full_name: "पूरा नाम",
+      mobile_number: "मोबाइल नंबर",
+      pincode: "पिन कोड",
+    },
+    placeholders: {
+      your_name: "आपका पूरा नाम",
     },
     admin: {
       dashboard: {
