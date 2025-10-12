@@ -16,19 +16,20 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Bell, Search } from 'lucide-react';
 import { useUser } from '@/firebase/provider';
-import { mockUsers } from '@/lib/data';
 
 export function AppHeader() {
   const firebaseUser = useUser();
-  const user = mockUsers.find(u => u.role === 'farmer'); // This should be dynamic based on the logged in user
 
-  if (!firebaseUser || !user) {
+  if (!firebaseUser) {
     return (
         <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
             <SidebarTrigger className="md:hidden" />
         </header>
     )
   }
+
+  const userName = firebaseUser.displayName || firebaseUser.email || "User";
+  const userFallback = (firebaseUser.displayName || firebaseUser.email || "U").charAt(0);
 
 
   return (
@@ -48,12 +49,12 @@ export function AppHeader() {
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="relative h-8 w-8 rounded-full">
               <Avatar className="h-9 w-9">
-                <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                <AvatarFallback>{userFallback}</AvatarFallback>
               </Avatar>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuLabel>{user.name}</DropdownMenuLabel>
+            <DropdownMenuLabel>{userName}</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem>Profile</DropdownMenuItem>
             <DropdownMenuItem>Settings</DropdownMenuItem>
