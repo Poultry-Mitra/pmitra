@@ -14,6 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { Save, Trash2, PlusCircle, IndianRupee } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import { Label } from "@/components/ui/label";
 
 const productSchema = z.object({
   productName: z.string().min(2, "Product name is required."),
@@ -340,5 +341,3 @@ export default function AddStockPage() {
         </>
     );
 }
-
-    
