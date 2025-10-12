@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { usePathname } from 'next/navigation';
@@ -14,12 +15,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Bell, Search, Copy } from 'lucide-react';
+import { Bell, Search } from 'lucide-react';
 import { currentDealer } from '@/lib/data';
 import { LanguageToggle } from '@/components/language-toggle';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Input } from '@/components/ui/input';
-import { useToast } from '@/hooks/use-toast';
 import { useClientState } from '@/hooks/use-client-state';
 import type { User } from '@/lib/types';
 
@@ -64,30 +64,14 @@ function Breadcrumbs() {
 
 export function AdminHeader() {
   const user = useClientState<User | undefined>(currentDealer);
-  const { toast } = useToast();
 
-  if (!user) return <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background/80 px-4 backdrop-blur-sm sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6"></header>; // Render empty header to avoid layout shift
-
-  const handleCopyCode = () => {
-    if(user.uniqueDealerCode) {
-        navigator.clipboard.writeText(user.uniqueDealerCode);
-        toast({ title: "Copied!", description: "Your unique dealer code has been copied to the clipboard." });
-    }
-  }
+  if (!user || user.role !== 'admin') return <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background/80 px-4 backdrop-blur-sm sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6"></header>;
 
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background/80 px-4 backdrop-blur-sm sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
       <SidebarTrigger className="md:hidden" />
       <div className="hidden md:block">
-        {user.role === 'admin' && <Breadcrumbs />}
-        {user.role === 'dealer' && user.uniqueDealerCode && (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <span>Your Code: <span className="font-mono text-base text-foreground font-semibold">{user.uniqueDealerCode}</span></span>
-                 <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handleCopyCode}>
-                    <Copy className="size-3.5" />
-                </Button>
-            </div>
-        )}
+        <Breadcrumbs />
       </div>
       <div className="ml-auto flex items-center gap-2">
         <div className="relative">

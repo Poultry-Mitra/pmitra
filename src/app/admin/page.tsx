@@ -4,7 +4,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
-export default function AdminPage() {
+export default function AdminRootPage() {
   const router = useRouter();
 
   useEffect(() => {

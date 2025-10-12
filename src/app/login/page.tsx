@@ -60,6 +60,11 @@ export default function LoginPage() {
 
             <div className="mt-10 space-y-4 text-sm text-muted-foreground">
                 <p>
+                    <Link href="/admin/dashboard" className="flex items-center justify-center gap-2 font-semibold text-primary hover:underline">
+                        <Shield className="size-4" /> {t('login.admin_login')}
+                    </Link>
+                </p>
+                <p>
                     {t('login.no_account')}{' '}
                     <Link href="/signup" className="font-semibold text-primary hover:underline">
                         {t('login.register_here')}
@@ -75,5 +80,3 @@ export default function LoginPage() {
     </div>
   );
 }
-
-    
