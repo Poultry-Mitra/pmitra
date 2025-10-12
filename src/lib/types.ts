@@ -29,12 +29,22 @@ export type Batch = {
   createdAt?: Timestamp;
 };
 
+export type DailyRecord = {
+    id: string;
+    date: string; // ISO 8601
+    mortality: number;
+    feedConsumed: number; // kg
+    avgBodyWeight: number; // grams
+    notes?: string;
+};
+
+
 export type InventoryItem = {
     id: string;
     farmerUID: string;
     dealerUID?: string;
     productName: string;
-    category: "Feed" | "Medicine" | "Equipment" | "Supplements" | "Bedding" | "Sanitizers" | "Other";
+    category: "Chicks" | "Feed" | "Medicine" | "Equipment" | "Supplements" | "Bedding" | "Sanitizers" | "Other";
     stockQuantity: number;
     unit: "kg" | "grams" | "liters" | "ml" | "units";
     lowStockThreshold: number;

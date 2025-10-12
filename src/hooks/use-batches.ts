@@ -1,4 +1,3 @@
-
 // src/hooks/use-batches.ts
 'use client';
 
@@ -16,9 +15,11 @@ import {
   DocumentSnapshot,
   query,
   where,
+  runTransaction,
+  orderBy,
 } from 'firebase/firestore';
 import { useFirestore } from '@/firebase/provider';
-import type { Batch } from '@/lib/types';
+import type { Batch, DailyRecord } from '@/lib/types';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 
@@ -33,6 +34,17 @@ function toBatch(doc: QueryDocumentSnapshot<DocumentData> | DocumentSnapshot<Doc
         createdAt: data.createdAt,
     } as Batch;
 }
+
+// Helper to convert Firestore doc to DailyRecord type
+function toDailyRecord(doc: QueryDocumentSnapshot<DocumentData>): DailyRecord {
+    const data = doc.data();
+    return {
+        id: doc.id,
+        ...data,
+        date: data.date,
+    } as DailyRecord;
+}
+
 
 export function useBatches(farmerUID: string) {
   const firestore = useFirestore();
@@ -87,7 +99,6 @@ export function useBatch(batchId: string) {
         const docRef = doc(firestore, 'batches', batchId);
         const unsubscribe = onSnapshot(docRef, (doc) => {
             if (doc.exists()) {
-                // TODO: Add security rule check to ensure user can only access their own batch.
                 setBatch(toBatch(doc));
             } else {
                 setBatch(null);
@@ -109,6 +120,42 @@ export function useBatch(batchId: string) {
     }, [firestore, batchId]);
 
     return { batch, loading };
+}
+
+
+export function useDailyRecords(batchId: string) {
+    const firestore = useFirestore();
+    const [records, setRecords] = useState<DailyRecord[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        if (!firestore || !batchId) {
+            setLoading(false);
+            return;
+        }
+
+        setLoading(true);
+        const recordsCollection = collection(firestore, `batches/${batchId}/dailyRecords`);
+        const q = query(recordsCollection, orderBy("date", "desc"));
+        
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            setRecords(snapshot.docs.map(toDailyRecord));
+            setLoading(false);
+        }, (err) => {
+            const permissionError = new FirestorePermissionError({
+                path: `batches/${batchId}/dailyRecords`,
+                operation: 'list',
+            });
+            errorEmitter.emit('permission-error', permissionError);
+            console.error("Error fetching daily records:", err);
+            setLoading(false);
+        });
+
+        return () => unsubscribe();
+
+    }, [firestore, batchId]);
+
+    return { records, loading };
 }
 
 
@@ -145,4 +192,52 @@ export function deleteBatch(firestore: Firestore, batchId: string) {
     });
 }
 
+export async function addDailyRecord(
+    firestore: Firestore, 
+    batchId: string, 
+    data: { date: Date; mortality: number; feedConsumed: number; avgBodyWeight: number; }
+) {
+    if (!firestore) throw new Error("Firestore not initialized");
     
+    const batchRef = doc(firestore, 'batches', batchId);
+    const dailyRecordRef = doc(collection(firestore, `batches/${batchId}/dailyRecords`));
+
+    try {
+        await runTransaction(firestore, async (transaction) => {
+            const batchDoc = await transaction.get(batchRef);
+            if (!batchDoc.exists()) {
+                throw new Error("Batch does not exist!");
+            }
+
+            const currentBatchData = batchDoc.data() as Batch;
+
+            // Update main batch document
+            const newMortality = currentBatchData.mortalityCount + data.mortality;
+            const newFeedConsumed = currentBatchData.feedConsumed + data.feedConsumed;
+
+            transaction.update(batchRef, {
+                mortalityCount: newMortality,
+                feedConsumed: newFeedConsumed,
+                avgBodyWeight: data.avgBodyWeight, // Update with the latest avg body weight
+            });
+            
+            // Create new daily record in subcollection
+            transaction.set(dailyRecordRef, {
+                date: data.date.toISOString(),
+                mortality: data.mortality,
+                feedConsumed: data.feedConsumed,
+                avgBodyWeight: data.avgBodyWeight,
+                createdAt: serverTimestamp(),
+            });
+        });
+    } catch(e: any) {
+        console.error("Add daily record transaction failed: ", e);
+        const permissionError = new FirestorePermissionError({
+            path: `batches/${batchId}/dailyRecords`,
+            operation: 'create',
+            requestResourceData: data,
+        });
+        errorEmitter.emit('permission-error', permissionError);
+        throw e;
+    }
+}

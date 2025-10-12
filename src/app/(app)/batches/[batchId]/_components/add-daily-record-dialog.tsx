@@ -1,0 +1,164 @@
+"use client";
+
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { useToast } from "@/hooks/use-toast";
+import { addDailyRecord } from '@/hooks/use-batches';
+import { useFirestore } from '@/firebase/provider';
+import { Calendar as CalendarIcon, IndianRupee } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { cn } from '@/lib/utils';
+import { Calendar } from '@/components/ui/calendar';
+import { format } from 'date-fns';
+import { Textarea } from '@/components/ui/textarea';
+
+const formSchema = z.object({
+    date: z.date(),
+    mortality: z.coerce.number().int().min(0, "Mortality must be non-negative."),
+    feedConsumed: z.coerce.number().min(0, "Feed consumption must be non-negative."),
+    avgBodyWeight: z.coerce.number().min(0, "Weight must be non-negative."),
+});
+
+type FormValues = z.infer<typeof formSchema>;
+
+export function AddDailyRecordDialog({ open, onOpenChange, batchId }: { open: boolean; onOpenChange: (open: boolean) => void, batchId: string }) {
+    const { toast } = useToast();
+    const firestore = useFirestore();
+
+    const form = useForm<FormValues>({
+        resolver: zodResolver(formSchema),
+        defaultValues: {
+            date: new Date(),
+            mortality: 0,
+            feedConsumed: 0,
+            avgBodyWeight: 0,
+        },
+    });
+
+    async function onSubmit(values: FormValues) {
+        if (!firestore || !batchId) {
+            toast({ title: "Error", description: "Could not add daily record.", variant: "destructive" });
+            return;
+        }
+
+        try {
+            await addDailyRecord(firestore, batchId, values);
+            toast({
+                title: "Daily Record Added",
+                description: `Record for ${format(values.date, "PPP")} has been successfully added.`,
+            });
+            onOpenChange(false);
+            form.reset({ date: new Date(), mortality: 0, feedConsumed: 0, avgBodyWeight: 0 });
+        } catch (error: any) {
+             toast({ title: "Error", description: error.message || "Failed to add daily record.", variant: "destructive" });
+             console.error("Failed to add daily record", error);
+        }
+    }
+    
+    return (
+        <Dialog open={open} onOpenChange={onOpenChange}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Add Daily Record</DialogTitle>
+                    <DialogDescription>Enter daily statistics for this batch. The main batch details will be updated automatically.</DialogDescription>
+                </DialogHeader>
+                <Form {...form}>
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                         <FormField
+                            control={form.control}
+                            name="date"
+                            render={({ field }) => (
+                                <FormItem className="flex flex-col">
+                                <FormLabel>Date</FormLabel>
+                                <Popover>
+                                    <PopoverTrigger asChild>
+                                    <FormControl>
+                                        <Button
+                                        variant={"outline"}
+                                        className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}
+                                        >
+                                        {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                        </Button>
+                                    </FormControl>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-auto p-0" align="start">
+                                    <Calendar
+                                        mode="single"
+                                        selected={field.value}
+                                        onSelect={field.onChange}
+                                        disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
+                                        initialFocus
+                                    />
+                                    </PopoverContent>
+                                </Popover>
+                                <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <FormField
+                                control={form.control}
+                                name="mortality"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Today's Mortality</FormLabel>
+                                        <FormControl><Input type="number" {...field} /></FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="feedConsumed"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Feed Consumed (kg)</FormLabel>
+                                        <FormControl><Input type="number" step="0.1" {...field} /></FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
+                         <FormField
+                            control={form.control}
+                            name="avgBodyWeight"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Avg. Body Weight (g)</FormLabel>
+                                    <FormControl><Input type="number" {...field} /></FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        
+                        <DialogFooter>
+                            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+                            <Button type="submit">Save Record</Button>
+                        </DialogFooter>
+                    </form>
+                </Form>
+            </DialogContent>
+        </Dialog>
+    )
+}

@@ -1,11 +1,15 @@
 "use client";
 
+import { useState } from "react";
 import { useParams } from "next/navigation";
-import { useBatch } from "@/hooks/use-batches";
+import { useBatch, useDailyRecords } from "@/hooks/use-batches";
 import { PageHeader } from "../../_components/page-header";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Bird, Droplet, Percent, Scale, Wheat, IndianRupee, Loader2, AlertCircle } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Bird, Droplet, Percent, Scale, Wheat, IndianRupee, Loader2, AlertCircle, PlusCircle } from "lucide-react";
+import { AddDailyRecordDialog } from "./_components/add-daily-record-dialog";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { format } from 'date-fns';
 
 function StatCard({ title, value, icon: Icon, unit }: { title: string, value: string | number, icon: React.ElementType, unit?: string }) {
     return (
@@ -27,9 +31,11 @@ function StatCard({ title, value, icon: Icon, unit }: { title: string, value: st
 export default function BatchDetailPage() {
     const params = useParams();
     const batchId = params.batchId as string;
-    const { batch, loading } = useBatch(batchId);
+    const { batch, loading: batchLoading } = useBatch(batchId);
+    const { records, loading: recordsLoading } = useDailyRecords(batchId);
+    const [isAddRecordOpen, setAddRecordOpen] = useState(false);
 
-    if (loading) {
+    if (batchLoading) {
         return (
             <div className="flex h-64 items-center justify-center">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -60,7 +66,10 @@ export default function BatchDetailPage() {
                 title={batch.batchName}
                 description={`Details for ${batch.batchType} batch started on ${new Date(batch.batchStartDate).toLocaleDateString()}`}
             >
-                <Button>Edit Batch</Button>
+                <Button onClick={() => setAddRecordOpen(true)}>
+                    <PlusCircle className="mr-2" />
+                    Add Daily Record
+                </Button>
             </PageHeader>
             
             <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
@@ -73,16 +82,52 @@ export default function BatchDetailPage() {
             </div>
 
             <div className="mt-8">
-                {/* Placeholder for future charts and tables */}
                 <Card>
                     <CardHeader>
                         <CardTitle>Daily Records</CardTitle>
+                        <CardDescription>History of daily mortality, feed consumption, and weight records.</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <p className="text-muted-foreground">Daily mortality, feed consumption, and weight records will be displayed here.</p>
+                       <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Date</TableHead>
+                                    <TableHead className="text-right">Mortality</TableHead>
+                                    <TableHead className="text-right">Feed Consumed (kg)</TableHead>
+                                    <TableHead className="text-right">Avg. Weight (g)</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {recordsLoading && (
+                                    <TableRow>
+                                        <TableCell colSpan={4} className="text-center">
+                                            <div className="flex justify-center items-center p-4">
+                                                <Loader2 className="animate-spin mr-2" /> Loading records...
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                )}
+                                {!recordsLoading && records.length === 0 && (
+                                    <TableRow>
+                                        <TableCell colSpan={4} className="text-center p-8">
+                                            No daily records found. Click "Add Daily Record" to get started.
+                                        </TableCell>
+                                    </TableRow>
+                                )}
+                                {!recordsLoading && records.map((record) => (
+                                    <TableRow key={record.id}>
+                                        <TableCell>{format(new Date(record.date), "PPP")}</TableCell>
+                                        <TableCell className="text-right">{record.mortality}</TableCell>
+                                        <TableCell className="text-right">{record.feedConsumed.toFixed(2)}</TableCell>
+                                        <TableCell className="text-right">{record.avgBodyWeight}</TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                       </Table>
                     </CardContent>
                 </Card>
             </div>
+            <AddDailyRecordDialog open={isAddRecordOpen} onOpenChange={setAddRecordOpen} batchId={batchId} />
         </>
     );
 }
