@@ -3,7 +3,6 @@ import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AdminSidebar } from "./_components/sidebar";
 import { AdminHeader } from "./_components/header";
 import { mockUsers } from "@/lib/data";
-import { redirect } from "next/navigation";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   // In a real app, this would be a server-side check for the user's role.

@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from 'react';
@@ -33,7 +34,6 @@ import { format } from 'date-fns';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useInventoryByCategory } from '@/hooks/use-inventory';
 import { currentUser } from '@/lib/data';
-import { Card, CardContent } from '@/components/ui/card';
 
 const formSchema = z.object({
     date: z.date(),

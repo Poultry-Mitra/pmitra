@@ -95,7 +95,7 @@ function Sparkline({ data, color }: { data: { value: number }[], color: string }
 }
 
 export default function DealerDashboardPage() {
-    const user = useClientState<User | undefined>(dealerUser);
+    const user = useClientState<User | undefined>(dealerUser, undefined);
 
     if (!user) {
         // You can return a loading skeleton here
