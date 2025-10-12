@@ -97,6 +97,10 @@ export default function AdminDashboardPage() {
     const pageTitle = isAdmin ? "Admin Dashboard" : "Dealer Dashboard";
     const pageDescription = isAdmin ? "Overview of the PoultryMitra ecosystem." : "Here's an overview of your business.";
 
+    const handleTransactionClick = (txn: any) => {
+        alert(`Transaction Details:\n\nID: ${txn.id}\nFarmer: ${txn.user.name}\nAmount: ${txn.amount}\nStatus: ${txn.status}\nDate: ${txn.date}`);
+    }
+
 
     if (!isAdmin) {
       // Render Dealer specific dashboard
@@ -166,7 +170,7 @@ export default function AdminDashboardPage() {
                                 {transactions.slice(0, 3).map(txn => {
                                     if (!txn.user) return null;
                                     return (
-                                    <TableRow key={txn.id}>
+                                    <TableRow key={txn.id} onClick={() => handleTransactionClick(txn)} className="cursor-pointer">
                                         <TableCell>{txn.user.name}</TableCell>
                                         <TableCell>{txn.amount}</TableCell>
                                         <TableCell><Badge variant={statusVariant[txn.status as keyof typeof statusVariant]} className="capitalize">{txn.status}</Badge></TableCell>
