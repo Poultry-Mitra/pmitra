@@ -149,7 +149,7 @@ export default function DailyRateManagementPage() {
                                                         <Input type="number" placeholder="140" {...field} />
                                                     </FormControl>
                                                     <FormMessage />
-                                                </Item>
+                                                </FormItem>
                                             )}
                                         />
                                     </CardContent>
