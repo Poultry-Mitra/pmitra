@@ -1,88 +1,81 @@
 
 rules_version = '2';
-
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Helper function to check for admin role
+    // Helper function to check if a user is signed in
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Helper function to check if the user is an admin
     function isAdmin() {
       return exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
     }
-
-    // AUTH: Anyone can create their own user profile upon signup
+    
+    // User can only create their own user profile
     match /users/{userId} {
-      allow read, update, delete: if request.auth.uid == userId || isAdmin();
-      allow create: if request.auth.uid == userId;
-      // Allow admins to list/read all users
-      allow list: if isAdmin();
+      allow create: if isSignedIn() && request.auth.uid == userId;
+      allow read, update: if isSignedIn() && request.auth.uid == userId;
+      allow delete: if isAdmin(); // Only admins can delete user profiles
     }
 
-    // AUTH: Allow admin creation only for the designated admin email
+    // Only admins can read or write to the admin roles collection
     match /roles_admin/{userId} {
-      allow read, write: if request.auth.uid == userId && request.auth.token.email == 'ipoultrymitra@gmail.com';
-      allow list, delete: if isAdmin();
+      allow read, write: if isAdmin();
     }
-
-    // BATCHES: Farmers can manage their own batches
+    
+    // Batches can be read/written by the farmer who owns them or by an admin
     match /batches/{batchId} {
-      allow read, write: if request.auth.uid == resource.data.farmerUID || isAdmin();
-      allow create: if request.auth.uid == request.resource.data.farmerUID || isAdmin();
-      allow list: if isAdmin();
+      allow read, write: if (isSignedIn() && resource.data.farmerUID == request.auth.uid) || isAdmin();
+      
+      // Daily records can be managed by the owner of the parent batch or an admin
+      match /dailyRecords/{recordId} {
+        allow read, write: if (isSignedIn() && get(/databases/$(database)/documents/batches/$(batchId)).data.farmerUID == request.auth.uid) || isAdmin();
+      }
     }
 
-    match /batches/{batchId}/dailyRecords/{recordId} {
-      allow read, list, create, update, delete: if get(/databases/$(database)/documents/batches/$(batchId)).data.farmerUID == request.auth.uid || isAdmin();
-    }
-
-    // INVENTORY: Farmers can manage their own inventory
+    // Inventory can be managed by the farmer who owns it or an admin
     match /inventory/{itemId} {
-       allow read, write: if request.auth.uid == resource.data.farmerUID || isAdmin();
-       allow create: if request.auth.uid == request.resource.data.farmerUID || isAdmin();
-       allow list: if isAdmin();
+      allow read, write: if (isSignedIn() && resource.data.farmerUID == request.auth.uid) || isAdmin();
     }
     
-    // DEALER INVENTORY: Dealers manage their own inventory
+    // Dealer inventory can be managed by the dealer who owns it or an admin
     match /dealerInventory/{itemId} {
-       allow read, write: if request.auth.uid == resource.data.dealerUID || isAdmin();
-       allow create: if request.auth.uid == request.resource.data.dealerUID || isAdmin();
-       allow list: if isAdmin();
-    }
-
-    // CONNECTIONS: Users can manage their own connection requests
-    match /connections/{connectionId} {
-        allow read, create: if request.auth.uid == request.resource.data.farmerUID || request.auth.uid == request.resource.data.dealerUID;
-        allow update: if (
-            (request.auth.uid == resource.data.farmerUID && resource.data.requestedBy == 'dealer') ||
-            (request.auth.uid == resource.data.dealerUID && resource.data.requestedBy == 'farmer') ||
-            isAdmin()
-        );
-        allow list, delete: if isAdmin();
+        allow read, write: if (isSignedIn() && resource.data.dealerUID == request.auth.uid) || isAdmin();
     }
     
-    // ORDERS: Farmers/Dealers can manage orders they are part of
+    // Orders can be created by a farmer or dealer. They can be read by the involved farmer/dealer or an admin.
+    // Status can be updated by the involved parties.
     match /orders/{orderId} {
-        allow read, create: if request.auth.uid == request.resource.data.farmerUID || request.auth.uid == request.resource.data.dealerUID;
-        // Allow farmer to update status if they were the recipient of the order request
-        allow update: if request.auth.uid == resource.data.farmerUID || request.auth.uid == resource.data.dealerUID;
-        allow list, delete: if isAdmin();
-    }
-
-    // LEDGER: Users can only manage their own ledger.
-    match /ledger/{entryId} {
-        allow read, create: if request.auth.uid == request.resource.data.userId;
-        allow list, update, delete: if get(/databases/$(database)/documents/ledger/$(entryId)).data.userId == request.auth.uid || isAdmin();
+        allow create: if isSignedIn();
+        allow read, update: if (isSignedIn() && (request.auth.uid == resource.data.farmerUID || request.auth.uid == resource.data.dealerUID)) || isAdmin();
+        allow delete: if isAdmin();
     }
     
-    // DAILY RATES: Only admins can write, all users can read.
+    // Ledger entries can be read by the user they belong to, but only created/updated through transactions (backend logic).
+    match /ledger/{entryId} {
+        allow read: if (isSignedIn() && resource.data.userId == request.auth.uid) || isAdmin();
+        allow write: if false; // Prevent direct client-side writes. Must be done via backend/transactions.
+    }
+    
+    // Connections can be created by any signed-in user, but only read/updated by involved parties or admins.
+    match /connections/{connectionId} {
+        allow create: if isSignedIn();
+        allow read, update: if (isSignedIn() && (request.auth.uid == resource.data.farmerUID || request.auth.uid == resource.data.dealerUID)) || isAdmin();
+        allow delete: if isAdmin();
+    }
+    
+    // Daily rates can be read by any signed-in user, but only written by an admin.
     match /dailyRates/{rateId} {
-        allow read: if request.auth != null;
+        allow read: if isSignedIn();
         allow write: if isAdmin();
     }
     
-    // AUDIT LOGS: Only admins can write/read
+    // Audit logs can only be written by the backend (or admins) and read only by admins.
     match /audit_logs/{logId} {
-      allow read, write: if isAdmin();
+        allow read: if isAdmin();
+        allow write: if isAdmin(); // Or a more secure backend-only rule
     }
-
   }
 }
