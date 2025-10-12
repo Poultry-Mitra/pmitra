@@ -26,7 +26,8 @@ import {
   User,
   LogOut,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Wallet,
 } from "lucide-react";
 import { useLanguage } from "@/components/language-provider";
 import { useState } from "react";
@@ -138,15 +139,15 @@ export function AdminSidebar() {
                   isActive={pathname.startsWith("/admin/transactions")}
                   tooltip={"Transactions"}
                 >
-                  <CreditCard />
+                  <Wallet />
                   <span>{"Transactions"}</span>
                 </SidebarMenuButton>
               </Link>
           </SidebarMenuItem>
           <SidebarMenuItem>
-              <Link href="/admin/transactions">
+              <Link href="/admin/subscription-management">
                 <SidebarMenuButton
-                  isActive={pathname.startsWith("/admin/transactions")}
+                  isActive={pathname.startsWith("/admin/subscription-management")}
                   tooltip={"Subscription Management"}
                 >
                   <CreditCard />

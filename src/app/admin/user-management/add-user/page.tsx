@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { PageHeader } from "@/app/admin/_components/page-header";
@@ -17,7 +16,13 @@ const formSchema = z.object({
     name: z.string().min(2, "Name must be at least 2 characters."),
     email: z.string().email("Please enter a valid email address."),
     role: z.enum(["farmer", "dealer"]),
+    password: z.string().min(8, "Password must be at least 8 characters."),
+    confirmPassword: z.string()
+}).refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
 });
+
 
 type FormValues = z.infer<typeof formSchema>;
 
@@ -30,11 +35,14 @@ export default function AddUserPage() {
             name: "",
             email: "",
             role: "farmer",
+            password: "",
+            confirmPassword: ""
         },
     });
 
     function onSubmit(values: FormValues) {
         console.log(values);
+        // In a real app, you would call a Firebase Function to create the user in Auth and Firestore
         toast({
             title: "User Created",
             description: `${values.name} has been added as a ${values.role}.`,
@@ -99,6 +107,32 @@ export default function AddUserPage() {
                                             </SelectContent>
                                         </Select>
                                         <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="password"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Password</FormLabel>
+                                            <FormControl>
+                                                <Input type="password" placeholder="Enter a secure password" {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="confirmPassword"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Confirm Password</FormLabel>
+                                            <FormControl>
+                                                <Input type="password" placeholder="Confirm the password" {...field} />
+                                            </FormControl>
+                                            <FormMessage />
                                         </FormItem>
                                     )}
                                 />
