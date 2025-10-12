@@ -60,7 +60,6 @@ export default function AddUserPage() {
             role: values.role,
             planType: values.planType,
             dateJoined: new Date().toISOString(),
-            // Only add role-specific fields if needed
             ...(values.role === 'dealer' && { 
                 uniqueDealerCode: `DL-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
                 connectedFarmers: [],
@@ -71,14 +70,13 @@ export default function AddUserPage() {
             aiQueriesCount: 0,
             lastQueryDate: '',
         };
+        
+        const usersCollection = collection(firestore, "users");
 
-        try {
-            const usersCollection = collection(firestore, "users");
-            const docRef = await addDoc(usersCollection, newUserProfile);
-
-            // Create an audit log for this action
+        addDoc(usersCollection, newUserProfile).then(async (docRef) => {
+             // Create an audit log for this action
             await addAuditLog(firestore, {
-                adminUID: adminUser.user.uid,
+                adminUID: adminUser.user!.uid,
                 action: 'CREATE_USER',
                 timestamp: new Date().toISOString(),
                 details: `Created new ${values.role} user profile: ${values.name} (${docRef.id})`,
@@ -96,16 +94,14 @@ export default function AddUserPage() {
             } else {
                  router.push('/admin/dashboard');
             }
-
-        } catch(error) {
-            console.error("Error creating user profile:", error);
+        }).catch((error) => {
             const permissionError = new FirestorePermissionError({
                 path: 'users',
                 operation: 'create',
-                requestResourceData: newUserProfile
+                requestResourceData: newUserProfile,
             });
             errorEmitter.emit('permission-error', permissionError);
-        }
+        });
     }
 
     return (
