@@ -31,6 +31,7 @@ import {
   BookText,
   ChevronDown,
   ChevronUp,
+  WandSparkles,
 } from "lucide-react";
 import { useLanguage } from "@/components/language-provider";
 import { Badge } from "@/components/ui/badge";
@@ -51,13 +52,9 @@ const connectNavItems = [
 const aiNavItems = [
     { href: "/chat", icon: MessageSquare, label: "AI Chat" },
     { href: "/monitoring", icon: ShieldCheck, label: "Monitoring" },
-];
-
-const marketNavItems = [
     { href: "/analytics", icon: TrendingUp, label: "Analytics"},
-    { href: "/daily-rates", icon: TrendingUp, label: "Market Rates"},
-]
-
+    { href: "/feed-recommendation", icon: WandSparkles, label: "Feed AI"},
+];
 
 export function AppSidebar() {
   const pathname = usePathname();
@@ -181,28 +178,6 @@ export function AppSidebar() {
               </Link>
             </SidebarMenuItem>
           ))}
-            <SidebarMenuItem>
-                 <Link href="/analytics">
-                    <SidebarMenuButton
-                         isActive={pathname.startsWith("/analytics")}
-                         tooltip="Analytics"
-                    >
-                        <TrendingUp/>
-                        <span>Analytics</span>
-                    </SidebarMenuButton>
-                 </Link>
-            </SidebarMenuItem>
-             <SidebarMenuItem>
-              <Link href="/feed-recommendation">
-                <SidebarMenuButton
-                  isActive={pathname.startsWith("/feed-recommendation")}
-                  tooltip="Feed AI"
-                >
-                  <MessageSquare />
-                  <span>Feed AI</span>
-                </SidebarMenuButton>
-              </Link>
-            </SidebarMenuItem>
         </SidebarMenu>
         
         <SidebarSeparator />
