@@ -1,17 +1,37 @@
 
+"use client";
+
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { mockFarmMetrics, currentUser } from "@/lib/data";
-import { PageHeader } from "../_components/page-header";
 import { Button } from "@/components/ui/button";
-import { FileDown, Plus, Copy, Zap } from "lucide-react";
+import { FileDown, Plus, Copy, Zap, Loader2 } from "lucide-react";
 import { ProductionChart } from "./_components/production-chart";
 import { AISuggestions } from "./_components/ai-suggestions";
 import { Badge } from "@/components/ui/badge";
+import { useBatches } from "@/hooks/use-batches";
+import { DashboardStats } from "./_components/DashboardStats";
 
 export default function DashboardPage() {
-  const latestMetrics = mockFarmMetrics[mockFarmMetrics.length - 1];
   const user = currentUser;
   const poultryMitraId = `PM-FARM-${user.id.substring(0, 5).toUpperCase()}`;
+
+  const { batches, loading: batchesLoading } = useBatches(user.id);
+  
+  const activeBatches = batches.filter(b => b.status === 'Active');
+
+  const farmDataForAISuggestions = activeBatches.length > 0 ? {
+      productionRate: 90, // This would be calculated from layer batches if they existed
+      mortalityRate: (activeBatches.reduce((acc, b) => acc + b.mortalityCount, 0) / activeBatches.reduce((acc, b) => acc + b.totalChicks, 0)) * 100,
+      feedConsumption: activeBatches.reduce((acc, b) => {
+        const liveBirds = b.totalChicks - b.mortalityCount;
+        if(liveBirds <= 0) return acc;
+        const ageInDays = (new Date().getTime() - new Date(b.batchStartDate).getTime()) / (1000 * 60 * 60 * 24);
+        if(ageInDays <= 0) return acc;
+        return acc + (b.feedConsumed * 1000) / liveBirds / ageInDays;
+      }, 0) / activeBatches.length, // avg feed consumption in g/bird/day
+      farmSize: activeBatches.reduce((acc, b) => acc + (b.totalChicks - b.mortalityCount), 0),
+  } : null;
+
 
   return (
     <>
@@ -36,49 +56,21 @@ export default function DashboardPage() {
       </div>
       
       <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium">Total Active Coops</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">4</div>
-            <p className="text-xs text-muted-foreground">10,450 Birds</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium">Monthly Expenses</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">₹45,231</div>
-            <p className="text-xs text-muted-foreground">+5% from last month</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium">Connected Dealers</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">3</div>
-            <p className="text-xs text-muted-foreground">2 Active Orders</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium">AI Chats Used</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">Unlimited</div>
-            <p className="text-xs text-muted-foreground">Premium Access</p>
-          </CardContent>
-        </Card>
+        {batchesLoading ? (
+           <div className="lg:col-span-4 flex h-48 items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <span className="ml-4">Loading Farm Stats...</span>
+            </div>
+        ) : (
+          <DashboardStats batches={activeBatches} />
+        )}
       </div>
 
       <div className="mt-8 grid grid-cols-1 gap-4 lg:grid-cols-7">
         <Card className="lg:col-span-4">
           <CardHeader>
             <CardTitle>Farm Performance Overview</CardTitle>
-            <CardDescription>Monthly trends for key farm metrics.</CardDescription>
+            <CardDescription>Monthly trends for key farm metrics (mock data).</CardDescription>
           </CardHeader>
           <CardContent>
             <ProductionChart data={mockFarmMetrics} />
@@ -90,15 +82,17 @@ export default function DashboardPage() {
             <CardDescription>Get suggestions to improve farm efficiency.</CardDescription>
           </CardHeader>
           <CardContent>
-            <AISuggestions farmData={{
-              productionRate: latestMetrics.productionRate,
-              mortalityRate: latestMetrics.mortalityRate,
-              feedConsumption: latestMetrics.feedConsumption,
-              farmSize: 10450
-            }} />
+            {farmDataForAISuggestions ? (
+              <AISuggestions farmData={farmDataForAISuggestions} />
+            ) : (
+              <div className="text-center text-sm text-muted-foreground p-4">
+                {batchesLoading ? 'Loading data for AI...' : 'Add an active batch to get AI suggestions.'}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
     </>
   );
 }
+
