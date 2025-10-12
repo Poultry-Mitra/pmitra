@@ -97,22 +97,18 @@ export function ChatLayout() {
           const userDocRef = doc(firestore, 'users', appUser.id);
           const currentMonth = new Date().toISOString().slice(0, 7);
           const lastQueryMonth = appUser.lastQueryDate?.slice(0, 7);
+          
+          const queriesThisMonth = lastQueryMonth === currentMonth ? (appUser.aiQueriesCount || 0) : 0;
 
-          let updatedCount;
           if (lastQueryMonth === currentMonth) {
-              await updateDoc(userDocRef, { aiQueriesCount: increment(1) });
-              updatedCount = (appUser.aiQueriesCount || 0) + 1;
+              await updateDoc(userDocRef, { aiQueriesCount: increment(1), lastQueryDate: new Date().toISOString() });
           } else {
               // Reset count for the new month
               await updateDoc(userDocRef, {
                   aiQueriesCount: 1,
                   lastQueryDate: new Date().toISOString()
               });
-              updatedCount = 1;
           }
-
-          // Also update the local state to ensure limit is enforced immediately
-          setAppUser(prevUser => prevUser ? ({ ...prevUser, aiQueriesCount: updatedCount, lastQueryDate: new Date().toISOString() }) : null);
       }
 
     } catch (error) {
@@ -140,6 +136,8 @@ export function ChatLayout() {
       )
   }
   const userName = appUser?.name || 'User';
+
+  const queriesUsed = (appUser?.lastQueryDate?.slice(0,7) === new Date().toISOString().slice(0,7)) ? (appUser?.aiQueriesCount || 0) : 0;
 
   return (
     <div className="h-full flex flex-col rounded-lg border bg-card">
@@ -216,10 +214,12 @@ export function ChatLayout() {
         </form>
          {appUser?.planType === 'free' && (
              <div className="text-xs text-muted-foreground mt-2 text-center">
-                 Queries used this month: {appUser.lastQueryDate?.slice(0, 7) === new Date().toISOString().slice(0, 7) ? (appUser.aiQueriesCount || 0) : 0} / {AI_QUERY_LIMIT}
+                 Queries used this month: {queriesUsed} / {AI_QUERY_LIMIT}
             </div>
          )}
       </div>
     </div>
   );
 }
+
+    

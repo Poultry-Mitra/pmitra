@@ -54,7 +54,7 @@ export function CreateOrderDialog({ open, onOpenChange, product, dealer }: Creat
     });
 
     const quantity = useWatch({ control: form.control, name: 'quantity' });
-    const totalAmount = (product.ratePerUnit * quantity).toLocaleString();
+    const totalAmount = (product.ratePerUnit * (quantity || 0)).toLocaleString();
 
     async function onSubmit(values: FormValues) {
         if (!farmerUser || !firestore) {
@@ -135,3 +135,5 @@ export function CreateOrderDialog({ open, onOpenChange, product, dealer }: Creat
         </Dialog>
     )
 }
+
+    
