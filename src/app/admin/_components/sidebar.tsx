@@ -13,6 +13,7 @@ import {
   SidebarFooter,
   useSidebar,
   SidebarSeparator,
+  SidebarGroupLabel,
 } from "@/components/ui/sidebar";
 import { AppIcon } from "@/app/icon";
 import {
