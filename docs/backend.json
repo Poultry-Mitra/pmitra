@@ -58,6 +58,13 @@
             "items": {
                 "type": "string"
             }
+        },
+        "connectedDealers": {
+            "type": "array",
+            "description": "A list of dealer UIDs this farmer is connected to.",
+            "items": {
+                "type": "string"
+            }
         }
       },
       "required": [
@@ -218,7 +225,7 @@
   "firestore": {
     "structure": [
       {
-        "path": "/userProfiles/{userProfileId}",
+        "path": "/users/{userId}",
         "definition": {
           "entityName": "UserProfile",
           "schema": {
@@ -227,7 +234,7 @@
           "description": "Stores user profiles. Includes standard user information.",
           "params": [
             {
-              "name": "userProfileId",
+              "name": "userId",
               "description": "The unique identifier for the user profile."
             }
           ]
@@ -338,8 +345,6 @@
         }
       }
     ],
-    "reasoning": "The Firestore structure is designed to ensure authorization independence, clarity, and scalability. User profiles are stored in a top-level `userProfiles` collection, with the admin role determined by document existence in the `roles_admin` collection. Farm data, including sensor readings, is nested under the `farms` collection to link it to a specific farm. A new `alerts` subcollection is added under `farms` to manage real-time alerts efficiently. The denormalization of the `UserProfile` is included in each farm, subscriptionPlan and orders. This eliminates the need for `get()` calls in security rules when accessing associated farm data or dealing with orders related to a user. For managing administrator access, the structure leverages a dedicated `roles_admin` collection, using the principle of existence-based authorization. This approach simplifies the security rules and enhances maintainability. The `orders` collection stores order details, including the `farmerId` and `dealerId` for linking orders to specific users."
+    "reasoning": "The Firestore structure is designed to ensure authorization independence, clarity, and scalability. User profiles are stored in a top-level `users` collection, with the admin role determined by document existence in the `roles_admin` collection. Farm data, including sensor readings, is nested under the `farms` collection to link it to a specific farm. A new `alerts` subcollection is added under `farms` to manage real-time alerts efficiently. The denormalization of the `UserProfile` is included in each farm, subscriptionPlan and orders. This eliminates the need for `get()` calls in security rules when accessing associated farm data or dealing with orders related to a user. For managing administrator access, the structure leverages a dedicated `roles_admin` collection, using the principle of existence-based authorization. This approach simplifies the security rules and enhances maintainability. The `orders` collection stores order details, including the `farmerId` and `dealerId` for linking orders to specific users."
   }
 }
-
-  
