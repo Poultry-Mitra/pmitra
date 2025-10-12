@@ -1,0 +1,302 @@
+{
+  "entities": {
+    "UserProfile": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "UserProfile",
+      "type": "object",
+      "description": "Represents a user profile in the PoultryMitra application.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the user profile."
+        },
+        "email": {
+          "type": "string",
+          "description": "Email address of the user.",
+          "format": "email"
+        },
+        "fullName": {
+          "type": "string",
+          "description": "Full name of the user."
+        },
+        "role": {
+          "type": "string",
+          "description": "Role of the user (farmer, dealer, admin)."
+        },
+        "subscriptionPlanId": {
+          "type": "string",
+          "description": "Reference to SubscriptionPlan. (Relationship: UserProfile 1:1 SubscriptionPlan)"
+        },
+        "farmId": {
+          "type": "string",
+          "description": "Reference to Farm. (Relationship: UserProfile 1:1 Farm)"
+        }
+      },
+      "required": [
+        "id",
+        "email",
+        "fullName",
+        "role"
+      ]
+    },
+    "Farm": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Farm",
+      "type": "object",
+      "description": "Represents a poultry farm.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the farm."
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the farm."
+        },
+        "location": {
+          "type": "string",
+          "description": "Location of the farm."
+        },
+        "capacity": {
+          "type": "number",
+          "description": "Maximum capacity of the farm (number of birds)."
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "location",
+        "capacity"
+      ]
+    },
+    "SubscriptionPlan": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "SubscriptionPlan",
+      "type": "object",
+      "description": "Represents a subscription plan with different features.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the subscription plan."
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the subscription plan (e.g., Basic, Premium)."
+        },
+        "price": {
+          "type": "number",
+          "description": "Price of the subscription plan."
+        },
+        "features": {
+          "type": "array",
+          "description": "List of features included in the subscription plan.",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "price",
+        "features"
+      ]
+    },
+    "FarmData": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "FarmData",
+      "type": "object",
+      "description": "Represents farm data collected over time.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the farm data entry."
+        },
+        "farmId": {
+          "type": "string",
+          "description": "Reference to Farm. (Relationship: Farm 1:N FarmData)"
+        },
+        "timestamp": {
+          "type": "string",
+          "description": "Timestamp of the data collection.",
+          "format": "date-time"
+        },
+        "productionRate": {
+          "type": "number",
+          "description": "Production rate of the farm (e.g., eggs per day)."
+        },
+        "mortalityRate": {
+          "type": "number",
+          "description": "Mortality rate of the farm."
+        },
+        "feedConsumption": {
+          "type": "number",
+          "description": "Feed consumption of the farm."
+        }
+      },
+      "required": [
+        "id",
+        "farmId",
+        "timestamp",
+        "productionRate",
+        "mortalityRate",
+        "feedConsumption"
+      ]
+    },
+    "Order": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Order",
+      "type": "object",
+      "description": "Represents an order between a dealer and a farmer.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the order."
+        },
+        "farmerId": {
+          "type": "string",
+          "description": "Reference to UserProfile (farmer). (Relationship: UserProfile 1:N Order)"
+        },
+        "dealerId": {
+          "type": "string",
+          "description": "Reference to UserProfile (dealer). (Relationship: UserProfile 1:N Order)"
+        },
+        "orderDate": {
+          "type": "string",
+          "description": "Date when the order was placed.",
+          "format": "date-time"
+        },
+        "items": {
+          "type": "array",
+          "description": "List of items in the order.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "status": {
+          "type": "string",
+          "description": "Status of the order (e.g., pending, confirmed, shipped, delivered)."
+        }
+      },
+      "required": [
+        "id",
+        "farmerId",
+        "dealerId",
+        "orderDate",
+        "items",
+        "status"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/userProfiles/{userProfileId}",
+        "definition": {
+          "entityName": "UserProfile",
+          "schema": {
+            "$ref": "#/backend/entities/UserProfile"
+          },
+          "description": "Stores user profiles. Includes standard user information.",
+          "params": [
+            {
+              "name": "userProfileId",
+              "description": "The unique identifier for the user profile."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/roles_admin/{userId}",
+        "definition": {
+          "entityName": "roles_admin",
+          "schema": {
+            "$ref": "#/backend/entities/UserProfile"
+          },
+          "description": "Documents in this collection represent admin users. Existence of a document grants admin privileges. Admin email is ipoultrymitra@gmail.com",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the admin user."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/farms/{farmId}",
+        "definition": {
+          "entityName": "Farm",
+          "schema": {
+            "$ref": "#/backend/entities/Farm"
+          },
+          "description": "Stores farm information.",
+          "params": [
+            {
+              "name": "farmId",
+              "description": "The unique identifier for the farm."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/farms/{farmId}/farmData/{farmDataId}",
+        "definition": {
+          "entityName": "FarmData",
+          "schema": {
+            "$ref": "#/backend/entities/FarmData"
+          },
+          "description": "Stores time-series data for a specific farm.",
+          "params": [
+            {
+              "name": "farmId",
+              "description": "The unique identifier for the farm."
+            },
+            {
+              "name": "farmDataId",
+              "description": "The unique identifier for the farm data entry."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/subscriptionPlans/{subscriptionPlanId}",
+        "definition": {
+          "entityName": "SubscriptionPlan",
+          "schema": {
+            "$ref": "#/backend/entities/SubscriptionPlan"
+          },
+          "description": "Stores information about available subscription plans.",
+          "params": [
+            {
+              "name": "subscriptionPlanId",
+              "description": "The unique identifier for the subscription plan."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/orders/{orderId}",
+        "definition": {
+          "entityName": "Order",
+          "schema": {
+            "$ref": "#/backend/entities/Order"
+          },
+          "description": "Stores order information, including farmerId and dealerId.",
+          "params": [
+            {
+              "name": "orderId",
+              "description": "The unique identifier for the order."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore structure is designed to ensure authorization independence, clarity, and scalability. User profiles are stored in a top-level `userProfiles` collection, with the admin role determined by document existence in the `roles_admin` collection.  Farm data is nested under the `farms` collection to link farm data to a specific farm.  The denormalization of the `UserProfile` is included in each farm, subscriptionPlan and orders.  This eliminates the need for `get()` calls in security rules when accessing associated farm data or dealing with orders related to a user. For managing administrator access, the structure leverages a dedicated `roles_admin` collection, using the principle of existence-based authorization.  This approach simplifies the security rules and enhances maintainability.  The `orders` collection stores order details, including the `farmerId` and `dealerId` for linking orders to specific users."
+  }
+}

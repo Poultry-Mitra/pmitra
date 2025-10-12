@@ -1,27 +1,8 @@
-
-// This file is replaced by the content of the getting started snippet.
-// The snippet is added by the `firebase.json` command.
-// It is not intended to be modified manually.
-
-// The content below is a placeholder and will be replaced by the
-// `firebase.json` command.
-const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+export const firebaseConfig = {
+  "projectId": "studio-2759667395-3e284",
+  "appId": "1:219591700993:web:526879e1a92724745f0600",
+  "apiKey": "AIzaSyDiBc43ILht21w2qlSWRnEYWdAWVAoY9oo",
+  "authDomain": "studio-2759667395-3e284.firebaseapp.com",
+  "measurementId": "",
+  "messagingSenderId": "219591700993"
 };
-
-export function getFirebaseConfig() {
-  if (
-    !firebaseConfig.apiKey ||
-    !firebaseConfig.authDomain ||
-    !firebaseConfig.projectId
-  ) {
-    // Return null or a specific error object if you want to handle this gracefully
-    return null;
-  }
-  return firebaseConfig;
-}
