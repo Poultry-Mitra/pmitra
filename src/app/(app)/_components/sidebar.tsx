@@ -13,13 +13,14 @@ import {
   SidebarMenuButton,
   SidebarFooter,
   useSidebar,
+  SidebarSeparator,
+  SidebarGroupLabel,
 } from "@/components/ui/sidebar";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import { AppIcon } from "@/app/icon";
 import {
   LayoutDashboard,
   MessageSquare,
-  Landmark,
   ShieldCheck,
   LogOut,
   Settings,
@@ -27,7 +28,6 @@ import {
   FileText,
   Users,
   Rocket,
-  WandSparkles,
   Archive,
   BookText,
   ChevronDown,
@@ -39,18 +39,25 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { currentUser } from "@/lib/data";
 import { useState } from "react";
 
-const navItems = [
+const mainNavItems = [
   { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
   { href: "/batches", icon: FileText, label: "My Batches" },
   { href: "/ledger", icon: BookText, label: "Ledger" },
+];
+
+const connectNavItems = [
   { href: "/dealers", icon: Users, label: "Dealers" },
 ];
 
 const aiNavItems = [
     { href: "/chat", icon: MessageSquare, label: "AI Chat" },
-    { href: "/feed-recommendation", icon: WandSparkles, label: "Feed AI" },
     { href: "/monitoring", icon: ShieldCheck, label: "Monitoring" },
 ];
+
+const marketNavItems = [
+    { href: "/analytics", icon: TrendingUp, label: "Analytics"},
+    { href: "/daily-rates", icon: TrendingUp, label: "Market Rates"},
+]
 
 
 export function AppSidebar() {
@@ -87,8 +94,10 @@ export function AppSidebar() {
         </div>
       </SidebarHeader>
       <SidebarContent>
+
+        <SidebarGroupLabel>Main</SidebarGroupLabel>
         <SidebarMenu>
-          {navItems.map((item) => (
+          {mainNavItems.map((item) => (
             <SidebarMenuItem key={item.href}>
               <Link href={item.href}>
                 <SidebarMenuButton
@@ -101,7 +110,11 @@ export function AppSidebar() {
               </Link>
             </SidebarMenuItem>
           ))}
-          
+        </SidebarMenu>
+        
+        <SidebarSeparator />
+        <SidebarGroupLabel>Inventory & Dealers</SidebarGroupLabel>
+        <SidebarMenu>
            <Collapsible open={inventoryOpen} onOpenChange={setInventoryOpen}>
             <SidebarMenuItem className="relative">
               <CollapsibleTrigger asChild>
@@ -138,10 +151,7 @@ export function AppSidebar() {
                  </SidebarMenu>
             </CollapsibleContent>
           </Collapsible>
-        </SidebarMenu>
-
-        <SidebarMenu>
-             {aiNavItems.map((item) => (
+          {connectNavItems.map((item) => (
             <SidebarMenuItem key={item.href}>
               <Link href={item.href}>
                 <SidebarMenuButton
@@ -156,8 +166,22 @@ export function AppSidebar() {
           ))}
         </SidebarMenu>
 
-
+        <SidebarSeparator />
+        <SidebarGroupLabel>AI & Analytics</SidebarGroupLabel>
         <SidebarMenu>
+             {aiNavItems.map((item) => (
+            <SidebarMenuItem key={item.href}>
+              <Link href={item.href}>
+                <SidebarMenuButton
+                  isActive={pathname.startsWith(item.href)}
+                  tooltip={item.label}
+                >
+                  <item.icon />
+                  <span>{item.label}</span>
+                </SidebarMenuButton>
+              </Link>
+            </SidebarMenuItem>
+          ))}
             <SidebarMenuItem>
                  <Link href="/analytics">
                     <SidebarMenuButton
@@ -169,6 +193,11 @@ export function AppSidebar() {
                     </SidebarMenuButton>
                  </Link>
             </SidebarMenuItem>
+        </SidebarMenu>
+        
+        <SidebarSeparator />
+        <SidebarGroupLabel>Market</SidebarGroupLabel>
+        <SidebarMenu>
             <SidebarMenuItem>
                 <Link href="/daily-rates">
                     <SidebarMenuButton
