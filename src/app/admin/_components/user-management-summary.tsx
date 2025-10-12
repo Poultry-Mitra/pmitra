@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -45,6 +44,9 @@ import type { User } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 
 type UserStatus = "active" | "suspended" | "pending";
 type UserWithStatus = User & { status: UserStatus };
@@ -67,11 +69,14 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
     const [usersWithStatus, setUsersWithStatus] = useState<UserWithStatus[]>([]);
     
     useEffect(() => {
+        // This logic runs only on the client-side, preventing hydration mismatch.
         const usersWithRandomStatus = allUsers.map(user => ({...user, status: (['active', 'suspended', 'pending'] as UserStatus[])[Math.floor(Math.random() * 3)] }));
         setUsersWithStatus(usersWithRandomStatus);
     }, []);
     
     const [dialogState, setDialogState] = useState<{ action: 'delete' | 'suspend' | null, user: UserWithStatus | null }>({ action: null, user: null });
+    const [reason, setReason] = useState("");
+    const [otherReason, setOtherReason] = useState("");
     const [detailsUser, setDetailsUser] = useState<UserWithStatus | null>(null);
     const { toast } = useToast();
 
@@ -86,26 +91,50 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
     const handleSuspend = () => {
         if (!dialogState.user) return;
         
+        const finalReason = reason === 'other' ? otherReason : reason;
+        if ((dialogState.user.status === 'active' && !finalReason) || (dialogState.action === 'delete' && !finalReason)) {
+            toast({
+                title: "Reason Required",
+                description: "Please provide a reason for this action.",
+                variant: "destructive",
+            });
+            return;
+        }
+
         setUsersWithStatus(usersWithStatus.map(u => u.id === dialogState.user!.id ? { ...u, status: u.status === 'active' ? 'suspended' : 'active' } : u));
         
         toast({
             title: `User ${dialogState.user.status === 'active' ? 'Suspended' : 'Unsuspended'}`,
-            description: `${dialogState.user.name} has been successfully ${dialogState.user.status === 'active' ? 'suspended' : 'unsuspended'}.`,
+            description: `${dialogState.user.name} has been successfully ${dialogState.user.status === 'active' ? 'suspended' : 'unsuspended'}. ${finalReason ? `Reason: ${finalReason}` : ''}`,
         });
         setDialogState({ action: null, user: null });
+        setReason("");
+        setOtherReason("");
     };
 
     const handleDelete = () => {
         if (!dialogState.user) return;
 
+        const finalReason = reason === 'other' ? otherReason : reason;
+         if (!finalReason) {
+            toast({
+                title: "Reason Required",
+                description: "Please provide a reason for deleting the user.",
+                variant: "destructive",
+            });
+            return;
+        }
+
         setUsersWithStatus(usersWithStatus.filter(u => u.id !== dialogState.user!.id));
 
         toast({
             title: "User Deleted",
-            description: `${dialogState.user.name} has been permanently deleted.`,
+            description: `${dialogState.user.name} has been permanently deleted. Reason: ${finalReason}`,
             variant: "destructive",
         });
         setDialogState({ action: null, user: null });
+        setReason("");
+        setOtherReason("");
     };
 
     const openDialog = (user: UserWithStatus, action: 'delete' | 'suspend') => {
@@ -116,6 +145,8 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
         setDetailsUser(user);
     };
     
+    const isUnsuspendAction = dialogState.action === 'suspend' && dialogState.user?.status === 'suspended';
+
     return (
         <>
             <Card>
@@ -234,9 +265,9 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
                                      </Card>
                                 </TabsContent>
                                 <TabsContent value="subscription" className="mt-4 space-y-2">
-                                    <div><strong className="font-medium">Subscription Plan:</strong> <Badge>Premium Farmer</Badge></div>
-                                    <div className="flex items-center gap-2"><strong className="font-medium">Status:</strong> <Badge variant="outline" className="text-green-500 border-green-500">Active</Badge></div>
-                                    <div><strong className="font-medium">Next Billing Date:</strong> 2023-12-01</div>
+                                    <div className="font-medium">Subscription Plan: <Badge>Premium Farmer</Badge></div>
+                                    <div className="flex items-center gap-2 font-medium">Status: <Badge variant="outline" className="text-green-500 border-green-500">Active</Badge></div>
+                                    <div className="font-medium">Next Billing Date: 2023-12-01</div>
                                 </TabsContent>
                                 <TabsContent value="orders" className="mt-4">
                                      <Table>
@@ -282,8 +313,35 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
                             }
                         </AlertDialogDescription>
                     </AlertDialogHeader>
+
+                    {!isUnsuspendAction && (
+                        <div className="space-y-4 my-4">
+                             <div className="space-y-2">
+                                <Label htmlFor="reason">Reason</Label>
+                                <Select onValueChange={setReason} value={reason}>
+                                    <SelectTrigger id="reason">
+                                        <SelectValue placeholder="Select a reason" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {dialogState.action === 'delete' && <SelectItem value="user_request">User Request</SelectItem>}
+                                        <SelectItem value="payment_failed">Payment Failed</SelectItem>
+                                        <SelectItem value="policy_violation">Policy Violation</SelectItem>
+                                        <SelectItem value="spam_activity">Spam Activity</SelectItem>
+                                        <SelectItem value="other">Other</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            {reason === 'other' && (
+                                <div className="space-y-2">
+                                    <Label htmlFor="other-reason">Please specify</Label>
+                                    <Textarea id="other-reason" value={otherReason} onChange={(e) => setOtherReason(e.target.value)} placeholder="Provide a specific reason..." />
+                                </div>
+                            )}
+                        </div>
+                    )}
+
                     <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogCancel onClick={() => { setReason(""); setOtherReason(""); }}>Cancel</AlertDialogCancel>
                         <AlertDialogAction
                             onClick={dialogState.action === 'delete' ? handleDelete : handleSuspend}
                             className={dialogState.action === 'delete' ? 'bg-destructive hover:bg-destructive/90 text-destructive-foreground' : ''}
