@@ -59,7 +59,7 @@ export type InventoryItem = {
 export type DealerInventoryItem = {
     id: string;
     dealerUID: string;
-    category: "Feed" | "Medicine" | "Equipment" | "Chicks";
+    category: "Feed" | "Medicine" | "Equipment" | "Chicks" | "Other";
     productName: string;
     unit: "bag" | "packet" | "bottle" | "pcs" | "chick";
     unitWeight?: number; // For feed, e.g., 50kg
@@ -137,8 +137,8 @@ export type Order = {
     id: string;
     farmerUID: string;
     dealerUID: string;
-    batchId: string;
-    productId: string;
+    batchId?: string;
+    productId?: string;
     productName: string;
     quantity: number;
     ratePerUnit: number;
@@ -151,6 +151,7 @@ export type Order = {
     
 
     
+
 
 
 
