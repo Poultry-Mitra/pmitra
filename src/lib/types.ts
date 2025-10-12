@@ -165,21 +165,3 @@ export type Connection = {
     requestedBy: 'farmer' | 'dealer';
     createdAt: string;
 }
-
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    
-

@@ -138,7 +138,7 @@ export default function MyFarmersPage() {
                                             <TableCell>{farmer.email}</TableCell>
                                             <TableCell>{new Date(conn.createdAt).toLocaleDateString()}</TableCell>
                                             <TableCell className="text-right space-x-2">
-                                                <Button size="sm" variant="outline" className="text-green-600 hover:text-green-700" onClick={() => handleConnectionAction(conn.id, 'Approved')}>
+                                                <Button size="sm" variant="outline" className="text-green-600 hover:text-green-700" onClick={() => handleConnectionAction(conn.id, 'Approved')} disabled={!canAddMoreFarmers}>
                                                     <CheckCircle className="mr-2" /> Approve
                                                 </Button>
                                                 <Button size="sm" variant="outline" className="text-red-600 hover:text-red-700" onClick={() => handleConnectionAction(conn.id, 'Rejected')}>

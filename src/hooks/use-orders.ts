@@ -17,9 +17,8 @@ import {
   serverTimestamp,
   runTransaction,
   increment,
-  Transaction,
 } from 'firebase/firestore';
-import { useFirestore, useUser } from '@/firebase/provider';
+import { useFirestore } from '@/firebase/provider';
 import type { Order, User } from '@/lib/types';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
@@ -156,14 +155,14 @@ export async function updateOrderStatus(order: Order, newStatus: 'Approved' | 'R
         await runTransaction(firestore, async (transaction) => {
             const orderDoc = await transaction.get(orderRef);
             if (!orderDoc.exists() || orderDoc.data().status !== 'Pending') {
-                throw new Error("Order not found or already processed.");
+                throw new Error("Order not found or has already been processed.");
             }
 
             // Update the order status
             transaction.update(orderRef, { status: newStatus });
 
-            // If the order is approved, deduct inventory and create ledger entries
-            if (newStatus === 'Approved') {
+            // If the order is approved by the dealer, deduct inventory and create ledger entries
+            if (newStatus === 'Approved' && actingUser.role === 'dealer') {
                 if (!order.productId) {
                     throw new Error("Order is missing a product ID.");
                 }
