@@ -38,6 +38,8 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { currentUser } from "@/lib/data";
 import { useState } from "react";
+import { useClientState } from "@/hooks/use-client-state";
+import type { User } from "@/lib/types";
 
 const mainNavItems = [
   { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
@@ -60,10 +62,20 @@ export function AppSidebar() {
   const pathname = usePathname();
   const { t } = useLanguage();
   const { state } = useSidebar();
-  const user = currentUser;
-  const poultryMitraId = `PM-FARM-${user.id.substring(0, 5).toUpperCase()}`;
+  const user = useClientState<User | undefined>(currentUser);
   const [inventoryOpen, setInventoryOpen] = useState(pathname.startsWith('/inventory'));
 
+  if (!user) {
+    return (
+        <Sidebar>
+            <SidebarHeader />
+            <SidebarContent />
+            <SidebarFooter />
+        </Sidebar>
+    );
+  }
+
+  const poultryMitraId = `PM-FARM-${user.id.substring(0, 5).toUpperCase()}`;
 
   return (
     <Sidebar>

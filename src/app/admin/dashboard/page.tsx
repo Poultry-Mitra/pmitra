@@ -3,7 +3,7 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { mockUsers, mockFarmMetrics, currentDealer } from "@/lib/data";
+import { mockUsers, currentDealer } from "@/lib/data";
 import { Users, Bot, IndianRupee, Activity, PlusCircle, Send, ShoppingBag } from "lucide-react";
 import { RevenueChart } from "../_components/revenue-chart";
 import { PageHeader } from "@/app/admin/_components/page-header";
@@ -11,6 +11,9 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { useClientState } from "@/hooks/use-client-state";
+import type { User } from "@/lib/types";
+
 
 import {
   AreaChart,
@@ -95,11 +98,17 @@ function Sparkline({ data, color }: { data: { value: number }[], color: string }
 }
 
 export default function AdminDashboardPage() {
-    const currentUser = currentDealer;
-    if (!currentUser) return null;
+    const user = useClientState<User | undefined>(currentDealer);
 
-    const isAdmin = currentUser.role === 'admin';
-    const pageTitle = isAdmin ? "Admin Dashboard" : `Welcome back, ${currentUser.name.split(' ')[0]}! 👋`;
+    if (!user) {
+        // You can return a loading skeleton here
+        return (
+            <PageHeader title="Loading..." description="Please wait while we load your dashboard." />
+        );
+    }
+
+    const isAdmin = user.role === 'admin';
+    const pageTitle = isAdmin ? "Admin Dashboard" : `Welcome back, ${user.name.split(' ')[0]}! 👋`;
     const pageDescription = isAdmin ? "Overview of the PoultryMitra ecosystem." : "Here's an overview of your business.";
 
     const handleTransactionClick = (txn: any) => {

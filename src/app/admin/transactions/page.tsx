@@ -10,14 +10,18 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { mockUsers, currentDealer } from "@/lib/data";
 import { FileDown, MoreHorizontal } from "lucide-react";
+import { useClientState } from "@/hooks/use-client-state";
+import type { User } from "@/lib/types";
 
-// In a real app, this data would be fetched from Firestore based on the currentDealer's UID
+// In a real app, this data would be fetched from Firestore
 const allTransactions = [
     { id: 'txn_2', farmerUID: 'usr_farmer_004', plan: 'Order #ORD-2 Payment', amount: 'INR 22,500', status: 'Success', date: '2023-10-28' },
     { id: 'txn_3', farmerUID: 'usr_farmer_002', plan: 'Order #ORD-1 Payment', amount: 'INR 22,000', status: 'Pending', date: '2023-10-27' },
     { id: 'txn_5', farmerUID: 'usr_farmer_002', plan: 'Order #ORD-3 Payment', amount: 'INR 1,750', status: 'Failed', date: '2023-10-26' },
     { id: 'txn_6', farmerUID: 'usr_farmer_004', plan: 'Order #ORD-4 Payment', amount: 'INR 43,000', status: 'Success', date: '2023-10-25' },
     { id: 'txn_7', farmerUID: 'usr_farmer_002', plan: 'Advance Payment', amount: 'INR 10,000', status: 'Success', date: '2023-10-24' },
+    // This is an admin-level transaction that a dealer should not see
+    { id: 'txn_admin_1', farmerUID: 'usr_farmer_001', plan: 'Platform Fee', amount: 'INR 5,000', status: 'Success', date: '2023-10-23' },
 ];
 
 const statusVariant = {
@@ -27,23 +31,25 @@ const statusVariant = {
 } as const;
 
 export default function TransactionsPage() {
-    const currentUser = currentDealer;
+    const user = useClientState<User | undefined>(currentDealer);
     
-    if (!currentUser) return null;
+    if (!user) {
+         return <PageHeader title="Loading Transactions..." />;
+    }
 
-    const isAdmin = currentUser.role === 'admin';
+    const isAdmin = user.role === 'admin';
     const pageTitle = isAdmin ? "All Transactions" : "My Transactions";
     const pageDescription = isAdmin ? "View all transactions across the platform." : "View and manage all transactions related to your account.";
 
-    // Filter transactions to show only those related to the dealer's connected farmers
+    // Filter transactions to show only those related to the dealer's connected farmers, or all for admin
     const transactions = isAdmin 
         ? allTransactions 
-        : allTransactions.filter(txn => currentUser.connectedFarmers?.includes(txn.farmerUID));
+        : allTransactions.filter(txn => user.connectedFarmers?.includes(txn.farmerUID));
 
 
     const handleTransactionClick = (txn: any) => {
-        const user = mockUsers.find(u => u.id === txn.farmerUID);
-        alert(`Transaction Details:\n\nID: ${txn.id}\nFarmer: ${user?.name}\nAmount: ${txn.amount}\nStatus: ${txn.status}\nDate: ${txn.date}`);
+        const farmer = mockUsers.find(u => u.id === txn.farmerUID);
+        alert(`Transaction Details:\n\nID: ${txn.id}\nFarmer: ${farmer?.name}\nAmount: ${txn.amount}\nStatus: ${txn.status}\nDate: ${txn.date}`);
     }
 
     return (
@@ -74,13 +80,13 @@ export default function TransactionsPage() {
                             </TableHeader>
                             <TableBody>
                                 {transactions.map(txn => {
-                                    const user = mockUsers.find(u => u.id === txn.farmerUID);
-                                    if (!user) return null;
+                                    const farmer = mockUsers.find(u => u.id === txn.farmerUID);
+                                    if (!farmer) return null;
                                     return (
                                         <TableRow key={txn.id} onClick={() => handleTransactionClick(txn)} className="cursor-pointer">
                                             <TableCell>
-                                                <div className="font-medium">{user.name}</div>
-                                                <div className="text-sm text-muted-foreground">{user.email}</div>
+                                                <div className="font-medium">{farmer.name}</div>
+                                                <div className="text-sm text-muted-foreground">{farmer.email}</div>
                                             </TableCell>
                                             <TableCell>{txn.plan}</TableCell>
                                             <TableCell>{txn.amount}</TableCell>
