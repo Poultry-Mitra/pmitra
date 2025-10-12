@@ -32,23 +32,14 @@ import {
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
-import { PlusCircle, MoreHorizontal, AlertTriangle } from "lucide-react";
-import { mockUsers } from "@/lib/data";
+import { PlusCircle, MoreHorizontal, AlertTriangle, Loader2 } from "lucide-react";
+import { useUsersByIds } from '@/hooks/use-users';
 import type { User } from "@/lib/types";
 import { ConnectFarmerDialog } from './_components/connect-farmer-dialog';
+import { useUser } from '@/firebase/provider';
+import { useClientState } from '@/hooks/use-client-state';
 
 type ConnectionStatus = "Approved" | "Pending";
-type ConnectedFarmer = {
-    user: User;
-    status: ConnectionStatus;
-    connectedAt: Date;
-}
-
-// Mock data for now
-const mockConnections: ConnectedFarmer[] = [
-    { user: mockUsers.find(u => u.id === 'usr_farmer_002')!, status: 'Approved', connectedAt: new Date('2023-05-10') },
-    { user: mockUsers.find(u => u.id === 'usr_farmer_004')!, status: 'Pending', connectedAt: new Date('2023-10-20') },
-];
 
 const statusVariant: { [key in ConnectionStatus]: "default" | "outline" } = {
   Approved: "default",
@@ -56,14 +47,18 @@ const statusVariant: { [key in ConnectionStatus]: "default" | "outline" } = {
 };
 
 export default function MyFarmersPage() {
-    const [connections, setConnections] = useState<ConnectedFarmer[]>(mockConnections);
+    const dealer = useUser();
+    // Using useClientState to safely access dealer properties that might not be available on the server
+    const connectedFarmerIds = useClientState(() => dealer?.connectedFarmers || [], []);
+    const planType = useClientState(() => dealer?.planType || 'free', 'free');
+    
+    const { users: connectedFarmers, loading } = useUsersByIds(connectedFarmerIds);
+
     const [isConnectDialogOpen, setConnectDialogOpen] = useState(false);
     const [showUpgradeAlert, setShowUpgradeAlert] = useState(false);
 
-    // In a real app, this would come from the dealer's user object.
-    const dealerPlan = "free"; 
     const farmerLimit = 2;
-    const canAddMoreFarmers = dealerPlan === 'premium' || connections.length < farmerLimit;
+    const canAddMoreFarmers = planType === 'premium' || connectedFarmers.length < farmerLimit;
 
     const handleConnectClick = () => {
         if (canAddMoreFarmers) {
@@ -90,8 +85,8 @@ export default function MyFarmersPage() {
                     <CardHeader>
                         <CardTitle>Connected Farmers</CardTitle>
                         <CardDescription>
-                            You have {connections.length} farmers connected.
-                            {dealerPlan === 'free' && ` You can connect ${farmerLimit - connections.length} more on the free plan.`}
+                            You have {connectedFarmers.length} farmers connected.
+                            {planType === 'free' && ` You can connect ${Math.max(0, farmerLimit - connectedFarmers.length)} more on the free plan.`}
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
@@ -106,21 +101,29 @@ export default function MyFarmersPage() {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {connections.length === 0 && (
+                                {loading && (
+                                    <TableRow>
+                                        <TableCell colSpan={5} className="h-24 text-center">
+                                            <Loader2 className="mx-auto animate-spin" />
+                                        </TableCell>
+                                    </TableRow>
+                                )}
+                                {!loading && connectedFarmers.length === 0 && (
                                     <TableRow>
                                         <TableCell colSpan={5} className="h-24 text-center">
                                             No farmers connected yet.
                                         </TableCell>
                                     </TableRow>
                                 )}
-                                {connections.map((conn) => (
-                                    <TableRow key={conn.user.id}>
-                                        <TableCell className="font-medium">{conn.user.name}</TableCell>
-                                        <TableCell>{conn.user.email}</TableCell>
+                                {!loading && connectedFarmers.map((farmer) => (
+                                    <TableRow key={farmer.id}>
+                                        <TableCell className="font-medium">{farmer.name}</TableCell>
+                                        <TableCell>{farmer.email}</TableCell>
                                         <TableCell>
-                                            <Badge variant={statusVariant[conn.status]}>{conn.status}</Badge>
+                                            {/* Note: Connection status logic would be more complex in a real app */}
+                                            <Badge variant={statusVariant["Approved"]}>Approved</Badge>
                                         </TableCell>
-                                        <TableCell>{conn.connectedAt.toLocaleDateString()}</TableCell>
+                                        <TableCell>{new Date(farmer.dateJoined).toLocaleDateString()}</TableCell>
                                         <TableCell className="text-right">
                                             <Button variant="ghost" size="icon">
                                                 <MoreHorizontal className="size-4" />
