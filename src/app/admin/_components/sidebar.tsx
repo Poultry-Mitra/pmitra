@@ -127,9 +127,7 @@ export function AdminSidebar() {
               </CollapsibleContent>
             </Collapsible>
           )}
-
-          {!isAdmin && (
-             <SidebarMenuItem>
+           <SidebarMenuItem>
               <Link href="/admin/my-farmers">
                 <SidebarMenuButton
                   isActive={pathname.startsWith("/admin/my-farmers")}
@@ -140,7 +138,6 @@ export function AdminSidebar() {
                 </SidebarMenuButton>
               </Link>
             </SidebarMenuItem>
-          )}
           
           <SidebarMenuItem>
               <Link href={isAdmin ? "/admin/subscription-management" : "/admin/my-inventory"}>
@@ -157,10 +154,10 @@ export function AdminSidebar() {
               <Link href={isAdmin ? "/admin/transactions" : "/admin/my-orders"}>
                 <SidebarMenuButton
                   isActive={pathname.startsWith(isAdmin ? "/admin/transactions" : "/admin/my-orders")}
-                  tooltip={isAdmin ? "Transactions" : "Farmer Orders"}
+                  tooltip={isAdmin ? "All Transactions" : "Farmer Orders"}
                 >
                   {isAdmin ? <CreditCard /> : <ShoppingBag />}
-                  <span>{isAdmin ? "Transactions" : "Farmer Orders"}</span>
+                  <span>{isAdmin ? "All Transactions" : "Farmer Orders"}</span>
                 </SidebarMenuButton>
               </Link>
           </SidebarMenuItem>
@@ -169,10 +166,10 @@ export function AdminSidebar() {
                 <Link href="/admin/transactions">
                   <SidebarMenuButton
                     isActive={pathname.startsWith("/admin/transactions")}
-                    tooltip={"Transactions"}
+                    tooltip={"My Transactions"}
                   >
                     <CreditCard />
-                    <span>{"Transactions"}</span>
+                    <span>{"My Transactions"}</span>
                   </SidebarMenuButton>
                 </Link>
             </SidebarMenuItem>
@@ -195,10 +192,10 @@ export function AdminSidebar() {
               <Link href="/admin/chat-logs">
                 <SidebarMenuButton
                   isActive={pathname.startsWith("/admin/chat-logs")}
-                  tooltip={"AI Chat Logs"}
+                  tooltip={"AI Chat"}
                 >
                   <Bot />
-                  <span>{"AI Chat Logs"}</span>
+                  <span>{"AI Chat"}</span>
                 </SidebarMenuButton>
               </Link>
           </SidebarMenuItem>

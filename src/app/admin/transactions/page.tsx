@@ -1,4 +1,4 @@
-
+// src/app/admin/transactions/page.tsx
 "use client";
 
 import { PageHeader } from "@/app/admin/_components/page-header";
@@ -27,9 +27,16 @@ const statusVariant = {
 
 export default function TransactionsPage() {
     // In a real app, we'd filter transactions where dealerUID matches the current user.
+    // Assuming current user is a dealer
+    const currentUser = mockUsers.find(u => u.role === 'dealer');
+    const isAdmin = currentUser?.role === 'admin';
+    const pageTitle = isAdmin ? "All Transactions" : "My Transactions";
+    const pageDescription = isAdmin ? "View all transactions across the platform." : "View and manage all transactions related to your account.";
+
+
     return (
         <>
-            <PageHeader title="My Transactions" description="View and manage all transactions related to your account.">
+            <PageHeader title={pageTitle} description={pageDescription}>
                 <Button variant="outline">
                     <FileDown className="mr-2" />
                     Export All
