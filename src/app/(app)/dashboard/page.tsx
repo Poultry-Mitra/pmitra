@@ -16,7 +16,7 @@ import { useUser, useFirestore } from "@/firebase/provider";
 import type { User } from "@/lib/types";
 import { ConnectDealerDialog } from './_components/connect-dealer-dialog';
 import { PendingOrders } from './_components/pending-orders';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, onSnapshot } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 
 
@@ -29,12 +29,12 @@ export default function DashboardPage() {
   
   useEffect(() => {
     if (!firestore || !firebaseUser?.uid) return;
-    const userDocRef = doc(firestore, 'users', firebaseUser.uid);
-    getDoc(userDocRef).then((docSnap) => {
-        if (docSnap.exists()) {
-            setUser(docSnap.data() as User);
+    const unsub = onSnapshot(doc(firestore, 'users', firebaseUser.uid), (doc) => {
+        if (doc.exists()) {
+            setUser(doc.data() as User);
         }
     });
+    return () => unsub();
   }, [firestore, firebaseUser?.uid]);
 
   

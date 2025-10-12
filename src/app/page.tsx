@@ -16,16 +16,29 @@ import {
 } from 'lucide-react';
 import { AppIcon } from '@/app/icon';
 import { ThemeToggle } from '@/components/theme-toggle';
-import { LanguageToggle } from '@/components/language-toggle';
+import { LanguageToggle } from '@/components/language-provider';
 import { useLanguage } from '@/components/language-provider';
 import { RateTicker } from './_components/rate-ticker';
-import { useUser } from '@/firebase/provider';
+import { useUser, useAuth } from '@/firebase/provider';
 import type { User } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
+import { signOut } from 'firebase/auth';
+import { useRouter } from 'next/navigation';
 
 export default function LandingPage() {
   const { t } = useLanguage();
-  const user = useUser();
+  const { user } = useUser();
+  const auth = useAuth();
+  const router = useRouter();
+
+  const handleLogout = () => {
+    if (auth) {
+      signOut(auth).then(() => {
+        // Redirect to login page after successful logout
+        router.push('/login');
+      });
+    }
+  };
 
   const features = [
     {
@@ -108,9 +121,12 @@ export default function LandingPage() {
                 <Skeleton className="h-9 w-24" />
               </div>
             ) : user ? (
-              <Button asChild>
-                <Link href={'/dashboard'}>Dashboard</Link>
-              </Button>
+              <>
+                <Button asChild>
+                  <Link href={'/dashboard'}>Dashboard</Link>
+                </Button>
+                <Button variant="outline" onClick={handleLogout}>Logout</Button>
+              </>
             ) : (
               <>
                 <Button variant="outline" asChild>
@@ -254,3 +270,5 @@ export default function LandingPage() {
     </div>
   );
 }
+
+    
