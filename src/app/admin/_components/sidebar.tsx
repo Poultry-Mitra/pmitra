@@ -27,6 +27,8 @@ import {
   LogOut,
   ChevronDown,
   ChevronUp,
+  Tags,
+  TrendingUp,
 } from "lucide-react";
 import { useLanguage } from "@/components/language-provider";
 import { useState } from "react";
@@ -42,6 +44,7 @@ export function AdminSidebar() {
   const { t } = useLanguage();
   const { state } = useSidebar();
   const [userManagementOpen, setUserManagementOpen] = useState(pathname.startsWith('/admin/user-management'));
+  const [contentManagementOpen, setContentManagementOpen] = useState(pathname.startsWith('/admin/daily-rates'));
 
 
   return (
@@ -65,6 +68,9 @@ export function AdminSidebar() {
                 </SidebarMenuButton>
               </Link>
           </SidebarMenuItem>
+
+          <SidebarSeparator />
+          <SidebarGroupLabel>Management</SidebarGroupLabel>
 
           <Collapsible open={userManagementOpen} onOpenChange={setUserManagementOpen}>
             <SidebarMenuItem className="relative">
@@ -111,24 +117,13 @@ export function AdminSidebar() {
           </Collapsible>
           
           <SidebarMenuItem>
-              <Link href="/admin/chat-logs">
+              <Link href="/admin/subscription-management">
                 <SidebarMenuButton
-                  isActive={pathname.startsWith("/admin/chat-logs")}
-                  tooltip={"AI Chat Logs"}
+                  isActive={pathname.startsWith("/admin/subscription-management")}
+                  tooltip={"Subscriptions"}
                 >
-                  <Bot />
-                  <span>{"AI Chat Logs"}</span>
-                </SidebarMenuButton>
-              </Link>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-              <Link href="/admin/reports">
-                <SidebarMenuButton
-                  isActive={pathname.startsWith("/admin/reports")}
-                  tooltip={"Reports & Analytics"}
-                >
-                  <BarChart2 />
-                  <span>{"Reports & Analytics"}</span>
+                  <Tags />
+                  <span>{"Subscriptions"}</span>
                 </SidebarMenuButton>
               </Link>
           </SidebarMenuItem>
@@ -143,9 +138,45 @@ export function AdminSidebar() {
                 </SidebarMenuButton>
               </Link>
           </SidebarMenuItem>
-          
+
           <SidebarSeparator />
-          
+          <SidebarGroupLabel>Content & AI</SidebarGroupLabel>
+          <SidebarMenuItem>
+              <Link href="/admin/daily-rates">
+                <SidebarMenuButton
+                  isActive={pathname.startsWith("/admin/daily-rates")}
+                  tooltip={"Daily Rates"}
+                >
+                  <TrendingUp />
+                  <span>{"Daily Rates"}</span>
+                </SidebarMenuButton>
+              </Link>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+              <Link href="/admin/chat-logs">
+                <SidebarMenuButton
+                  isActive={pathname.startsWith("/admin/chat-logs")}
+                  tooltip={"AI Chat Logs"}
+                >
+                  <Bot />
+                  <span>{"AI Chat Logs"}</span>
+                </SidebarMenuButton>
+              </Link>
+          </SidebarMenuItem>
+           <SidebarMenuItem>
+              <Link href="/admin/reports">
+                <SidebarMenuButton
+                  isActive={pathname.startsWith("/admin/reports")}
+                  tooltip={"Reports & Analytics"}
+                >
+                  <BarChart2 />
+                  <span>{"Reports & Analytics"}</span>
+                </SidebarMenuButton>
+              </Link>
+          </SidebarMenuItem>
+
+          <SidebarSeparator />
+          <SidebarGroupLabel>Configuration</SidebarGroupLabel>
            <SidebarMenuItem>
               <Link href="/admin/settings">
                 <SidebarMenuButton
@@ -157,7 +188,6 @@ export function AdminSidebar() {
                 </SidebarMenuButton>
               </Link>
           </SidebarMenuItem>
-
            <SidebarMenuItem>
               <Link href="/admin/notifications">
                 <SidebarMenuButton
