@@ -13,7 +13,7 @@ import { DashboardStats } from "./_components/DashboardStats";
 import { useUser } from "@/firebase/provider";
 import { useClientState } from "@/hooks/use-client-state";
 import type { User } from "@/lib/types";
-import { PendingOrders } from "./_components/pending-orders";
+
 
 export default function DashboardPage() {
   const firebaseUser = useUser();
@@ -97,10 +97,6 @@ export default function DashboardPage() {
             )}
           </CardContent>
         </Card>
-      </div>
-
-      <div className="mt-8">
-        <PendingOrders />
       </div>
     </>
   );

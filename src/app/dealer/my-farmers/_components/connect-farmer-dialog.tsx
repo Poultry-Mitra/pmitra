@@ -1,3 +1,4 @@
+
 // src/app/dealer/my-farmers/_components/connect-farmer-dialog.tsx
 "use client";
 
@@ -25,7 +26,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Send, Loader2 } from 'lucide-react';
 import { useFirestore, useUser } from '@/firebase/provider';
-import { findUserByDealerCode } from '@/hooks/use-users';
+import { findUserByUniqueCode } from '@/hooks/use-users';
 import { doc, updateDoc, arrayUnion } from 'firebase/firestore';
 
 const formSchema = z.object({
@@ -52,11 +53,9 @@ export function ConnectFarmerDialog({ open, onOpenChange }: { open: boolean; onO
             return;
         }
 
-        // In a real app, this would create a 'connection' document in Firestore with 'pending' status.
-        // For now, we will directly connect them.
         try {
-            // Find the farmer by their unique ID (PM-FARM-XXXXX) which is stored in the `uniqueDealerCode` field for farmers too for simplicity.
-            const farmerUser = await findUserByDealerCode(firestore, values.farmerId);
+            // Find the farmer by their unique ID
+            const farmerUser = await findUserByUniqueCode(firestore, values.farmerId, 'farmer');
 
             if (!farmerUser) {
                 toast({ title: "Farmer Not Found", description: "No farmer found with that ID.", variant: "destructive" });

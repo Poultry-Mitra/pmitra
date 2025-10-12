@@ -1,3 +1,4 @@
+
 // src/hooks/use-users.ts
 'use client';
 
@@ -13,7 +14,7 @@ import {
   getDocs,
 } from 'firebase/firestore';
 import { useFirestore } from '@/firebase/provider';
-import type { User } from '@/lib/types';
+import type { User, UserRole } from '@/lib/types';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 
@@ -106,11 +107,11 @@ export function useUsersByIds(userIds: string[]) {
 }
 
 
-export async function findUserByDealerCode(firestore: Firestore, dealerCode: string): Promise<User | null> {
+export async function findUserByUniqueCode(firestore: Firestore, uniqueCode: string, role: UserRole): Promise<User | null> {
     if (!firestore) throw new Error("Firestore not initialized");
 
     const usersCollection = collection(firestore, 'users');
-    const q = query(usersCollection, where("uniqueDealerCode", "==", dealerCode), where("role", "==", "dealer"));
+    const q = query(usersCollection, where("uniqueDealerCode", "==", uniqueCode), where("role", "==", role));
     
     try {
         const querySnapshot = await getDocs(q);
@@ -119,7 +120,7 @@ export async function findUserByDealerCode(firestore: Firestore, dealerCode: str
         }
         return toUser(querySnapshot.docs[0]);
     } catch (error) {
-        console.error("Error finding user by dealer code:", error);
+        console.error("Error finding user by unique code:", error);
         throw error;
     }
 }

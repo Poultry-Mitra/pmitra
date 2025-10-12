@@ -1,3 +1,4 @@
+
 // src/hooks/use-orders.ts
 'use client';
 
@@ -17,8 +18,9 @@ import {
   serverTimestamp,
   runTransaction,
   increment,
+  getFirestore,
 } from 'firebase/firestore';
-import { useFirestore } from '@/firebase/provider';
+import { initializeFirebase } from '@/firebase';
 import type { Order } from '@/lib/types';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
@@ -35,7 +37,7 @@ function toOrder(doc: QueryDocumentSnapshot<DocumentData>): Order {
 }
 
 export function useOrders(dealerUID?: string) {
-  const firestore = useFirestore();
+  const [firestore] = useState(getFirestore(initializeFirebase().app!));
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -78,7 +80,7 @@ export function useOrders(dealerUID?: string) {
 }
 
 export function useOrdersByFarmer(farmerUID?: string) {
-  const firestore = useFirestore();
+  const [firestore] = useState(getFirestore(initializeFirebase().app!));
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -122,7 +124,7 @@ export function useOrdersByFarmer(farmerUID?: string) {
 
 
 export async function createOrder(data: Omit<Order, 'id' | 'createdAt'>) {
-    const firestore = useFirestore();
+    const { firestore } = initializeFirebase();
     if (!firestore) throw new Error("Firestore not initialized");
 
     const orderCollection = collection(firestore, 'orders');
@@ -147,7 +149,7 @@ export async function createOrder(data: Omit<Order, 'id' | 'createdAt'>) {
 }
 
 export async function updateOrderStatus(orderId: string, status: Order['status'], order: Order) {
-    const firestore = useFirestore();
+    const { firestore } = initializeFirebase();
     if (!firestore) throw new Error("Firestore not initialized");
 
     const orderRef = doc(firestore, 'orders', orderId);

@@ -1,3 +1,4 @@
+
 // src/app/dealer/my-orders/page.tsx
 "use client";
 
@@ -19,20 +20,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import { MoreHorizontal, Loader2, PlusCircle } from "lucide-react";
+import { Loader2, PlusCircle, CheckCircle, XCircle } from "lucide-react";
 import { useToast } from '@/hooks/use-toast';
 import { useUser } from '@/firebase/provider';
-import { useOrders } from '@/hooks/use-orders';
+import { useOrders, updateOrderStatus } from '@/hooks/use-orders';
 import { useUsersByIds } from '@/hooks/use-users';
 import { CreateOrderDialog } from './_components/create-order-dialog';
+import type { Order } from '@/lib/types';
 
 const statusConfig = {
     Pending: { variant: "outline" as const, color: "text-blue-500 border-blue-500/50 bg-blue-500/10" },
@@ -59,6 +54,22 @@ export default function MyOrdersPage() {
     }
     
     const loading = ordersLoading || farmersLoading;
+
+    const handleUpdateStatus = async (order: Order, status: 'Approved' | 'Rejected') => {
+        try {
+            await updateOrderStatus(order.id, status, order);
+            toast({
+                title: `Order ${status}`,
+                description: `The order for ${order.productName} has been successfully ${status.toLowerCase()}.`
+            });
+        } catch (error: any) {
+            toast({
+                title: "Error",
+                description: error.message || "Failed to update order status.",
+                variant: "destructive"
+            });
+        }
+    };
 
     return (
         <>
@@ -90,7 +101,7 @@ export default function MyOrdersPage() {
                                     <TableHead>Total Amount</TableHead>
                                     <TableHead>Status</TableHead>
                                     <TableHead>Date</TableHead>
-                                    <TableHead><span className="sr-only">Actions</span></TableHead>
+                                    <TableHead className="text-center">Actions</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -120,19 +131,19 @@ export default function MyOrdersPage() {
                                             </Badge>
                                         </TableCell>
                                         <TableCell>{new Date(order.createdAt).toLocaleDateString()}</TableCell>
-                                        <TableCell className="text-right">
-                                             <DropdownMenu>
-                                                <DropdownMenuTrigger asChild>
-                                                    <Button aria-haspopup="true" size="icon" variant="ghost">
-                                                        <MoreHorizontal className="h-4 w-4" />
-                                                        <span className="sr-only">Order menu</span>
+                                        <TableCell className="text-center space-x-2">
+                                            {order.status === 'Pending' && (
+                                                <>
+                                                    <Button size="sm" variant="outline" className="text-green-600 hover:bg-green-50 hover:text-green-700" onClick={() => handleUpdateStatus(order, 'Approved')}>
+                                                        <CheckCircle className="mr-2" />
+                                                        Approve
                                                     </Button>
-                                                </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="end">
-                                                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                                     <DropdownMenuItem disabled>View Details</DropdownMenuItem>
-                                                </DropdownMenuContent>
-                                            </DropdownMenu>
+                                                    <Button size="sm" variant="outline" className="text-red-600 hover:bg-red-50 hover:text-red-700" onClick={() => handleUpdateStatus(order, 'Rejected')}>
+                                                        <XCircle className="mr-2" />
+                                                        Reject
+                                                    </Button>
+                                                </>
+                                            )}
                                         </TableCell>
                                     </TableRow>
                                 ))}
