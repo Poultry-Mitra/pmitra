@@ -14,8 +14,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { Save } from "lucide-react";
-import { useFirestore } from "@/firebase/provider";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { useFirestore, useUser } from "@/firebase/provider";
+import { collection, addDoc } from "firebase/firestore";
+import { addAuditLog } from "@/hooks/use-audit-logs";
 
 const formSchema = z.object({
   name: z.string().min(3, "Full name is required."),
@@ -30,6 +31,7 @@ export default function AddUserPage() {
     const { toast } = useToast();
     const router = useRouter();
     const firestore = useFirestore();
+    const adminUser = useUser();
 
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
@@ -42,10 +44,10 @@ export default function AddUserPage() {
     });
 
     async function onSubmit(values: FormValues) {
-        if (!firestore) {
+        if (!firestore || !adminUser) {
             toast({
                 title: "Error",
-                description: "Firestore is not available. Could not create user.",
+                description: "You must be an admin to perform this action.",
                 variant: "destructive",
             });
             return;
@@ -55,13 +57,24 @@ export default function AddUserPage() {
             const newUser = {
                 ...values,
                 dateJoined: new Date().toISOString(),
+                // Generate a unique code only for dealers
                 uniqueDealerCode: values.role === 'dealer' ? `DL-${Math.random().toString(36).substring(2, 8).toUpperCase()}` : null,
                 connectedFarmers: [],
                 connectedDealers: [],
+                aiQueriesCount: 0,
+                lastQueryDate: '',
             };
             
             const usersCollection = collection(firestore, "users");
-            await addDoc(usersCollection, newUser);
+            const docRef = await addDoc(usersCollection, newUser);
+
+            // Create an audit log for this action
+            await addAuditLog(firestore, {
+                adminUID: adminUser.uid,
+                action: 'CREATE_USER',
+                timestamp: new Date().toISOString(),
+                details: `Created new ${values.role} user: ${values.name} (${docRef.id})`,
+            });
             
             toast({
                 title: "User Created",

@@ -13,8 +13,13 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { IndianRupee } from "lucide-react";
-import { mockDailyRates } from "@/lib/data";
+import { IndianRupee, Loader2 } from "lucide-react";
+import { useFirestore, useUser } from '@/firebase/provider';
+import { doc, setDoc, onSnapshot } from 'firebase/firestore';
+import { format } from 'date-fns';
+import { addAuditLog } from '@/hooks/use-audit-logs';
+import type { DailyRates } from '@/lib/types';
+
 
 const formSchema = z.object({
     state: z.string().min(1, "State is required"),
@@ -31,38 +36,106 @@ type FormValues = z.infer<typeof formSchema>;
 export default function DailyRateManagementPage() {
     const { toast } = useToast();
     const [lastUpdated, setLastUpdated] = useState('');
-    const firstRate = mockDailyRates[0];
-
-    useEffect(() => {
-        // This ensures date formatting only happens on the client, avoiding hydration errors.
-        setLastUpdated(new Date(firstRate.lastUpdated).toLocaleString());
-    }, [firstRate.lastUpdated]);
+    const [loading, setLoading] = useState(true);
+    const firestore = useFirestore();
+    const adminUser = useUser();
 
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            state: firstRate.location.state,
-            district: firstRate.location.district,
-            readyBirdSmall: firstRate.readyBird.small,
-            readyBirdMedium: firstRate.readyBird.medium,
-            readyBirdBig: firstRate.readyBird.big,
-            chickRate: firstRate.chickRate,
-            feedCostIndex: firstRate.feedCostIndex,
+            state: "Maharashtra",
+            district: "Pune",
+            readyBirdSmall: 110,
+            readyBirdMedium: 125,
+            readyBirdBig: 140,
+            chickRate: 35,
+            feedCostIndex: 45.5,
         },
     });
+    
+    const today = format(new Date(), 'yyyy-MM-dd');
 
-    function onSubmit(values: FormValues) {
-        // In a real app, this would call a hook to write to a `/dailyRates/{date}` document.
-        const dailyRateData = {
-            ...values,
-            lastUpdated: new Date().toISOString(),
-        }
-        console.log("Updating daily rates:", dailyRateData);
-        toast({
-            title: "Rates Updated",
-            description: "Daily rates have been successfully updated.",
+    useEffect(() => {
+        if (!firestore) return;
+        setLoading(true);
+        const ratesDocRef = doc(firestore, 'dailyRates', today);
+
+        const unsubscribe = onSnapshot(ratesDocRef, (docSnap) => {
+            if (docSnap.exists()) {
+                const data = docSnap.data() as DailyRates;
+                form.reset({
+                    state: data.location.state,
+                    district: data.location.district,
+                    readyBirdSmall: data.readyBird.small,
+                    readyBirdMedium: data.readyBird.medium,
+                    readyBirdBig: data.readyBird.big,
+                    chickRate: data.chickRate,
+                    feedCostIndex: data.feedCostIndex,
+                });
+                if (data.lastUpdated) {
+                    setLastUpdated(new Date(data.lastUpdated).toLocaleString());
+                }
+            }
+            setLoading(false);
         });
-        setLastUpdated(new Date().toLocaleString());
+
+        return () => unsubscribe();
+    }, [firestore, today, form]);
+
+
+    async function onSubmit(values: FormValues) {
+        if (!firestore || !adminUser) {
+            toast({ title: "Error", description: "You must be an admin to perform this action.", variant: "destructive" });
+            return;
+        }
+
+        const dailyRateData = {
+            location: {
+                state: values.state,
+                district: values.district,
+            },
+            readyBird: {
+                small: values.readyBirdSmall,
+                medium: values.readyBirdMedium,
+                big: values.readyBirdBig,
+            },
+            chickRate: values.chickRate,
+            feedCostIndex: values.feedCostIndex,
+            lastUpdated: new Date().toISOString(),
+        };
+
+        const ratesDocRef = doc(firestore, 'dailyRates', today);
+        
+        try {
+            await setDoc(ratesDocRef, dailyRateData, { merge: true });
+            
+            await addAuditLog(firestore, {
+                adminUID: adminUser.uid,
+                action: 'UPDATE_DAILY_RATES',
+                timestamp: new Date().toISOString(),
+                details: `Updated daily rates for ${values.district}, ${values.state}.`,
+            });
+            
+            toast({
+                title: "Rates Updated",
+                description: `Daily rates for ${today} have been successfully updated.`,
+            });
+            setLastUpdated(new Date().toLocaleString());
+        } catch (error) {
+            console.error("Error updating daily rates:", error);
+            toast({ title: "Error", description: "Failed to update daily rates.", variant: "destructive" });
+        }
+    }
+
+    if (loading) {
+        return (
+            <>
+                <PageHeader title="Daily Rate Management" description="Update daily market rates for poultry products." />
+                <div className="flex justify-center items-center mt-8">
+                    <Loader2 className="animate-spin" />
+                </div>
+            </>
+        )
     }
 
     return (
@@ -71,7 +144,7 @@ export default function DailyRateManagementPage() {
             <div className="mt-8 max-w-4xl mx-auto">
                 <Card>
                     <CardHeader>
-                        <CardTitle>Update Market Rates</CardTitle>
+                        <CardTitle>Update Market Rates for {today}</CardTitle>
                         <CardDescription>
                             Set the rates for today. This will be visible to all premium users.
                             {lastUpdated && ` Last updated: ${lastUpdated}`}
@@ -128,7 +201,7 @@ export default function DailyRateManagementPage() {
                                                 <FormItem>
                                                     <FormLabel>Small</FormLabel>
                                                     <FormControl>
-                                                        <Input type="number" placeholder="110" {...field} />
+                                                        <Input type="number" {...field} />
                                                     </FormControl>
                                                     <FormMessage />
                                                 </FormItem>
@@ -141,7 +214,7 @@ export default function DailyRateManagementPage() {
                                                 <FormItem>
                                                     <FormLabel>Medium</FormLabel>
                                                     <FormControl>
-                                                        <Input type="number" placeholder="125" {...field} />
+                                                        <Input type="number" {...field} />
                                                     </FormControl>
                                                     <FormMessage />
                                                 </FormItem>
@@ -154,7 +227,7 @@ export default function DailyRateManagementPage() {
                                                 <FormItem>
                                                     <FormLabel>Big</FormLabel>
                                                     <FormControl>
-                                                        <Input type="number" placeholder="140" {...field} />
+                                                        <Input type="number" {...field} />
                                                     </FormControl>
                                                     <FormMessage />
                                                 </FormItem>
@@ -171,7 +244,7 @@ export default function DailyRateManagementPage() {
                                             <FormItem>
                                                 <FormLabel>Chick Rate (₹/chick)</FormLabel>
                                                 <FormControl>
-                                                    <Input type="number" placeholder="35" {...field} />
+                                                    <Input type="number" {...field} />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
@@ -184,7 +257,7 @@ export default function DailyRateManagementPage() {
                                             <FormItem>
                                                 <FormLabel>Feed Cost Index</FormLabel>
                                                 <FormControl>
-                                                    <Input type="number" placeholder="45.5" {...field} />
+                                                    <Input type="number" {...field} />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
@@ -192,9 +265,9 @@ export default function DailyRateManagementPage() {
                                     />
                                </div>
                                 
-                                <Button type="submit" className="w-full">
-                                    <IndianRupee className="mr-2" />
-                                    Update Rates
+                                <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
+                                    {form.formState.isSubmitting ? <Loader2 className="animate-spin" /> : <IndianRupee className="mr-2" />}
+                                    {form.formState.isSubmitting ? "Updating..." : "Update Rates"}
                                 </Button>
                             </form>
                         </Form>

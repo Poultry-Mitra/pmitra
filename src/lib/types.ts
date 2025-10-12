@@ -14,7 +14,7 @@ export type User = {
   connectedFarmers?: string[];
   connectedDealers?: string[];
   aiQueriesCount?: number;
-  lastQueryDate?: string; // Optional: will not exist for new users
+  lastQueryDate?: string;
 };
 
 export type Batch = {
@@ -147,6 +147,14 @@ export type Order = {
     totalAmount: number;
     status: "Pending" | "Approved" | "Rejected";
     createdAt: string; // ISO 8601
+}
+
+export type AuditLog = {
+    id?: string;
+    adminUID: string;
+    action: 'CREATE_USER' | 'DELETE_USER' | 'UPDATE_DAILY_RATES' | 'SUSPEND_USER' | 'UNSUSPEND_USER';
+    timestamp: string;
+    details: string;
 }
     
 

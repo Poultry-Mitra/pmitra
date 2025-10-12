@@ -5,26 +5,26 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { PageHeader } from "../_components/page-header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { mockDailyRates, mockUsers } from "@/lib/data";
-import { IndianRupee, MapPin, Zap, AlertTriangle } from "lucide-react";
+import { IndianRupee, MapPin, Zap } from "lucide-react";
 import { Button } from '@/components/ui/button';
-import { useClientState } from '@/hooks/use-client-state';
 import { useUser, useFirestore } from '@/firebase/provider';
 import { doc, onSnapshot } from 'firebase/firestore';
-import type { User as AppUser } from '@/lib/types';
+import type { User as AppUser, DailyRates } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
+import { format } from 'date-fns';
 
 export default function DailyRatesPage() {
-    const firstRate = mockDailyRates[0];
-    const { readyBird, chickRate, feedCostIndex, lastUpdated, location } = firstRate;
+    const [rates, setRates] = useState<DailyRates | null>(null);
+    const [ratesLoading, setRatesLoading] = useState(true);
     const [lastUpdatedTime, setLastUpdatedTime] = useState('');
     const firebaseUser = useUser();
     const firestore = useFirestore();
     const [user, setUser] = useState<AppUser | null>(null);
-    const [loading, setLoading] = useState(true);
+    const [userLoading, setUserLoading] = useState(true);
 
      useEffect(() => {
         if (firebaseUser && firestore) {
+            setUserLoading(true);
             const userDocRef = doc(firestore, 'users', firebaseUser.uid);
             const unsubscribe = onSnapshot(userDocRef, (docSnap) => {
                 if (docSnap.exists()) {
@@ -32,19 +32,39 @@ export default function DailyRatesPage() {
                 } else {
                     setUser(null);
                 }
-                setLoading(false);
+                setUserLoading(false);
             });
             return () => unsubscribe();
         } else if (firebaseUser === null) {
-            setLoading(false);
+            setUserLoading(false);
         }
     }, [firebaseUser, firestore]);
-
+    
     useEffect(() => {
-        setLastUpdatedTime(new Date(lastUpdated).toLocaleTimeString());
-    }, [lastUpdated]);
+        if (!firestore) return;
+        setRatesLoading(true);
+        const today = format(new Date(), 'yyyy-MM-dd');
+        const ratesDocRef = doc(firestore, 'dailyRates', today);
+
+        const unsubscribe = onSnapshot(ratesDocRef, (docSnap) => {
+            if (docSnap.exists()) {
+                const data = docSnap.data() as DailyRates;
+                setRates(data);
+                 if (data.lastUpdated) {
+                    setLastUpdatedTime(new Date(data.lastUpdated).toLocaleTimeString());
+                }
+            } else {
+                setRates(null);
+            }
+            setRatesLoading(false);
+        });
+
+        return () => unsubscribe();
+    }, [firestore]);
+
 
     const userIsPremium = user?.planType === 'premium';
+    const loading = userLoading || ratesLoading;
     
     if (loading) {
         return (
@@ -59,6 +79,24 @@ export default function DailyRatesPage() {
             </>
         )
     }
+    
+    if (!rates) {
+         return (
+             <>
+                <PageHeader
+                    title="Daily Market Rates"
+                    description="Live poultry rates, updated daily by our team."
+                />
+                <Card className="mt-8">
+                    <CardContent className="pt-6 text-center text-muted-foreground">
+                        Rates for today have not been updated yet. Please check back later.
+                    </CardContent>
+                </Card>
+            </>
+         )
+    }
+
+    const { readyBird, chickRate, feedCostIndex, lastUpdated, location } = rates;
 
     return (
         <>
