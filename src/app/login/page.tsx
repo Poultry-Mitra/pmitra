@@ -69,9 +69,6 @@ export default function LoginPage() {
                     <Link href="/" className="flex items-center gap-2 hover:text-primary">
                         <ArrowLeft className="size-4" /> {t('login.back_to_home')}
                     </Link>
-                    <Link href="/admin/dashboard" className="hover:text-primary">
-                        {t('login.admin_login')}
-                    </Link>
                 </div>
             </div>
         </div>

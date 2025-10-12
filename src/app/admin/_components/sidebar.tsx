@@ -139,7 +139,7 @@ export function AdminSidebar() {
                   isActive={pathname.startsWith("/admin/transactions")}
                   tooltip={"Transactions"}
                 >
-                  <Wallet />
+                  <CreditCard />
                   <span>{"Transactions"}</span>
                 </SidebarMenuButton>
               </Link>
@@ -150,7 +150,7 @@ export function AdminSidebar() {
                   isActive={pathname.startsWith("/admin/subscription-management")}
                   tooltip={"Subscription Management"}
                 >
-                  <CreditCard />
+                  <Wallet />
                   <span>Subscription Management</span>
                 </SidebarMenuButton>
               </Link>
