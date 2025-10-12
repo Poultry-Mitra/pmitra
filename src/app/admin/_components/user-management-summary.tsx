@@ -83,7 +83,7 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
 
     const filteredUsers = usersWithStatus.filter(user => 
         roleToShow ? user.role === roleToShow : true
-    );
+    ).slice(0, roleToShow ? undefined : 5); // Show only 5 recent users on dashboard view
 
     const title = roleToShow ? `${roleToShow.charAt(0).toUpperCase() + roleToShow.slice(1)}s` : "Recent Users";
     const description = roleToShow ? `A list of all ${roleToShow}s in the system.` : "Recently active farmers and dealers.";
@@ -156,12 +156,14 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
                         <CardTitle>{title}</CardTitle>
                         <CardDescription>{description}</CardDescription>
                     </div>
-                    <Button asChild>
-                        <Link href="/admin/user-management/add-user">
-                            <PlusCircle className="mr-2" />
-                            Add User
-                        </Link>
-                    </Button>
+                    {roleToShow && (
+                        <Button asChild>
+                            <Link href="/admin/user-management/add-user">
+                                <PlusCircle className="mr-2" />
+                                Add User
+                            </Link>
+                        </Button>
+                    )}
                 </CardHeader>
                 <CardContent>
                     <Table>
