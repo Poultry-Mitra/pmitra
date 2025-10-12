@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { PageHeader } from "../_components/page-header";
 import { Button } from "@/components/ui/button";
 import { MoreHorizontal, PlusCircle, AlertTriangle, Loader2 } from "lucide-react";
@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { useBatches, deleteBatch } from "@/hooks/use-batches";
-import type { Batch } from "@/lib/types";
+import type { Batch, User } from "@/lib/types";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -32,8 +32,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { useFirestore, useUser } from '@/firebase/provider';
 import { AddBatchDialog } from "./_components/add-batch-dialog";
-import { useClientState } from "@/hooks/use-client-state";
-import { mockUsers } from "@/lib/data";
+import { doc, onSnapshot } from 'firebase/firestore';
+
 
 const statusVariant: { [key in 'Active' | 'Completed' | 'Planned']: "default" | "secondary" | "outline" } = {
     Active: "default",
@@ -50,16 +50,26 @@ const statusColorScheme = {
 export default function BatchesPage() {
   const firestore = useFirestore();
   const firebaseUser = useUser();
-  const mockUser = useClientState(mockUsers.find(u => u.role === 'farmer'), undefined)
+  const [user, setUser] = useState<User | null>(null);
+
   const { batches, loading } = useBatches(firebaseUser?.uid || '');
   const [isAddBatchOpen, setAddBatchOpen] = useState(false);
   const [showUpgradeAlert, setShowUpgradeAlert] = useState(false);
   const [showDeleteAlert, setShowDeleteAlert] = useState<Batch | null>(null);
   const { toast } = useToast();
   const router = useRouter();
+  
+  useEffect(() => {
+    if (!firestore || !firebaseUser?.uid) return;
+    const unsub = onSnapshot(doc(firestore, 'users', firebaseUser.uid), (doc) => {
+        if (doc.exists()) {
+            setUser(doc.data() as User);
+        }
+    });
+    return () => unsub();
+  }, [firestore, firebaseUser?.uid]);
 
-  // This should be dynamic based on the user's subscription status.
-  const isPremiumUser = mockUser?.planType === 'premium';
+  const isPremiumUser = user?.planType === 'premium';
   const activeBatchesCount = batches.filter(b => b.status === 'Active').length;
 
   const handleAddNewBatchClick = () => {
@@ -86,7 +96,7 @@ export default function BatchesPage() {
     router.push(`/batches/${batchId}`);
   };
   
-  if (!firebaseUser) return <div className="flex justify-center items-center h-64"><Loader2 className="animate-spin" /></div>
+  if (!firebaseUser || !user) return <div className="flex justify-center items-center h-64"><Loader2 className="animate-spin" /></div>
 
   return (
     <>
@@ -218,3 +228,5 @@ export default function BatchesPage() {
     </>
   );
 }
+
+    

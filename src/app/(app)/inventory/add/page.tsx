@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { useFirestore, useUser } from "@/firebase/provider";
 import { addInventoryItem, type InventoryItem } from "@/hooks/use-inventory";
-import { addLedgerEntry, type LedgerEntry } from "@/hooks/use-ledger";
+import { addLedgerEntry } from "@/hooks/use-ledger";
 import { useRouter } from "next/navigation";
 import { CalendarIcon, Save, Trash2, PlusCircle, IndianRupee } from "lucide-react";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
@@ -149,8 +149,8 @@ export default function AddPurchasePage() {
             });
             router.push('/inventory');
 
-        } catch (error) {
-             toast({ title: "Error", description: "Failed to record purchase and update ledger.", variant: "destructive" });
+        } catch (error: any) {
+             toast({ title: "Error", description: error.message || "Failed to record purchase and update ledger.", variant: "destructive" });
              console.error("Failed to add purchase", error)
         }
     }
@@ -392,3 +392,5 @@ export default function AddPurchasePage() {
         </>
     );
 }
+
+    

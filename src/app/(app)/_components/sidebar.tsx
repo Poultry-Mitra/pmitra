@@ -32,15 +32,15 @@ import {
   ChevronDown,
   ChevronUp,
   WandSparkles,
+  Loader2,
 } from "lucide-react";
 import { useLanguage } from "@/components/language-provider";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { useState } from "react";
-import { useClientState } from "@/hooks/use-client-state";
+import { useState, useEffect } from "react";
 import type { User } from "@/lib/types";
-import { useUser } from "@/firebase/provider";
-import { mockUsers } from "@/lib/data";
+import { useUser, useFirestore } from "@/firebase/provider";
+import { doc, getDoc } from 'firebase/firestore';
 
 const mainNavItems = [
   { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
@@ -64,20 +64,40 @@ export function AppSidebar() {
   const { t } = useLanguage();
   const { state } = useSidebar();
   const firebaseUser = useUser();
-  const user = useClientState<User | undefined>(mockUsers.find(u => u.role === 'farmer'), undefined);
+  const firestore = useFirestore();
+  const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    if (firebaseUser && firestore) {
+      const userDocRef = doc(firestore, "users", firebaseUser.uid);
+      getDoc(userDocRef).then((docSnap) => {
+        if (docSnap.exists()) {
+          setUser({ id: docSnap.id, ...docSnap.data() } as User);
+        }
+      });
+    } else {
+      setUser(null);
+    }
+  }, [firebaseUser, firestore]);
+  
   const [inventoryOpen, setInventoryOpen] = useState(pathname.startsWith('/inventory'));
 
   if (!user || !firebaseUser) {
     return (
         <Sidebar>
             <SidebarHeader />
-            <SidebarContent />
+            <SidebarContent>
+              <div className="flex justify-center items-center h-full">
+                <Loader2 className="animate-spin" />
+              </div>
+            </SidebarContent>
             <SidebarFooter />
         </Sidebar>
     );
   }
 
   const poultryMitraId = `PM-FARM-${firebaseUser.uid.substring(0, 5).toUpperCase()}`;
+  const planName = user.planType === 'premium' ? 'Premium Plan' : 'Free Plan';
 
   return (
     <Sidebar>
@@ -98,7 +118,7 @@ export function AppSidebar() {
                             <div className="text-xs text-muted-foreground">{poultryMitraId}</div>
                         </div>
                     </div>
-                     <Badge className="mt-2 w-full justify-center">Premium Plan</Badge>
+                     <Badge className="mt-2 w-full justify-center capitalize" variant={user.planType === 'premium' ? 'default' : 'secondary'}>{planName}</Badge>
                 </div>
             )}
         </div>
@@ -111,7 +131,7 @@ export function AppSidebar() {
             <SidebarMenuItem key={item.href}>
               <Link href={item.href}>
                 <SidebarMenuButton
-                  isActive={pathname.startsWith(item.href) && item.href !== '/'}
+                  isActive={pathname.startsWith(item.href) && (item.href === '/dashboard' ? pathname === item.href : true)}
                   tooltip={item.label}
                 >
                   <item.icon />
@@ -240,3 +260,5 @@ export function AppSidebar() {
     </Sidebar>
   );
 }
+
+    
