@@ -61,6 +61,8 @@ export default function LoginPage() {
               }[userData.role] || '/';
             router.replace(targetPath);
           } else {
+            // User authenticated but no profile, let them stay on login for now
+            // or redirect to a profile creation page if that's the flow.
             setIsCheckingUser(false);
           }
         })
@@ -73,6 +75,7 @@ export default function LoginPage() {
     }
   }, [firebaseUser, isUserLoading, firestore, router]);
 
+
   async function onSubmit(values: FormValues) {
     if (!auth) {
       toast({ title: 'Error', description: 'Authentication service not available.', variant: 'destructive' });
@@ -80,6 +83,7 @@ export default function LoginPage() {
     }
     try {
       await signInWithEmailAndPassword(auth, values.email, values.password);
+      // The useEffect will handle redirection
     } catch (error: any) {
       let message = 'An unknown error occurred.';
       if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
@@ -96,7 +100,7 @@ export default function LoginPage() {
     return (
       <div className="flex min-h-screen w-full flex-col items-center justify-center bg-muted/30 p-4 font-body">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />
-        <p className="mt-4 text-muted-foreground">{t('messages.loading')}</p>
+        <p className="mt-4 text-muted-foreground">{t('messages.authenticating')}</p>
       </div>
     );
   }

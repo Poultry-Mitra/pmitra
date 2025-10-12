@@ -1,0 +1,104 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions to keep rules DRY
+    function isOwner(userId) {
+      return request.auth != null && request.auth.uid == userId;
+    }
+    
+    function isAdmin() {
+      return request.auth != null && exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
+    }
+    
+    // USERS
+    // Farmers, Dealers, Admins
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow create: if request.auth != null && request.auth.uid == userId;
+      allow update: if isOwner(userId) || isAdmin();
+      allow delete: if isAdmin();
+    }
+    
+    // ROLES_ADMIN
+    // Grants admin privileges
+    match /roles_admin/{userId} {
+      allow read, write: if isAdmin();
+    }
+
+    // BATCHES
+    // Broiler/Layer batches for farmers
+    match /batches/{batchId} {
+      allow read, update, delete: if isOwner(resource.data.farmerUID) || isAdmin();
+      allow create: if isOwner(request.resource.data.farmerUID);
+
+      // Daily records within a batch
+      match /dailyRecords/{recordId} {
+        allow read, write: if isOwner(get(/databases/$(database)/documents/batches/$(batchId)).data.farmerUID) || isAdmin();
+      }
+    }
+    
+    // INVENTORY
+    // Farmer's personal inventory
+    match /inventory/{itemId} {
+      allow read, update, delete: if isOwner(resource.data.farmerUID) || isAdmin();
+      allow create: if isOwner(request.resource.data.farmerUID);
+    }
+
+    // LEDGER
+    // Financial entries for farmers and dealers
+    match /ledger/{entryId} {
+      allow read: if isOwner(resource.data.userId) || isAdmin();
+      // Create is handled via transactions in backend logic, but rules must allow it.
+      // A user should only be able to create entries for themselves.
+      allow create: if isOwner(request.resource.data.userId);
+    }
+    
+    // ORDERS
+    // Orders between farmers and dealers
+    match /orders/{orderId} {
+      allow read: if isOwner(resource.data.farmerUID) || isOwner(resource.data.dealerUID) || isAdmin();
+      allow create: if isOwner(request.resource.data.farmerUID) || isOwner(request.resource.data.dealerUID);
+      allow update: if (isOwner(resource.data.farmerUID) || isOwner(resource.data.dealerUID)) && resource.data.status == 'Pending' || isAdmin();
+    }
+
+    // DEALER INVENTORY
+    // Products sold by dealers
+    match /dealerInventory/{itemId} {
+        allow read: if request.auth != null; // Any authenticated user can see dealer items
+        allow write: if isOwner(resource.data.dealerUID) || isOwner(request.resource.data.dealerUID) || isAdmin();
+    }
+    
+    // CONNECTIONS
+    // Links between farmers and dealers
+    match /connections/{connectionId} {
+        allow read: if isOwner(resource.data.farmerUID) || isOwner(resource.data.dealerUID) || isAdmin();
+        allow create: if isOwner(request.resource.data.farmerUID) || isOwner(request.resource.data.dealerUID);
+        allow update: if isOwner(resource.data.dealerUID) || isAdmin(); // Only dealers can approve/reject
+    }
+
+    // DAILY RATES
+    // Market rates, readable by all, writable only by admin
+    match /dailyRates/{rateId} {
+      allow read: if request.auth != null;
+      allow write: if isAdmin();
+    }
+
+    // AUDIT LOGS
+    // Writable by admin-executed functions, readable only by admin
+    match /audit_logs/{logId} {
+      allow read, write: if isAdmin();
+    }
+
+    // FARM DATA & ALERTS (for IoT features)
+    // Only admin or the owning farmer can manage this data
+    match /farmData/{dataId} {
+      allow read, write: if isOwner(resource.data.farmId) || isOwner(request.resource.data.farmId) || isAdmin();
+    }
+
+    match /farmAlerts/{alertId} {
+      allow read, write: if isOwner(resource.data.farmId) || isOwner(request.resource.data.farmId) || isAdmin();
+    }
+  }
+}

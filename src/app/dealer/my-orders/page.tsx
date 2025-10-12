@@ -2,7 +2,7 @@
 // src/app/dealer/my-orders/page.tsx
 "use client";
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { PageHeader } from "../_components/page-header";
 import { Button } from "@/components/ui/button";
 import {
@@ -27,7 +27,8 @@ import { useUser, useFirestore } from '@/firebase/provider';
 import { useOrders, updateOrderStatus } from '@/hooks/use-orders';
 import { useUsersByIds } from '@/hooks/use-users';
 import { CreateOrderDialog } from './_components/create-order-dialog';
-import type { Order, User } from '@/lib/types';
+import type { Order, User as AppUser, Connection } from '@/lib/types';
+import { useConnections } from '@/hooks/use-connections';
 
 const statusConfig = {
     Pending: { variant: "outline" as const, color: "text-blue-500 border-blue-500/50 bg-blue-500/10" },
@@ -42,19 +43,25 @@ export default function MyOrdersPage() {
     const { orders, loading: ordersLoading } = useOrders(firebaseUser?.uid);
     const { toast } = useToast();
     const [isCreateOrderOpen, setCreateOrderOpen] = useState(false);
-    
-    const farmerIds = useMemo(() => {
-        if (!orders) return [];
-        return [...new Set(orders.map(o => o.farmerUID))];
-    }, [orders]);
 
-    const { users: farmers, loading: farmersLoading } = useUsersByIds(farmerIds);
+    // Fetch this dealer's connections to get farmer IDs
+    const { connections, loading: connectionsLoading } = useConnections(firebaseUser?.uid, 'dealer');
+
+    // Get the IDs of all connected farmers
+    const connectedFarmerIds = useMemo(() => {
+        return connections
+            .filter(c => c.status === 'Approved')
+            .map(c => c.farmerUID);
+    }, [connections]);
     
+    // Fetch user details only for connected farmers
+    const { users: farmers, loading: farmersLoading } = useUsersByIds(connectedFarmerIds);
+
     const getFarmerName = (farmerUID: string) => {
-        return farmers.find(f => f.id === farmerUID)?.name || "Loading...";
+        return farmers.find(f => f.id === farmerUID)?.name || "Unknown Farmer";
     }
     
-    const loading = ordersLoading || farmersLoading || !firebaseUser;
+    const loading = ordersLoading || farmersLoading || connectionsLoading || !firebaseUser;
 
     const handleUpdateStatus = async (orderId: string, newStatus: 'Approved' | 'Rejected') => {
         if (!firestore) return;
@@ -72,6 +79,12 @@ export default function MyOrdersPage() {
             });
         }
     };
+
+    // Filter orders to show only those from connected farmers
+    const visibleOrders = useMemo(() => {
+        return orders.filter(order => connectedFarmerIds.includes(order.farmerUID));
+    }, [orders, connectedFarmerIds]);
+
 
     return (
         <>
@@ -114,14 +127,14 @@ export default function MyOrdersPage() {
                                         </TableCell>
                                     </TableRow>
                                 )}
-                                {!loading && orders.length === 0 && (
+                                {!loading && visibleOrders.length === 0 && (
                                     <TableRow>
                                         <TableCell colSpan={7} className="h-24 text-center">
-                                            No orders found.
+                                            No orders found from your connected farmers.
                                         </TableCell>
                                     </TableRow>
                                 )}
-                                {!loading && orders.map((order) => (
+                                {!loading && visibleOrders.map((order) => (
                                     <TableRow key={order.id}>
                                         <TableCell className="font-medium">{getFarmerName(order.farmerUID)}</TableCell>
                                         <TableCell>{order.productName}</TableCell>
