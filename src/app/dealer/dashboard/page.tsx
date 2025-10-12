@@ -1,4 +1,3 @@
-
 // src/app/dealer/dashboard/page.tsx
 "use client";
 
@@ -25,8 +24,8 @@ import {
 
 
 const statusVariant = {
-    Success: "default",
-    Failed: "destructive",
+    Approved: "default",
+    Rejected: "destructive",
     Pending: "secondary",
 } as const;
 
@@ -89,13 +88,14 @@ export default function DealerDashboardPage() {
     useEffect(() => {
         if (firebaseUser && firestore) {
             const userDocRef = doc(firestore, "users", firebaseUser.uid);
-            getDoc(userDocRef).then((docSnap) => {
+            const unsub = onSnapshot(userDocRef, (docSnap) => {
                 if (docSnap.exists()) {
                     setUser({ id: docSnap.id, ...docSnap.data() } as AppUser);
                 } else {
                     setUser(null);
                 }
             });
+             return () => unsub();
         } else {
             setUser(null);
         }
@@ -106,7 +106,7 @@ export default function DealerDashboardPage() {
     const kpiData = useMemo(() => {
         if (loading) return null;
         
-        const successfulOrders = orders.filter(o => o.status === 'Success');
+        const successfulOrders = orders.filter(o => o.status === 'Approved');
         const monthlyRevenue = successfulOrders.reduce((acc, order) => acc + order.totalAmount, 0);
 
         return {
@@ -199,7 +199,7 @@ export default function DealerDashboardPage() {
                         <CardDescription>Cumulative revenue from successful orders in the last 30 days.</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <RevenueChart orders={orders} />
+                        <RevenueChart orders={orders.filter(o => o.status === 'Approved')} />
                     </CardContent>
                 </Card>
                  <Card className="lg:col-span-2">
@@ -223,7 +223,7 @@ export default function DealerDashboardPage() {
                                     <TableRow key={order.id} onClick={() => handleTransactionClick(order)} className="cursor-pointer">
                                         <TableCell>{farmer?.name || '...'}</TableCell>
                                         <TableCell>₹{order.totalAmount.toLocaleString()}</TableCell>
-                                        <TableCell><Badge variant={statusVariant[order.status]} className="capitalize">{order.status}</Badge></TableCell>
+                                        <TableCell><Badge variant="secondary" className="capitalize">{order.status}</Badge></TableCell>
                                     </TableRow>
                                 )})}
                                 {orders.filter(o => o.status === 'Pending').length === 0 && (

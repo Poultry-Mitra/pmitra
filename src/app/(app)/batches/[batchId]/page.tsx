@@ -59,7 +59,7 @@ export default function BatchDetailPage() {
     
     const liveBirds = batch.totalChicks - batch.mortalityCount;
     const mortalityPercentage = batch.totalChicks > 0 ? ((batch.mortalityCount / batch.totalChicks) * 100).toFixed(2) : 0;
-    const totalWeightGainKg = liveBirds > 0 ? (liveBirds * batch.avgBodyWeight) / 1000 : 0;
+    const totalWeightGainKg = liveBirds > 0 ? (liveBirds * (batch.avgBodyWeight - 40)) / 1000 : 0; // Assuming 40g initial weight
     const feedConversionRatio = totalWeightGainKg > 0 ? (batch.feedConsumed / totalWeightGainKg).toFixed(2) : 'N/A';
 
 
@@ -79,7 +79,7 @@ export default function BatchDetailPage() {
                 <StatCard title="Live Birds" value={liveBirds.toLocaleString()} icon={Bird} />
                 <StatCard title="Mortality" value={`${mortalityPercentage}`} unit="%" icon={Percent} />
                 <StatCard title="Avg. Body Weight" value={batch.avgBodyWeight} unit="g" icon={Scale} />
-                <StatCard title="Feed Consumed" value={batch.feedConsumed} unit="kg" icon={Wheat} />
+                <StatCard title="Feed Consumed" value={batch.feedConsumed.toFixed(2)} unit="kg" icon={Wheat} />
                 <StatCard title="FCR" value={feedConversionRatio} icon={Droplet} />
                 <StatCard title="Est. Profit" value="--" icon={IndianRupee} />
             </div>

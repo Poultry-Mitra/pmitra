@@ -1,5 +1,4 @@
-
-
+// src/app/dealer/_components/revenue-chart.tsx
 "use client";
 
 import { Line, LineChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
@@ -19,7 +18,7 @@ export function RevenueChart({ orders }: { orders: Order[] }) {
     const revenueData = useMemo(() => {
         if (!orders) return [];
 
-        const successfulOrders = orders.filter(o => o.status === 'Success');
+        const successfulOrders = orders.filter(o => o.status === 'Approved');
         
         const dailyRevenue: { [key: string]: number } = {};
 

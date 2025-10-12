@@ -173,18 +173,20 @@ export default function MyFarmersPage() {
                             </TableHeader>
                             <TableBody>
                                 {connectedFarmers.length === 0 && <TableRow><TableCell colSpan={4} className="h-24 text-center">No farmers connected yet.</TableCell></TableRow>}
-                                {connectedFarmers.map((farmer) => (
+                                {connectedFarmers.map((farmer) => {
+                                    const connection = approvedConnections.find(c => c.farmerUID === farmer.id);
+                                    return (
                                     <TableRow key={farmer.id}>
                                         <TableCell className="font-medium">{farmer.name}</TableCell>
                                         <TableCell>{farmer.email}</TableCell>
-                                        <TableCell>{new Date(farmer.dateJoined).toLocaleDateString()}</TableCell>
+                                        <TableCell>{connection ? new Date(connection.createdAt).toLocaleDateString() : 'N/A'}</TableCell>
                                         <TableCell className="text-right">
                                             <Button variant="ghost" size="icon">
                                                 <MoreHorizontal className="size-4" />
                                             </Button>
                                         </TableCell>
                                     </TableRow>
-                                ))}
+                                )})}
                             </TableBody>
                         </Table>
                     </CardContent>

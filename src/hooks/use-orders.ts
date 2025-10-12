@@ -147,13 +147,18 @@ export async function createOrder(firestore: Firestore, data: Omit<Order, 'id' |
     }
 }
 
-export async function updateOrderStatus(order: Order, newStatus: Order['status'], firestore: Firestore, actingUser: User) {
+export async function updateOrderStatus(order: Order, newStatus: 'Approved' | 'Rejected', firestore: Firestore, actingUser: User) {
     if (!firestore) throw new Error("Firestore not initialized");
 
     const orderRef = doc(firestore, 'orders', order.id);
     
     try {
         await runTransaction(firestore, async (transaction) => {
+            const orderDoc = await transaction.get(orderRef);
+            if (!orderDoc.exists() || orderDoc.data().status !== 'Pending') {
+                throw new Error("Order not found or already processed.");
+            }
+
             // Update the order status
             transaction.update(orderRef, { status: newStatus });
 
@@ -163,8 +168,9 @@ export async function updateOrderStatus(order: Order, newStatus: Order['status']
                     throw new Error("Order is missing a product ID.");
                 }
                 const dealerInventoryRef = doc(firestore, 'dealerInventory', order.productId);
-                const dealerInventoryDoc = await transaction.get(dealerInventoryRef);
                 const farmerDocSnap = await transaction.get(doc(firestore, 'users', order.farmerUID));
+                const dealerInventoryDoc = await transaction.get(dealerInventoryRef);
+                
 
                 if (!dealerInventoryDoc.exists()) throw new Error("Product not found in dealer's inventory.");
                 if (!farmerDocSnap.exists()) throw new Error("Farmer not found.");
@@ -198,12 +204,15 @@ export async function updateOrderStatus(order: Order, newStatus: Order['status']
         });
     } catch (e: any) {
         console.error("Error updating order status: ", e);
-        const permissionError = new FirestorePermissionError({
-            path: orderRef.path,
-            operation: 'update',
-            requestResourceData: { status: newStatus },
-        });
-        errorEmitter.emit('permission-error', permissionError);
+        // Avoid re-throwing permission errors if they originate from sub-operations like ledger writes
+        if (!(e instanceof FirestorePermissionError)) {
+            const permissionError = new FirestorePermissionError({
+                path: orderRef.path,
+                operation: 'update',
+                requestResourceData: { status: newStatus },
+            });
+            errorEmitter.emit('permission-error', permissionError);
+        }
         throw e;
     }
 }

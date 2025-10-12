@@ -36,7 +36,7 @@ const statusConfig = {
 
 
 export default function MyOrdersPage() {
-    const user = useUser() as User;
+    const user = useUser();
     const firestore = useFirestore();
     const { orders, loading: ordersLoading } = useOrders(user?.uid);
     const { toast } = useToast();
@@ -53,12 +53,12 @@ export default function MyOrdersPage() {
         return farmers.find(f => f.id === farmerUID)?.name || "Loading...";
     }
     
-    const loading = ordersLoading || farmersLoading;
+    const loading = ordersLoading || farmersLoading || !user;
 
     const handleUpdateStatus = async (order: Order, newStatus: 'Approved' | 'Rejected') => {
         if (!firestore || !user) return;
         try {
-            await updateOrderStatus(order, newStatus, firestore, user);
+            await updateOrderStatus(order, newStatus, firestore, user as User);
             toast({
                 title: `Order ${newStatus}`,
                 description: `The order for ${order.productName} has been successfully ${newStatus.toLowerCase()}.`
@@ -153,7 +153,7 @@ export default function MyOrdersPage() {
                     </CardContent>
                 </Card>
             </div>
-            <CreateOrderDialog open={isCreateOrderOpen} onOpenChange={setCreateOrderOpen} />
+            { user && <CreateOrderDialog open={isCreateOrderOpen} onOpenChange={setCreateOrderOpen} />}
         </>
     );
 }
