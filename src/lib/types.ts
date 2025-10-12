@@ -41,6 +41,18 @@ export type InventoryItem = {
     lastUpdated: Timestamp;
 }
 
+export type LedgerEntry = {
+  id: string;
+  farmerUID: string;
+  dealerUID?: string;
+  batchId?: string;
+  type: "Debit" | "Credit";
+  description: string;
+  amount: number;
+  balanceAfter: number;
+  date: string; // ISO 8601 format
+};
+
 export type FarmMetric = {
   month: string;
   productionRate: number; // percentage

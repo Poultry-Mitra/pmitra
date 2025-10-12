@@ -28,6 +28,7 @@ import {
   Rocket,
   WandSparkles,
   Archive,
+  BookText,
 } from "lucide-react";
 import { useLanguage } from "@/components/language-provider";
 import { Badge } from "@/components/ui/badge";
@@ -38,7 +39,7 @@ const navItems = [
   { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
   { href: "/batches", icon: FileText, label: "My Batches" },
   { href: "/inventory", icon: Archive, label: "Inventory" },
-  { href: "/expenses", icon: Landmark, label: "Expenses" },
+  { href: "/ledger", icon: BookText, label: "Ledger" },
   { href: "/dealers", icon: Users, label: "Dealers" },
 ];
 

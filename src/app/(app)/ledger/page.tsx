@@ -1,0 +1,102 @@
+
+// src/app/(app)/ledger/page.tsx
+"use client";
+
+import { useState } from "react";
+import { PageHeader } from "../_components/page-header";
+import { Button } from "@/components/ui/button";
+import { Loader2, PlusCircle, IndianRupee } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { useLedger } from "@/hooks/use-ledger";
+import { currentUser } from "@/lib/data";
+import { cn } from "@/lib/utils";
+import { AddExpenseDialog } from "../expenses/page";
+
+export default function LedgerPage() {
+  const user = currentUser;
+  const { entries, loading } = useLedger(user.id);
+  const [isAddExpenseOpen, setAddExpenseOpen] = useState(false);
+
+  const finalBalance = entries.length > 0 ? entries[0].balanceAfter : 0;
+
+  return (
+    <>
+      <PageHeader 
+        title="Financial Ledger"
+        description="Track all your farm's debits and credits."
+      >
+        <div className="flex items-center gap-4">
+            <div className="text-right">
+                <div className="text-sm text-muted-foreground">Current Balance</div>
+                <div className={cn("text-2xl font-bold", finalBalance >= 0 ? "text-green-600" : "text-destructive")}>
+                    <IndianRupee className="inline h-5 w-5 -mt-1" />
+                    {finalBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </div>
+            </div>
+            <Button onClick={() => setAddExpenseOpen(true)}>
+                <PlusCircle className="mr-2" />
+                Add Expense
+            </Button>
+        </div>
+      </PageHeader>
+      <div className="mt-8">
+        <Card>
+            <CardHeader>
+                <CardTitle>Transaction History</CardTitle>
+                <CardDescription>A complete record of your financial activities.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>Date</TableHead>
+                            <TableHead>Description</TableHead>
+                            <TableHead className="text-right">Debit</TableHead>
+                            <TableHead className="text-right">Credit</TableHead>
+                            <TableHead className="text-right">Balance</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {loading && (
+                            <TableRow>
+                                <TableCell colSpan={5} className="text-center">
+                                    <div className="flex justify-center items-center p-4">
+                                        <Loader2 className="animate-spin mr-2" /> Loading ledger...
+                                    </div>
+                                </TableCell>
+                            </TableRow>
+                        )}
+                        {!loading && entries.length === 0 && (
+                            <TableRow>
+                                <TableCell colSpan={5} className="text-center p-8">
+                                    No transactions found. Add an expense to get started.
+                                </TableCell>
+                            </TableRow>
+                        )}
+                        {!loading && entries.map((entry) => (
+                            <TableRow key={entry.id}>
+                                <TableCell>{new Date(entry.date).toLocaleDateString()}</TableCell>
+                                <TableCell className="font-medium">{entry.description}</TableCell>
+                                <TableCell className="text-right text-destructive">
+                                    {entry.type === 'Debit' ? `₹${entry.amount.toFixed(2)}` : '—'}
+                                </TableCell>
+                                <TableCell className="text-right text-green-600">
+                                    {entry.type === 'Credit' ? `₹${entry.amount.toFixed(2)}` : '—'}
+                                </TableCell>
+                                <TableCell className="text-right font-semibold">
+                                    ₹{entry.balanceAfter.toFixed(2)}
+                                </TableCell>
+                            </TableRow>
+                          )
+                        )}
+                    </TableBody>
+                </Table>
+            </CardContent>
+        </Card>
+      </div>
+
+      <AddExpenseDialog open={isAddExpenseOpen} onOpenChange={setAddExpenseOpen} />
+    </>
+  );
+}
