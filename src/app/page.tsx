@@ -20,6 +20,7 @@ import {
   Store,
   CheckCircle,
   TrendingUp,
+  Zap,
 } from 'lucide-react';
 import { AppIcon } from './icon-component';
 import { ThemeToggle } from '@/components/theme-toggle';
@@ -35,6 +36,7 @@ import { useState, useEffect } from 'react';
 import { doc, getDoc } from 'firebase/firestore';
 import { AppProvider, useAppUser } from '@/app/app-provider';
 import { Input } from '@/components/ui/input';
+import { cn } from '@/lib/utils';
 
 
 function LandingPageContent() {
@@ -100,11 +102,51 @@ function LandingPageContent() {
     },
   ];
 
-  const pricingPlans = [
-    { name: 'free_plan', price: t('pricing.free_plan_price'), period: t('pricing.free_plan_period'), cta: t('pricing.free_plan_cta') },
-    { name: 'farmer_plan', price: t('pricing.farmer_plan_price'), period: t('pricing.plan_period'), cta: t('pricing.farmer_plan_cta') },
-    { name: 'dealer_plan', price: t('pricing.dealer_plan_price'), period: t('pricing.plan_period'), cta: t('pricing.dealer_plan_cta') },
-  ]
+ const pricingPlans = [
+    {
+      name: t('pricing.free_plan'),
+      price: t('pricing.free_plan_price'),
+      priceDesc: t('pricing.free_plan_period'),
+      description: "For small farms and hobbyists starting out.",
+      features: [
+          "1 Batch Limit",
+          "Limited AI Chat Queries (5/month)",
+          "Manual Data Entry",
+      ],
+      cta: t('pricing.free_plan_cta'),
+      isPopular: false,
+    },
+    {
+      name: t('pricing.farmer_plan'),
+      price: t('pricing.farmer_plan_price'),
+      priceDesc: t('pricing.plan_period'),
+      description: "For growing farms that need advanced tools.",
+      features: [
+          "Unlimited Batches",
+          "Unlimited AI Chat Queries",
+          "Advanced Analytics & Reports",
+          "Feed AI Suggestions",
+          "Daily Market Rates Access",
+      ],
+      cta: t('pricing.farmer_plan_cta'),
+      isPopular: true,
+    },
+    {
+      name: t('pricing.dealer_plan'),
+      price: t('pricing.dealer_plan_price'),
+      priceDesc: t('pricing.plan_period'),
+      description: "For dealers managing multiple farmers.",
+      features: [
+          "Unlimited Farmer Connections",
+          "Full Dealer Dashboard",
+          "Advanced Sales Analytics",
+          "CRM Features",
+          "Priority Support",
+      ],
+      cta: t('pricing.dealer_plan_cta'),
+      isPopular: false,
+    }
+  ];
 
   const testimonials = [
     {
@@ -136,7 +178,7 @@ function LandingPageContent() {
           <nav className="hidden items-center space-x-6 text-sm font-medium md:flex">
             <Link href="/" className="transition-colors hover:text-foreground">{t('nav.home')}</Link>
             <Link href="#features" className="text-muted-foreground transition-colors hover:text-foreground">{t('nav.features')}</Link>
-            <Link href="/pricing" className="text-muted-foreground transition-colors hover:text-foreground">{t('nav.pricing')}</Link>
+            <Link href="#pricing-preview" className="text-muted-foreground transition-colors hover:text-foreground">{t('nav.pricing')}</Link>
             <Link href="/chat" className="text-muted-foreground transition-colors hover:text-foreground">{t('nav.ai_chat')}</Link>
             <Link href="#contact" className="text-muted-foreground transition-colors hover:text-foreground">{t('nav.contact')}</Link>
           </nav>
@@ -267,22 +309,44 @@ function LandingPageContent() {
                     <h2 className="font-headline text-3xl font-bold leading-[1.1] sm:text-3xl md:text-5xl">{t('pricing.title')}</h2>
                     <p className="max-w-[85%] leading-normal text-muted-foreground sm:text-lg sm:leading-7">{t('pricing.subtitle')}</p>
                 </div>
-                <div className="mt-12 grid gap-8 md:grid-cols-3">
-                  {pricingPlans.map(plan => (
-                    <Card key={plan.name} className="flex flex-col justify-between text-center">
-                      <CardHeader>
-                        <CardTitle className="text-lg font-medium text-muted-foreground">{t(`pricing.${plan.name}`)}</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <p><span className="text-4xl font-bold">{plan.price}</span><span className="text-muted-foreground">{plan.period}</span></p>
-                      </CardContent>
-                      <CardFooter>
-                        <Button variant="outline" className="w-full" asChild>
-                           <Link href="/pricing">{plan.cta}</Link>
-                        </Button>
-                      </CardFooter>
-                    </Card>
-                  ))}
+                <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 lg:items-start">
+                    {pricingPlans.map(plan => (
+                        <Card key={plan.name} className={cn("flex flex-col", plan.isPopular && "border-2 border-primary shadow-lg")}>
+                            <CardHeader className="relative">
+                                {plan.isPopular && (
+                                    <div className="absolute top-0 right-4 -mt-3 flex items-center gap-1 rounded-full bg-primary px-3 py-1 text-xs text-primary-foreground">
+                                        <Zap className="size-3" /> Most Popular
+                                    </div>
+                                )}
+                                <CardTitle className="font-headline text-xl">{plan.name}</CardTitle>
+                                <CardDescription>{plan.description}</CardDescription>
+                                <div className="flex items-baseline gap-1 pt-2">
+                                    <span className="text-4xl font-bold">{plan.price}</span>
+                                    <span className="text-sm text-muted-foreground">{plan.priceDesc}</span>
+                                </div>
+                            </CardHeader>
+                            <CardContent className="flex-1">
+                                <ul className="space-y-3">
+                                    {plan.features.map(feature => (
+                                        <li key={feature} className="flex items-start">
+                                            <CheckCircle className="mr-2 mt-1 size-4 shrink-0 text-green-500" />
+                                            <span className="text-sm text-muted-foreground">{feature}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </CardContent>
+                            <CardFooter>
+                                <Button className="w-full" variant={plan.isPopular ? "default" : "outline"} asChild>
+                                <Link href="/pricing">{plan.cta}</Link>
+                                </Button>
+                            </CardFooter>
+                        </Card>
+                    ))}
+                </div>
+                 <div className="mt-8 text-center">
+                    <Button variant="ghost" asChild>
+                        <Link href="/pricing">See full comparison →</Link>
+                    </Button>
                 </div>
             </div>
         </section>
