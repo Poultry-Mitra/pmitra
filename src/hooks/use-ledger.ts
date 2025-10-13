@@ -40,7 +40,7 @@ export function useLedger(userId?: string) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!firestore || !userId) {
+    if (!firestore) { // Don't run if firestore is not available, or if no userId is provided for specific queries
         setEntries([]);
         setLoading(false);
         return;
@@ -48,7 +48,10 @@ export function useLedger(userId?: string) {
     
     setLoading(true);
     const ledgerCollection = collection(firestore, 'ledger');
-    const q = query(ledgerCollection, where("userId", "==", userId), orderBy("date", "desc"));
+    // If no userId, fetch all (for admin). If userId, filter by it.
+    const q = userId 
+        ? query(ledgerCollection, where("userId", "==", userId), orderBy("date", "desc"))
+        : query(ledgerCollection, orderBy("date", "desc"));
 
     const unsubscribe = onSnapshot(
       q,
@@ -59,7 +62,7 @@ export function useLedger(userId?: string) {
       },
       (err) => {
         const permissionError = new FirestorePermissionError({
-          path: `ledger where userId == ${userId}`,
+          path: `ledger ${userId ? `where userId == ${userId}`: ''}`,
           operation: 'list',
         });
         errorEmitter.emit('permission-error', permissionError);

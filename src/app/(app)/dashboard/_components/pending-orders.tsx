@@ -1,3 +1,4 @@
+
 // src/app/dashboard/_components/pending-orders.tsx
 "use client";
 
@@ -11,7 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import type { Order } from "@/lib/types";
 
 export function PendingOrders() {
-    const user = useUser();
+    const { user } = useUser();
     const firestore = useFirestore();
     const { orders, loading } = useOrdersByFarmer(user?.uid);
     const { toast } = useToast();
