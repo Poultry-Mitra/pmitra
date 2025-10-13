@@ -3,12 +3,14 @@
 import { Timestamp } from "firebase/firestore";
 
 export type UserRole = 'farmer' | 'dealer' | 'admin';
+export type UserStatus = 'Pending' | 'Active' | 'Suspended';
 
 export type User = {
   id: string;
   name: string;
   email: string;
   role: UserRole;
+  status: UserStatus;
   dateJoined: string;
   avatarUrl?: string;
   planType?: 'free' | 'premium';
@@ -164,7 +166,7 @@ export type Order = {
 export type AuditLog = {
     id?: string;
     adminUID: string;
-    action: 'CREATE_USER' | 'DELETE_USER' | 'UPDATE_DAILY_RATES' | 'SUSPEND_USER' | 'UNSUSPEND_USER';
+    action: 'CREATE_USER' | 'DELETE_USER' | 'UPDATE_DAILY_RATES' | 'SUSPEND_USER' | 'UNSUSPEND_USER' | 'UPDATE_USER_STATUS';
     timestamp: string;
     details: string;
 }

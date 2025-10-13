@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -16,7 +17,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { useAuth, useFirestore } from "@/firebase/provider";
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import { doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { doc, setDoc } from "firebase/firestore";
 import { AppIcon } from "@/app/icon";
 import { Loader2 } from "lucide-react";
 import indianStates from "@/lib/indian-states-districts.json";
@@ -78,20 +79,20 @@ export default function DetailedSignupPage() {
             const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
             const user = userCredential.user;
 
-            // Special handling for the admin email
             const isAdminEmail = values.email.toLowerCase() === 'ipoultrymitra@gmail.com';
             const finalRole = isAdminEmail ? 'admin' : initialRole;
-            const finalPlan = isAdminEmail ? 'premium' : 'free';
+            const finalStatus = isAdminEmail ? 'Active' : 'Pending';
 
             const userProfile = {
                 name: values.fullName,
                 email: values.email,
                 role: finalRole,
+                status: finalStatus,
                 mobileNumber: values.mobileNumber || "",
                 state: values.state,
                 district: values.district,
                 pinCode: values.pinCode || "",
-                planType: finalPlan,
+                planType: isAdminEmail ? 'premium' : 'free',
                 aiQueriesCount: 0,
                 lastQueryDate: "",
                 dateJoined: new Date().toISOString(),
@@ -108,16 +109,11 @@ export default function DetailedSignupPage() {
 
             toast({
                 title: "Account Created!",
-                description: "You have been successfully registered. Redirecting to dashboard...",
+                description: "Your account has been created and is pending approval. You will be redirected to the login page.",
             });
-
-            const redirectPath = {
-                admin: '/admin/dashboard',
-                dealer: '/dealer/dashboard',
-                farmer: '/dashboard',
-            }[finalRole] || '/login';
-
-            router.push(redirectPath);
+            
+            await auth.signOut();
+            router.push('/login');
 
         } catch (error: any) {
             console.error("Signup failed:", error);

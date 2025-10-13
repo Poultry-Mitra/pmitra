@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import Link from 'next/link';
@@ -81,23 +82,30 @@ export default function RoleLoginPage() {
     try {
       const userCredential = await signInWithEmailAndPassword(auth, values.email, values.password);
       
-      // Verify user role
       const userDocRef = doc(firestore, 'users', userCredential.user.uid);
       const docSnap = await getDoc(userDocRef);
 
       if (docSnap.exists()) {
         const userData = docSnap.data() as AppUser;
-        if (userData.role === role) {
-          router.replace(getRedirectPath(role));
-        } else {
-          await auth.signOut();
-          toast({
-            title: "Role Mismatch",
-            description: `This account is a ${userData.role}. Please use the correct login page.`,
-            variant: "destructive"
-          });
-          form.reset(); // Reset form to prevent resubmission
+        if (userData.role !== role) {
+           await auth.signOut();
+           toast({ title: "Role Mismatch", description: `This account is a ${userData.role}. Please use the correct login page.`, variant: "destructive" });
+           form.reset();
+           return;
         }
+        if (userData.status === 'Pending') {
+            await auth.signOut();
+            toast({ title: "Account Pending", description: "Your account is pending approval by an administrator.", variant: "destructive" });
+            return;
+        }
+        if (userData.status === 'Suspended') {
+            await auth.signOut();
+            toast({ title: "Account Suspended", description: "Your account has been suspended. Please contact support.", variant: "destructive" });
+            return;
+        }
+
+        router.replace(getRedirectPath(role));
+
       } else {
          await auth.signOut();
          toast({ title: 'Login Failed', description: 'User profile not found.', variant: 'destructive' });

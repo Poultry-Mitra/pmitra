@@ -21,9 +21,10 @@ import {
   DocumentSnapshot,
   deleteDoc,
   limit,
+  setDoc,
 } from 'firebase/firestore';
 import { useAuth, useFirestore } from '@/firebase/provider';
-import type { User, UserRole } from '@/lib/types';
+import type { User, UserRole, UserStatus } from '@/lib/types';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { createUserWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth';
@@ -186,6 +187,23 @@ export function deleteUser(firestore: Firestore, userId: string) {
         errorEmitter.emit('permission-error', permissionError);
         throw e;
     });
+}
+
+export async function updateUserStatus(firestore: Firestore, userId: string, status: UserStatus) {
+     if (!firestore) throw new Error("Firestore not initialized");
+    const docRef = doc(firestore, 'users', userId);
+    
+    try {
+        await updateDoc(docRef, { status });
+    } catch (e) {
+         const permissionError = new FirestorePermissionError({
+            path: `users/${userId}`,
+            operation: 'update',
+            requestResourceData: { status }
+        });
+        errorEmitter.emit('permission-error', permissionError);
+        throw e;
+    }
 }
 
 

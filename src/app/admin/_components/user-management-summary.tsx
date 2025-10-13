@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
     Table,
     TableBody,
@@ -16,6 +16,7 @@ import {
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
+    DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import {
     AlertDialog,
@@ -38,69 +39,56 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { MoreHorizontal, PlusCircle, Loader2 } from "lucide-react";
+import { MoreHorizontal, PlusCircle, Loader2, CheckCircle } from "lucide-react";
 import Link from "next/link";
-import type { User } from "@/lib/types";
+import type { User, UserStatus } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { useUsers, deleteUser } from "@/hooks/use-users";
+import { useUsers, deleteUser, updateUserStatus } from "@/hooks/use-users";
 import { useFirestore, useUser as useAuthUser } from "@/firebase/provider";
 import { addAuditLog } from "@/hooks/use-audit-logs";
 import { useLanguage } from "@/components/language-provider";
 
 
-type UserStatus = "active" | "suspended" | "pending";
-type UserWithStatus = User & { status: UserStatus };
-
 const statusVariant: { [key in UserStatus]: "default" | "secondary" | "destructive" | "outline" } = {
-    active: "default",
-    suspended: "secondary",
-    pending: "outline",
+    Active: "default",
+    Suspended: "secondary",
+    Pending: "outline",
 };
 
 const statusColorScheme = {
-    active: "text-green-500 border-green-500/50 bg-green-500/10",
-    suspended: "text-orange-500 border-orange-500/50 bg-orange-500/10",
-    pending: "text-blue-500 border-blue-500/50 bg-blue-500/10",
+    Active: "text-green-500 border-green-500/50 bg-green-500/10",
+    Suspended: "text-orange-500 border-orange-500/50 bg-orange-500/10",
+    Pending: "text-blue-500 border-blue-500/50 bg-blue-500/10",
 };
 
 
 export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 'dealer' }) {
     const { users, loading } = useUsers(roleToShow);
-    const [usersWithStatus, setUsersWithStatus] = useState<UserWithStatus[]>([]);
     
-    // This effect now simulates the status on the client side based on fetched user data
-    useEffect(() => {
-        if (users) {
-            const usersWithRandomStatus = users.map(user => ({...user, status: (['active', 'suspended', 'pending'] as UserStatus[])[Math.floor(Math.random() * 3)] }));
-            setUsersWithStatus(usersWithRandomStatus);
-        }
-    }, [users]);
-    
-    const [dialogState, setDialogState] = useState<{ action: 'delete' | 'suspend' | null, user: UserWithStatus | null }>({ action: null, user: null });
+    const [dialogState, setDialogState] = useState<{ action: 'delete' | 'suspend' | 'approve' | null, user: User | null }>({ action: null, user: null });
     const [reason, setReason] = useState("");
     const [otherReason, setOtherReason] = useState("");
-    const [detailsUser, setDetailsUser] = useState<UserWithStatus | null>(null);
+    const [detailsUser, setDetailsUser] = useState<User | null>(null);
     const { toast } = useToast();
     const firestore = useFirestore();
     const adminUser = useAuthUser();
     const { t } = useLanguage();
 
-    const filteredUsers = roleToShow ? usersWithStatus : usersWithStatus.slice(0, 5); // Show only 5 recent users on dashboard view
+    const filteredUsers = roleToShow ? users : users.slice(0, 5); // Show only 5 recent users on dashboard view
 
     const title = roleToShow ? t(`admin.users.title_${roleToShow}`) : t('admin.users.title_recent');
     const description = roleToShow ? t(`admin.users.description_${roleToShow}`) : t('admin.users.description_recent');
 
-
-    const handleSuspend = () => {
-        if (!dialogState.user) return;
+    const handleStatusUpdate = async (newStatus: UserStatus) => {
+        if (!dialogState.user || !firestore || !adminUser.user) return;
         
         const finalReason = reason === 'other' ? otherReason : reason;
-        if ((dialogState.user.status === 'active' && !finalReason) || (dialogState.action === 'delete' && !finalReason)) {
+        if ((dialogState.action === 'suspend' && !finalReason) || (dialogState.action === 'delete' && !finalReason)) {
             toast({
                 title: t('admin.users.reason_required_title'),
                 description: t('admin.users.reason_required_desc'),
@@ -109,14 +97,27 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
             return;
         }
 
-        // In a real app, this would update the user's status in Firestore.
-        // For now, we simulate by updating local state.
-        setUsersWithStatus(usersWithStatus.map(u => u.id === dialogState.user!.id ? { ...u, status: u.status === 'active' ? 'suspended' : 'active' } : u));
+        try {
+            await updateUserStatus(firestore, dialogState.user.id, newStatus);
+            await addAuditLog(firestore, {
+                adminUID: adminUser.user.uid,
+                action: 'UPDATE_USER_STATUS',
+                timestamp: new Date().toISOString(),
+                details: `Changed status of ${dialogState.user.name} to ${newStatus}. ${finalReason ? `Reason: ${finalReason}` : ''}`,
+            });
+
+            toast({
+                title: `User Status Updated`,
+                description: `${dialogState.user.name}'s status has been changed to ${newStatus}.`,
+            });
+        } catch (error: any) {
+             toast({
+                title: "Update Failed",
+                description: error.message || `Could not update user status.`,
+                variant: "destructive",
+            });
+        }
         
-        toast({
-            title: t(dialogState.user.status === 'active' ? 'admin.users.user_suspended_title' : 'admin.users.user_unsuspended_title'),
-            description: t(dialogState.user.status === 'active' ? 'admin.users.user_suspended_desc' : 'admin.users.user_unsuspended_desc', { name: dialogState.user.name, reason: finalReason }),
-        });
         setDialogState({ action: null, user: null });
         setReason("");
         setOtherReason("");
@@ -162,15 +163,15 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
         setOtherReason("");
     };
 
-    const openDialog = (user: UserWithStatus, action: 'delete' | 'suspend') => {
+    const openDialog = (user: User, action: 'delete' | 'suspend' | 'approve') => {
         setDialogState({ user, action });
     };
 
-    const openDetailsDialog = (user: UserWithStatus) => {
+    const openDetailsDialog = (user: User) => {
         setDetailsUser(user);
     };
     
-    const isUnsuspendAction = dialogState.action === 'suspend' && dialogState.user?.status === 'suspended';
+    const isUnsuspendAction = dialogState.action === 'suspend' && dialogState.user?.status === 'Suspended';
 
     return (
         <>
@@ -253,10 +254,11 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
                                                 <DropdownMenuItem onClick={() => openDetailsDialog(user)}>{t('actions.view_details')}</DropdownMenuItem>
                                                 {user.role !== 'admin' && (
                                                     <>
-                                                        <DropdownMenuItem onClick={() => openDialog(user, 'suspend')}>
-                                                            {user.status === 'active' ? t('actions.suspend') : t('actions.unsuspend')}
-                                                        </DropdownMenuItem>
-                                                        <DropdownMenuItem className="text-destructive" onClick={() => openDialog(user, 'delete')}>{t('actions.delete')}</DropdownMenuItem>
+                                                        <DropdownMenuSeparator />
+                                                        {user.status === 'Pending' && <DropdownMenuItem className="text-green-600 focus:text-green-700" onClick={() => openDialog(user, 'approve')}><CheckCircle className="mr-2" />Approve User</DropdownMenuItem>}
+                                                        {user.status === 'Active' && <DropdownMenuItem onClick={() => openDialog(user, 'suspend')}>{t('actions.suspend')}</DropdownMenuItem>}
+                                                        {user.status === 'Suspended' && <DropdownMenuItem onClick={() => openDialog(user, 'suspend')}>{t('actions.unsuspend')}</DropdownMenuItem>}
+                                                        <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => openDialog(user, 'delete')}>{t('actions.delete')}</DropdownMenuItem>
                                                     </>
                                                 )}
                                             </DropdownMenuContent>
@@ -329,16 +331,20 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
             <AlertDialog open={!!dialogState.action} onOpenChange={() => setDialogState({ action: null, user: null })}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>{t('dialog.are_you_sure_title')}</AlertDialogTitle>
+                        <AlertDialogTitle>{
+                            dialogState.action === 'approve' ? 'Approve User' : t('dialog.are_you_sure_title')
+                        }</AlertDialogTitle>
                         <AlertDialogDescription>
                             {dialogState.action === 'delete'
                                 ? t('dialog.delete_user_desc', { name: dialogState.user?.name })
-                                : t(dialogState.user?.status === 'active' ? 'dialog.suspend_user_desc' : 'dialog.unsuspend_user_desc', { name: dialogState.user?.name })
+                                : dialogState.action === 'approve' 
+                                ? `Are you sure you want to approve ${dialogState.user?.name}? Their account will become active.`
+                                : t(dialogState.user?.status === 'Active' ? 'dialog.suspend_user_desc' : 'dialog.unsuspend_user_desc', { name: dialogState.user?.name })
                             }
                         </AlertDialogDescription>
                     </AlertDialogHeader>
 
-                    {!isUnsuspendAction && (
+                    {dialogState.action !== 'approve' && !isUnsuspendAction && (
                         <div className="space-y-4 my-4">
                              <div className="space-y-2">
                                 <Label htmlFor="reason">{t('labels.reason')}</Label>
@@ -367,12 +373,22 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
                     <AlertDialogFooter>
                         <AlertDialogCancel onClick={() => { setReason(""); setOtherReason(""); }}>{t('actions.cancel')}</AlertDialogCancel>
                         <AlertDialogAction
-                            onClick={dialogState.action === 'delete' ? handleDelete : handleSuspend}
-                            className={dialogState.action === 'delete' ? 'bg-destructive hover:bg-destructive/90 text-destructive-foreground' : ''}
+                            onClick={() => {
+                                if (dialogState.action === 'delete') handleDelete();
+                                else if (dialogState.action === 'approve') handleStatusUpdate('Active');
+                                else if (dialogState.action === 'suspend') handleStatusUpdate(dialogState.user?.status === 'Active' ? 'Suspended' : 'Active');
+                            }}
+                            className={cn({
+                                'bg-destructive hover:bg-destructive/90 text-destructive-foreground': dialogState.action === 'delete',
+                                'bg-green-600 hover:bg-green-700 text-white': dialogState.action === 'approve',
+                            })}
                         >
-                            {dialogState.action === 'delete' 
-                                ? t('actions.yes_delete') 
-                                : (dialogState.user?.status === 'active' ? t('actions.yes_suspend') : t('actions.yes_unsuspend'))
+                             {
+                                {
+                                    'delete': t('actions.yes_delete'),
+                                    'approve': 'Yes, Approve',
+                                    'suspend': dialogState.user?.status === 'Active' ? t('actions.yes_suspend') : t('actions.yes_unsuspend')
+                                }[dialogState.action || '']
                             }
                         </AlertDialogAction>
                     </AlertDialogFooter>
