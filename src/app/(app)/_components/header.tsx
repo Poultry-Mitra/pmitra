@@ -25,17 +25,31 @@ import {
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Bell, Search, AlertTriangle, Loader2 } from 'lucide-react';
-import { useUser } from '@/firebase/provider';
+import { useAuth } from '@/firebase/provider';
 import { LanguageToggle } from '@/components/language-toggle';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { useLanguage } from '@/components/language-provider';
+import { useAppUser } from '@/app/app-provider';
+import { signOut } from 'firebase/auth';
+import { useRouter } from 'next/navigation';
 
 export function AppHeader() {
-  const { user: firebaseUser, isUserLoading } = useUser();
+  const { user: appUser, loading: isUserLoading } = useAppUser();
+  const auth = useAuth();
+  const router = useRouter();
   const [showLogoutAlert, setShowLogoutAlert] = useState(false);
   const { t } = useLanguage();
 
-  if (isUserLoading) {
+  const handleLogout = async () => {
+    if (auth) {
+      await signOut(auth);
+      router.push('/login');
+    }
+    setShowLogoutAlert(false);
+  };
+
+
+  if (isUserLoading || !appUser) {
     return (
       <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
         <SidebarTrigger className="md:hidden" />
@@ -46,16 +60,8 @@ export function AppHeader() {
     );
   }
 
-  if (!firebaseUser) {
-    return (
-        <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
-            <SidebarTrigger className="md:hidden" />
-        </header>
-    )
-  }
-
-  const userName = firebaseUser.displayName || firebaseUser.email || "User";
-  const userFallback = (firebaseUser.displayName || firebaseUser.email || "U").charAt(0);
+  const userName = appUser.name || "User";
+  const userFallback = appUser.name ? appUser.name.charAt(0) : "U";
 
 
   return (
@@ -108,8 +114,8 @@ export function AppHeader() {
             </AlertDialogHeader>
             <AlertDialogFooter>
                 <AlertDialogCancel>{t('actions.cancel')}</AlertDialogCancel>
-                <AlertDialogAction asChild>
-                    <Link href="/login">{t('actions.logout')}</Link>
+                <AlertDialogAction onClick={handleLogout}>
+                    {t('actions.logout')}
                 </AlertDialogAction>
             </AlertDialogFooter>
             </AlertDialogContent>

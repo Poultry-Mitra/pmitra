@@ -93,7 +93,7 @@ export default function RoleLoginPage() {
         router.replace(`/login/${userData.role}`);
         return;
       }
-      if (userData.status === 'Pending') {
+       if (userData.status === 'Pending') {
         await auth.signOut();
         toast({ title: "Account Pending", description: "Your account is pending approval by an administrator.", variant: "destructive" });
         setIsCheckingUser(false);

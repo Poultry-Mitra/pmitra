@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect } from 'react';
@@ -13,18 +14,21 @@ import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
 const fontInter = Inter({
   subsets: ['latin'],
   variable: '--font-inter',
+  display: 'swap',
 });
 
 const fontNotoSans = Noto_Sans({
   subsets: ['latin'],
   weight: ['400', '700'],
   variable: '--font-noto-sans',
+  display: 'swap',
 });
 
 const fontHind = Hind({
   subsets: ['latin'],
   weight: ['400', '500', '700'],
   variable: '--font-hind',
+  display: 'swap',
 });
 
 
