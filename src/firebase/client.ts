@@ -22,17 +22,21 @@ export function getFirebase() {
     return { firebaseApp: null, auth: null, firestore: null };
   }
 
+  // If the config is missing, return nulls. This prevents errors during the build process
+  // or if env variables are not set.
+  if (
+    !firebaseConfig.apiKey ||
+    !firebaseConfig.authDomain ||
+    !firebaseConfig.projectId
+  ) {
+    // We log an error for the developer to see, but we don't throw an error
+    // to prevent the application from crashing.
+    console.error("Firebase configuration is missing or incomplete. Please check your environment variables.");
+    return { firebaseApp: null, auth: null, firestore: null };
+  }
+
   // If on the client and not yet initialized, initialize.
   if (!getApps().length) {
-    if (
-      !firebaseConfig.apiKey ||
-      !firebaseConfig.authDomain ||
-      !firebaseConfig.projectId
-    ) {
-      console.error("Firebase configuration is missing. Please check your environment variables.");
-       return { firebaseApp: null, auth: null, firestore: null };
-    }
-    
     firebaseApp = initializeApp(firebaseConfig);
     auth = getAuth(firebaseApp);
     firestore = getFirestore(firebaseApp);
