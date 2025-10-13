@@ -278,8 +278,8 @@ function LandingPageContent() {
         <div className="container flex flex-col items-center justify-between gap-4 md:h-24 md:flex-row">
           <nav className="flex gap-4 text-sm text-muted-foreground">
             <Link href="#features" className="hover:text-foreground">{t('footer.about')}</Link>
-            <Link href="#pricing-preview" className="hover:text-foreground">{t('footer.terms')}</Link>
-            <Link href="#pricing-preview" className="hover:text-foreground">{t('footer.privacy')}</Link>
+            <Link href="/terms" className="hover:text-foreground">{t('footer.terms')}</Link>
+            <Link href="/privacy" className="hover:text-foreground">{t('footer.privacy')}</Link>
             <Link href="#contact" className="hover:text-foreground">{t('footer.contact')}</Link>
           </nav>
           <p className="text-center text-sm leading-loose text-muted-foreground md:text-left">
