@@ -16,7 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth, useFirestore } from "@/firebase/provider";
-import { createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, type User as FirebaseAuthUser } from "firebase/auth";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 import { AppIcon } from "@/app/icon";
 import { Loader2 } from "lucide-react";
@@ -26,7 +26,7 @@ import { Separator } from "@/components/ui/separator";
 const formSchema = z.object({
     fullName: z.string().min(3, { message: "Full name must be at least 3 characters." }),
     email: z.string().email({ message: "Please enter a valid email address." }),
-    password: z.string().min(6, { message: "Password must be at least 6 characters." }),
+    password: z.string().min(6, { message: "Password must be at least 6 characters." }).optional(),
     mobileNumber: z.string().optional(),
     state: z.string().min(1, { message: "Please select a state." }),
     district: z.string().min(1, { message: "Please select a district." }),
@@ -56,6 +56,8 @@ export default function DetailedSignupPage() {
     const initialRole = (params.role as string) || "farmer";
     const [districts, setDistricts] = useState<string[]>([]);
     const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+    const [authProvider, setAuthProvider] = useState<'email' | 'google'>('email');
+    const [googleUser, setGoogleUser] = useState<FirebaseAuthUser | null>(null);
 
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
@@ -76,15 +78,15 @@ export default function DetailedSignupPage() {
         if (selectedState) {
             const stateData = indianStates.states.find(s => s.state === selectedState);
             setDistricts(stateData ? stateData.districts : []);
-            form.setValue("district", ""); // Reset district when state changes
+            form.setValue("district", "");
         } else {
             setDistricts([]);
         }
     }, [selectedState, form]);
-
-    async function handleUserCreation(user: any, providerData: { fullName: string, email: string }) {
+    
+    async function handleFinalUserCreation(userId: string, values: FormValues) {
         if (!firestore) return;
-        const userDocRef = doc(firestore, "users", user.uid);
+        const userDocRef = doc(firestore, "users", userId);
         const docSnap = await getDoc(userDocRef);
 
         if (docSnap.exists()) {
@@ -94,30 +96,25 @@ export default function DetailedSignupPage() {
             return;
         }
 
-        const isAdminEmail = providerData.email.toLowerCase() === 'ipoultrymitra@gmail.com';
+        const isAdminEmail = values.email.toLowerCase() === 'ipoultrymitra@gmail.com';
         const finalRole = isAdminEmail ? 'admin' : initialRole;
         const finalStatus = isAdminEmail ? 'Active' : 'Pending';
 
         const userProfile = {
-            name: providerData.fullName,
-            email: providerData.email,
+            name: values.fullName,
+            email: values.email,
             role: finalRole,
             status: finalStatus,
-            mobileNumber: "",
-            state: "",
-            district: "",
-            pinCode: "",
+            mobileNumber: values.mobileNumber || "",
+            state: values.state,
+            district: values.district,
+            pinCode: values.pinCode || "",
             planType: isAdminEmail ? 'premium' : 'free',
             aiQueriesCount: 0,
             lastQueryDate: "",
             dateJoined: new Date().toISOString(),
-            ...(finalRole === 'dealer' && { 
-                uniqueDealerCode: `DL-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
-                connectedFarmers: [],
-            }),
-            ...(finalRole === 'farmer' && {
-                connectedDealers: [],
-            }),
+            ...(finalRole === 'dealer' && { uniqueDealerCode: `DL-${Math.random().toString(36).substring(2, 8).toUpperCase()}`, connectedFarmers: [] }),
+            ...(finalRole === 'farmer' && { connectedDealers: [] }),
         };
 
         await setDoc(userDocRef, userProfile);
@@ -132,31 +129,31 @@ export default function DetailedSignupPage() {
 
     async function onSubmit(values: FormValues) {
         if (!auth || !firestore) {
-            toast({ title: "Error", description: "Firebase not initialized. Please try again later.", variant: "destructive" });
+            toast({ title: "Error", description: "Firebase not initialized.", variant: "destructive" });
             return;
         }
 
         try {
-            const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
-            await handleUserCreation(userCredential.user, values);
+            let userId: string;
+            if (authProvider === 'google' && googleUser) {
+                // User already authenticated with Google, just create the profile
+                userId = googleUser.uid;
+            } else {
+                // Create user with email and password
+                if (!values.password) {
+                    form.setError('password', { message: 'Password is required for email signup.' });
+                    return;
+                }
+                const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
+                userId = userCredential.user.uid;
+            }
+            await handleFinalUserCreation(userId, values);
         } catch (error: any) {
             console.error("Signup failed:", error);
             if (error.code === 'auth/email-already-in-use') {
-                form.setError('email', {
-                    type: 'manual',
-                    message: 'This email is already registered. Please login or use a different email.'
-                });
-            } else if (error.code === 'auth/weak-password') {
-                form.setError('password', {
-                    type: 'manual',
-                    message: 'The password is too weak. Please use at least 6 characters.'
-                });
+                form.setError('email', { type: 'manual', message: 'This email is already registered. Please login.' });
             } else {
-                toast({
-                    title: "Signup Failed",
-                    description: "An unexpected error occurred. Please try again.",
-                    variant: "destructive",
-                });
+                toast({ title: "Signup Failed", description: "An unexpected error occurred.", variant: "destructive" });
             }
         }
     }
@@ -168,11 +165,20 @@ export default function DetailedSignupPage() {
         try {
             const result = await signInWithPopup(auth, provider);
             const user = result.user;
-            await handleUserCreation(user, { fullName: user.displayName || '', email: user.email || '' });
+            
+            // Pre-fill form instead of creating user immediately
+            form.reset({
+                fullName: user.displayName || "",
+                email: user.email || "",
+                password: "", // No password needed for Google sign-up
+            });
+            setAuthProvider('google');
+            setGoogleUser(user);
+
         } catch (error: any) {
             console.error("Google sign up error:", error);
             if (error.code !== 'auth/popup-closed-by-user') {
-                toast({ title: "Google Sign-Up Failed", description: "Could not sign up with Google. Please try again.", variant: "destructive" });
+                toast({ title: "Google Sign-Up Failed", description: "Could not sign up with Google.", variant: "destructive" });
             }
         } finally {
             setIsGoogleLoading(false);
@@ -190,18 +196,22 @@ export default function DetailedSignupPage() {
                     <CardDescription>Fill in your details or use Google to get started.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <Button variant="outline" className="w-full" onClick={handleGoogleSignUp} disabled={isSubmitting}>
-                        {isGoogleLoading ? <Loader2 className="mr-2 animate-spin" /> : <GoogleIcon />}
-                        Continue with Google
-                    </Button>
-                    <div className="relative my-6">
-                        <div className="absolute inset-0 flex items-center">
-                            <span className="w-full border-t" />
-                        </div>
-                        <div className="relative flex justify-center text-xs uppercase">
-                            <span className="bg-background px-2 text-muted-foreground">Or sign up with email</span>
-                        </div>
-                    </div>
+                    {authProvider === 'email' && (
+                        <>
+                            <Button variant="outline" className="w-full" onClick={handleGoogleSignUp} disabled={isSubmitting}>
+                                {isGoogleLoading ? <Loader2 className="mr-2 animate-spin" /> : <GoogleIcon />}
+                                Continue with Google
+                            </Button>
+                            <div className="relative my-6">
+                                <div className="absolute inset-0 flex items-center">
+                                    <span className="w-full border-t" />
+                                </div>
+                                <div className="relative flex justify-center text-xs uppercase">
+                                    <span className="bg-background px-2 text-muted-foreground">Or sign up with email</span>
+                                </div>
+                            </div>
+                        </>
+                    )}
 
                     <Form {...form}>
                         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -210,13 +220,16 @@ export default function DetailedSignupPage() {
                                     <FormItem><FormLabel>Full Name</FormLabel><FormControl><Input placeholder="Your full name" {...field} /></FormControl><FormMessage /></FormItem>
                                 )} />
                                 <FormField control={form.control} name="email" render={({ field }) => (
-                                    <FormItem><FormLabel>Email</FormLabel><FormControl><Input type="email" placeholder="your@email.com" {...field} /></FormControl><FormMessage /></FormItem>
+                                    <FormItem><FormLabel>Email</FormLabel><FormControl><Input type="email" placeholder="your@email.com" {...field} disabled={authProvider === 'google'} /></FormControl><FormMessage /></FormItem>
                                 )} />
                             </div>
-                            <FormField control={form.control} name="password" render={({ field }) => (
-                                <FormItem><FormLabel>Password</FormLabel><FormControl><Input type="password" placeholder="••••••••" {...field} /></FormControl><FormMessage /></FormItem>
-                            )} />
 
+                            {authProvider === 'email' && (
+                                <FormField control={form.control} name="password" render={({ field }) => (
+                                    <FormItem><FormLabel>Password</FormLabel><FormControl><Input type="password" placeholder="••••••••" {...field} /></FormControl><FormMessage /></FormItem>
+                                )} />
+                            )}
+                            
                             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                 <FormField control={form.control} name="state" render={({ field }) => (
                                     <FormItem>
