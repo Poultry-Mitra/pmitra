@@ -35,7 +35,7 @@ export function AppProvider({ children, allowedRoles }: { children: ReactNode; a
     // If it's a public page, no auth checks needed. Render immediately.
     if (allowedRoles.includes('public')) {
       // If a logged-in user tries to access a public-only page (e.g., /login), redirect them.
-      if (firebaseUser) {
+      if (firebaseUser && firestore) {
         const userDocRef = doc(firestore, 'users', firebaseUser.uid);
         getDoc(userDocRef).then(docSnap => {
           if (docSnap.exists()) {
@@ -46,6 +46,10 @@ export function AppProvider({ children, allowedRoles }: { children: ReactNode; a
             setAppUser(null);
             setStatus('success');
           }
+        }).catch(() => {
+            // Error fetching doc, treat as logged out
+            setAppUser(null);
+            setStatus('success');
         });
       } else {
         setAppUser(null);
@@ -107,7 +111,7 @@ export function AppProvider({ children, allowedRoles }: { children: ReactNode; a
 
   }, [isAuthLoading, firebaseUser, firestore, router, pathname, allowedRoles]);
 
-  if (status !== 'success' && !allowedRoles.includes('public')) {
+  if (status !== 'success') {
     return (
       <div className="flex h-screen w-full items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" />

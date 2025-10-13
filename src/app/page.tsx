@@ -281,7 +281,7 @@ function LandingPageContent() {
 
       <footer id="contact" className="border-t bg-secondary/50 text-foreground">
         <div className="container py-12">
-          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-1 gap-y-8 gap-x-6 sm:grid-cols-2 lg:grid-cols-4">
             <div className="lg:col-span-1">
               <Link href="/" className="flex items-center space-x-2">
                 <AppIcon className="size-8 text-primary" />
@@ -289,9 +289,9 @@ function LandingPageContent() {
               </Link>
               <p className="mt-4 text-sm text-muted-foreground">{t('hero.subtitle')}</p>
               <div className="mt-4 flex space-x-4">
-                <Link href="#"><Twitter className="size-5 text-muted-foreground hover:text-primary" /></Link>
-                <Link href="#"><Facebook className="size-5 text-muted-foreground hover:text-primary" /></Link>
-                <Link href="#"><Linkedin className="size-5 text-muted-foreground hover:text-primary" /></Link>
+                <Link href="#" aria-label="Twitter"><Twitter className="size-5 text-muted-foreground hover:text-primary" /></Link>
+                <Link href="#" aria-label="Facebook"><Facebook className="size-5 text-muted-foreground hover:text-primary" /></Link>
+                <Link href="#" aria-label="LinkedIn"><Linkedin className="size-5 text-muted-foreground hover:text-primary" /></Link>
               </div>
             </div>
 
@@ -315,8 +315,21 @@ function LandingPageContent() {
             </div>
 
             <div className="sm:col-span-2 lg:col-span-1">
-              <h3 className="font-semibold">Stay Updated</h3>
-              <p className="text-muted-foreground text-sm mt-4">Subscribe to our newsletter for the latest updates and tips.</p>
+                <h3 className="font-semibold">Get the App</h3>
+                <div className="mt-4 flex flex-col space-y-3">
+                    <Button variant="outline" asChild>
+                        <a href="https://apps.apple.com" target="_blank" rel="noopener noreferrer">
+                            <Store className="mr-2" /> App Store
+                        </a>
+                    </Button>
+                    <Button variant="outline" asChild>
+                         <a href="https://play.google.com" target="_blank" rel="noopener noreferrer">
+                            <Store className="mr-2" /> Google Play
+                        </a>
+                    </Button>
+                </div>
+                 <h3 className="font-semibold mt-6">Stay Updated</h3>
+              <p className="text-muted-foreground text-sm mt-2">Subscribe to our newsletter for the latest updates and tips.</p>
               <div className="mt-4 flex w-full max-w-sm items-center space-x-2">
                   <Input type="email" placeholder="Email" />
                   <Button type="submit">Subscribe</Button>

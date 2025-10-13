@@ -27,10 +27,10 @@ import { useToast } from "@/hooks/use-toast";
 import { Send, Loader2 } from 'lucide-react';
 import { useFirestore, useUser } from '@/firebase/provider';
 import { findUserByUniqueCode } from '@/hooks/use-users';
-import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
+import { addDoc, collection, serverTimestamp, query, where, getDocs } from 'firebase/firestore';
 
 const formSchema = z.object({
-    farmerId: z.string().min(1, "Please enter a Farmer ID."),
+    farmerId: z.string().min(1, "Please enter a Farmer ID.").regex(/^PM-FARM-[A-Z0-9]{5}$/, "Invalid Farmer ID format. e.g., PM-FARM-ABC12"),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -54,13 +54,34 @@ export function ConnectFarmerDialog({ open, onOpenChange }: { open: boolean; onO
         }
 
         try {
-            // This is a simplified connection request. 
-            // In a real app, you would query for the farmer by their unique ID.
+            // Find the farmer by their PoultryMitra ID. We'll query where role is 'farmer'
+            // and their ID matches the last part of the unique code.
+            const farmerUID = values.farmerId.split('-').pop()?.toLowerCase();
+            if (!farmerUID) {
+                throw new Error("Invalid Farmer ID format.");
+            }
+            
+            const usersCollection = collection(firestore, 'users');
+            // This is a simplified search. A better way would be a dedicated search field.
+            // But for this use-case, let's try to match based on the last part of ID.
+            const q = query(usersCollection, where("role", "==", "farmer"));
+            const querySnapshot = await getDocs(q);
+
+            let foundFarmer = null;
+            querySnapshot.forEach(doc => {
+                if (doc.id.toLowerCase().startsWith(farmerUID)) {
+                    foundFarmer = { id: doc.id, ...doc.data() };
+                }
+            });
+
+            if (!foundFarmer) {
+                 throw new Error("No farmer found with that PoultryMitra ID.");
+            }
+
             const connectionsCollection = collection(firestore, 'connections');
              await addDoc(connectionsCollection, {
                 dealerUID: dealerUser.uid,
-                // We are mocking farmerUID here as we don't have a lookup function yet
-                farmerUID: `mock_farmer_${values.farmerId}`, 
+                farmerUID: foundFarmer.id, 
                 status: 'Pending',
                 requestedBy: 'dealer',
                 createdAt: serverTimestamp(),
@@ -69,7 +90,7 @@ export function ConnectFarmerDialog({ open, onOpenChange }: { open: boolean; onO
 
             toast({
                 title: "Connection Request Sent!",
-                description: `A connection request has been sent to farmer ${values.farmerId}.`,
+                description: `A connection request has been sent to farmer ${foundFarmer.name}.`,
             });
             onOpenChange(false);
             form.reset();
