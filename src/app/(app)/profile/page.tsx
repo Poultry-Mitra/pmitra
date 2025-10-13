@@ -12,7 +12,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useUser, useFirestore, useAuth } from '@/firebase/provider';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { useEffect, useState, useRef } from 'react';
 import { Loader2, Save, KeyRound, Edit } from 'lucide-react';
 import type { User as AppUser } from '@/lib/types';
@@ -87,8 +87,13 @@ export default function ProfilePage() {
             pinCode: values.pinCode
         };
 
-        updateDocumentNonBlocking(userDocRef, updatedData);
-        toast({ title: t('profile.update_success_title'), description: t('profile.update_success_desc') });
+        try {
+            await updateDoc(userDocRef, updatedData);
+            toast({ title: t('profile.update_success_title'), description: t('profile.update_success_desc') });
+        } catch (error) {
+            console.error("Profile update failed:", error);
+            toast({ title: t('messages.error'), description: t('profile.update_fail_desc'), variant: "destructive" });
+        }
     }
     
     const handlePasswordReset = async () => {

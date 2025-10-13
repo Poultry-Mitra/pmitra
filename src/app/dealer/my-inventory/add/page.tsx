@@ -154,11 +154,13 @@ export default function AddStockPage() {
 
             const ledgerDescription = `Purchase from ${values.supplierName || 'Unknown Supplier'}` + (values.invoiceNumber ? ` (Bill: ${values.invoiceNumber})` : '');
             
-            await addLedgerEntry(firestore, user.uid, {
-                description: ledgerDescription,
-                amount: netPayable,
-                date: new Date(values.invoiceDate).toISOString(),
-            }, 'Debit');
+            if (netPayable > 0) {
+                 await addLedgerEntry(firestore, user.uid, {
+                    description: ledgerDescription,
+                    amount: netPayable,
+                    date: new Date(values.invoiceDate).toISOString(),
+                }, 'Debit');
+            }
             
             toast({
                 title: "Stock Added",

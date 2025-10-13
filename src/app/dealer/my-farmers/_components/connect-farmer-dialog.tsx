@@ -26,8 +26,8 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Send, Loader2 } from 'lucide-react';
 import { useFirestore, useUser } from '@/firebase/provider';
-import { findUserByUniqueCode } from '@/hooks/use-users';
-import { addDoc, collection, serverTimestamp, query, where, getDocs } from 'firebase/firestore';
+import { addDoc, collection, serverTimestamp, query, where, getDocs, limit } from 'firebase/firestore';
+import type { User } from '@/lib/types';
 
 const formSchema = z.object({
     farmerId: z.string().min(1, "Please enter a Farmer ID.").regex(/^PM-FARM-[A-Z0-9]{5}$/, "Invalid Farmer ID format. e.g., PM-FARM-ABC12"),
@@ -54,23 +54,20 @@ export function ConnectFarmerDialog({ open, onOpenChange }: { open: boolean; onO
         }
 
         try {
-            // Find the farmer by their PoultryMitra ID. We'll query where role is 'farmer'
-            // and their ID matches the last part of the unique code.
-            const farmerUID = values.farmerId.split('-').pop()?.toLowerCase();
-            if (!farmerUID) {
+            // Find the farmer by their PoultryMitra ID.
+            const farmerUIDprefix = values.farmerId.split('-').pop()?.toLowerCase();
+            if (!farmerUIDprefix) {
                 throw new Error("Invalid Farmer ID format.");
             }
             
             const usersCollection = collection(firestore, 'users');
-            // This is a simplified search. A better way would be a dedicated search field.
-            // But for this use-case, let's try to match based on the last part of ID.
-            const q = query(usersCollection, where("role", "==", "farmer"));
+            const q = query(usersCollection, where("role", "==", "farmer"), limit(500)); // Limit to prevent large reads
             const querySnapshot = await getDocs(q);
 
-            let foundFarmer = null;
+            let foundFarmer: (User & { id: string }) | null = null;
             querySnapshot.forEach(doc => {
-                if (doc.id.toLowerCase().startsWith(farmerUID)) {
-                    foundFarmer = { id: doc.id, ...doc.data() };
+                if (doc.id.toLowerCase().startsWith(farmerUIDprefix)) {
+                    foundFarmer = { id: doc.id, ...doc.data() } as User & { id: string };
                 }
             });
 
