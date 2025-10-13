@@ -1,7 +1,6 @@
 
 "use client";
 
-import { useState, useEffect } from 'react';
 import { PageHeader } from "../_components/page-header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -10,7 +9,7 @@ import { AIForecast } from "./_components/ai-forecast";
 import { useUser } from '@/firebase/provider';
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { collection, query, where, orderBy, limit } from 'firebase/firestore';
-import { useFirestore } from '@/firebase';
+import { useFirestore, useMemoFirebase } from '@/firebase';
 import type { SensorData, FarmAlert } from '@/lib/types';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -19,30 +18,30 @@ export default function MonitoringPage() {
     const firestore = useFirestore();
 
     // Fetch latest sensor data (assuming one document per farm for simplicity)
-    const sensorQuery = firestore && user ? query(
+    const sensorQuery = useMemoFirebase(() => firestore && user ? query(
         collection(firestore, 'farmData'),
         where('farmId', '==', user.uid), // Assuming farmId is user.uid for simplicity
         orderBy('timestamp', 'desc'),
         limit(4) // Fetching 4 latest readings for 4 coops
-    ) : null;
+    ) : null, [firestore, user]);
     const { data: sensorData, isLoading: sensorLoading } = useCollection<SensorData>(sensorQuery);
     
     // Fetch active alerts
-    const alertsQuery = firestore && user ? query(
+    const alertsQuery = useMemoFirebase(() => firestore && user ? query(
         collection(firestore, 'farmAlerts'),
         where('farmId', '==', user.uid),
         where('isRead', '==', false),
         orderBy('timestamp', 'desc')
-    ) : null;
+    ) : null, [firestore, user]);
     const { data: alerts, isLoading: alertsLoading } = useCollection<FarmAlert>(alertsQuery);
 
     // Fetch historical data for AI forecast
-    const historicalQuery = firestore && user ? query(
+    const historicalQuery = useMemoFirebase(() => firestore && user ? query(
         collection(firestore, 'farmData'),
         where('farmId', '==', user.uid),
         orderBy('timestamp', 'desc'),
         limit(100) // Last 100 records for historical context
-    ) : null;
+    ) : null, [firestore, user]);
     const { data: historicalData, isLoading: historyLoading } = useCollection<SensorData>(historicalQuery);
 
     const loading = sensorLoading || alertsLoading || historyLoading;
@@ -59,7 +58,7 @@ export default function MonitoringPage() {
                      <h2 className="font-headline text-xl font-semibold mb-4">Live Sensor Readings</h2>
                      {loading ? (
                          <div className="grid gap-4 md:grid-cols-2">
-                             {[...Array(4)].map(i => <Card key={i} className="h-36"><CardContent className="pt-6 flex justify-center items-center h-full"><Loader2 className="animate-spin"/></CardContent></Card>)}
+                             {[...Array(4)].map((_, i) => <Card key={i} className="h-36"><CardContent className="pt-6 flex justify-center items-center h-full"><Loader2 className="animate-spin"/></CardContent></Card>)}
                          </div>
                      ) : sensorData && sensorData.length > 0 ? (
                          <div className="grid gap-4 md:grid-cols-2">
@@ -140,5 +139,7 @@ export default function MonitoringPage() {
         </>
     );
 }
+
+    
 
     

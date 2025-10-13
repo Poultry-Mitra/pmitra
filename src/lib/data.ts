@@ -14,3 +14,5 @@ export const mockHistoricalData = {
 };
 
 export const mockDailyRates: DailyRates[] = [];
+
+    
