@@ -1,4 +1,7 @@
 
+"use client";
+
+import { useEffect } from 'react';
 import type { Metadata } from 'next';
 import { Toaster } from '@/components/ui/toaster';
 import './globals.css';
@@ -26,22 +29,46 @@ const fontHind = Hind({
   variable: '--font-hind',
 });
 
-
-export const metadata: Metadata = {
-  title: 'PoultryMitra - Your AI-Powered Poultry Farming Assistant',
-  description: 'Leverage AI to optimize your poultry farm with data analytics, real-time monitoring, and expert support.',
-  icons: {
-    icon: '/icon.svg',
-  },
-};
+// Metadata is now defined as a static object as we are in a client component
+// For dynamic metadata, you would use the `generateMetadata` function in a server component layout.
+// export const metadata: Metadata = {
+//   title: 'PoultryMitra - Your AI-Powered Poultry Farming Assistant',
+//   description: 'Leverage AI to optimize your poultry farm with data analytics, real-time monitoring, and expert support.',
+//   icons: {
+//     icon: '/icon.svg',
+//   },
+// };
 
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  
+  useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/service-worker.js').then(
+          (registration) => {
+            console.log('Service Worker registration successful with scope: ', registration.scope);
+          },
+          (err) => {
+            console.log('Service Worker registration failed: ', err);
+          }
+        );
+      });
+    }
+  }, []);
+
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <title>PoultryMitra - Your AI-Powered Poultry Farming Assistant</title>
+        <meta name="description" content="Leverage AI to optimize your poultry farm with data analytics, real-time monitoring, and expert support." />
+        <link rel="icon" href="/icon.svg" />
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#1565C0" />
+      </head>
       <body 
         className={cn(
           "font-body antialiased",
