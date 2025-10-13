@@ -52,8 +52,7 @@ export default function LandingPage() {
   }, [firebaseUser, firestore]);
   
   const getDashboardPath = () => {
-    if (isUserLoading) return '/login';
-    if (!firebaseUser || !appUser) return '/login';
+    if (isUserLoading || !appUser) return "/login";
     switch (appUser.role) {
       case 'farmer':
         return '/dashboard';
