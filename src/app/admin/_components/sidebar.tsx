@@ -142,19 +142,19 @@ export function AdminSidebar() {
             <SidebarMenu>
                 <Collapsible open={managementOpen} onOpenChange={setManagementOpen}>
                     <SidebarMenuItem className="relative">
-                    <CollapsibleTrigger asChild>
-                        <SidebarMenuButton tooltip="User Management" className="w-full justify-between pr-8" isActive={pathname.startsWith("/admin/user-management")}>
-                            <div className="flex items-center gap-3">
-                                <Users />
-                                <span>User Management</span>
+                        <CollapsibleTrigger asChild>
+                            <SidebarMenuButton tooltip="User Management" className="w-full justify-between pr-8" isActive={pathname.startsWith("/admin/user-management")}>
+                                <div className="flex items-center gap-3">
+                                    <Users />
+                                    <span>User Management</span>
+                                </div>
+                            </SidebarMenuButton>
+                        </CollapsibleTrigger>
+                        { state === 'expanded' && (
+                            <div className="absolute right-2 top-1/2 -translate-y-1/2">
+                                {managementOpen ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
                             </div>
-                        </SidebarMenuButton>
-                    </CollapsibleTrigger>
-                    { state === 'expanded' && (
-                        <div className="absolute right-2 top-1/2 -translate-y-1/2">
-                            {managementOpen ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
-                        </div>
-                    )}
+                        )}
                     </SidebarMenuItem>
 
                     <CollapsibleContent>
@@ -218,19 +218,19 @@ export function AdminSidebar() {
             <SidebarMenu>
                 <Collapsible open={settingsOpen} onOpenChange={setSettingsOpen}>
                     <SidebarMenuItem className="relative">
-                    <CollapsibleTrigger asChild>
-                        <SidebarMenuButton tooltip="Settings" className="w-full justify-between pr-8" isActive={pathname.startsWith("/admin/settings")}>
-                            <div className="flex items-center gap-3">
-                                <Settings />
-                                <span>Settings</span>
+                        <CollapsibleTrigger asChild>
+                            <SidebarMenuButton tooltip="Settings" className="w-full justify-between pr-8" isActive={pathname.startsWith("/admin/settings")}>
+                                <div className="flex items-center gap-3">
+                                    <Settings />
+                                    <span>Settings</span>
+                                </div>
+                            </SidebarMenuButton>
+                        </CollapsibleTrigger>
+                        { state === 'expanded' && (
+                            <div className="absolute right-2 top-1/2 -translate-y-1/2">
+                                {settingsOpen ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
                             </div>
-                        </SidebarMenuButton>
-                    </CollapsibleTrigger>
-                    { state === 'expanded' && (
-                        <div className="absolute right-2 top-1/2 -translate-y-1/2">
-                            {settingsOpen ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
-                        </div>
-                    )}
+                        )}
                     </SidebarMenuItem>
 
                     <CollapsibleContent>
