@@ -21,7 +21,7 @@ export function PendingOrders() {
 
     const handleUpdateStatus = async (order: Order, status: 'Approved' | 'Rejected') => {
         try {
-            await updateOrderStatus(order.id, status, firestore);
+            await updateOrderStatus(order, status, firestore);
             toast({
                 title: `Order ${status}`,
                 description: `The order for ${order.productName} has been successfully ${status.toLowerCase()}.`
