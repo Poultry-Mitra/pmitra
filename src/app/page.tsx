@@ -2,6 +2,7 @@
 "use client";
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -16,7 +17,9 @@ import {
   Facebook,
   Linkedin,
   Download,
-  Store
+  Store,
+  CheckCircle,
+  TrendingUp,
 } from 'lucide-react';
 import { AppIcon } from './icon-component';
 import { ThemeToggle } from '@/components/theme-toggle';
@@ -167,26 +170,86 @@ function LandingPageContent() {
         <RateTicker />
       </header>
       <main className="flex-1">
-        <section id="hero" className="container flex flex-col items-center justify-center gap-8 py-20 text-center md:py-28 lg:py-32">
-            <div className="flex flex-col items-center gap-4">
-                <h1 className="font-headline text-4xl font-bold leading-tight tracking-tighter md:text-5xl lg:text-6xl">
-                {t('hero.title')}
-                </h1>
-                <p className="max-w-[700px] text-lg text-muted-foreground">
-                {t('hero.subtitle')}
+        <section id="hero" className="container py-20 md:py-28 lg:py-32">
+            <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-2">
+                <div className="flex flex-col items-center text-center lg:items-start lg:text-left">
+                    <h1 className="font-headline text-4xl font-bold leading-tight tracking-tighter md:text-5xl lg:text-6xl">
+                    {t('hero.title')}
+                    </h1>
+                    <p className="mt-6 max-w-[600px] text-lg text-muted-foreground">
+                    {t('hero.subtitle')}
+                    </p>
+                    <div className="flex gap-4 mt-8">
+                        <Button size="lg" asChild>
+                            <Link href={getStartedHref()}>{t('hero.get_started')}</Link>
+                        </Button>
+                        <Button size="lg" variant="outline" asChild>
+                            <Link href="#features">{t('hero.watch_demo')}</Link>
+                        </Button>
+                    </div>
+                </div>
+                <div className="relative h-80 w-full overflow-hidden rounded-lg shadow-2xl lg:h-96">
+                    <Image
+                        src="https://picsum.photos/seed/poultry-farm/1200/800"
+                        alt="Modern poultry farm management dashboard"
+                        fill
+                        className="object-cover"
+                        data-ai-hint="modern poultry farm"
+                    />
+                     <div className="absolute inset-0 bg-gradient-to-t from-background/20 to-transparent"></div>
+                </div>
+            </div>
+        </section>
+        
+        <section id="social-proof" className="py-12">
+            <div className="container">
+                <p className="text-center font-medium text-muted-foreground">
+                    Trusted by 500+ farms and businesses across India
                 </p>
-                <div className="flex gap-4 mt-4">
-                  <Button size="lg" asChild>
-                      <Link href={getStartedHref()}>{t('hero.get_started')}</Link>
-                  </Button>
-                  <Button size="lg" variant="outline" asChild>
-                      <Link href="#features">{t('hero.watch_demo')}</Link>
-                  </Button>
+                <div className="mt-6 flex flex-wrap items-center justify-center gap-x-12 gap-y-4 opacity-50">
+                    <span className="font-bold text-lg">Company A</span>
+                    <span className="font-bold text-lg">Business B</span>
+                    <span className="font-bold text-lg">Enterprise C</span>
+                    <span className="font-bold text-lg">Farm D</span>
+                    <span className="font-bold text-lg">Org E</span>
                 </div>
             </div>
         </section>
 
-        <section id="features" className="container space-y-12 py-8 md:py-16 lg:py-24">
+        <section id="how-it-works" className="bg-secondary py-16 lg:py-24">
+            <div className="container">
+                <div className="mx-auto flex max-w-[58rem] flex-col items-center space-y-4 text-center">
+                    <h2 className="font-headline text-3xl font-bold leading-[1.1] sm:text-3xl md:text-5xl">
+                       How It Works
+                    </h2>
+                    <p className="max-w-[85%] leading-normal text-muted-foreground sm:text-lg sm:leading-7">
+                        Start optimizing your farm in three simple steps.
+                    </p>
+                </div>
+                <div className="relative mt-16">
+                     <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-px w-2/3 bg-border -z-10 hidden md:block" aria-hidden="true"></div>
+                     <div className="grid grid-cols-1 gap-12 md:grid-cols-3">
+                        <div className="flex flex-col items-center gap-4 text-center">
+                            <div className="flex size-12 items-center justify-center rounded-full border-2 border-primary bg-primary/10 font-bold text-primary">1</div>
+                            <h3 className="font-headline text-xl font-semibold">Register & Create Batch</h3>
+                            <p className="text-muted-foreground">Sign up, choose your role, and set up your first poultry batch with basic details.</p>
+                        </div>
+                         <div className="flex flex-col items-center gap-4 text-center">
+                            <div className="flex size-12 items-center justify-center rounded-full border-2 border-primary bg-primary/10 font-bold text-primary">2</div>
+                            <h3 className="font-headline text-xl font-semibold">Track Data & Get Insights</h3>
+                            <p className="text-muted-foreground">Log daily data like mortality and feed. Let our AI provide analytics and suggestions.</p>
+                        </div>
+                         <div className="flex flex-col items-center gap-4 text-center">
+                            <div className="flex size-12 items-center justify-center rounded-full border-2 border-primary bg-primary/10 font-bold text-primary">3</div>
+                            <h3 className="font-headline text-xl font-semibold">Optimize & Increase Profit</h3>
+                            <p className="text-muted-foreground">Use AI-driven insights to improve efficiency, reduce costs, and boost your farm's profitability.</p>
+                        </div>
+                     </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="features" className="container space-y-12 py-16 md:py-20 lg:py-24">
           <div className="mx-auto flex max-w-[58rem] flex-col items-center space-y-4 text-center">
             <h2 className="font-headline text-3xl font-bold leading-[1.1] sm:text-3xl md:text-5xl">
               {t('features.title')}

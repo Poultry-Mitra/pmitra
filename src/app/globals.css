@@ -79,6 +79,7 @@
   }
   body {
     @apply bg-background text-foreground;
+    scroll-behavior: smooth;
   }
   section {
     @apply scroll-mt-20;
