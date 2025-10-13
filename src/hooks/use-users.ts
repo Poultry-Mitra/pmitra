@@ -22,10 +22,11 @@ import {
   deleteDoc,
   limit,
 } from 'firebase/firestore';
-import { useFirestore } from '@/firebase/provider';
+import { useAuth, useFirestore } from '@/firebase/provider';
 import type { User, UserRole } from '@/lib/types';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
+import { createUserWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth';
 
 // Helper to convert Firestore doc to User type
 function toUser(doc: QueryDocumentSnapshot<DocumentData> | DocumentSnapshot<DocumentData>): User {
@@ -188,25 +189,34 @@ export function deleteUser(firestore: Firestore, userId: string) {
 }
 
 
-export async function createUserProfile(firestore: Firestore, newUserProfile: Omit<User, 'id'>) {
-    if (!firestore) {
-        throw new Error("Firestore instance is not available.");
+export async function createUserProfile(firestore: Firestore, auth: any, newUserProfile: Omit<User, 'id'>) {
+    if (!firestore || !auth) {
+        throw new Error("Firestore or Auth instance is not available.");
     }
 
-    const usersCollection = collection(firestore, "users");
+    // A temporary, secure password for initial creation.
+    const tempPassword = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8);
 
     try {
-        const docRef = await addDoc(usersCollection, newUserProfile);
-        return docRef;
+        // Step 1: Create the user in Firebase Authentication
+        const userCredential = await createUserWithEmailAndPassword(auth, newUserProfile.email, tempPassword);
+        const user = userCredential.user;
+
+        // Step 2: Create the user profile document in Firestore
+        const userDocRef = doc(firestore, "users", user.uid);
+        await setDoc(userDocRef, newUserProfile);
+
+        // Step 3: Send a password reset email so the user can set their own password
+        await sendPasswordResetEmail(auth, newUserProfile.email);
+        
+        return userDocRef;
     } catch (error) {
-        // Emit a specific permission error for better debugging
         const permissionError = new FirestorePermissionError({
             path: 'users',
             operation: 'create',
             requestResourceData: newUserProfile,
         });
         errorEmitter.emit('permission-error', permissionError);
-        // Re-throw the original error to be caught by the calling function's try/catch block
         throw error;
     }
 }

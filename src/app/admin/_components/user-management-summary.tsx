@@ -306,10 +306,10 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
                                         </CardContent>
                                      </Card>
                                 </TabsContent>
-                                <TabsContent value="subscription" className="mt-4 space-y-2">
-                                    <div className="font-medium">{t('labels.subscription_plan')}: <Badge>{detailsUser.planType}</Badge></div>
-                                    <div className="flex items-center gap-2 font-medium">{t('labels.status')}: <Badge variant="outline" className="text-green-500 border-green-500">{t('status.active')}</Badge></div>
-                                    <div className="font-medium">{t('labels.next_billing_date')}: 2023-12-01</div>
+                                <TabsContent value="subscription" className="mt-4 space-y-2 text-sm">
+                                    <div><strong className="font-medium">{t('labels.subscription_plan')}:</strong> <Badge variant={detailsUser.planType === 'premium' ? 'default' : 'secondary'} className="capitalize">{detailsUser.planType}</Badge></div>
+                                    <div className="flex items-center gap-2 "><strong className="font-medium">{t('labels.status')}:</strong> <Badge variant="outline" className="text-green-500 border-green-500">{t('status.active')}</Badge></div>
+                                    <div><strong className="font-medium">{t('labels.next_billing_date')}:</strong> {new Date(new Date().setMonth(new Date().getMonth() + 1)).toLocaleDateString()}</div>
                                 </TabsContent>
                                 <TabsContent value="activity" className="mt-4">
                                     <div className="text-center text-muted-foreground p-4">

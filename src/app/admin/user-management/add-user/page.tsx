@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { Save } from "lucide-react";
-import { useFirestore, useUser } from "@/firebase/provider";
+import { useFirestore, useUser, useAuth } from "@/firebase/provider";
 import { createUserProfile } from "@/hooks/use-users";
 import { addAuditLog } from "@/hooks/use-audit-logs";
 
@@ -30,6 +30,7 @@ export default function AddUserPage() {
     const { toast } = useToast();
     const router = useRouter();
     const firestore = useFirestore();
+    const auth = useAuth();
     const adminUser = useUser();
 
     const form = useForm<FormValues>({
@@ -43,7 +44,7 @@ export default function AddUserPage() {
     });
 
     async function onSubmit(values: FormValues) {
-        if (!firestore || !adminUser.user) {
+        if (!firestore || !adminUser.user || !auth) {
             toast({
                 title: "Error",
                 description: "You must be an admin to perform this action.",
@@ -70,7 +71,7 @@ export default function AddUserPage() {
         };
         
         try {
-            const docRef = await createUserProfile(firestore, newUserProfile);
+            const docRef = await createUserProfile(firestore, auth, newUserProfile);
 
             // Create an audit log for this action
             await addAuditLog(firestore, {
@@ -82,7 +83,7 @@ export default function AddUserPage() {
             
             toast({
                 title: "User Profile Created",
-                description: `A profile for ${values.name} has been added. They will need to sign up with this email to access their account.`,
+                description: `A profile for ${values.name} has been created and a password reset email has been sent to them.`,
             });
             
             if (values.role === 'farmer') {
@@ -92,13 +93,14 @@ export default function AddUserPage() {
             } else {
                  router.push('/admin/dashboard');
             }
-        } catch (error) {
-            // The createUserProfile function now throws the error, which might be a FirestorePermissionError.
-            // The FirebaseErrorListener will catch and display it.
-            // We can still show a generic toast as fallback.
+        } catch (error: any) {
+             let errorMessage = "Could not create the user profile. Check the error details.";
+             if (error.code === 'auth/email-already-in-use') {
+                 errorMessage = "This email address is already in use by another account.";
+             }
              toast({
                 title: "User Creation Failed",
-                description: "Could not create the user profile. Check the error details.",
+                description: errorMessage,
                 variant: "destructive",
             });
         }
@@ -111,7 +113,7 @@ export default function AddUserPage() {
                 <Card>
                     <CardHeader>
                         <CardTitle>User Details</CardTitle>
-                        <CardDescription>Fill in the form below to create a new user profile. The user must sign up with the same email to claim this profile.</CardDescription>
+                        <CardDescription>Fill in the form to create a new user. They will receive an email to set their password and log in.</CardDescription>
                     </CardHeader>
                     <CardContent>
                         <Form {...form}>

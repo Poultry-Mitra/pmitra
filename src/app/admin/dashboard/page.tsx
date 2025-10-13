@@ -11,17 +11,73 @@ import { UserManagementSummary } from "../_components/user-management-summary";
 import { useUsers } from "@/hooks/use-users";
 import { useLanguage } from "@/components/language-provider";
 import { useLedger } from "@/hooks/use-ledger";
+import { useMemo } from "react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import type { LedgerEntry, User } from "@/lib/types";
+
+
+function RecentTransactions({ transactions, users, loading }: { transactions: LedgerEntry[], users: User[], loading: boolean }) {
+    const { t } = useLanguage();
+
+    const getTransactionUser = (userId: string) => users.find(u => u.id === userId);
+
+    return (
+        <Card className="lg:col-span-1">
+            <CardHeader>
+                <CardTitle>Recent Transactions</CardTitle>
+                <CardDescription>The last 5 transactions on the platform.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                {loading ? <div className="flex justify-center p-4"><Loader2 className="animate-spin" /></div> : (
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>User</TableHead>
+                                <TableHead className="text-right">Amount</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {transactions.slice(0, 5).map(tx => {
+                                const user = getTransactionUser(tx.userId);
+                                return (
+                                    <TableRow key={tx.id}>
+                                        <TableCell>
+                                            <div className="font-medium">{user?.name || 'Unknown'}</div>
+                                            <div className="text-xs text-muted-foreground">{user?.email || ''}</div>
+                                        </TableCell>
+                                        <TableCell className={`text-right font-semibold ${tx.type === 'Credit' ? 'text-green-600' : 'text-destructive'}`}>
+                                            {tx.type === 'Credit' ? '+' : '-'}₹{tx.amount.toLocaleString()}
+                                        </TableCell>
+                                    </TableRow>
+                                )
+                            })}
+                             {transactions.length === 0 && (
+                                <TableRow>
+                                    <TableCell colSpan={2} className="h-24 text-center">No transactions yet.</TableCell>
+                                </TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
+                )}
+            </CardContent>
+        </Card>
+    )
+}
 
 
 export default function AdminDashboardPage() {
-    const { users, loading } = useUsers();
+    const { users, loading: usersLoading } = useUsers();
     const { t } = useLanguage();
-    // Assuming you want to see the ledger for all users, which might need a dedicated admin hook.
-    // For now, let's just get all ledger entries. A real implementation would need to adjust security rules.
     const { entries: transactions, loading: ledgerLoading } = useLedger();
 
-    // In a real app, revenue and AI chat usage would be fetched from analytics or a separate collection.
-    const totalRevenue = ledgerLoading ? <Loader2 className="animate-spin" /> : `₹${transactions.filter(t => t.type === 'Credit').reduce((acc, t) => acc + t.amount, 0).toLocaleString()}`;
+    const loading = usersLoading || ledgerLoading;
+
+    const totalRevenue = useMemo(() => {
+        if (loading) return 0;
+        return transactions.filter(t => t.type === 'Credit').reduce((acc, t) => acc + t.amount, 0);
+    }, [transactions, loading]);
+    
     const aiChatsUsed = "0"; // Placeholder, needs real data source
 
 
@@ -34,7 +90,7 @@ export default function AdminDashboardPage() {
         },
         {
             title: t('admin.dashboard.kpi_total_revenue'),
-            value: totalRevenue,
+            value: loading ? <Loader2 className="animate-spin" /> : `₹${totalRevenue.toLocaleString()}`,
             change: t('admin.dashboard.kpi_total_revenue_change'),
             icon: IndianRupee,
         },
@@ -84,18 +140,19 @@ export default function AdminDashboardPage() {
                     </Card>
                ))}
             </div>
-             <div className="mt-8 grid grid-cols-1 gap-4 lg:grid-cols-2">
-                <Card className="lg:col-span-1">
+             <div className="mt-8 grid grid-cols-1 gap-4 lg:grid-cols-3">
+                <Card className="lg:col-span-2">
                     <CardHeader>
                         <CardTitle>{t('admin.dashboard.revenue_analytics_title')}</CardTitle>
                         <CardDescription>{t('admin.dashboard.revenue_analytics_desc')}</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <RevenueChart data={[]} />
+                        <RevenueChart ledgerEntries={transactions} />
                     </CardContent>
                 </Card>
-                <div className="lg:col-span-1">
+                <div className="space-y-4">
                     <UserManagementSummary />
+                    <RecentTransactions transactions={transactions} users={users} loading={loading} />
                 </div>
             </div>
         </>
