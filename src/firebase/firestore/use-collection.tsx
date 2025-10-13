@@ -42,7 +42,7 @@ export interface InternalQuery extends Query<DocumentData> {
  * Handles nullable references/queries.
  * 
  * IMPORTANT: The query or reference passed to this hook should be memoized
- * to prevent infinite re-renders.
+ * with useMemo to prevent infinite re-renders.
  *  
  * @template T Optional type for document data. Defaults to any.
  * @param {CollectionReference<DocumentData> | Query<DocumentData> | null | undefined} targetRefOrQuery -
