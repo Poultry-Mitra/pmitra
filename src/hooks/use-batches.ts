@@ -1,4 +1,3 @@
-
 // src/hooks/use-batches.ts
 'use client';
 
@@ -17,10 +16,11 @@ import {
   runTransaction,
   orderBy,
   increment,
+  addDoc,
+  deleteDoc,
 } from 'firebase/firestore';
 import { useFirestore } from '@/firebase/provider';
 import type { Batch, DailyRecord } from '@/lib/types';
-import { addDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
 // Helper to convert Firestore doc to Batch type
 function toBatch(doc: QueryDocumentSnapshot<DocumentData> | DocumentSnapshot<DocumentData>): Batch {
@@ -144,7 +144,7 @@ export function useDailyRecords(batchId: string) {
 }
 
 
-export function addBatch(firestore: Firestore, farmerUID: string, data: Omit<Batch, 'id' | 'createdAt' | 'farmerUID'>) {
+export async function addBatch(firestore: Firestore, farmerUID: string, data: Omit<Batch, 'id' | 'createdAt' | 'farmerUID'>) {
     if (!firestore) throw new Error("Firestore not initialized");
 
     const collectionRef = collection(firestore, 'batches');
@@ -155,13 +155,13 @@ export function addBatch(firestore: Firestore, farmerUID: string, data: Omit<Bat
         createdAt: serverTimestamp(),
     };
 
-    addDocumentNonBlocking(collectionRef, batchData);
+    await addDoc(collectionRef, batchData);
 }
 
-export function deleteBatch(firestore: Firestore, batchId: string) {
+export async function deleteBatch(firestore: Firestore, batchId: string) {
     if (!firestore) throw new Error("Firestore not initialized");
     const docRef = doc(firestore, 'batches', batchId);
-    deleteDocumentNonBlocking(docRef);
+    await deleteDoc(docRef);
 }
 
 export async function addDailyRecord(

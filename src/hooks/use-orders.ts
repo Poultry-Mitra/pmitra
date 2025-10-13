@@ -1,4 +1,3 @@
-
 // src/hooks/use-orders.ts
 'use client';
 
@@ -16,10 +15,11 @@ import {
   runTransaction,
   increment,
   serverTimestamp,
+  addDoc,
+  updateDoc,
 } from 'firebase/firestore';
 import { useFirestore, useUser } from '@/firebase/provider';
 import type { Order } from '@/lib/types';
-import { addDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { addLedgerEntryInTransaction } from './use-ledger';
 
 // Helper to convert Firestore doc to Order type
@@ -111,7 +111,7 @@ export function useOrdersByFarmer(farmerUID?: string) {
 }
 
 
-export function createOrder(firestore: Firestore, data: Omit<Order, 'id' | 'createdAt'>) {
+export async function createOrder(firestore: Firestore, data: Omit<Order, 'id' | 'createdAt'>) {
     if (!firestore) throw new Error("Firestore not initialized");
 
     const orderCollection = collection(firestore, 'orders');
@@ -121,7 +121,7 @@ export function createOrder(firestore: Firestore, data: Omit<Order, 'id' | 'crea
         createdAt: serverTimestamp(),
     };
 
-    addDocumentNonBlocking(orderCollection, orderData);
+    await addDoc(orderCollection, orderData);
 }
 
 export async function updateOrderStatus(order: Order, newStatus: 'Approved' | 'Rejected', firestore: Firestore | null) {
@@ -130,7 +130,7 @@ export async function updateOrderStatus(order: Order, newStatus: 'Approved' | 'R
     const orderRef = doc(firestore, 'orders', order.id);
     
     if (newStatus === 'Rejected') {
-        updateDocumentNonBlocking(orderRef, { status: newStatus });
+        await updateDoc(orderRef, { status: newStatus });
         return;
     }
 

@@ -14,23 +14,20 @@ let firestore: Firestore | null = null;
 /**
  * Initializes and/or returns the Firebase services singleton.
  * This function is safe to call multiple times and will only initialize once.
- * It is designed to be called on both the client and server. On the server, it will return nulls.
+ * Crucially, it returns nulls if on the server or if config is missing.
  */
 export function getFirebase() {
-  // If on the server, return nulls to avoid initialization errors.
+  // If we're on the server, don't even try to initialize.
   if (typeof window === 'undefined') {
     return { firebaseApp: null, auth: null, firestore: null };
   }
 
-  // If the config is missing, return nulls. This prevents errors during the build process
-  // or if env variables are not set.
+  // If config is missing on the client, log an error and return nulls.
   if (
     !firebaseConfig.apiKey ||
     !firebaseConfig.authDomain ||
     !firebaseConfig.projectId
   ) {
-    // We log an error for the developer to see, but we don't throw an error
-    // to prevent the application from crashing.
     console.error("Firebase configuration is missing or incomplete. Please check your environment variables.");
     return { firebaseApp: null, auth: null, firestore: null };
   }
@@ -43,9 +40,9 @@ export function getFirebase() {
   } else {
     // If already initialized, get the existing app instance.
     if (!firebaseApp) {
-        firebaseApp = getApp();
-        auth = getAuth(firebaseApp);
-        firestore = getFirestore(firebaseApp);
+      firebaseApp = getApp();
+      auth = getAuth(firebaseApp);
+      firestore = getFirestore(firebaseApp);
     }
   }
   

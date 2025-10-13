@@ -1,6 +1,4 @@
-
-
-"use client";
+'use client';
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -16,13 +14,12 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth, useFirestore } from "@/firebase/provider";
-import { GoogleAuthProvider, signInWithPopup, type User as FirebaseAuthUser } from "firebase/auth";
+import { GoogleAuthProvider, signInWithPopup, type User as FirebaseAuthUser, createUserWithEmailAndPassword } from "firebase/auth";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 import { AppIcon } from "@/app/icon";
 import { Loader2 } from "lucide-react";
 import indianStates from "@/lib/indian-states-districts.json";
 import { Separator } from "@/components/ui/separator";
-import { initiateEmailSignUp } from "@/firebase/non-blocking-login";
 
 const formSchema = z.object({
     fullName: z.string().min(3, { message: "Full name must be at least 3 characters." }),
@@ -144,23 +141,15 @@ export default function DetailedSignupPage() {
                     form.setError('password', { message: 'Password is required for email signup.' });
                     return;
                 }
-                // Use non-blocking sign-up. The rest will be handled by the auth state listener on the login page.
-                initiateEmailSignUp(auth, values.email, values.password);
-                toast({
-                    title: "Creating Account...",
-                    description: "Please wait while we create your account.",
-                });
-                // Temporarily create the profile here, login flow will handle the rest.
-                // A more robust solution might use a cloud function to create the profile on user creation.
-                const tempUserCredential = await auth.createUserWithEmailAndPassword(values.email, values.password);
-                await handleFinalUserCreation(tempUserCredential.user.uid, values);
+                const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
+                await handleFinalUserCreation(userCredential.user.uid, values);
             }
         } catch (error: any) {
             console.error("Signup failed:", error);
             if (error.code === 'auth/email-already-in-use') {
                 form.setError('email', { type: 'manual', message: 'This email is already registered. Please login.' });
             } else {
-                toast({ title: "Signup Failed", description: "An unexpected error occurred.", variant: "destructive" });
+                toast({ title: "Signup Failed", description: error.message || "An unexpected error occurred.", variant: "destructive" });
             }
         }
     }
@@ -173,6 +162,16 @@ export default function DetailedSignupPage() {
             const result = await signInWithPopup(auth, provider);
             const user = result.user;
             
+            // Check if user already exists in Firestore
+            const userDocRef = doc(firestore!, "users", user.uid);
+            const docSnap = await getDoc(userDocRef);
+            if (docSnap.exists()) {
+                toast({ title: "Account Exists", description: "You already have an account. Please log in.", variant: "destructive" });
+                await auth.signOut();
+                router.push('/login');
+                return;
+            }
+
             // Pre-fill form instead of creating user immediately
             form.reset({
                 ...form.getValues(), // Keep other fields if user has started typing

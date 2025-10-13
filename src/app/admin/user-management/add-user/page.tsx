@@ -58,6 +58,7 @@ export default function AddUserPage() {
             email: values.email,
             role: values.role,
             planType: values.planType,
+            status: 'Active', // Admin-created users are active by default
             dateJoined: new Date().toISOString(),
             ...(values.role === 'dealer' && { 
                 uniqueDealerCode: `DL-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,

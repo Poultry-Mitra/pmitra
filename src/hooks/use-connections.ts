@@ -1,4 +1,3 @@
-
 // src/hooks/use-connections.ts
 'use client';
 
@@ -19,7 +18,6 @@ import {
 } from 'firebase/firestore';
 import type { Connection } from '@/lib/types';
 import { useFirestore, useUser } from '@/firebase/provider';
-import { updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
 // Helper to convert Firestore doc to Connection type
 function toConnection(doc: QueryDocumentSnapshot<DocumentData>): Connection {
@@ -78,13 +76,11 @@ export async function updateConnectionStatus(firestore: Firestore, connectionId:
 
     const connectionRef = doc(firestore, 'connections', connectionId);
     
-    // Use non-blocking update for simple status change.
     if (newStatus === 'Rejected') {
-        updateDocumentNonBlocking(connectionRef, { status: newStatus });
+        await updateDoc(connectionRef, { status: newStatus });
         return;
     }
     
-    // Use a transaction for the "Approved" case because it involves multiple documents.
     if (newStatus === 'Approved') {
         try {
             await runTransaction(firestore, async (transaction) => {

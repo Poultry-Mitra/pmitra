@@ -1,4 +1,3 @@
-
 // src/hooks/use-users.ts
 'use client';
 
@@ -24,8 +23,7 @@ import {
 } from 'firebase/firestore';
 import { useAuth, useFirestore } from '@/firebase/provider';
 import type { User, UserRole, UserStatus } from '@/lib/types';
-import { sendPasswordResetEmail } from 'firebase/auth';
-import { addDocumentNonBlocking, deleteDocumentNonBlocking, setDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { sendPasswordResetEmail, createUserWithEmailAndPassword } from 'firebase/auth';
 
 // Helper to convert Firestore doc to User type
 function toUser(doc: QueryDocumentSnapshot<DocumentData> | DocumentSnapshot<DocumentData>): User {
@@ -147,7 +145,7 @@ export async function requestDealerConnection(firestore: Firestore, farmerUID: s
     }
 
     const connectionsCollection = collection(firestore, 'connections');
-    addDocumentNonBlocking(connectionsCollection, {
+    await addDoc(connectionsCollection, {
         farmerUID,
         dealerUID: dealerUser.id,
         status: 'Pending',
@@ -158,16 +156,18 @@ export async function requestDealerConnection(firestore: Firestore, farmerUID: s
     return dealerUser;
 }
 
-export function deleteUser(firestore: Firestore, userId: string) {
+export async function deleteUser(firestore: Firestore, userId: string) {
     if (!firestore) throw new Error("Firestore not initialized");
     const docRef = doc(firestore, 'users', userId);
-    deleteDocumentNonBlocking(docRef);
+    // In a real app, you would also need to delete the user from Firebase Auth,
+    // which requires admin privileges and should be done via a Cloud Function.
+    await deleteDoc(docRef);
 }
 
-export function updateUserStatus(firestore: Firestore, userId: string, status: UserStatus) {
+export async function updateUserStatus(firestore: Firestore, userId: string, status: UserStatus) {
     if (!firestore) throw new Error("Firestore not initialized");
     const docRef = doc(firestore, 'users', userId);
-    updateDocumentNonBlocking(docRef, { status });
+    await updateDoc(docRef, { status });
 }
 
 
@@ -179,12 +179,12 @@ export async function createUserProfile(firestore: Firestore, auth: Auth, newUse
     // A temporary, secure password for initial creation.
     const tempPassword = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8);
 
-    const userCredential = await auth.createUserWithEmailAndPassword(auth, newUserProfile.email, tempPassword);
+    const userCredential = await createUserWithEmailAndPassword(auth, newUserProfile.email, tempPassword);
     const user = userCredential.user;
 
-    // Create the user profile document in Firestore using non-blocking update
+    // Create the user profile document in Firestore
     const userDocRef = doc(firestore, "users", user.uid);
-    setDocumentNonBlocking(userDocRef, newUserProfile, { merge: false });
+    await setDoc(userDocRef, newUserProfile);
 
     // Send a password reset email so the user can set their own password
     await sendPasswordResetEmail(auth, newUserProfile.email);

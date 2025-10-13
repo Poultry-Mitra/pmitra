@@ -1,4 +1,3 @@
-
 // src/hooks/use-dealer-inventory.ts
 'use client';
 
@@ -14,10 +13,11 @@ import {
   query,
   where,
   orderBy,
+  addDoc,
+  updateDoc,
 } from 'firebase/firestore';
 import { useFirestore } from '@/firebase/provider';
 import type { DealerInventoryItem } from '@/lib/types';
-import { addDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
 // Helper to convert Firestore doc to DealerInventoryItem type
 function toDealerInventoryItem(doc: QueryDocumentSnapshot<DocumentData>): DealerInventoryItem {
@@ -80,7 +80,7 @@ export function useDealerInventory(dealerUID: string | undefined) {
   return { inventory, loading };
 }
 
-export function addDealerInventoryItem(firestore: Firestore, dealerUID: string, data: Omit<DealerInventoryItem, 'id' | 'dealerUID' | 'updatedAt'>) {
+export async function addDealerInventoryItem(firestore: Firestore, dealerUID: string, data: Omit<DealerInventoryItem, 'id' | 'dealerUID' | 'updatedAt'>) {
     if (!firestore) throw new Error("Firestore not initialized");
 
     const collectionRef = collection(firestore, 'dealerInventory');
@@ -92,10 +92,10 @@ export function addDealerInventoryItem(firestore: Firestore, dealerUID: string, 
         updatedAt: serverTimestamp(),
     };
 
-    addDocumentNonBlocking(collectionRef, itemData);
+    await addDoc(collectionRef, itemData);
 }
 
-export function updateDealerInventoryItem(firestore: Firestore, itemId: string, data: Partial<Pick<DealerInventoryItem, 'quantity' | 'ratePerUnit' | 'lowStockThreshold'>>) {
+export async function updateDealerInventoryItem(firestore: Firestore, itemId: string, data: Partial<Pick<DealerInventoryItem, 'quantity' | 'ratePerUnit' | 'lowStockThreshold'>>) {
     if (!firestore) throw new Error("Firestore not initialized");
 
     const docRef = doc(firestore, 'dealerInventory', itemId);
@@ -105,5 +105,5 @@ export function updateDealerInventoryItem(firestore: Firestore, itemId: string, 
         updatedAt: serverTimestamp(),
     };
 
-    updateDocumentNonBlocking(docRef, itemData);
+    await updateDoc(docRef, itemData);
 }

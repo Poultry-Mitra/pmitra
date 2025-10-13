@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import Link from 'next/link';
@@ -15,14 +13,13 @@ import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { doc, getDoc } from 'firebase/firestore';
 import type { User as AppUser, UserRole } from '@/lib/types';
-import { sendPasswordResetEmail, GoogleAuthProvider, signInWithPopup, UserCredential } from 'firebase/auth';
+import { sendPasswordResetEmail, GoogleAuthProvider, signInWithPopup, UserCredential, signInWithEmailAndPassword } from 'firebase/auth';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Separator } from '@/components/ui/separator';
-import { initiateEmailSignIn } from '@/firebase/non-blocking-login';
 
 const formSchema = z.object({
   email: z.string().email('Please enter a valid email address.'),
@@ -44,7 +41,7 @@ function GoogleIcon() {
 
 export default function RoleLoginPage() {
   const { t } = useLanguage();
-  const { user: firebaseUser, isUserLoading, userError } = useUser();
+  const { user: firebaseUser, isUserLoading } = useUser();
   const firestore = useFirestore();
   const auth = useAuth();
   const router = useRouter();
@@ -77,16 +74,7 @@ export default function RoleLoginPage() {
     } else {
       setIsCheckingUser(false);
     }
-
-    if (userError) {
-      let message = 'An unknown error occurred.';
-      if (['auth/user-not-found', 'auth/wrong-password', 'auth/invalid-credential'].includes(userError.name)) { // This may need adjustment based on error object
-        message = 'Invalid email or password. Please try again.';
-      }
-      toast({ title: 'Login Failed', description: message, variant: 'destructive' });
-      setIsSubmitting(false);
-    }
-  }, [firebaseUser, isUserLoading, firestore, router, userError]);
+  }, [firebaseUser, isUserLoading, firestore, router]);
 
   async function handleLogin(user: AppUser | any) { // Accepts Firebase User or AppUser
     if (!firestore || !auth) return;
@@ -119,8 +107,10 @@ export default function RoleLoginPage() {
       }
       router.replace(getRedirectPath(role));
     } else {
+      // This can happen if a user signs up with Google but doesn't complete the profile
+      // Or if the Firestore document creation failed silently before.
       await auth.signOut();
-      toast({ title: 'Login Failed', description: 'User profile not found. Please sign up.', variant: 'destructive' });
+      toast({ title: 'Login Failed', description: 'User profile not found. Please sign up or contact support.', variant: 'destructive' });
       setIsCheckingUser(false);
       setIsSubmitting(false);
     }
@@ -132,7 +122,18 @@ export default function RoleLoginPage() {
       return;
     }
     setIsSubmitting(true);
-    initiateEmailSignIn(auth, values.email, values.password);
+    try {
+      await signInWithEmailAndPassword(auth, values.email, values.password);
+      // The useEffect hook will now handle the successful login
+    } catch (error: any) {
+        let message = 'An unknown error occurred.';
+        if (['auth/user-not-found', 'auth/wrong-password', 'auth/invalid-credential'].includes(error.code)) {
+            message = 'Invalid email or password. Please try again.';
+        }
+        toast({ title: 'Login Failed', description: message, variant: 'destructive' });
+    } finally {
+        setIsSubmitting(false);
+    }
   }
 
   const handleGoogleSignIn = async () => {
@@ -179,7 +180,6 @@ export default function RoleLoginPage() {
       });
     }
   };
-
 
   const isLoading = isSubmitting || isCheckingUser || isGoogleLoading || isUserLoading;
   

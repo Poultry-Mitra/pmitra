@@ -1,16 +1,14 @@
-
-"use client";
+'use client';
 
 import { useEffect } from 'react';
-import type { Metadata } from 'next';
-import { Toaster } from '@/components/ui/toaster';
 import './globals.css';
+import { Toaster } from '@/components/ui/toaster';
 import { ThemeProvider } from '@/components/theme-provider';
 import { LanguageProvider } from '@/components/language-provider';
 import { Inter, Noto_Sans, Hind } from 'next/font/google';
 import { cn } from '@/lib/utils';
-import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
+import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
 
 const fontInter = Inter({
   subsets: ['latin'],
@@ -28,6 +26,7 @@ const fontHind = Hind({
   weight: ['400', '500', '700'],
   variable: '--font-hind',
 });
+
 
 export default function RootLayout({
   children,
@@ -76,8 +75,9 @@ export default function RootLayout({
               enableSystem
               disableTransitionOnChange
             >
-                {children}
-                <Toaster />
+              <FirebaseErrorListener />
+              {children}
+              <Toaster />
             </ThemeProvider>
           </LanguageProvider>
         </FirebaseClientProvider>

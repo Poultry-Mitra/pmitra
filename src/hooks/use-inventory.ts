@@ -12,10 +12,10 @@ import {
   query,
   where,
   doc,
+  addDoc,
 } from 'firebase/firestore';
 import { useFirestore } from '@/firebase/provider';
 import type { InventoryItem } from '@/lib/types';
-import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
 // Helper to convert Firestore doc to InventoryItem type
 function toInventoryItem(doc: QueryDocumentSnapshot<DocumentData>): InventoryItem {
@@ -114,5 +114,5 @@ export async function addInventoryItem(firestore: Firestore, farmerUID: string, 
         lastUpdated: serverTimestamp(),
     };
 
-    addDocumentNonBlocking(collectionRef, docData);
+    await addDoc(collectionRef, docData);
 }
