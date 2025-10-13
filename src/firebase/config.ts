@@ -1,5 +1,6 @@
+
 // This file is updated to use environment variables for Firebase configuration.
-// This is a more secure and flexible approach for production deployments on Vercel.
+// This is a more secure and flexible approach for production deployments.
 
 export const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
