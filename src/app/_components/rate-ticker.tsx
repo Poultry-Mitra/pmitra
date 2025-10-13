@@ -3,13 +3,16 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { TrendingUp, Bird, IndianRupee, Loader2 } from 'lucide-react';
+import { TrendingUp, Bird, IndianRupee, Loader2, EyeOff } from 'lucide-react';
 import type { DailyRates } from '@/lib/types';
-import { useFirestore } from '@/firebase/provider';
+import { useFirestore, useUser } from '@/firebase/provider';
 import { collection, onSnapshot, query, orderBy, limit } from 'firebase/firestore';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 export function RateTicker() {
     const firestore = useFirestore();
+    const { user, isUserLoading } = useUser();
     const [rates, setRates] = useState<DailyRates[]>([]);
     const [loading, setLoading] = useState(true);
     const [currentIndex, setCurrentIndex] = useState(0);
@@ -43,7 +46,9 @@ export function RateTicker() {
         }
     }, [rates.length]);
 
-    if (loading) {
+    const isLoading = loading || isUserLoading;
+
+    if (isLoading) {
         return (
              <div className="bg-secondary text-secondary-foreground">
                 <div className="container mx-auto px-4 h-10 flex items-center justify-center text-sm">
@@ -54,7 +59,7 @@ export function RateTicker() {
         );
     }
     
-    if (rates.length === 0) {
+    if (rates.length === 0 && user) {
         return (
              <div className="bg-secondary text-secondary-foreground">
                 <div className="container mx-auto px-4 h-10 flex items-center justify-center text-sm">
@@ -64,11 +69,15 @@ export function RateTicker() {
         );
     }
 
-    const currentItem = rates[currentIndex];
-    
+    const currentItem = rates.length > 0 ? rates[currentIndex] : { location: { district: 'N/A', state: '' }, readyBird: { medium: '??' }, chickRate: '??' };
+    const isLoggedIn = !!user;
+
     return (
-        <Link href="/pricing" className="bg-secondary text-secondary-foreground hover:bg-secondary/90 transition-colors cursor-pointer">
-            <div className="container mx-auto px-4 h-10 flex items-center overflow-hidden">
+        <div className="bg-secondary text-secondary-foreground transition-colors relative">
+            <div className={cn(
+                "container mx-auto px-4 h-10 flex items-center overflow-hidden",
+                !isLoggedIn && "blur-sm pointer-events-none select-none"
+            )}>
                 <div className="flex items-center gap-6 animate-ticker">
                     <div className="flex items-center gap-2">
                          <span className="flex items-center gap-1 text-primary text-xs font-bold uppercase tracking-wider">
@@ -93,11 +102,21 @@ export function RateTicker() {
                         <span className="font-semibold">Chick Rate:</span>
                         <span className="font-mono text-primary font-bold">₹{currentItem.chickRate}/chick</span>
                     </div>
-                     <span className="hidden md:flex items-center gap-2 rounded-full bg-primary/10 text-primary px-2 py-0.5 text-xs font-semibold ml-4">
+                     <Link href="/pricing" className="hidden md:flex items-center gap-2 rounded-full bg-primary/10 text-primary px-2 py-0.5 text-xs font-semibold ml-4">
                         Click to Unlock Full Access
-                    </span>
+                    </Link>
                 </div>
             </div>
+            {!isLoggedIn && (
+                <div className="absolute inset-0 flex items-center justify-center bg-background/30 backdrop-blur-sm z-10">
+                    <Button asChild>
+                        <Link href="/login">
+                            <EyeOff className="mr-2" />
+                            Login to View Live Rates
+                        </Link>
+                    </Button>
+                </div>
+            )}
              <style jsx>{`
                 @keyframes ticker {
                     0% { transform: translateX(100%); }
@@ -109,6 +128,6 @@ export function RateTicker() {
                     white-space: nowrap;
                 }
             `}</style>
-        </Link>
+        </div>
     );
 }
