@@ -78,7 +78,6 @@ export default function RootLayout({
             >
                 {children}
                 <Toaster />
-                <FirebaseErrorListener />
             </ThemeProvider>
           </LanguageProvider>
         </FirebaseClientProvider>
