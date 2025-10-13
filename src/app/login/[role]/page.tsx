@@ -128,6 +128,7 @@ export default function RoleLoginPage() {
       if (['auth/user-not-found', 'auth/wrong-password', 'auth/invalid-credential'].includes(error.code)) {
         message = 'Invalid email or password. Please try again.';
       } else {
+        // We don't need to log invalid credential errors to the console, as they are expected user errors.
         console.error("Login Error:", error);
       }
       toast({ title: 'Login Failed', description: message, variant: 'destructive' });
@@ -142,8 +143,12 @@ export default function RoleLoginPage() {
       const result = await signInWithPopup(auth, provider);
       await handleLogin(result);
     } catch (error: any) {
-      console.error("Google sign-in error:", error);
-      toast({ title: "Google Sign-In Failed", description: "Could not sign in with Google. Please try again.", variant: "destructive" });
+        if (error.code === 'auth/popup-closed-by-user') {
+            // User closed the popup, do nothing (no toast, no console log)
+            return;
+        }
+        console.error("Google sign-in error:", error);
+        toast({ title: "Google Sign-In Failed", description: "Could not sign in with Google. Please try again.", variant: "destructive" });
     } finally {
         setIsGoogleLoading(false);
     }

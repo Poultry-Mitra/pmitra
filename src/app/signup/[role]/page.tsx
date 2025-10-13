@@ -177,10 +177,12 @@ export default function DetailedSignupPage() {
             setGoogleUser(user);
 
         } catch (error: any) {
-            console.error("Google sign up error:", error);
-            if (error.code !== 'auth/popup-closed-by-user') {
-                toast({ title: "Google Sign-Up Failed", description: "Could not sign up with Google.", variant: "destructive" });
+            if (error.code === 'auth/popup-closed-by-user') {
+                // User closed the popup, do nothing.
+                return;
             }
+            console.error("Google sign up error:", error);
+            toast({ title: "Google Sign-Up Failed", description: "Could not sign up with Google.", variant: "destructive" });
         } finally {
             setIsGoogleLoading(false);
         }
