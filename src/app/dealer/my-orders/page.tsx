@@ -1,4 +1,3 @@
-
 // src/app/dealer/my-orders/page.tsx
 "use client";
 
@@ -50,7 +49,6 @@ export default function MyOrdersPage() {
     // Get the IDs of all connected farmers
     const connectedFarmerIds = useMemo(() => {
         return connections
-            .filter(c => c.status === 'Approved')
             .map(c => c.farmerUID);
     }, [connections]);
     
@@ -116,20 +114,19 @@ export default function MyOrdersPage() {
                                     <TableHead>Total Amount</TableHead>
                                     <TableHead>Status</TableHead>
                                     <TableHead>Date</TableHead>
-                                    <TableHead className="text-center">Actions</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
                                 {loading && (
                                     <TableRow>
-                                        <TableCell colSpan={7} className="h-24 text-center">
+                                        <TableCell colSpan={6} className="h-24 text-center">
                                              <Loader2 className="mx-auto animate-spin" />
                                         </TableCell>
                                     </TableRow>
                                 )}
                                 {!loading && visibleOrders.length === 0 && (
                                     <TableRow>
-                                        <TableCell colSpan={7} className="h-24 text-center">
+                                        <TableCell colSpan={6} className="h-24 text-center">
                                             No orders found from your connected farmers.
                                         </TableCell>
                                     </TableRow>
@@ -146,20 +143,6 @@ export default function MyOrdersPage() {
                                             </Badge>
                                         </TableCell>
                                         <TableCell>{new Date(order.createdAt).toLocaleDateString()}</TableCell>
-                                        <TableCell className="text-center space-x-2">
-                                            {order.status === 'Pending' && (
-                                                <>
-                                                    <Button size="sm" variant="outline" className="text-green-600 hover:bg-green-50 hover:text-green-700" onClick={() => handleUpdateStatus(order, 'Approved')}>
-                                                        <CheckCircle className="mr-2" />
-                                                        Approve
-                                                    </Button>
-                                                    <Button size="sm" variant="outline" className="text-red-600 hover:bg-red-50 hover:text-red-700" onClick={() => handleUpdateStatus(order, 'Rejected')}>
-                                                        <XCircle className="mr-2" />
-                                                        Reject
-                                                    </Button>
-                                                </>
-                                            )}
-                                        </TableCell>
                                     </TableRow>
                                 ))}
                             </TableBody>

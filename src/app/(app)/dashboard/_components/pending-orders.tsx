@@ -1,4 +1,3 @@
-
 // src/app/dashboard/_components/pending-orders.tsx
 "use client";
 
@@ -72,7 +71,7 @@ export function PendingOrders() {
                                 <TableCell>{order.quantity}</TableCell>
                                 <TableCell className="text-right">₹{order.totalAmount.toLocaleString()}</TableCell>
                                 <TableCell className="text-center space-x-2">
-                                    <Button size="sm" variant="outline" className="text-green-600 hover:bg-green-50 hover:text-green-700" onClick={() => handleUpdateStatus(order, 'Approved')}>
+                                     <Button size="sm" variant="outline" className="text-green-600 hover:bg-green-50 hover:text-green-700" onClick={() => handleUpdateStatus(order, 'Approved')}>
                                         <CheckCircle className="mr-2" />
                                         Accept
                                     </Button>
