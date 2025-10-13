@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -30,39 +31,39 @@ export default function LoginPage() {
             <div className="mt-10 grid grid-cols-1 gap-8 md:grid-cols-3">
                 <Card className="text-left">
                     <CardHeader>
-                        <CardTitle className="font-headline text-2xl text-primary">{t('signup.farmer_title')}</CardTitle>
-                        <CardDescription>{t('signup.farmer_description')}</CardDescription>
+                        <CardTitle className="font-headline text-2xl text-primary">{t('login.farmer_title')}</CardTitle>
+                        <CardDescription>{t('login.farmer_description')}</CardDescription>
                     </CardHeader>
                     <CardContent>
                         <Button className="w-full" asChild>
                            <Link href="/login/farmer">
-                                Login as Farmer <ArrowRight className="ml-2" />
+                                {t('login.farmer_button')} <ArrowRight className="ml-2" />
                            </Link>
                         </Button>
                     </CardContent>
                 </Card>
                  <Card className="text-left">
                     <CardHeader>
-                        <CardTitle className="font-headline text-2xl text-accent-foreground/80">{t('signup.dealer_title')}</CardTitle>
-                        <CardDescription>{t('signup.dealer_description')}</CardDescription>
+                        <CardTitle className="font-headline text-2xl text-accent-foreground/80">{t('login.dealer_title')}</CardTitle>
+                        <CardDescription>{t('login.dealer_description')}</CardDescription>
                     </CardHeader>
                     <CardContent>
                         <Button className="w-full" asChild>
                             <Link href="/login/dealer">
-                                Login as Dealer <ArrowRight className="ml-2" />
+                                {t('login.dealer_button')} <ArrowRight className="ml-2" />
                             </Link>
                         </Button>
                     </CardContent>
                 </Card>
                  <Card className="text-left">
                     <CardHeader>
-                        <CardTitle className="font-headline text-2xl text-red-600">Admin Login</CardTitle>
-                        <CardDescription>Access the central control panel.</CardDescription>
+                        <CardTitle className="font-headline text-2xl text-red-600">{t('login.admin_title')}</CardTitle>
+                        <CardDescription>{t('login.admin_description')}</CardDescription>
                     </CardHeader>
                     <CardContent>
                         <Button className="w-full" variant="destructive" asChild>
                             <Link href="/login/admin">
-                                Login as Admin <ArrowRight className="ml-2" />
+                                {t('login.admin_button')} <ArrowRight className="ml-2" />
                             </Link>
                         </Button>
                     </CardContent>
