@@ -12,7 +12,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { IndianRupee, Loader2, Calendar as CalendarIcon } from "lucide-react";
+import { IndianRupee, Loader2, Calendar as CalendarIcon, Save } from "lucide-react";
 import { useUser, useFirestore, useMemoFirebase } from '@/firebase/provider';
 import { doc, setDoc, onSnapshot, collection, query, orderBy, limit } from 'firebase/firestore';
 import { format } from 'date-fns';
@@ -99,7 +99,6 @@ function RateHistory() {
 
 export default function DailyRateManagementPage() {
     const { toast } = useToast();
-    const [lastUpdated, setLastUpdated] = useState('');
     const [loading, setLoading] = useState(true);
     const firestore = useFirestore();
     const adminUser = useUser();
@@ -127,11 +126,10 @@ export default function DailyRateManagementPage() {
         if (selectedState) {
             const stateData = indianStates.states.find(s => s.state === selectedState);
             setDistricts(stateData ? stateData.districts : []);
-            form.setValue("district", "");
         } else {
             setDistricts([]);
         }
-    }, [selectedState, form]);
+    }, [selectedState]);
     
     useEffect(() => {
         if (!firestore || !selectedDate) return;
@@ -157,21 +155,18 @@ export default function DailyRateManagementPage() {
                     chickRate: data.chickRate,
                     feedCostIndex: data.feedCostIndex,
                 });
-                if (data.lastUpdated) {
-                    setLastUpdated(new Date(data.lastUpdated).toLocaleString());
-                }
             } else {
-                // If no data exists for this date, reset form fields but keep date and location
-                form.reset({
-                    ...form.getValues(),
+                // If no data exists for this date, reset some fields but keep date and location
+                 form.reset({
                     date: selectedDate,
+                    state: form.getValues('state'),
+                    district: form.getValues('district'),
                     readyBirdSmall: 0,
                     readyBirdMedium: 0,
                     readyBirdBig: 0,
                     chickRate: 0,
                     feedCostIndex: 0,
                 });
-                setLastUpdated('');
             }
             setLoading(false);
         });
@@ -188,7 +183,7 @@ export default function DailyRateManagementPage() {
 
         const dateString = format(values.date, 'yyyy-MM-dd');
 
-        const dailyRateData = {
+        const dailyRateData: DailyRates = {
             id: dateString,
             location: {
                 state: values.state,
@@ -236,41 +231,40 @@ export default function DailyRateManagementPage() {
                         <CardHeader>
                             <CardTitle>Update Market Rates</CardTitle>
                             <CardDescription>
-                                Set the rates for the selected date. This will be visible to all premium users.
-                                {lastUpdated && ` Last updated: ${lastUpdated}`}
+                                Select a date to view, edit, or add new rates. This will be visible to all premium users.
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
                             <Form {...form}>
                                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                                     <FormField
+                                    <FormField
                                         control={form.control}
                                         name="date"
                                         render={({ field }) => (
                                             <FormItem className="flex flex-col">
-                                            <FormLabel>Date</FormLabel>
-                                            <Popover>
-                                                <PopoverTrigger asChild>
-                                                <FormControl>
-                                                    <Button
-                                                    variant={"outline"}
-                                                    className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}
-                                                    >
-                                                    {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
-                                                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                                    </Button>
-                                                </FormControl>
-                                                </PopoverTrigger>
-                                                <PopoverContent className="w-auto p-0" align="start">
-                                                <Calendar
-                                                    mode="single"
-                                                    selected={field.value}
-                                                    onSelect={field.onChange}
-                                                    initialFocus
-                                                />
-                                                </PopoverContent>
-                                            </Popover>
-                                            <FormMessage />
+                                                <FormLabel>Select Date to Edit</FormLabel>
+                                                <Popover>
+                                                    <PopoverTrigger asChild>
+                                                        <FormControl>
+                                                            <Button
+                                                                variant={"outline"}
+                                                                className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}
+                                                            >
+                                                                {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                                                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                                            </Button>
+                                                        </FormControl>
+                                                    </PopoverTrigger>
+                                                    <PopoverContent className="w-auto p-0" align="start">
+                                                        <Calendar
+                                                            mode="single"
+                                                            selected={field.value}
+                                                            onSelect={field.onChange}
+                                                            initialFocus
+                                                        />
+                                                    </PopoverContent>
+                                                </Popover>
+                                                <FormMessage />
                                             </FormItem>
                                         )}
                                     />
@@ -283,7 +277,7 @@ export default function DailyRateManagementPage() {
                                             render={({ field }) => (
                                                 <FormItem>
                                                     <FormLabel>State</FormLabel>
-                                                    <Select onValueChange={field.onChange} value={field.value}>
+                                                    <Select onValueChange={(value) => { field.onChange(value); form.setValue('district', ''); }} value={field.value}>
                                                         <FormControl>
                                                             <SelectTrigger>
                                                                 <SelectValue placeholder="Select a state" />
@@ -382,7 +376,7 @@ export default function DailyRateManagementPage() {
                                 </div>
                                     
                                     <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
-                                        {form.formState.isSubmitting ? <Loader2 className="animate-spin" /> : <IndianRupee className="mr-2" />}
+                                        {form.formState.isSubmitting ? <Loader2 className="animate-spin" /> : <Save className="mr-2" />}
                                         {form.formState.isSubmitting ? "Updating..." : `Update Rates for ${format(selectedDate, 'dd MMM yyyy')}`}
                                     </Button>
                                     </>

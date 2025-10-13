@@ -117,6 +117,7 @@ export type FarmAlert = {
 };
 
 export type DailyRates = {
+    id: string;
     readyBird: {
         small: number;
         medium: number;
