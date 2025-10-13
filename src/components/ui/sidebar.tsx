@@ -19,7 +19,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { useClientState } from "@/hooks/use-client-state"
 
 const SIDEBAR_COOKIE_NAME = "sidebar_state"
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
@@ -369,9 +368,8 @@ const SidebarGroupLabel = React.forwardRef<
 >(({ className, asChild = false, ...props }, ref) => {
   const Comp = asChild ? Slot : "div";
   const { state } = useSidebar();
-  const isClient = useClientState(true);
-
-  if (!isClient || state === 'collapsed') {
+  
+  if (state === 'collapsed') {
     return null;
   }
 

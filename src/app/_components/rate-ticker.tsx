@@ -20,7 +20,7 @@ export function RateTicker() {
     const [loading, setLoading] = useState(true);
     const [currentIndex, setCurrentIndex] = useState(0);
 
-    const isLoggedIn = !!firebaseUser;
+    const isLoggedIn = !!firebaseUser && !!appUser;
 
     useEffect(() => {
         // Only fetch from Firestore if the user is logged in
@@ -48,8 +48,7 @@ export function RateTicker() {
     }, [firestore, isLoggedIn]);
 
     const filteredRates = useMemo(() => {
-        if (!isLoggedIn || allRates.length === 0) return [];
-        if (!appUser || !appUser.state || !appUser.district) return allRates;
+        if (!isLoggedIn || allRates.length === 0 || !appUser) return [];
 
         if (appUser.planType === 'premium') {
             const userDistrictRate = allRates.find(rate => rate.location.district === appUser.district);
@@ -65,7 +64,7 @@ export function RateTicker() {
         }
     }, [allRates, appUser, isLoggedIn]);
 
-    const ratesToDisplay = isLoggedIn ? (filteredRates.length > 0 ? filteredRates : allRates) : mockDailyRates;
+    const ratesToDisplay = isLoggedIn ? (filteredRates.length > 0 ? filteredRates : allRates) : [];
 
     useEffect(() => {
         if (ratesToDisplay.length > 1) {
@@ -77,7 +76,37 @@ export function RateTicker() {
     }, [ratesToDisplay]);
 
     const isLoading = isAuthLoading || (isLoggedIn && loading);
-    const currentItem = ratesToDisplay.length > 0 ? ratesToDisplay[currentIndex] : { location: { district: 'N/A', state: '' }, readyBird: { medium: '??' }, chickRate: '??' };
+    const currentItem = ratesToDisplay.length > 0 ? ratesToDisplay[currentIndex] : null;
+
+     if (!isLoggedIn) {
+        return (
+            <div className="bg-secondary text-secondary-foreground relative">
+                 <div className="container mx-auto px-4 h-10 flex items-center justify-center text-sm blur-sm pointer-events-none select-none">
+                    <div className="flex items-center gap-2">
+                         <span className="flex items-center gap-1 text-primary text-xs font-bold uppercase tracking-wider">
+                            <TrendingUp className="size-4" />
+                            Live Rates
+                        </span>
+                        <span className="text-sm font-medium">Pune, Maharashtra</span>
+                    </div>
+                     <span className="h-4 w-px bg-border mx-6"></span>
+                     <div className="flex items-center gap-2 text-sm">
+                        <Bird className="size-4 text-muted-foreground" />
+                        <span className="font-semibold">Ready Bird:</span>
+                        <span className="font-mono text-primary font-bold">₹125/kg</span>
+                    </div>
+                </div>
+                <div className="absolute inset-0 flex items-center justify-center bg-background/30 backdrop-blur-sm z-10">
+                    <Button asChild>
+                        <Link href="/login">
+                            <EyeOff className="mr-2" />
+                            Login to View Live Rates
+                        </Link>
+                    </Button>
+                </div>
+            </div>
+        )
+    }
 
     if (isLoading) {
         return (
@@ -99,13 +128,12 @@ export function RateTicker() {
             </div>
         );
     }
+    
+    if (!currentItem) return null;
 
     return (
         <div className="bg-secondary text-secondary-foreground transition-colors relative">
-            <div className={cn(
-                "container mx-auto px-4 h-10 flex items-center overflow-hidden",
-                !isLoggedIn && "blur-sm pointer-events-none select-none"
-            )}>
+            <div className="container mx-auto px-4 h-10 flex items-center overflow-hidden">
                 <div className="flex items-center gap-6 animate-ticker">
                     <div className="flex items-center gap-2">
                          <span className="flex items-center gap-1 text-primary text-xs font-bold uppercase tracking-wider">
@@ -135,16 +163,6 @@ export function RateTicker() {
                     </Link>
                 </div>
             </div>
-            {!isLoggedIn && (
-                <div className="absolute inset-0 flex items-center justify-center bg-background/30 backdrop-blur-sm z-10">
-                    <Button asChild>
-                        <Link href="/login">
-                            <EyeOff className="mr-2" />
-                            Login to View Live Rates
-                        </Link>
-                    </Button>
-                </div>
-            )}
              <style jsx>{`
                 @keyframes ticker {
                     0% { transform: translateX(100%); }

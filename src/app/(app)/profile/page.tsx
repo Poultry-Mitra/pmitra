@@ -20,6 +20,7 @@ import { useLanguage } from '@/components/language-provider';
 import { sendPasswordResetEmail } from 'firebase/auth';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { useAppUser } from '@/app/app-provider';
 
 
 const formSchema = z.object({
@@ -32,15 +33,12 @@ type FormValues = z.infer<typeof formSchema>;
 
 export default function ProfilePage() {
     const { t } = useLanguage();
-    const { user: firebaseUser, isUserLoading } = useUser();
+    const { user, loading: isUserLoading } = useAppUser();
+    const { user: firebaseUser } = useUser();
     const firestore = useFirestore();
     const auth = useAuth();
     const { toast } = useToast();
-    const [user, setUser] = useState<AppUser | null>(null);
     const [isPasswordResetting, setIsPasswordResetting] = useState(false);
-    const [avatarSrc, setAvatarSrc] = useState<string | null>(null);
-    const fileInputRef = useRef<HTMLInputElement>(null);
-
 
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
@@ -52,26 +50,14 @@ export default function ProfilePage() {
     });
 
     useEffect(() => {
-        if (firebaseUser && firestore) {
-            const userDocRef = doc(firestore, 'users', firebaseUser.uid);
-            getDoc(userDocRef).then((docSnap) => {
-                if (docSnap.exists()) {
-                    const userData = docSnap.data() as AppUser;
-                    setUser(userData);
-                    form.reset({
-                        name: userData.name || '',
-                        mobileNumber: userData.mobileNumber || '',
-                        pinCode: userData.pinCode || '',
-                    });
-                     // Load avatar from localStorage
-                    const storedAvatar = localStorage.getItem(`profile_pic_${firebaseUser.uid}`);
-                    if (storedAvatar) {
-                        setAvatarSrc(storedAvatar);
-                    }
-                }
+        if (user) {
+            form.reset({
+                name: user.name || '',
+                mobileNumber: user.mobileNumber || '',
+                pinCode: user.pinCode || '',
             });
         }
-    }, [firebaseUser, firestore, form]);
+    }, [user, form]);
 
 
     async function onSubmit(values: FormValues) {
@@ -116,25 +102,6 @@ export default function ProfilePage() {
         }
     };
     
-    const handleAvatarClick = () => {
-        fileInputRef.current?.click();
-    };
-
-    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        if (event.target.files && event.target.files[0] && firebaseUser) {
-            const file = event.target.files[0];
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const dataUrl = e.target?.result as string;
-                localStorage.setItem(`profile_pic_${firebaseUser.uid}`, dataUrl);
-                setAvatarSrc(dataUrl);
-                toast({ title: "Profile Picture Updated", description: "Your new picture has been saved locally." });
-            };
-            reader.readAsDataURL(file);
-        }
-    };
-
-
     if (isUserLoading || !user) {
         return (
             <div className="flex h-64 items-center justify-center">
@@ -152,25 +119,8 @@ export default function ProfilePage() {
                         <CardHeader className="items-center">
                              <div className="relative">
                                 <Avatar className="h-32 w-32 border-4 border-background shadow-md">
-                                    <AvatarImage src={avatarSrc || ''} alt={user.name} />
                                     <AvatarFallback className="text-4xl">{user.name.charAt(0)}</AvatarFallback>
                                 </Avatar>
-                                <Button
-                                    variant="outline"
-                                    size="icon"
-                                    className="absolute bottom-1 right-1 h-8 w-8 rounded-full"
-                                    onClick={handleAvatarClick}
-                                >
-                                    <Edit className="h-4 w-4" />
-                                    <span className="sr-only">Edit profile picture</span>
-                                </Button>
-                                <input
-                                    type="file"
-                                    ref={fileInputRef}
-                                    onChange={handleFileChange}
-                                    className="hidden"
-                                    accept="image/*"
-                                />
                             </div>
                             <CardTitle className="pt-4">{user.name}</CardTitle>
                             <CardDescription>{user.email}</CardDescription>
