@@ -1,4 +1,3 @@
-
 // src/app/dealer/my-orders/page.tsx
 "use client";
 
@@ -50,6 +49,7 @@ export default function MyOrdersPage() {
     // Get the IDs of all connected farmers
     const connectedFarmerIds = useMemo(() => {
         return connections
+            .filter(c => c.status === 'Approved') // Only consider approved connections
             .map(c => c.farmerUID);
     }, [connections]);
     
@@ -81,8 +81,9 @@ export default function MyOrdersPage() {
 
     // Filter orders to show only those from connected farmers
     const visibleOrders = useMemo(() => {
+        if (loading) return [];
         return orders.filter(order => connectedFarmerIds.includes(order.farmerUID));
-    }, [orders, connectedFarmerIds]);
+    }, [orders, connectedFarmerIds, loading]);
 
 
     return (

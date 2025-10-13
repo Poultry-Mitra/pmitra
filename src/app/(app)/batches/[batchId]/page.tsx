@@ -68,7 +68,7 @@ export default function BatchDetailPage() {
 
     const feedConversionRatio = (batch.feedConsumed > 0 && totalWeightGainKg > 0)
         ? (batch.feedConsumed / totalWeightGainKg).toFixed(2)
-        : 'N/A';
+        : '0.00';
 
 
     return (

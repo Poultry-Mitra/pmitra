@@ -19,7 +19,7 @@ import {
 import type { Connection } from '@/lib/types';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
-import { useFirestore } from '@/firebase/provider';
+import { useFirestore, useUser } from '@/firebase/provider';
 
 // Helper to convert Firestore doc to Connection type
 function toConnection(doc: QueryDocumentSnapshot<DocumentData>): Connection {
@@ -34,11 +34,12 @@ function toConnection(doc: QueryDocumentSnapshot<DocumentData>): Connection {
 
 export function useConnections(userId: string | undefined, userRole: 'farmer' | 'dealer') {
   const firestore = useFirestore();
+  const { user: authUser } = useUser();
   const [connections, setConnections] = useState<Connection[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!firestore || !userId) {
+    if (!firestore || !userId || !authUser) {
         setConnections([]);
         setLoading(false);
         return;
@@ -72,7 +73,7 @@ export function useConnections(userId: string | undefined, userRole: 'farmer' | 
     );
 
     return () => unsubscribe();
-  }, [firestore, userId, userRole]);
+  }, [firestore, userId, userRole, authUser]);
 
   return { connections, loading };
 }
