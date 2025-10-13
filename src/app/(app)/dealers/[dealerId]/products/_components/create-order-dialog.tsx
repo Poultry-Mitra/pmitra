@@ -44,7 +44,7 @@ interface CreateOrderDialogProps {
 export function CreateOrderDialog({ open, onOpenChange, product, dealer }: CreateOrderDialogProps) {
     const { toast } = useToast();
     const firestore = useFirestore();
-    const farmerUser = useUser();
+    const { user: farmerUser } = useUser();
 
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),

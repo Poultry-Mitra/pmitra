@@ -36,7 +36,7 @@ type FormValues = z.infer<typeof formSchema>;
 export function ConnectDealerDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
     const { toast } = useToast();
     const firestore = useFirestore();
-    const farmerUser = useUser();
+    const { user: farmerUser } = useUser();
 
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),

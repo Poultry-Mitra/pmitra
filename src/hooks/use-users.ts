@@ -20,6 +20,7 @@ import {
   serverTimestamp,
   DocumentSnapshot,
   deleteDoc,
+  limit,
 } from 'firebase/firestore';
 import { useFirestore } from '@/firebase/provider';
 import type { User, UserRole } from '@/lib/types';
@@ -124,7 +125,7 @@ export async function findUserByUniqueCode(firestore: Firestore, uniqueCode: str
     
     // This is inefficient for farmers, but works for dealers.
     // A better approach for farmers would be a dedicated searchable field or a more direct lookup.
-    const q = query(usersCollection, where(fieldToQuery, "==", uniqueCode), where("role", "==", role));
+    const q = query(usersCollection, where(fieldToQuery, "==", uniqueCode), where("role", "==", role), limit(1));
     
     try {
         const querySnapshot = await getDocs(q);

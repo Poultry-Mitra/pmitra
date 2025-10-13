@@ -115,7 +115,7 @@ export default function DetailedSignupPage() {
                 admin: '/admin/dashboard',
                 dealer: '/dealer/dashboard',
                 farmer: '/dashboard',
-            }[finalRole];
+            }[finalRole] || '/login';
 
             router.push(redirectPath);
 
@@ -134,7 +134,7 @@ export default function DetailedSignupPage() {
             } else {
                 toast({
                     title: "Signup Failed",
-                    description: "aisa error kyu aa raha hai",
+                    description: "An unexpected error occurred. Please try again.",
                     variant: "destructive",
                 });
             }
