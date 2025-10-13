@@ -252,7 +252,7 @@ export function AppSidebar() {
                 </SidebarMenuItem>
                 <SidebarMenuItem>
                     <Link href="/pricing">
-                        <SidebarMenuButton tooltip={t('pricing.upgrade_plan')}>
+                        <SidebarMenuButton tooltip={t('pricing.upgrade_plan')} isActive={pathname === '/pricing'}>
                             <Rocket/>
                             <span>{t('pricing.upgrade_plan')}</span>
                         </SidebarMenuButton>
