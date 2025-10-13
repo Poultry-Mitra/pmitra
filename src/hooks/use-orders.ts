@@ -41,7 +41,7 @@ export function useOrders(dealerUID?: string) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!firestore || !dealerUID) {
+    if (!firestore) {
         setOrders([]);
         setLoading(false);
         return;
@@ -49,11 +49,11 @@ export function useOrders(dealerUID?: string) {
     
     setLoading(true);
     const ordersCollection = collection(firestore, 'orders');
-    const q = query(
-        ordersCollection, 
-        where("dealerUID", "==", dealerUID),
-        orderBy("createdAt", "desc")
-    );
+
+    const q = dealerUID 
+      ? query(ordersCollection, where("dealerUID", "==", dealerUID), orderBy("createdAt", "desc"))
+      : query(ordersCollection, orderBy("createdAt", "desc"));
+
 
     const unsubscribe = onSnapshot(
       q,
@@ -63,7 +63,7 @@ export function useOrders(dealerUID?: string) {
       },
       (err) => {
         const permissionError = new FirestorePermissionError({
-          path: `orders where dealerUID == ${dealerUID}`,
+          path: `orders ${dealerUID ? `where dealerUID == ${dealerUID}` : ''}`,
           operation: 'list',
         });
         errorEmitter.emit('permission-error', permissionError);
