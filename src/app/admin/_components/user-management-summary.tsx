@@ -251,10 +251,14 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
                                             </DropdownMenuTrigger>
                                             <DropdownMenuContent align="end">
                                                 <DropdownMenuItem onClick={() => openDetailsDialog(user)}>{t('actions.view_details')}</DropdownMenuItem>
-                                                <DropdownMenuItem onClick={() => openDialog(user, 'suspend')}>
-                                                    {user.status === 'active' ? t('actions.suspend') : t('actions.unsuspend')}
-                                                </DropdownMenuItem>
-                                                <DropdownMenuItem className="text-destructive" onClick={() => openDialog(user, 'delete')}>{t('actions.delete')}</DropdownMenuItem>
+                                                {user.role !== 'admin' && (
+                                                    <>
+                                                        <DropdownMenuItem onClick={() => openDialog(user, 'suspend')}>
+                                                            {user.status === 'active' ? t('actions.suspend') : t('actions.unsuspend')}
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuItem className="text-destructive" onClick={() => openDialog(user, 'delete')}>{t('actions.delete')}</DropdownMenuItem>
+                                                    </>
+                                                )}
                                             </DropdownMenuContent>
                                         </DropdownMenu>
                                     </TableCell>
