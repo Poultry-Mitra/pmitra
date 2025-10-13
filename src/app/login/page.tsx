@@ -30,7 +30,7 @@ function LoginPageContent() {
                 {t('signup.welcome_subtitle')}
             </p>
             
-            <div className="mt-10 grid grid-cols-1 gap-8 md:grid-cols-3">
+            <div className="mt-10 grid grid-cols-1 gap-8 md:grid-cols-2">
                 <Card className="text-left">
                     <CardHeader>
                         <CardTitle className="font-headline text-2xl text-primary">{t('login.farmer_title')}</CardTitle>
@@ -57,19 +57,6 @@ function LoginPageContent() {
                         </Button>
                     </CardContent>
                 </Card>
-                 <Card className="text-left">
-                    <CardHeader>
-                        <CardTitle className="font-headline text-2xl text-red-600">{t('login.admin_title')}</CardTitle>
-                        <CardDescription>{t('login.admin_description')}</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <Button className="w-full" variant="destructive" asChild>
-                            <Link href="/login/admin">
-                                {t('login.admin_button')} <ArrowRight className="ml-2" />
-                            </Link>
-                        </Button>
-                    </CardContent>
-                </Card>
             </div>
 
             <div className="mt-10 space-y-4 text-sm text-muted-foreground">
@@ -84,6 +71,11 @@ function LoginPageContent() {
                         <ArrowLeft className="size-4" /> {t('login.back_to_home')}
                     </Link>
                 </div>
+            </div>
+            <div className="mt-12 text-center">
+                 <Link href="/login/admin" className="text-xs text-muted-foreground hover:text-primary">
+                    {t('login.admin_button')}
+                </Link>
             </div>
         </div>
     </div>
