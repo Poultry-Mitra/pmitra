@@ -29,6 +29,7 @@ import {
   ChevronUp,
   Loader2,
   AlertTriangle,
+  Wallet,
 } from "lucide-react";
 import { useLanguage } from "@/components/language-provider";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
@@ -246,6 +247,13 @@ export function AdminSidebar() {
                                 <Link href="/admin/settings/pricing">
                                     <SidebarMenuButton size="sm" isActive={pathname === "/admin/settings/pricing"}>
                                     Pricing Plans
+                                    </SidebarMenuButton>
+                                </Link>
+                            </SidebarMenuItem>
+                            <SidebarMenuItem>
+                                <Link href="/admin/settings/payments">
+                                    <SidebarMenuButton size="sm" isActive={pathname === "/admin/settings/payments"}>
+                                    Payment Gateways
                                     </SidebarMenuButton>
                                 </Link>
                             </SidebarMenuItem>
