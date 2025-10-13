@@ -1,6 +1,8 @@
 
 "use client";
 
+import { useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { PageHeader } from "@/app/admin/_components/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,6 +25,7 @@ type FormValues = z.infer<typeof formSchema>;
 
 export default function NotificationsPage() {
     const { toast } = useToast();
+    const searchParams = useSearchParams();
 
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
@@ -32,6 +35,18 @@ export default function NotificationsPage() {
             recipientGroup: "all",
         },
     });
+
+    useEffect(() => {
+        const title = searchParams.get('title');
+        const message = searchParams.get('message');
+        if (title) {
+            form.setValue('title', title);
+        }
+        if (message) {
+            form.setValue('message', message);
+        }
+    }, [searchParams, form]);
+
 
     function onSubmit(values: FormValues) {
         console.log(values);
