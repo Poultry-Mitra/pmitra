@@ -312,11 +312,9 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
                                     <div className="font-medium">{t('labels.next_billing_date')}: 2023-12-01</div>
                                 </TabsContent>
                                 <TabsContent value="activity" className="mt-4">
-                                    <ul className="space-y-2 text-sm text-muted-foreground">
-                                        <li>{t('activity.logged_in')}</li>
-                                        <li>{t('activity.viewed_dashboard')}</li>
-                                        <li>{t('activity.started_chat')}</li>
-                                    </ul>
+                                    <div className="text-center text-muted-foreground p-4">
+                                        No recent activity to display.
+                                    </div>
                                 </TabsContent>
                             </Tabs>
                         </div>
