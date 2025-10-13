@@ -37,14 +37,14 @@ function LandingPageContent() {
   const { user: appUser, loading: isAppUserLoading } = useAppUser();
   
   const getDashboardPath = () => {
-    if (isAuthLoading || isAppUserLoading || !appUser) return "/login";
+    if (isUserLoading || isAppUserLoading || !appUser) return "/login";
     switch (appUser.role) {
       case 'farmer':
         return '/dashboard';
       case 'dealer':
-        return '/dealer';
+        return '/dealer/dashboard';
       case 'admin':
-        return '/admin';
+        return '/admin/dashboard';
       default:
         return '/login';
     }
@@ -112,8 +112,8 @@ function LandingPageContent() {
   ];
 
   const getStartedHref = () => {
-    if (isUserLoading) return "/login"; // Default during load to prevent mismatch
-    if (firebaseUser) return getDashboardPath();
+    if (isUserLoading || isAppUserLoading) return "/login"; // Default during load to prevent mismatch
+    if (firebaseUser && appUser) return getDashboardPath();
     return "/signup";
   };
   
