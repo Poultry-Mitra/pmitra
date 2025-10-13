@@ -1,6 +1,6 @@
 'use client';
 import { getAuth, type User } from 'firebase/auth';
-import { initializeFirebase } from '@/firebase/client';
+import { initializeFirebase } from './client';
 
 type SecurityRuleContext = {
   path: string;
