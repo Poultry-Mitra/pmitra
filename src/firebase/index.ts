@@ -8,5 +8,5 @@ export * from '@/firebase/provider';
 export * from '@/firebase/client-provider';
 export * from '@/firebase/firestore/use-collection';
 export * from '@/firebase/firestore/use-doc';
-export * from '@/firebase/errors';
 export * from '@/firebase/error-emitter';
+
