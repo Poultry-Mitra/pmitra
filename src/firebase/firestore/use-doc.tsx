@@ -28,7 +28,7 @@ export interface UseDocResult<T> {
  * React hook to subscribe to a single Firestore document in real-time.
  * Handles nullable references.
  * 
- * IMPORTANT: The docRef passed to this hook should be memoized with useMemo
+ * IMPORTANT: The docRef passed to this hook should be memoized
  * to prevent infinite re-renders.
  *
  * @template T Optional type for document data. Defaults to any.
