@@ -1,7 +1,7 @@
 
 "use client";
 
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
@@ -30,9 +30,10 @@ import { ThemeToggle } from '@/components/theme-toggle';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import type { User as AppUser } from '@/lib/types';
-import { useUser, useFirestore } from '@/firebase/provider';
+import { useUser, useFirestore, useAuth } from '@/firebase/provider';
 import { doc, onSnapshot } from "firebase/firestore";
 import { useEffect, useState } from 'react';
+import { signOut } from 'firebase/auth';
 
 
 function Breadcrumbs() {
@@ -76,6 +77,8 @@ function Breadcrumbs() {
 export function DealerHeader() {
   const { user: firebaseUser } = useUser();
   const firestore = useFirestore();
+  const auth = useAuth();
+  const router = useRouter();
   const [user, setUser] = useState<AppUser | null>(null);
   const { toast } = useToast();
   const [showLogoutAlert, setShowLogoutAlert] = useState(false);
@@ -95,6 +98,14 @@ export function DealerHeader() {
         setUser(null);
     }
   }, [firebaseUser, firestore]);
+  
+  const handleLogout = async () => {
+    if (auth) {
+      await signOut(auth);
+      router.push('/login');
+    }
+    setShowLogoutAlert(false);
+  };
 
   if (!user) {
      return (
@@ -177,9 +188,7 @@ export function DealerHeader() {
             </AlertDialogHeader>
             <AlertDialogFooter>
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction asChild>
-                    <Link href="/login">Logout</Link>
-                </AlertDialogAction>
+                <AlertDialogAction onClick={handleLogout}>Logout</AlertDialogAction>
             </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>

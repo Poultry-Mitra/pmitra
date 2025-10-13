@@ -1,7 +1,7 @@
 
 "use client";
 
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
@@ -29,9 +29,10 @@ import { LanguageToggle } from '@/components/language-toggle';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Input } from '@/components/ui/input';
 import type { User as AppUser } from '@/lib/types';
-import { useUser, useFirestore } from '@/firebase/provider';
+import { useUser, useFirestore, useAuth } from '@/firebase/provider';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { useState, useEffect } from 'react';
+import { signOut } from 'firebase/auth';
 
 
 function Breadcrumbs() {
@@ -75,6 +76,8 @@ function Breadcrumbs() {
 export function AdminHeader() {
   const { user: firebaseUser } = useUser();
   const firestore = useFirestore();
+  const auth = useAuth();
+  const router = useRouter();
   const [user, setUser] = useState<AppUser | null>(null);
   const [showLogoutAlert, setShowLogoutAlert] = useState(false);
 
@@ -98,6 +101,14 @@ export function AdminHeader() {
         setUser(null);
     }
   }, [firebaseUser, firestore]);
+  
+  const handleLogout = async () => {
+    if (auth) {
+      await signOut(auth);
+      router.push('/login');
+    }
+    setShowLogoutAlert(false);
+  };
 
   // Render a placeholder or nothing if user isn't loaded or not an admin
   if (!user) {
@@ -166,9 +177,7 @@ export function AdminHeader() {
             </AlertDialogHeader>
             <AlertDialogFooter>
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction asChild>
-                    <Link href="/login">Logout</Link>
-                </AlertDialogAction>
+                <AlertDialogAction onClick={handleLogout}>Logout</AlertDialogAction>
             </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>

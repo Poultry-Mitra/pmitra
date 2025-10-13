@@ -65,7 +65,7 @@ export default function TransactionsPage() {
                                 )}
                                 {!loading && allTransactions.map(txn => {
                                     const user = getUserInfo(txn.userId);
-                                    if (!user) return null;
+                                    if (!user) return null; // Only render if user info is available
                                     return (
                                     <TableRow key={txn.id} className="cursor-pointer">
                                         <TableCell>
