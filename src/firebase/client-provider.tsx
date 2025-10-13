@@ -8,10 +8,15 @@ interface FirebaseClientProviderProps {
   children: ReactNode;
 }
 
+/**
+ * A client-only provider that ensures Firebase is initialized once on the client-side.
+ * It uses `useMemo` to call `getFirebase`, which is critical to prevent it from running
+ * during server-side rendering, even inside a 'use client' component.
+ */
 export function FirebaseClientProvider({ children }: FirebaseClientProviderProps) {
-  // By moving the getFirebase() call inside useMemo, we ensure it only runs
-  // on the client-side after the component has mounted.
-  // The server-side render will return nulls, which the FirebaseProvider handles gracefully.
+  // `useMemo` ensures `getFirebase` is only called on the client-side after mount,
+  // and only once. On the server, this will not execute, and `getFirebase` will
+  // return nulls, which the FirebaseProvider is designed to handle gracefully.
   const firebaseServices = useMemo(() => getFirebase(), []);
 
   return (
