@@ -1,29 +1,39 @@
 'use client';
 
-import React, { useMemo, type ReactNode } from 'react';
+import React, { useState, useEffect, type ReactNode } from 'react';
 import { FirebaseProvider } from '@/firebase/provider';
-import { getFirebase } from '@/firebase/client';
+import { initializeFirebase } from '@/firebase/client';
+import { FirebaseApp } from 'firebase/app';
+import { Auth } from 'firebase/auth';
+import { Firestore } from 'firebase/firestore';
 
 interface FirebaseClientProviderProps {
   children: ReactNode;
 }
 
 /**
- * A client-only provider that ensures Firebase is initialized once on the client-side.
- * It uses `useMemo` to call `getFirebase`, which is critical to prevent it from running
- * during server-side rendering, even inside a 'use client' component.
+ * A client-only provider that ensures Firebase is initialized once.
+ * It uses `useEffect` to guarantee initialization only happens on the client
+ * after the initial render, preventing SSR issues.
  */
 export function FirebaseClientProvider({ children }: FirebaseClientProviderProps) {
-  // `useMemo` ensures `getFirebase` is only called on the client-side after mount,
-  // and only once. On the server, this will not execute, and `getFirebase` will
-  // return nulls, which the FirebaseProvider is designed to handle gracefully.
-  const firebaseServices = useMemo(() => getFirebase(), []);
+  const [services, setServices] = useState<{
+    firebaseApp: FirebaseApp | null;
+    auth: Auth | null;
+    firestore: Firestore | null;
+  }>({ firebaseApp: null, auth: null, firestore: null });
+
+  // `useEffect` with an empty dependency array runs only once on the client-side.
+  useEffect(() => {
+    const firebaseServices = initializeFirebase();
+    setServices(firebaseServices);
+  }, []);
 
   return (
     <FirebaseProvider
-      firebaseApp={firebaseServices.firebaseApp}
-      auth={firebaseServices.auth}
-      firestore={firebaseServices.firestore}
+      firebaseApp={services.firebaseApp}
+      auth={services.auth}
+      firestore={services.firestore}
     >
       {children}
     </FirebaseProvider>
