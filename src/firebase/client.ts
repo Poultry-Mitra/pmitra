@@ -16,7 +16,7 @@ let firestore: Firestore | null = null;
  * It is designed to be called ONLY on the client-side.
  */
 export function initializeFirebase() {
-  // On the server, return null services. This check is a safeguard.
+  // On the server, return null services. This is a crucial guard.
   if (typeof window === 'undefined') {
     return { firebaseApp: null, auth: null, firestore: null };
   }
@@ -26,9 +26,19 @@ export function initializeFirebase() {
     return { firebaseApp, auth, firestore };
   }
 
+  // Final check: Ensure all necessary config values are strings and present.
+  // This prevents initialization with incomplete/undefined environment variables.
+  if (
+    !firebaseConfig.apiKey ||
+    !firebaseConfig.authDomain ||
+    !firebaseConfig.projectId
+  ) {
+    // Silently return null if config is incomplete. The UI should handle the
+    // absence of Firebase services gracefully. This prevents crashing.
+    return { firebaseApp: null, auth: null, firestore: null };
+  }
+
   // Initialize the Firebase app if it hasn't been already.
-  // We are now relying on Firebase's own error handling for invalid keys,
-  // rather than throwing a console error that conflicts with Next.js hydration.
   if (!getApps().length) {
     firebaseApp = initializeApp(firebaseConfig);
   } else {
