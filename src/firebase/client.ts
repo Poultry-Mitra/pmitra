@@ -16,13 +16,30 @@ let firestore: Firestore | null = null;
  * It is designed to be called ONLY on the client-side.
  */
 export function initializeFirebase() {
-  // If the app is already initialized, return the existing instances.
+  // On the server, return null services.
+  if (typeof window === 'undefined') {
+    return { firebaseApp: null, auth: null, firestore: null };
+  }
+
+  // If already initialized, return the existing instances.
   if (firebaseApp) {
     return { firebaseApp, auth, firestore };
   }
 
+  // Check if the necessary Firebase config values are present.
+  // This is the definitive fix for the "invalid-api-key" error.
+  if (
+    !firebaseConfig.apiKey ||
+    !firebaseConfig.authDomain ||
+    !firebaseConfig.projectId
+  ) {
+    // If config is missing, log an error and return nulls.
+    // This prevents the app from crashing.
+    console.error("Firebase configuration is missing or incomplete. Please check your environment variables.");
+    return { firebaseApp: null, auth: null, firestore: null };
+  }
+
   // Initialize the Firebase app if it hasn't been already.
-  // This check is sufficient. The config check was causing hydration issues.
   if (!getApps().length) {
     firebaseApp = initializeApp(firebaseConfig);
   } else {
