@@ -1,3 +1,4 @@
+
 // src/app/dealer/my-orders/page.tsx
 "use client";
 
@@ -49,11 +50,10 @@ export default function MyOrdersPage() {
     // Get the IDs of all connected farmers
     const connectedFarmerIds = useMemo(() => {
         return connections
-            .filter(c => c.status === 'Approved') // Only consider approved connections
             .map(c => c.farmerUID);
     }, [connections]);
     
-    // Fetch user details only for connected farmers
+    // Fetch user details for all potentially connected farmers
     const { users: farmers, loading: farmersLoading } = useUsersByIds(connectedFarmerIds);
 
     const getFarmerName = (farmerUID: string) => {
@@ -116,19 +116,20 @@ export default function MyOrdersPage() {
                                     <TableHead>Total Amount</TableHead>
                                     <TableHead>Status</TableHead>
                                     <TableHead>Date</TableHead>
+                                    <TableHead className="text-center">Actions</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
                                 {loading && (
                                     <TableRow>
-                                        <TableCell colSpan={6} className="h-24 text-center">
+                                        <TableCell colSpan={7} className="h-24 text-center">
                                              <Loader2 className="mx-auto animate-spin" />
                                         </TableCell>
                                     </TableRow>
                                 )}
                                 {!loading && visibleOrders.length === 0 && (
                                     <TableRow>
-                                        <TableCell colSpan={6} className="h-24 text-center">
+                                        <TableCell colSpan={7} className="h-24 text-center">
                                             No orders found from your connected farmers.
                                         </TableCell>
                                     </TableRow>
@@ -145,6 +146,18 @@ export default function MyOrdersPage() {
                                             </Badge>
                                         </TableCell>
                                         <TableCell>{new Date(order.createdAt).toLocaleDateString()}</TableCell>
+                                        <TableCell className="text-center">
+                                            {order.status === 'Pending' && (
+                                                <div className="flex gap-2 justify-center">
+                                                    <Button size="sm" variant="outline" className="text-green-600 hover:text-green-700" onClick={() => handleUpdateStatus(order, 'Approved')}>
+                                                        <CheckCircle className="mr-2 h-4 w-4" /> Approve
+                                                    </Button>
+                                                    <Button size="sm" variant="outline" className="text-red-600 hover:text-red-700" onClick={() => handleUpdateStatus(order, 'Rejected')}>
+                                                        <XCircle className="mr-2 h-4 w-4" /> Reject
+                                                    </Button>
+                                                </div>
+                                            )}
+                                        </TableCell>
                                     </TableRow>
                                 ))}
                             </TableBody>

@@ -134,6 +134,7 @@ export async function updateOrderStatus(order: Order, newStatus: 'Approved' | 'R
         return;
     }
 
+    // Use a transaction to ensure atomicity
     await runTransaction(firestore, async (transaction) => {
         const orderDoc = await transaction.get(orderRef);
         if (!orderDoc.exists() || orderDoc.data().status !== 'Pending') {
