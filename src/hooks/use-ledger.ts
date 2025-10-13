@@ -1,4 +1,5 @@
 
+
 // src/hooks/use-ledger.ts
 'use client';
 
@@ -19,7 +20,7 @@ import {
   limit,
   Transaction,
 } from 'firebase/firestore';
-import { useFirestore } from '@/firebase/provider';
+import { useFirestore, useUser } from '@/firebase/provider';
 import type { LedgerEntry } from '@/lib/types';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
@@ -36,26 +37,28 @@ function toLedgerEntry(doc: QueryDocumentSnapshot<DocumentData>): LedgerEntry {
 
 export function useLedger(userId?: string) {
   const firestore = useFirestore();
+  const { user: authUser } = useUser();
   const [entries, setEntries] = useState<LedgerEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!firestore) { // Don't run if firestore is not available
+    // If firestore is not available, or if there's no specific userId and no authenticated user (for admin case), do nothing.
+    if (!firestore || (!userId && !authUser)) {
         setEntries([]);
         setLoading(false);
         return;
     }
 
-    if (userId === undefined) { // If no user ID, it might be an admin query for all.
+    if (userId === undefined) { 
       console.warn("useLedger called without a userId. Fetching all entries, which may have performance implications.");
     }
     
     setLoading(true);
     const ledgerCollection = collection(firestore, 'ledger');
-    // If no userId, fetch all (for admin). If userId, filter by it.
+    
     const q = userId 
         ? query(ledgerCollection, where("userId", "==", userId), orderBy("date", "desc"))
-        : query(ledgerCollection, orderBy("date", "desc"));
+        : query(ledgerCollection, orderBy("date", "desc")); // This query is for admin
 
     const unsubscribe = onSnapshot(
       q,
@@ -76,7 +79,7 @@ export function useLedger(userId?: string) {
     );
 
     return () => unsubscribe();
-  }, [firestore, userId]);
+  }, [firestore, userId, authUser]);
 
   return { entries, loading };
 }

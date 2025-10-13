@@ -42,11 +42,13 @@ function toUser(doc: QueryDocumentSnapshot<DocumentData> | DocumentSnapshot<Docu
 
 export function useUsers(role?: 'farmer' | 'dealer') {
   const firestore = useFirestore();
+  const { user: adminUser } = useAuth(); // Using the auth user to check for admin role implicitly
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!firestore) {
+    // Only admins can fetch all users. If not an admin/logged out, do nothing.
+    if (!firestore || !adminUser) {
         setUsers([]);
         setLoading(false);
         return;
@@ -74,7 +76,7 @@ export function useUsers(role?: 'farmer' | 'dealer') {
     );
 
     return () => unsubscribe();
-  }, [firestore, role]);
+  }, [firestore, role, adminUser]);
 
   return { users, loading };
 }

@@ -18,7 +18,7 @@ import {
   runTransaction,
   increment,
 } from 'firebase/firestore';
-import { useFirestore } from '@/firebase/provider';
+import { useFirestore, useUser } from '@/firebase/provider';
 import type { Order, User } from '@/lib/types';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
@@ -37,11 +37,12 @@ function toOrder(doc: QueryDocumentSnapshot<DocumentData>): Order {
 
 export function useOrders(dealerUID?: string) {
   const firestore = useFirestore();
+  const { user: authUser } = useUser();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!firestore) {
+    if (!firestore || !authUser) {
         setOrders([]);
         setLoading(false);
         return;
@@ -52,7 +53,7 @@ export function useOrders(dealerUID?: string) {
 
     const q = dealerUID 
       ? query(ordersCollection, where("dealerUID", "==", dealerUID), orderBy("createdAt", "desc"))
-      : query(ordersCollection, orderBy("createdAt", "desc"));
+      : query(ordersCollection, orderBy("createdAt", "desc")); // Admin query for all orders
 
 
     const unsubscribe = onSnapshot(
@@ -73,7 +74,7 @@ export function useOrders(dealerUID?: string) {
     );
 
     return () => unsubscribe();
-  }, [firestore, dealerUID]);
+  }, [firestore, dealerUID, authUser]);
 
   return { orders, loading };
 }
