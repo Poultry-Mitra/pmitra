@@ -1,6 +1,8 @@
 'use client';
 import { getAuth, type User } from 'firebase/auth';
-import { initializeFirebase } from '@/firebase/client';
+
+// This file is designed to be self-contained and not import other local firebase modules
+// to prevent build resolution errors on Vercel.
 
 type SecurityRuleContext = {
   path: string;
@@ -78,8 +80,9 @@ function buildAuthObject(currentUser: User | null): FirebaseAuthObject | null {
 function buildRequestObject(context: SecurityRuleContext): SecurityRuleRequest {
   let authObject: FirebaseAuthObject | null = null;
   try {
-    // Safely attempt to get the current user.
-    const { auth } = initializeFirebase();
+    // We get the auth instance directly here to avoid local imports.
+    // This is less ideal but necessary to solve the Vercel build issue.
+    const auth = getAuth();
     if (auth && auth.currentUser) {
       authObject = buildAuthObject(auth.currentUser);
     }
