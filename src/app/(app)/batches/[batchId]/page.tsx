@@ -2,7 +2,8 @@
 // src/app/(app)/batches/[batchId]/page.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, memo } from "react";
+import dynamic from 'next/dynamic';
 import { useParams } from "next/navigation";
 import { useBatch, useDailyRecords } from "@/hooks/use-batches";
 import { PageHeader } from "../../_components/page-header";
@@ -12,9 +13,22 @@ import { Bird, Droplet, Percent, Scale, Wheat, IndianRupee, Loader2, AlertCircle
 import { AddDailyRecordDialog } from "./_components/add-daily-record-dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { format } from 'date-fns';
-import { BatchCharts } from "./_components/batch-charts";
+import { Skeleton } from "@/components/ui/skeleton";
 
-function StatCard({ title, value, icon: Icon, unit }: { title: string, value: string | number, icon: React.ElementType, unit?: string }) {
+// Dynamically import the charts component to reduce initial bundle size
+const BatchCharts = dynamic(
+  () => import('./_components/batch-charts').then(mod => mod.BatchCharts),
+  { 
+    ssr: false,
+    loading: () => (
+      <div className="flex justify-center items-center p-4 h-64">
+        <Loader2 className="animate-spin mr-2" /> Loading charts...
+      </div>
+    )
+  }
+);
+
+const StatCard = memo(function StatCard({ title, value, icon: Icon, unit }: { title: string, value: string | number, icon: React.ElementType, unit?: string }) {
     return (
         <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -29,7 +43,8 @@ function StatCard({ title, value, icon: Icon, unit }: { title: string, value: st
             </CardContent>
         </Card>
     );
-}
+});
+
 
 export default function BatchDetailPage() {
     const params = useParams();
@@ -99,13 +114,7 @@ export default function BatchDetailPage() {
                         <CardDescription>Visualizing daily trends for mortality and feed consumption.</CardDescription>
                     </CardHeader>
                     <CardContent>
-                       {recordsLoading ? (
-                             <div className="flex justify-center items-center p-4 h-64">
-                                <Loader2 className="animate-spin mr-2" /> Loading charts...
-                            </div>
-                       ) : (
-                           <BatchCharts data={[...records].reverse()} />
-                       )}
+                       <BatchCharts data={[...records].reverse()} />
                     </CardContent>
                 </Card>
             </div>
