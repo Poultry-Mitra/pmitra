@@ -1,3 +1,4 @@
+
 // src/app/(app)/inventory/page.tsx
 "use client";
 
@@ -40,7 +41,7 @@ export default function InventoryPage() {
                 <CardTitle>Current Stock</CardTitle>
                 <CardDescription>A list of all items in your inventory. Stock is automatically updated when you add daily records.</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="overflow-x-auto">
                 <Table>
                     <TableHeader>
                         <TableRow>

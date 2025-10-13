@@ -237,7 +237,7 @@ export default function AddStockPage() {
                                                             </FormItem>
                                                         )} />
                                                     </div>
-                                                    <div className="col-span-6 md:col-span-2">
+                                                    <div className="col-span-6 sm:col-span-4 md:col-span-2">
                                                          <FormField name={`products.${index}.quantity`} control={form.control} render={({ field }) => (
                                                             <FormItem>
                                                                 <FormLabel className="text-xs">Quantity</FormLabel>
@@ -245,7 +245,7 @@ export default function AddStockPage() {
                                                             </FormItem>
                                                         )} />
                                                     </div>
-                                                    <div className="col-span-6 md:col-span-2">
+                                                    <div className="col-span-6 sm:col-span-4 md:col-span-2">
                                                         <FormField name={`products.${index}.unit`} control={form.control} render={({ field }) => (
                                                             <FormItem>
                                                                 <FormLabel className="text-xs">Unit</FormLabel>
@@ -262,7 +262,7 @@ export default function AddStockPage() {
                                                             </FormItem>
                                                         )} />
                                                     </div>
-                                                    <div className="col-span-6 md:col-span-2">
+                                                    <div className="col-span-6 sm:col-span-4 md:col-span-2">
                                                         <FormField name={`products.${index}.ratePerUnit`} control={form.control} render={({ field }) => (
                                                             <FormItem>
                                                                 <FormLabel className="text-xs">Rate/Unit (₹)</FormLabel>
@@ -270,7 +270,7 @@ export default function AddStockPage() {
                                                             </FormItem>
                                                         )} />
                                                     </div>
-                                                     <div className="col-span-6 md:col-span-2">
+                                                     <div className="col-span-6 sm:col-span-4 md:col-span-2">
                                                         <FormField name={`products.${index}.discount`} control={form.control} render={({ field }) => (
                                                             <FormItem>
                                                                 <FormLabel className="text-xs">Discount (₹)</FormLabel>
@@ -278,7 +278,7 @@ export default function AddStockPage() {
                                                             </FormItem>
                                                         )} />
                                                     </div>
-                                                    <div className="col-span-6 md:col-span-2">
+                                                    <div className="col-span-6 sm:col-span-4 md:col-span-2">
                                                          <FormField name={`products.${index}.unitWeight`} control={form.control} render={({ field }) => (
                                                             <FormItem>
                                                                 <FormLabel className="text-xs">Unit Wt. (kg)</FormLabel>
@@ -286,7 +286,7 @@ export default function AddStockPage() {
                                                             </FormItem>
                                                         )} />
                                                     </div>
-                                                     <div className="col-span-6 md:col-span-2">
+                                                     <div className="col-span-6 sm:col-span-4 md:col-span-2">
                                                          <FormField name={`products.${index}.lowStockThreshold`} control={form.control} render={({ field }) => (
                                                             <FormItem>
                                                                 <FormLabel className="text-xs">Low Stock At</FormLabel>
@@ -295,7 +295,7 @@ export default function AddStockPage() {
                                                         )} />
                                                     </div>
                                                     {fields.length > 1 && (
-                                                        <div className="col-span-12 md:col-span-12 text-right -mb-2">
+                                                        <div className="col-span-12 text-right -mb-2">
                                                             <Button type="button" variant="ghost" size="icon" className="text-destructive hover:bg-destructive/10 h-7 w-7" onClick={() => remove(index)}>
                                                                 <Trash2 className="size-4" />
                                                             </Button>
@@ -394,7 +394,7 @@ export default function AddStockPage() {
                                  <Button type="submit" size="lg" className="w-full" disabled={form.formState.isSubmitting}>
                                     {form.formState.isSubmitting ? <Loader2 className="mr-2 animate-spin" /> : <Save className="mr-2" />}
                                     {form.formState.isSubmitting ? "Saving..." : "Record Purchase"}
-                                </Button>
+                                 </Button>
                             </div>
                         </div>
                     </form>

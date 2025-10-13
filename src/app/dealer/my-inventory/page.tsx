@@ -45,7 +45,7 @@ export default function MyInventoryPage() {
                         <CardTitle>Current Stock</CardTitle>
                         <CardDescription>A list of all items currently in your inventory.</CardDescription>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="overflow-x-auto">
                         <Table>
                             <TableHeader>
                                 <TableRow>

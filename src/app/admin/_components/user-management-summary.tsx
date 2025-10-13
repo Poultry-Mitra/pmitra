@@ -189,7 +189,7 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
                         </Button>
                     )}
                 </CardHeader>
-                <CardContent>
+                <CardContent className="overflow-x-auto">
                     <Table>
                         <TableHeader>
                             <TableRow>

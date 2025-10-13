@@ -136,7 +136,7 @@ export default function DealerDashboardPage() {
       return (
          <>
           <PageHeader title={pageTitle} description={pageDescription}>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                   <Button variant="outline" asChild>
                       <Link href="/dealer/my-orders">
                           View All Orders
@@ -192,7 +192,7 @@ export default function DealerDashboardPage() {
                    </>
                )}
             </div>
-             <div className="mt-8 grid grid-cols-1 gap-4 lg:grid-cols-5">
+             <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-5">
                 <Card className="lg:col-span-3">
                     <CardHeader>
                         <CardTitle>Revenue Analytics</CardTitle>
@@ -207,7 +207,7 @@ export default function DealerDashboardPage() {
                         <CardTitle>Recent Pending Orders</CardTitle>
                         <CardDescription>Orders that require your immediate attention.</CardDescription>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="overflow-x-auto">
                        <Table>
                             <TableHeader>
                                 <TableRow>

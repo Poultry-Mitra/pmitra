@@ -35,7 +35,7 @@ export default function TransactionsPage() {
                         <CardTitle>Recent Transactions</CardTitle>
                         <CardDescription>A list of the most recent payments, subscriptions, and order transactions.</CardDescription>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="overflow-x-auto">
                         <Table>
                             <TableHeader>
                                 <TableRow>

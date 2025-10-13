@@ -1,3 +1,4 @@
+
 // src/app/dealer/my-orders/page.tsx
 "use client";
 
@@ -104,7 +105,7 @@ export default function MyOrdersPage() {
                             A list of all pending, approved, and rejected orders from your farmers.
                         </CardDescription>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="overflow-x-auto">
                         <Table>
                             <TableHeader>
                                 <TableRow>

@@ -115,7 +115,7 @@ export default function BatchesPage() {
                 <CardTitle>All Batches</CardTitle>
                 <CardDescription>A list of all your active, completed, and planned poultry batches.</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="overflow-x-auto">
                 <Table>
                     <TableHeader>
                         <TableRow>

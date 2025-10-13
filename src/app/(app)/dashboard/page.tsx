@@ -29,8 +29,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     // Check if the app is already installed
-    const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
-    if (isStandalone) {
+    if (typeof window !== 'undefined' && window.matchMedia('(display-mode: standalone)').matches) {
       setIsAppInstalled(true);
     }
 
@@ -114,7 +113,7 @@ export default function DashboardPage() {
             </div>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 flex-wrap">
             <Badge className="capitalize" variant={user.planType === 'premium' ? 'default' : 'secondary'}>{t(`plans.${user.planType}`)}</Badge>
              {user.role === 'farmer' && (
                 <Button size="sm" variant="outline" className="border-primary text-primary hover:bg-primary/10 hover:text-primary" onClick={() => setConnectDealerOpen(true)}>
@@ -139,8 +138,8 @@ export default function DashboardPage() {
         <PendingOrders />
       </div>
 
-      <div className="mt-8 grid grid-cols-1 gap-4 lg:grid-cols-7">
-        <Card className="lg:col-span-4">
+      <div className="mt-8 grid grid-cols-1 gap-8 xl:grid-cols-7">
+        <Card className="xl:col-span-4">
           <CardHeader>
             <CardTitle>{t('dashboard.performance.title')}</CardTitle>
             <CardDescription>{t('dashboard.performance.description')}</CardDescription>
@@ -149,7 +148,7 @@ export default function DashboardPage() {
             <ProductionChart data={mockFarmMetrics} />
           </CardContent>
         </Card>
-        <Card className="lg:col-span-3">
+        <Card className="xl:col-span-3">
           <CardHeader>
             <CardTitle>{t('dashboard.ai_suggestions.title')}</CardTitle>
             <CardDescription>{t('dashboard.ai_suggestions.description')}</CardDescription>

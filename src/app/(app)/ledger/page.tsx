@@ -29,7 +29,7 @@ export default function LedgerPage() {
         title="Financial Ledger"
         description="Track all your farm's debits and credits."
       >
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 flex-wrap">
             <div className="text-right">
                 <div className="text-sm text-muted-foreground">Current Balance</div>
                 <div className={cn("text-2xl font-bold", finalBalance >= 0 ? "text-green-600" : "text-destructive")}>
@@ -55,7 +55,7 @@ export default function LedgerPage() {
                 <CardTitle>Transaction History</CardTitle>
                 <CardDescription>A complete record of your financial activities, with the most recent transactions first.</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="overflow-x-auto">
                 <Table>
                     <TableHeader>
                         <TableRow>

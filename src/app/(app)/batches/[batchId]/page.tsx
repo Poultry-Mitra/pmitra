@@ -1,3 +1,4 @@
+
 // src/app/(app)/batches/[batchId]/page.tsx
 "use client";
 
@@ -115,7 +116,7 @@ export default function BatchDetailPage() {
                         <CardTitle>Daily Records</CardTitle>
                         <CardDescription>History of daily mortality, feed consumption, and weight records.</CardDescription>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="overflow-x-auto">
                        <Table>
                             <TableHeader>
                                 <TableRow>

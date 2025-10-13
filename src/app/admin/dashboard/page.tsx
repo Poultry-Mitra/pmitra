@@ -1,3 +1,4 @@
+
 // src/app/admin/dashboard/page.tsx
 "use client";
 
@@ -76,7 +77,7 @@ function RecentTransactions({ transactions, users, loading }: { transactions: Le
                 <CardTitle>Recent Transactions</CardTitle>
                 <CardDescription>The last 5 transactions on the platform.</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="overflow-x-auto">
                 {loading ? <div className="flex justify-center p-4"><Loader2 className="animate-spin" /></div> : (
                     <Table>
                         <TableHeader>
@@ -140,7 +141,7 @@ export default function AdminDashboardPage() {
     return (
         <>
             <PageHeader title={t('admin.dashboard.title')} description={t('admin.dashboard.description')}>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                     <Button variant="outline" asChild>
                         <Link href="/admin/notifications">
                             <Send className="mr-2" />
