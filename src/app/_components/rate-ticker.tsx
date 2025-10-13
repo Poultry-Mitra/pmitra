@@ -1,52 +1,77 @@
 
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { TrendingUp, Bird, IndianRupee, Loader2, EyeOff } from 'lucide-react';
-import type { DailyRates } from '@/lib/types';
+import type { DailyRates, User as AppUser } from '@/lib/types';
 import { useFirestore, useUser } from '@/firebase/provider';
 import { collection, onSnapshot, query, orderBy, limit } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { useAppUser } from '@/app/app-provider';
 
 export function RateTicker() {
     const firestore = useFirestore();
-    const { user, isUserLoading } = useUser();
-    const [rates, setRates] = useState<DailyRates[]>([]);
+    const { user: firebaseUser, isUserLoading: isAuthLoading } = useUser();
+    const { user: appUser, loading: isAppUserLoading } = useAppUser();
+    const [allRates, setAllRates] = useState<DailyRates[]>([]);
     const [loading, setLoading] = useState(true);
     const [currentIndex, setCurrentIndex] = useState(0);
 
     useEffect(() => {
         if (!firestore) return;
         setLoading(true);
-        const q = query(collection(firestore, 'dailyRates'), orderBy('lastUpdated', 'desc'), limit(5));
+        const q = query(collection(firestore, 'dailyRates'), orderBy('lastUpdated', 'desc'), limit(10));
         const unsubscribe = onSnapshot(q, (snapshot) => {
             if (!snapshot.empty) {
                 const fetchedRates = snapshot.docs.map(doc => doc.data() as DailyRates);
-                setRates(fetchedRates);
+                setAllRates(fetchedRates);
             } else {
-                setRates([]);
+                setAllRates([]);
             }
             setLoading(false);
         }, (error) => {
             console.error("Error fetching live rates:", error);
             setLoading(false);
-            setRates([]);
+            setAllRates([]);
         });
         return () => unsubscribe();
     }, [firestore]);
 
+    const filteredRates = useMemo(() => {
+        if (!appUser || !appUser.state || !appUser.district) {
+            // For free users or users with no location data, show irrelevant data
+            return allRates.filter(rate => rate.location.state !== 'Maharashtra');
+        }
+
+        if (appUser.planType === 'premium') {
+            const userDistrictRate = allRates.find(rate => rate.location.district === appUser.district);
+            const userStateRates = allRates.filter(rate => rate.location.state === appUser.state && rate.location.district !== appUser.district);
+            const otherRates = allRates.filter(rate => rate.location.state !== appUser.state);
+            // Prioritize user's district, then their state, then others
+            return [userDistrictRate, ...userStateRates, ...otherRates].filter(Boolean) as DailyRates[];
+        } else {
+            // Free user: show rates from a different state to incentivize upgrade
+            const otherState = allRates.find(r => r.location.state !== appUser.state)?.location.state;
+            if (otherState) {
+                return allRates.filter(rate => rate.location.state === otherState);
+            }
+            return allRates; // Fallback to all rates if no other state is found
+        }
+    }, [allRates, appUser]);
+
     useEffect(() => {
-        if (rates.length > 1) {
+        const ratesToShow = filteredRates.length > 0 ? filteredRates : allRates;
+        if (ratesToShow.length > 1) {
             const interval = setInterval(() => {
-                setCurrentIndex(prevIndex => (prevIndex + 1) % rates.length);
+                setCurrentIndex(prevIndex => (prevIndex + 1) % ratesToShow.length);
             }, 5000); // Change location every 5 seconds
             return () => clearInterval(interval);
         }
-    }, [rates.length]);
+    }, [filteredRates, allRates]);
 
-    const isLoading = loading || isUserLoading;
+    const isLoading = loading || isAuthLoading || isAppUserLoading;
 
     if (isLoading) {
         return (
@@ -59,7 +84,9 @@ export function RateTicker() {
         );
     }
     
-    if (rates.length === 0 && user) {
+    const ratesToDisplay = filteredRates.length > 0 ? filteredRates : allRates;
+
+    if (ratesToDisplay.length === 0 && firebaseUser) {
         return (
              <div className="bg-secondary text-secondary-foreground">
                 <div className="container mx-auto px-4 h-10 flex items-center justify-center text-sm">
@@ -69,8 +96,8 @@ export function RateTicker() {
         );
     }
 
-    const currentItem = rates.length > 0 ? rates[currentIndex] : { location: { district: 'N/A', state: '' }, readyBird: { medium: '??' }, chickRate: '??' };
-    const isLoggedIn = !!user;
+    const currentItem = ratesToDisplay.length > 0 ? ratesToDisplay[currentIndex] : { location: { district: 'N/A', state: '' }, readyBird: { medium: '??' }, chickRate: '??' };
+    const isLoggedIn = !!firebaseUser;
 
     return (
         <div className="bg-secondary text-secondary-foreground transition-colors relative">

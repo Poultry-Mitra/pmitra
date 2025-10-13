@@ -20,39 +20,24 @@ import { LanguageToggle } from '@/components/language-toggle';
 import { useLanguage } from '@/components/language-provider';
 import { RateTicker } from './_components/rate-ticker';
 import { useUser, useAuth, useFirestore } from '@/firebase/provider';
-import type { User as AppUser } from '@/lib/types';
+import type { User as AppUserType } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { signOut } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { doc, getDoc } from 'firebase/firestore';
+import { AppProvider, useAppUser } from '@/app/app-provider';
 
 
-export default function LandingPage() {
+function LandingPageContent() {
   const { t } = useLanguage();
   const { user: firebaseUser, isUserLoading } = useUser();
   const auth = useAuth();
-  const firestore = useFirestore();
   const router = useRouter();
-  const [appUser, setAppUser] = useState<AppUser | null>(null);
-
-  useEffect(() => {
-    if (firebaseUser && firestore) {
-      const userDocRef = doc(firestore, "users", firebaseUser.uid);
-      getDoc(userDocRef).then((docSnap) => {
-        if (docSnap.exists()) {
-          setAppUser(docSnap.data() as AppUser);
-        } else {
-          setAppUser(null);
-        }
-      });
-    } else {
-      setAppUser(null);
-    }
-  }, [firebaseUser, firestore]);
+  const { user: appUser, loading: isAppUserLoading } = useAppUser();
   
   const getDashboardPath = () => {
-    if (isUserLoading || !appUser) return "/login";
+    if (isAuthLoading || isAppUserLoading || !appUser) return "/login";
     switch (appUser.role) {
       case 'farmer':
         return '/dashboard';
@@ -69,7 +54,6 @@ export default function LandingPage() {
   const handleLogout = () => {
     if (auth) {
       signOut(auth).then(() => {
-        // Redirect to login page after successful logout
         router.push('/login');
       });
     }
@@ -132,8 +116,8 @@ export default function LandingPage() {
     if (firebaseUser) return getDashboardPath();
     return "/signup";
   };
-
-  return (
+  
+    return (
     <div className="flex min-h-screen flex-col bg-background">
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container flex h-16 items-center">
@@ -151,7 +135,7 @@ export default function LandingPage() {
           <div className="ml-auto flex items-center space-x-2">
             <LanguageToggle />
             <ThemeToggle />
-             {isUserLoading ? (
+             {isUserLoading || isAppUserLoading ? (
               <div className="flex items-center gap-2">
                 <Skeleton className="h-9 w-20" />
                 <Skeleton className="h-9 w-24" />
@@ -305,4 +289,13 @@ export default function LandingPage() {
       </footer>
     </div>
   );
+}
+
+
+export default function LandingPage() {
+    return (
+        <AppProvider allowedRoles={['public']}>
+            <LandingPageContent />
+        </AppProvider>
+    )
 }
