@@ -1,3 +1,4 @@
+
 // src/app/dashboard/_components/pending-orders.tsx
 "use client";
 
@@ -5,16 +6,18 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useOrdersByFarmer, updateOrderStatus } from "@/hooks/use-orders";
-import { useUser, useFirestore } from "@/firebase/provider";
+import { useFirestore } from "@/firebase/provider";
 import { Loader2, CheckCircle, XCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import type { Order } from "@/lib/types";
+import { useAppUser } from "@/app/app-provider";
 
 export function PendingOrders() {
-    const { user } = useUser();
+    const { user, loading: appUserLoading } = useAppUser();
     const firestore = useFirestore();
-    const { orders, loading } = useOrdersByFarmer(user?.uid);
+    const { orders, loading: ordersLoading } = useOrdersByFarmer(user?.id);
     const { toast } = useToast();
+    const loading = appUserLoading || ordersLoading;
 
     const pendingOrders = orders.filter(o => o.status === 'Pending');
 

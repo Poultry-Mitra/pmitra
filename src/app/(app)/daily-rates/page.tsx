@@ -8,38 +8,20 @@ import { PageHeader } from "../_components/page-header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { IndianRupee, MapPin, Zap } from "lucide-react";
 import { Button } from '@/components/ui/button';
-import { useUser, useFirestore } from '@/firebase/provider';
 import { doc, getDoc } from 'firebase/firestore';
 import type { User as AppUser, DailyRates } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
+import { useFirestore, useUser } from '@/firebase/provider';
+import { useAppUser } from '@/app/app-provider';
 
 export default function DailyRatesPage() {
     const [rates, setRates] = useState<DailyRates | null>(null);
     const [ratesLoading, setRatesLoading] = useState(true);
     const [lastUpdatedTime, setLastUpdatedTime] = useState('');
-    const { user: firebaseUser } = useUser();
+    const { user, loading: userLoading } = useAppUser();
     const firestore = useFirestore();
-    const [user, setUser] = useState<AppUser | null>(null);
-    const [userLoading, setUserLoading] = useState(true);
 
-     useEffect(() => {
-        if (firebaseUser && firestore) {
-            setUserLoading(true);
-            const userDocRef = doc(firestore, 'users', firebaseUser.uid);
-            getDoc(userDocRef).then((docSnap) => {
-                if (docSnap.exists()) {
-                    setUser(docSnap.data() as AppUser);
-                } else {
-                    setUser(null);
-                }
-                setUserLoading(false);
-            });
-        } else if (firebaseUser === null) {
-            setUserLoading(false);
-        }
-    }, [firebaseUser, firestore]);
-    
     useEffect(() => {
         if (!firestore) return;
         setRatesLoading(true);

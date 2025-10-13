@@ -25,7 +25,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { addDailyRecord } from '@/hooks/use-batches';
-import { useFirestore, useUser } from '@/firebase/provider';
+import { useFirestore } from '@/firebase/provider';
 import { Calendar as CalendarIcon } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
@@ -33,6 +33,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useInventoryByCategory } from '@/hooks/use-inventory';
+import { useAppUser } from '@/app/app-provider';
 
 const formSchema = z.object({
     date: z.date(),
@@ -47,8 +48,8 @@ type FormValues = z.infer<typeof formSchema>;
 export function AddDailyRecordDialog({ open, onOpenChange, batchId }: { open: boolean; onOpenChange: (open: boolean) => void, batchId: string }) {
     const { toast } = useToast();
     const firestore = useFirestore();
-    const user = useUser();
-    const { inventory: feedItems, loading: feedLoading } = useInventoryByCategory(user?.uid || '', "Feed");
+    const { user } = useAppUser();
+    const { inventory: feedItems, loading: feedLoading } = useInventoryByCategory(user?.id || '', "Feed");
 
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
@@ -67,7 +68,7 @@ export function AddDailyRecordDialog({ open, onOpenChange, batchId }: { open: bo
         }
 
         try {
-            await addDailyRecord(firestore, user.uid, batchId, values);
+            await addDailyRecord(firestore, user.id, batchId, values);
             toast({
                 title: "Daily Record Added",
                 description: `Record for ${format(values.date, "PPP")} has been successfully added.`,

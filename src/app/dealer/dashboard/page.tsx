@@ -12,10 +12,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import type { User as AppUser, Order } from "@/lib/types";
 import { useUser, useFirestore } from "@/firebase/provider";
-import { doc, getDoc } from "firebase/firestore";
 import { useEffect, useState, useMemo } from "react";
 import { useOrders } from "@/hooks/use-orders";
 import { useUsersByIds } from "@/hooks/use-users";
+import { useAppUser } from "@/app/app-provider";
 
 import {
   AreaChart,
@@ -73,11 +73,9 @@ function KpiCard({ title, value, change, changeColor, icon: Icon, chartData, cha
 }
 
 export default function DealerDashboardPage() {
-    const { user: firebaseUser } = useUser();
-    const firestore = useFirestore();
-    const [user, setUser] = useState<AppUser | null>(null);
+    const { user, loading: appUserLoading } = useAppUser();
     
-    const { orders, loading: ordersLoading } = useOrders(firebaseUser?.uid);
+    const { orders, loading: ordersLoading } = useOrders(user?.id);
     
     const farmerIds = useMemo(() => {
         if (!user || !user.connectedFarmers) return [];
@@ -86,25 +84,10 @@ export default function DealerDashboardPage() {
 
     const { users: farmers, loading: farmersLoading } = useUsersByIds(farmerIds);
 
-    useEffect(() => {
-        if (firebaseUser && firestore) {
-            const userDocRef = doc(firestore, "users", firebaseUser.uid);
-            getDoc(userDocRef).then((docSnap) => {
-                if (docSnap.exists()) {
-                    setUser({ id: docSnap.id, ...docSnap.data() } as AppUser);
-                } else {
-                    setUser(null);
-                }
-            });
-        } else {
-            setUser(null);
-        }
-    }, [firebaseUser, firestore]);
-    
-    const loading = !user || ordersLoading || farmersLoading;
+    const loading = appUserLoading || ordersLoading || farmersLoading;
 
     const kpiData = useMemo(() => {
-        if (loading) return null;
+        if (loading || !user) return null;
         
         const successfulOrders = orders.filter(o => o.status === 'Approved');
         const monthlyRevenue = successfulOrders.reduce((acc, order) => acc + order.totalAmount, 0);

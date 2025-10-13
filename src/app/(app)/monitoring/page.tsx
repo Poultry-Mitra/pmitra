@@ -6,21 +6,21 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertTriangle, Siren, Thermometer, Droplets, Wind, Loader2 } from 'lucide-react';
 import { AIForecast } from "./_components/ai-forecast";
-import { useUser } from '@/firebase/provider';
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { collection, query, where, orderBy, limit } from 'firebase/firestore';
 import { useFirestore, useMemoFirebase } from '@/firebase';
 import type { SensorData, FarmAlert } from '@/lib/types';
 import { formatDistanceToNow } from 'date-fns';
+import { useAppUser } from "@/app/app-provider";
 
 export default function MonitoringPage() {
-    const { user } = useUser();
+    const { user, loading: appUserLoading } = useAppUser();
     const firestore = useFirestore();
 
     // Fetch latest sensor data (assuming one document per farm for simplicity)
     const sensorQuery = useMemoFirebase(() => firestore && user ? query(
         collection(firestore, 'farmData'),
-        where('farmId', '==', user.uid), // Assuming farmId is user.uid for simplicity
+        where('farmId', '==', user.id), // Assuming farmId is user.id for simplicity
         orderBy('timestamp', 'desc'),
         limit(4) // Fetching 4 latest readings for 4 coops
     ) : null, [firestore, user]);
@@ -29,7 +29,7 @@ export default function MonitoringPage() {
     // Fetch active alerts
     const alertsQuery = useMemoFirebase(() => firestore && user ? query(
         collection(firestore, 'farmAlerts'),
-        where('farmId', '==', user.uid),
+        where('farmId', '==', user.id),
         where('isRead', '==', false),
         orderBy('timestamp', 'desc')
     ) : null, [firestore, user]);
@@ -38,13 +38,13 @@ export default function MonitoringPage() {
     // Fetch historical data for AI forecast
     const historicalQuery = useMemoFirebase(() => firestore && user ? query(
         collection(firestore, 'farmData'),
-        where('farmId', '==', user.uid),
+        where('farmId', '==', user.id),
         orderBy('timestamp', 'desc'),
         limit(100) // Last 100 records for historical context
     ) : null, [firestore, user]);
     const { data: historicalData, isLoading: historyLoading } = useCollection<SensorData>(historicalQuery);
 
-    const loading = sensorLoading || alertsLoading || historyLoading;
+    const loading = appUserLoading || sensorLoading || alertsLoading || historyLoading;
 
     return (
         <>
@@ -139,7 +139,3 @@ export default function MonitoringPage() {
         </>
     );
 }
-
-    
-
-    

@@ -21,8 +21,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { recommendOptimalFeed, type RecommendOptimalFeedOutput } from '@/ai/flows/recommend-optimal-feed';
 import { WandSparkles, Loader2 } from 'lucide-react';
 import { useBatches } from '@/hooks/use-batches';
-import { useUser } from '@/firebase/provider';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useAppUser } from '@/app/app-provider';
 
 const formSchema = z.object({
   productionRate: z.coerce.number().min(0, "Must be non-negative"),
@@ -37,8 +37,8 @@ type FormValues = z.infer<typeof formSchema>;
 export function FeedRecommendationForm() {
   const [loading, setLoading] = useState(false);
   const [recommendation, setRecommendation] = useState<RecommendOptimalFeedOutput | null>(null);
-  const { user } = useUser();
-  const { batches, loading: batchesLoading } = useBatches(user?.uid);
+  const { user, loading: appUserLoading } = useAppUser();
+  const { batches, loading: batchesLoading } = useBatches(user?.id);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -98,7 +98,7 @@ export function FeedRecommendationForm() {
     }
   }
 
-  if (batchesLoading) {
+  if (appUserLoading || batchesLoading) {
       return (
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
               <Card>
@@ -248,5 +248,3 @@ export function FeedRecommendationForm() {
     </div>
   );
 }
-
-    

@@ -30,7 +30,7 @@ function toInventoryItem(doc: QueryDocumentSnapshot<DocumentData>): InventoryIte
     } as InventoryItem;
 }
 
-export function useInventory(farmerUID: string) {
+export function useInventory(farmerUID: string | undefined) {
   const firestore = useFirestore();
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [loading, setLoading] = useState(true);

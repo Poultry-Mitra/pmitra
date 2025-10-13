@@ -1,3 +1,4 @@
+
 // src/hooks/use-connections.ts
 'use client';
 
@@ -39,7 +40,7 @@ export function useConnections(userId: string | undefined, userRole: 'farmer' | 
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!firestore || !userId || !authUser) {
+    if (!firestore || !userId) {
         setConnections([]);
         setLoading(false);
         return;

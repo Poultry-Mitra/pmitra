@@ -5,12 +5,12 @@
 import { useState, useEffect, useMemo } from 'react';
 import { PageHeader } from "../_components/page-header";
 import { useBatches } from '@/hooks/use-batches';
-import { useUser } from '@/firebase/provider';
 import { getFarmAnalytics } from '@/ai/flows/get-farm-analytics';
 import type { FarmAnalyticsOutput } from '@/ai/flows/get-farm-analytics';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Bird, Droplet, Percent, Wheat, WandSparkles, Loader2 } from "lucide-react";
 import { Skeleton } from '@/components/ui/skeleton';
+import { useAppUser } from '@/app/app-provider';
 
 function StatCard({ title, value, icon: Icon, unit }: { title: string, value: string | number, icon: React.ElementType, unit?: string }) {
     return (
@@ -53,8 +53,8 @@ function LoadingState() {
 
 
 export default function AnalyticsPage() {
-    const { user } = useUser();
-    const { batches, loading: batchesLoading } = useBatches(user?.uid || '');
+    const { user: appUser, loading: appUserLoading } = useAppUser();
+    const { batches, loading: batchesLoading } = useBatches(appUser?.id || '');
     const [analytics, setAnalytics] = useState<FarmAnalyticsOutput | null>(null);
     const [loading, setLoading] = useState(true);
 
@@ -62,7 +62,7 @@ export default function AnalyticsPage() {
 
     useEffect(() => {
         async function fetchAnalytics() {
-            if (batchesLoading) {
+            if (appUserLoading || batchesLoading) {
                 setLoading(true);
                 return;
             }
@@ -89,7 +89,7 @@ export default function AnalyticsPage() {
             }
         }
         fetchAnalytics();
-    }, [activeBatches, batchesLoading]);
+    }, [activeBatches, appUserLoading, batchesLoading]);
 
   return (
     <>

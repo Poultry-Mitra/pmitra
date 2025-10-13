@@ -1,3 +1,4 @@
+
 // src/hooks/use-dealer-inventory.ts
 'use client';
 
@@ -44,7 +45,7 @@ function toDealerInventoryItem(doc: QueryDocumentSnapshot<DocumentData>): Dealer
     return item;
 }
 
-export function useDealerInventory(dealerUID: string) {
+export function useDealerInventory(dealerUID: string | undefined) {
   const firestore = useFirestore();
   const [inventory, setInventory] = useState<DealerInventoryItem[]>([]);
   const [loading, setLoading] = useState(true);

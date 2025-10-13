@@ -16,7 +16,7 @@ import { EditStockDialog } from './_components/edit-stock-dialog';
 
 export default function MyInventoryPage() {
     const user = useUser();
-    const { inventory, loading } = useDealerInventory(user?.uid || '');
+    const { inventory, loading } = useDealerInventory(user.user?.uid);
     const [selectedItem, setSelectedItem] = useState<DealerInventoryItem | null>(null);
     const [isEditDialogOpen, setEditDialogOpen] = useState(false);
 

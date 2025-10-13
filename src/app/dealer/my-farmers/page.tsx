@@ -37,27 +37,18 @@ import { useUsersByIds } from '@/hooks/use-users';
 import { ConnectFarmerDialog } from './_components/connect-farmer-dialog';
 import { useUser, useFirestore } from '@/firebase/provider';
 import type { User, Connection } from '@/lib/types';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, onSnapshot } from 'firebase/firestore';
 import { useConnections, updateConnectionStatus } from '@/hooks/use-connections';
 import { useToast } from '@/hooks/use-toast';
 import { FarmerDetailsDialog } from './_components/farmer-details-dialog';
+import { useAppUser } from '@/app/app-provider';
 
 export default function MyFarmersPage() {
-    const { user: dealerUser } = useUser();
+    const { user: dealerUser } = useAppUser();
     const firestore = useFirestore();
     const { toast } = useToast();
-    const [dealer, setDealer] = useState<User | null>(null);
-
-    useEffect(() => {
-        if (!firestore || !dealerUser?.uid) return;
-        getDoc(doc(firestore, 'users', dealerUser.uid)).then((doc) => {
-            if (doc.exists()) {
-                setDealer(doc.data() as User);
-            }
-        });
-    }, [firestore, dealerUser?.uid]);
-
-    const { connections: allConnections, loading: connectionsLoading } = useConnections(dealerUser?.uid, 'dealer');
+    
+    const { connections: allConnections, loading: connectionsLoading } = useConnections(dealerUser?.id, 'dealer');
     
     const pendingConnections = useMemo(() => allConnections.filter(c => c.status === 'Pending' && c.requestedBy === 'farmer'), [allConnections]);
     const approvedConnections = useMemo(() => allConnections.filter(c => c.status === 'Approved'), [allConnections]);
@@ -68,14 +59,14 @@ export default function MyFarmersPage() {
     const { users: connectedFarmers, loading: connectedFarmersLoading } = useUsersByIds(connectedFarmerIds);
     const { users: pendingFarmers, loading: pendingFarmersLoading } = useUsersByIds(pendingFarmerIds);
 
-    const planType = dealer?.planType || 'free';
+    const planType = dealerUser?.planType || 'free';
     const [isConnectDialogOpen, setConnectDialogOpen] = useState(false);
     const [showUpgradeAlert, setShowUpgradeAlert] = useState(false);
     const [selectedFarmer, setSelectedFarmer] = useState<User | null>(null);
 
     const farmerLimit = 2;
     const canAddMoreFarmers = planType === 'premium' || connectedFarmers.length < farmerLimit;
-    const loading = !dealer || connectionsLoading || connectedFarmersLoading || pendingFarmersLoading;
+    const loading = !dealerUser || connectionsLoading || connectedFarmersLoading || pendingFarmersLoading;
 
     const handleConnectClick = () => {
         if (canAddMoreFarmers) {

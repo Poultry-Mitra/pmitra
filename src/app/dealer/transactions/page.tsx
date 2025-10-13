@@ -11,8 +11,9 @@ import { useLedger } from "@/hooks/use-ledger";
 import { LedgerTable } from "../_components/ledger-table";
 
 export default function TransactionsPage() {
-    const { user: firebaseUser } = useUser();
-    const { entries, loading } = useLedger(firebaseUser?.uid);
+    const { user: firebaseUser, isUserLoading } = useUser();
+    const { entries, loading: ledgerLoading } = useLedger(firebaseUser?.uid);
+    const loading = isUserLoading || ledgerLoading;
 
     return (
         <>

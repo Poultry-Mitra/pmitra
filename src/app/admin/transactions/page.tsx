@@ -52,7 +52,7 @@ export default function TransactionsPage() {
                                 {loading && (
                                     <TableRow>
                                         <TableCell colSpan={7} className="h-24 text-center">
-                                            <Loader2 className="animate-spin mx-auto" />
+                                            <Loader2 className="mx-auto animate-spin" />
                                         </TableCell>
                                     </TableRow>
                                 )}

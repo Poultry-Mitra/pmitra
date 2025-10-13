@@ -13,13 +13,15 @@ import { useUser } from "@/firebase/provider";
 import { cn } from "@/lib/utils";
 import { AddExpenseDialog } from "./_components/add-expense-dialog";
 import { AddIncomeDialog } from "./_components/add-income-dialog";
+import { useAppUser } from "@/app/app-provider";
 
 export default function LedgerPage() {
-  const user = useUser();
-  const { entries, loading } = useLedger(user?.uid || '');
+  const { user, loading: appUserLoading } = useAppUser();
+  const { entries, loading: ledgerLoading } = useLedger(user?.id);
   const [isAddExpenseOpen, setAddExpenseOpen] = useState(false);
   const [isAddIncomeOpen, setAddIncomeOpen] = useState(false);
 
+  const loading = appUserLoading || ledgerLoading;
 
   const finalBalance = entries.length > 0 ? entries[0].balanceAfter : 0;
 
