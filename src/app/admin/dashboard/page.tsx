@@ -21,6 +21,7 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { useOrders } from "@/hooks/use-orders";
+import { Skeleton } from "@/components/ui/skeleton";
 
 
 function Sparkline({ data, color }: { data: { value: number }[], color: string }) {
