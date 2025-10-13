@@ -176,7 +176,7 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
     return (
         <>
             <Card>
-                <CardHeader className="flex flex-row items-center justify-between">
+                <CardHeader className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                     <div>
                         <CardTitle>{title}</CardTitle>
                         <CardDescription>{description}</CardDescription>
@@ -184,7 +184,7 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
                     {roleToShow && (
                         <Button asChild>
                             <Link href="/admin/user-management/add-user">
-                                <PlusCircle className="mr-2" />
+                                <PlusCircle />
                                 {t('admin.users.add_user_button')}
                             </Link>
                         </Button>
@@ -218,7 +218,9 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
                                     </TableCell>
                                 </TableRow>
                             )}
-                            {!loading && filteredUsers.map((user) => (
+                            {!loading && filteredUsers.map((user) => {
+                                const userStatus = user.status || 'Pending'; // Default to Pending if status is undefined
+                                return (
                                 <TableRow key={user.id}>
                                     <TableCell>
                                         <div className="flex items-center gap-3">
@@ -235,8 +237,8 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
                                         <Badge variant={user.role === 'admin' ? 'default' : 'secondary'} className="capitalize">{t(`roles.${user.role}`)}</Badge>
                                     </TableCell>
                                     <TableCell>
-                                        <Badge variant={statusVariant[user.status]} className={cn("capitalize", statusColorScheme[user.status])}>
-                                            {t(`status.${user.status}`)}
+                                        <Badge variant={statusVariant[userStatus]} className={cn("capitalize", statusColorScheme[userStatus])}>
+                                            {t(`status.${userStatus}`)}
                                         </Badge>
                                     </TableCell>
                                     <TableCell className="hidden md:table-cell">
@@ -255,9 +257,9 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
                                                 {user.role !== 'admin' && (
                                                     <>
                                                         <DropdownMenuSeparator />
-                                                        {user.status === 'Pending' && <DropdownMenuItem className="text-green-600 focus:text-green-700" onClick={() => openDialog(user, 'approve')}><CheckCircle className="mr-2" />Approve User</DropdownMenuItem>}
-                                                        {user.status === 'Active' && <DropdownMenuItem onClick={() => openDialog(user, 'suspend')}>{t('actions.suspend')}</DropdownMenuItem>}
-                                                        {user.status === 'Suspended' && <DropdownMenuItem onClick={() => openDialog(user, 'suspend')}>{t('actions.unsuspend')}</DropdownMenuItem>}
+                                                        {userStatus === 'Pending' && <DropdownMenuItem className="text-green-600 focus:text-green-700" onClick={() => openDialog(user, 'approve')}><CheckCircle className="mr-2" />Approve User</DropdownMenuItem>}
+                                                        {userStatus === 'Active' && <DropdownMenuItem onClick={() => openDialog(user, 'suspend')}>{t('actions.suspend')}</DropdownMenuItem>}
+                                                        {userStatus === 'Suspended' && <DropdownMenuItem onClick={() => openDialog(user, 'suspend')}>{t('actions.unsuspend')}</DropdownMenuItem>}
                                                         <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => openDialog(user, 'delete')}>{t('actions.delete')}</DropdownMenuItem>
                                                     </>
                                                 )}
@@ -265,7 +267,7 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
                                         </DropdownMenu>
                                     </TableCell>
                                 </TableRow>
-                            ))}
+                            )})}
                         </TableBody>
                     </Table>
                 </CardContent>
@@ -282,7 +284,7 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
                     {detailsUser && (
                         <div className="py-4">
                             <Tabs defaultValue="overview">
-                                <TabsList>
+                                <TabsList className="grid grid-cols-3">
                                     <TabsTrigger value="overview">{t('tabs.overview')}</TabsTrigger>
                                     <TabsTrigger value="subscription">{t('tabs.subscription')}</TabsTrigger>
                                     <TabsTrigger value="activity">{t('tabs.activity')}</TabsTrigger>
@@ -299,13 +301,13 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
                                                     <div className="text-muted-foreground">{detailsUser.email}</div>
                                                     <div className="flex items-center gap-2 mt-1">
                                                         <Badge className="capitalize">{t(`roles.${detailsUser.role}`)}</Badge>
-                                                        <Badge variant={statusVariant[detailsUser.status]} className={cn("capitalize", statusColorScheme[detailsUser.status])}>
-                                                            {t(`status.${detailsUser.status}`)}
+                                                        <Badge variant={statusVariant[detailsUser.status || 'Pending']} className={cn("capitalize", statusColorScheme[detailsUser.status || 'Pending'])}>
+                                                            {t(`status.${detailsUser.status || 'Pending'}`)}
                                                         </Badge>
                                                     </div>
                                                 </div>
                                             </div>
-                                             <div className="grid grid-cols-2 gap-2 text-sm">
+                                             <div className="grid grid-cols-1 gap-2 text-sm md:grid-cols-2">
                                                 <div><strong className="font-medium">{t('labels.date_joined')}:</strong> {new Date(detailsUser.dateJoined).toLocaleDateString()}</div>
                                                 <div><strong className="font-medium">{t('labels.user_id')}:</strong> <span className="font-mono text-xs">{detailsUser.id}</span></div>
                                              </div>
