@@ -21,22 +21,12 @@ export function initializeFirebase() {
     return { firebaseApp, auth, firestore };
   }
 
-  // Check if Firebase config is available.
-  if (
-    !firebaseConfig.apiKey ||
-    !firebaseConfig.authDomain ||
-    !firebaseConfig.projectId
-  ) {
-    // We log an error but don't throw, allowing the app to continue.
-    console.error("Firebase configuration is missing or incomplete. Please check your environment variables.");
-    return { firebaseApp: null, auth: null, firestore: null };
-  }
-
   // Initialize the Firebase app if it hasn't been already.
+  // This check is sufficient. The config check was causing hydration issues.
   if (!getApps().length) {
     firebaseApp = initializeApp(firebaseConfig);
   } else {
-    firebaseApp = getApp(); // Or get the existing app if it was somehow initialized elsewhere.
+    firebaseApp = getApp();
   }
   
   auth = getAuth(firebaseApp);
