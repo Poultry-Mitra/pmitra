@@ -1,3 +1,4 @@
+
 // src/hooks/use-orders.ts
 'use client';
 
@@ -170,9 +171,9 @@ export async function updateOrderStatus(orderId: string, newStatus: 'Approved' |
                     throw new Error("Order is missing a product ID.");
                 }
                 const dealerInventoryRef = doc(firestore, 'dealerInventory', orderData.productId);
+                
                 const farmerDocSnap = await transaction.get(doc(firestore, 'users', orderData.farmerUID));
                 const dealerInventoryDoc = await transaction.get(dealerInventoryRef);
-                
                 const dealerDocSnap = await transaction.get(doc(firestore, 'users', orderData.dealerUID));
 
 

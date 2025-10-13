@@ -207,7 +207,7 @@ export async function addDailyRecord(
     
     const batchRef = doc(firestore, 'batches', batchId);
     const dailyRecordRef = doc(collection(firestore, `batches/${batchId}/dailyRecords`));
-    const inventoryItemRef = data.feedItemId ? doc(firestore, `inventory`, data.feedItemId) : null;
+    const inventoryItemRef = data.feedItemId ? doc(firestore, 'inventory', data.feedItemId) : null;
 
 
     try {

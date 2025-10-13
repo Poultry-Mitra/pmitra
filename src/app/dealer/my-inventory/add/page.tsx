@@ -6,13 +6,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { PageHeader } from "../../_components/page-header";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
-import { Save, Trash2, PlusCircle, IndianRupee } from "lucide-react";
+import { Save, Trash2, PlusCircle, IndianRupee, Loader2 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Label } from "@/components/ui/label";
 import { useFirestore, useUser } from "@/firebase/provider";
@@ -100,7 +100,7 @@ export default function AddStockPage() {
     const { toast } = useToast();
     const router = useRouter();
     const firestore = useFirestore();
-    const user = useUser();
+    const { user } = useUser();
 
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
@@ -126,7 +126,7 @@ export default function AddStockPage() {
     const paymentMethod = form.watch("paymentMethod");
 
     async function onSubmit(values: FormValues) {
-        if (!firestore || !user.user) {
+        if (!firestore || !user) {
             toast({ title: "Error", description: "You must be logged in to add stock.", variant: "destructive" });
             return;
         }
@@ -144,7 +144,7 @@ export default function AddStockPage() {
                     lowStockThreshold: product.lowStockThreshold,
                     phaseApplicable: [], // Default empty for now
                 };
-                await addDealerInventoryItem(firestore, user.user.uid, newItem);
+                await addDealerInventoryItem(firestore, user.uid, newItem);
             }
             
             // 2. Add a single debit entry to the ledger for the total purchase amount
@@ -154,7 +154,7 @@ export default function AddStockPage() {
 
             const ledgerDescription = `Purchase from ${values.supplierName || 'Unknown Supplier'}` + (values.invoiceNumber ? ` (Bill: ${values.invoiceNumber})` : '');
             
-            await addLedgerEntry(firestore, user.user.uid, {
+            await addLedgerEntry(firestore, user.uid, {
                 description: ledgerDescription,
                 amount: netPayable,
                 date: new Date(values.invoiceDate).toISOString(),
@@ -392,7 +392,7 @@ export default function AddStockPage() {
                                     </CardContent>
                                 </Card>
                                  <Button type="submit" size="lg" className="w-full" disabled={form.formState.isSubmitting}>
-                                    <Save className="mr-2" />
+                                    {form.formState.isSubmitting ? <Loader2 className="mr-2 animate-spin" /> : <Save className="mr-2" />}
                                     {form.formState.isSubmitting ? "Saving..." : "Record Purchase"}
                                 </Button>
                             </div>

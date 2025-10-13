@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { PageHeader } from "../../_components/page-header";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -15,7 +15,7 @@ import { useFirestore, useUser } from "@/firebase/provider";
 import { addInventoryItem, type InventoryItem } from "@/hooks/use-inventory";
 import { addLedgerEntry } from "@/hooks/use-ledger";
 import { useRouter } from "next/navigation";
-import { CalendarIcon, Save, Trash2, PlusCircle, IndianRupee } from "lucide-react";
+import { CalendarIcon, Save, Trash2, PlusCircle, IndianRupee, Loader2 } from "lucide-react";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
@@ -88,7 +88,7 @@ function SummaryCard({ control }: { control: any }) {
 export default function AddPurchasePage() {
     const { toast } = useToast();
     const firestore = useFirestore();
-    const user = useUser();
+    const { user } = useUser();
     const router = useRouter();
 
     const form = useForm<FormValues>({
@@ -381,7 +381,7 @@ export default function AddPurchasePage() {
                                     </CardContent>
                                 </Card>
                                  <Button type="submit" size="lg" className="w-full" disabled={form.formState.isSubmitting}>
-                                    <Save className="mr-2" />
+                                    {form.formState.isSubmitting ? <Loader2 className="animate-spin mr-2" /> : <Save className="mr-2" />}
                                     {form.formState.isSubmitting ? "Saving..." : "Save Purchase"}
                                 </Button>
                             </div>
@@ -392,5 +392,3 @@ export default function AddPurchasePage() {
         </>
     );
 }
-
-    
