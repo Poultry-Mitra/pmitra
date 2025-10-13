@@ -14,20 +14,18 @@ export function FirebaseClientProvider({ children }: FirebaseClientProviderProps
   // The server-side render will not execute this.
   const firebaseServices = useMemo(() => getFirebase(), []);
 
-  // Safely render children only when Firebase services are fully available.
-  // On the server or during initial client render before Firebase is ready,
-  // this will prevent child components from trying to use null services.
-  if (!firebaseServices.firebaseApp || !firebaseServices.auth || !firebaseServices.firestore) {
-    // You can return a global loader here if you want.
-    // Returning null is also safe as it prevents rendering of children that depend on Firebase.
-    return null;
-  }
-
+  // The check to return null is removed. 
+  // We will always render the children, and the individual providers/pages 
+  // (like AppProvider) will handle their own loading states if they depend on Firebase.
+  // This ensures that public pages which don't need Firebase can render immediately.
+  
+  // We pass potentially null services to the provider. The hooks (useAuth, etc.) 
+  // are designed to handle this gracefully.
   return (
     <FirebaseProvider
-      firebaseApp={firebaseServices.firebaseApp}
-      auth={firebaseServices.auth}
-      firestore={firebaseServices.firestore}
+      firebaseApp={firebaseServices.firebaseApp!}
+      auth={firebaseServices.auth!}
+      firestore={firebaseServices.firestore!}
     >
       {children}
     </FirebaseProvider>
