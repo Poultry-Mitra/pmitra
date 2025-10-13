@@ -1,5 +1,6 @@
 
 import { ImageResponse } from 'next/og'
+import { AppIcon } from './icon-component'
 
 // Route segment config
 export const runtime = 'edge'
@@ -18,18 +19,32 @@ export default function Icon() {
       // ImageResponse JSX element
       <div
         style={{
-          fontSize: 24,
-          background: '#1565C0', // This should match your primary color
           width: '100%',
           height: '100%',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          color: 'white',
-          borderRadius: 8,
+          borderRadius: '50%',
+          background: '#1565C0', // Corresponds to primary color
         }}
       >
-        P
+        <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            width="20"
+            height="20"
+            fill="none"
+            stroke="white"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+        >
+          <path d="M16 7h.01" />
+          <path d="M3.4 18H12a8 8 0 0 0 8-8V7a4 4 0 0 0-7.28-2.3L2 20" />
+          <path d="m20 7 2 .5-2 .5" />
+          <path d="M10 18v3" />
+          <path d="M14 18v3" />
+        </svg>
       </div>
     ),
     // ImageResponse options
