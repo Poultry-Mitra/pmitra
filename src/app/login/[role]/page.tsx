@@ -115,9 +115,11 @@ export default function RoleLoginPage() {
       let message = 'An unknown error occurred.';
       if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
         message = 'Invalid email or password. Please try again.';
+      } else {
+        // Only log unexpected errors
+        console.error('Login error:', error);
       }
       toast({ title: 'Login Failed', description: message, variant: 'destructive' });
-      console.error('Login error:', error);
     }
   }
 
