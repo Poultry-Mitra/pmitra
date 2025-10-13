@@ -72,9 +72,9 @@ export default function LoginPage() {
 
             <div className="mt-10 space-y-4 text-sm text-muted-foreground">
                 <p>
-                    {t('signup.have_account')}{' '}
+                    {t('login.no_account')}{' '}
                     <Link href="/signup" className="font-semibold text-primary hover:underline">
-                        {t('signup.register_here')}
+                        {t('login.register_here')}
                     </Link>
                 </p>
                 <div className="flex items-center justify-center gap-6">
