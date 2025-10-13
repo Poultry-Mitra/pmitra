@@ -213,10 +213,10 @@ export function AdminSidebar() {
                 </Link>
             </SidebarMenuItem>
             </SidebarMenu>
-        </SidebarContent>
-        <SidebarFooter>
+             <SidebarSeparator />
+            <SidebarGroupLabel>System</SidebarGroupLabel>
             <SidebarMenu>
-                <Collapsible open={settingsOpen} onOpenChange={setSettingsOpen}>
+                 <Collapsible open={settingsOpen} onOpenChange={setSettingsOpen}>
                     <SidebarMenuItem className="relative">
                         <CollapsibleTrigger asChild>
                             <SidebarMenuButton tooltip="Settings" className="w-full justify-between pr-8" isActive={pathname.startsWith("/admin/settings")}>
@@ -259,13 +259,11 @@ export function AdminSidebar() {
                         </SidebarMenu>
                     </CollapsibleContent>
                 </Collapsible>
-                <SidebarMenuItem>
-                    <SidebarMenuButton tooltip={t('actions.logout')} onClick={() => setShowLogoutAlert(true)}>
-                        <LogOut />
-                        <span>{t('sidebar_logout')}</span>
-                    </SidebarMenuButton>
-                </SidebarMenuItem>
             </SidebarMenu>
+
+        </SidebarContent>
+        <SidebarFooter>
+           {/* Footer is now empty, logout is in the header dropdown */}
         </SidebarFooter>
         </Sidebar>
 
