@@ -45,32 +45,44 @@ export function AppProvider({ children, allowedRoles }: { children: ReactNode; a
     }
     
     const userDocRef = doc(firestore!, 'users', firebaseUser.uid);
-    getDoc(userDocRef).then(docSnap => {
-      if (docSnap.exists()) {
-        const userData = { id: docSnap.id, ...docSnap.data() } as AppUser;
-        setAppUser(userData);
+    let attempts = 0;
+    const maxAttempts = 5;
+    const delay = 300;
 
-        if (allowedRoles.includes('public')) {
-            // If on a public page (like /login), redirect to dashboard
-            router.replace(getRedirectPath(userData.role));
-            return;
-        }
+    const fetchUserProfile = () => {
+        getDoc(userDocRef).then(docSnap => {
+            if (docSnap.exists()) {
+                const userData = { id: docSnap.id, ...docSnap.data() } as AppUser;
+                setAppUser(userData);
 
-        if (!allowedRoles.includes(userData.role)) {
-          console.warn(`Role mismatch: User is '${userData.role}', but this layout requires one of [${allowedRoles.join(', ')}]. Redirecting.`);
-          router.replace(getRedirectPath(userData.role));
-        } else {
-          setLoading(false);
-        }
-      } else {
-        // User is authenticated but has no profile in 'users' collection
-        console.error("User profile not found in Firestore. Redirecting to login.");
-        router.replace('/login');
-      }
-    }).catch(error => {
-      console.error("Error fetching user profile:", error);
-      router.replace('/login');
-    });
+                if (allowedRoles.includes('public')) {
+                    router.replace(getRedirectPath(userData.role));
+                    return;
+                }
+
+                if (!allowedRoles.includes(userData.role)) {
+                    console.warn(`Role mismatch: User is '${userData.role}', but this layout requires one of [${allowedRoles.join(', ')}]. Redirecting.`);
+                    router.replace(getRedirectPath(userData.role));
+                } else {
+                    setLoading(false);
+                }
+            } else {
+                attempts++;
+                if (attempts < maxAttempts) {
+                    setTimeout(fetchUserProfile, delay);
+                } else {
+                    // After several attempts, assume there's a real issue.
+                    console.warn("User profile not found in Firestore after multiple attempts. Redirecting to login.");
+                    router.replace('/login');
+                }
+            }
+        }).catch(error => {
+            console.error("Error fetching user profile:", error);
+            router.replace('/login');
+        });
+    }
+
+    fetchUserProfile();
 
   }, [isAuthLoading, firebaseUser, firestore, router, allowedRoles]);
 
