@@ -114,22 +114,20 @@ export function AppSidebar() {
             <div className="flex w-full flex-col gap-4">
             <div className="flex items-center gap-2">
                     <AppIcon className="size-8 text-primary" />
-                    {state === 'expanded' && <h1 className="font-headline text-lg font-bold">PoultryMitra</h1>}
+                    <span className="group-data-[state=collapsed]:hidden font-headline text-lg font-bold">PoultryMitra</span>
                 </div>
-                {state === 'expanded' && (
-                    <div className="rounded-lg border bg-card p-3 text-sm">
-                        <div className="flex items-start gap-2">
-                            <Avatar className="size-10">
-                                <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
-                            </Avatar>
-                            <div className="flex-1">
-                                <div className="font-bold">{user.name}</div>
-                                <div className="text-xs text-muted-foreground">{poultryMitraId}</div>
-                            </div>
+                <div className="group-data-[state=collapsed]:hidden rounded-lg border bg-card p-3 text-sm">
+                    <div className="flex items-start gap-2">
+                        <Avatar className="size-10">
+                            <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1">
+                            <div className="font-bold">{user.name}</div>
+                            <div className="text-xs text-muted-foreground">{poultryMitraId}</div>
                         </div>
-                        <Badge className="mt-2 w-full justify-center capitalize" variant={user.planType === 'premium' ? 'default' : 'secondary'}>{t(`plans.${user.planType}`)}</Badge>
                     </div>
-                )}
+                    <Badge className="mt-2 w-full justify-center capitalize" variant={user.planType === 'premium' ? 'default' : 'secondary'}>{t(`plans.${user.planType}`)}</Badge>
+                </div>
             </div>
         </SidebarHeader>
         <SidebarContent>
@@ -164,11 +162,9 @@ export function AppSidebar() {
                         </div>
                     </SidebarMenuButton>
                 </CollapsibleTrigger>
-                { state === 'expanded' && (
-                    <div className="absolute right-2 top-1/2 -translate-y-1/2">
-                        {inventoryOpen ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
-                    </div>
-                )}
+                <div className="absolute right-2 top-1/2 -translate-y-1/2 group-data-[state=collapsed]:hidden">
+                    {inventoryOpen ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
+                </div>
                 </SidebarMenuItem>
 
                 <CollapsibleContent>
@@ -234,7 +230,7 @@ export function AppSidebar() {
                         >
                             <TrendingUp/>
                             <span>{t('daily_rates.title')}</span>
-                            {state === 'expanded' && <Badge variant="secondary" className="ml-auto">{t('plans.pro')}</Badge>}
+                            <Badge variant="secondary" className="ml-auto group-data-[state=collapsed]:hidden">{t('plans.pro')}</Badge>
                         </SidebarMenuButton>
                     </Link>
                 </SidebarMenuItem>

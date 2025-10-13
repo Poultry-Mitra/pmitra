@@ -112,7 +112,7 @@ export default function DashboardPage() {
           <DashboardStats batches={activeBatches} loading={batchesLoading} />
       </div>
 
-      <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-2">
+      <div className="mt-8 grid grid-cols-1 gap-8">
         <PendingOrders />
       </div>
       <ConnectDealerDialog open={isConnectDealerOpen} onOpenChange={setConnectDealerOpen} />
