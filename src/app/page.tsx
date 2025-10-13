@@ -170,35 +170,23 @@ function LandingPageContent() {
         <RateTicker />
       </header>
       <main className="flex-1">
-        <section id="hero" className="container py-20 md:py-28 lg:py-32">
-            <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-2">
-                <div className="flex flex-col items-center text-center lg:items-start lg:text-left">
-                    <h1 className="font-headline text-4xl font-bold leading-tight tracking-tighter md:text-5xl lg:text-6xl">
-                    {t('hero.title')}
-                    </h1>
-                    <p className="mt-6 max-w-[600px] text-lg text-muted-foreground">
-                    {t('hero.subtitle')}
-                    </p>
-                    <div className="flex gap-4 mt-8">
-                        <Button size="lg" asChild>
-                            <Link href={getStartedHref()}>{t('hero.get_started')}</Link>
-                        </Button>
-                        <Button size="lg" variant="outline" asChild>
-                            <Link href="#features">{t('hero.watch_demo')}</Link>
-                        </Button>
-                    </div>
-                </div>
-                <div className="relative h-80 w-full overflow-hidden rounded-lg shadow-2xl lg:h-96">
-                    <Image
-                        src="https://picsum.photos/seed/poultry-farm/1200/800"
-                        alt="Modern poultry farm management dashboard"
-                        fill
-                        className="object-cover"
-                        data-ai-hint="modern poultry farm"
-                    />
-                     <div className="absolute inset-0 bg-gradient-to-t from-background/20 to-transparent"></div>
-                </div>
+        <section id="hero" className="container py-20 text-center md:py-28 lg:py-32">
+          <div className="mx-auto flex max-w-3xl flex-col items-center">
+            <h1 className="font-headline text-4xl font-bold leading-tight tracking-tighter md:text-5xl lg:text-6xl">
+              {t('hero.title')}
+            </h1>
+            <p className="mt-6 max-w-[600px] text-lg text-muted-foreground">
+              {t('hero.subtitle')}
+            </p>
+            <div className="mt-8 flex gap-4">
+              <Button size="lg" asChild>
+                <Link href={getStartedHref()}>{t('hero.get_started')}</Link>
+              </Button>
+              <Button size="lg" variant="outline" asChild>
+                <Link href="#features">{t('hero.watch_demo')}</Link>
+              </Button>
             </div>
+          </div>
         </section>
         
         <section id="social-proof" className="py-12">
