@@ -28,10 +28,12 @@ import { Bell, Search, AlertTriangle, Loader2 } from 'lucide-react';
 import { useUser } from '@/firebase/provider';
 import { LanguageToggle } from '@/components/language-toggle';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { useLanguage } from '@/components/language-provider';
 
 export function AppHeader() {
   const { user: firebaseUser, isUserLoading } = useUser();
   const [showLogoutAlert, setShowLogoutAlert] = useState(false);
+  const { t } = useLanguage();
 
   if (isUserLoading) {
     return (
@@ -83,10 +85,12 @@ export function AppHeader() {
             <DropdownMenuContent align="end">
                 <DropdownMenuLabel>{userName}</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>Profile</DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/profile">{t('profile.title')}</Link>
+                </DropdownMenuItem>
                 <DropdownMenuItem>Settings</DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onSelect={() => setShowLogoutAlert(true)}>Logout</DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => setShowLogoutAlert(true)}>{t('actions.logout')}</DropdownMenuItem>
             </DropdownMenuContent>
             </DropdownMenu>
         </div>
@@ -96,16 +100,16 @@ export function AppHeader() {
             <AlertDialogHeader>
                 <AlertDialogTitle className="flex items-center gap-2">
                     <AlertTriangle className="text-destructive"/>
-                    Logout
+                    {t('dialog.logout_title')}
                 </AlertDialogTitle>
                 <AlertDialogDescription>
-                Are you sure you want to logout?
+                {t('dialog.logout_desc')}
                 </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogCancel>{t('actions.cancel')}</AlertDialogCancel>
                 <AlertDialogAction asChild>
-                    <Link href="/login">Logout</Link>
+                    <Link href="/login">{t('actions.logout')}</Link>
                 </AlertDialogAction>
             </AlertDialogFooter>
             </AlertDialogContent>

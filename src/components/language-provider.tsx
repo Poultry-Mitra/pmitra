@@ -228,14 +228,24 @@ const translations = {
       error: "Error",
       must_be_logged_in: "You must be logged in to perform this action.",
       loading: "Loading...",
+      loading_users: "Loading users...",
+      no_users_found: "No users found.",
     },
     labels: {
       full_name: "Full Name",
       mobile_number: "Mobile Number",
       pincode: "PIN Code",
+      date_joined: "Date Joined",
+      user_id: "User ID",
+      subscription_plan: "Subscription Plan",
+      next_billing_date: "Next Billing Date",
+      reason: "Reason",
+      please_specify: "Please specify",
     },
     placeholders: {
       your_name: "Your full name",
+      select_reason: "Select a reason",
+      provide_reason: "Provide a detailed reason...",
     },
     admin: {
       dashboard: {
@@ -309,18 +319,6 @@ const translations = {
       subscription: "Subscription",
       activity: "Activity",
     },
-    labels: {
-      date_joined: "Date Joined",
-      user_id: "User ID",
-      subscription_plan: "Subscription Plan",
-      next_billing_date: "Next Billing Date",
-      reason: "Reason",
-      please_specify: "Please specify",
-    },
-    placeholders: {
-      select_reason: "Select a reason",
-      provide_reason: "Provide a detailed reason...",
-    },
     reasons: {
       user_request: "User Request",
       payment_failed: "Payment Failed",
@@ -332,10 +330,6 @@ const translations = {
       logged_in: "Logged in - 2 hours ago",
       viewed_dashboard: "Viewed dashboard - 1 hour ago",
       started_chat: "Started AI chat - 30 minutes ago",
-    },
-    messages: {
-      loading_users: "Loading users...",
-      no_users_found: "No users found.",
     }
   },
   hi: {
@@ -430,7 +424,7 @@ const translations = {
     login: {
       welcome_title: "वापस स्वागत है!",
       no_account: "कोई खाता नहीं है?",
-      register_here: "यहाँ रजिस्टर करें",
+      register_here: "यहां रजिस्टर करें",
       back_to_home: "होम पर वापस जाएं",
       farmer_title: "किसान के रूप में लॉग इन करें",
       farmer_description: "अपने फार्म प्रबंधन टूल और एआई सहायक तक पहुंचें।",
@@ -553,14 +547,24 @@ const translations = {
       error: "त्रुटि",
       must_be_logged_in: "यह क्रिया करने के लिए आपको लॉग इन होना चाहिए।",
       loading: "लोड हो रहा है...",
+      loading_users: "उपयोगकर्ताओं को लोड किया जा रहा है...",
+      no_users_found: "कोई उपयोगकर्ता नहीं मिला।",
     },
     labels: {
       full_name: "पूरा नाम",
       mobile_number: "मोबाइल नंबर",
       pincode: "पिन कोड",
+      date_joined: "शामिल होने की तिथि",
+      user_id: "उपयोगकर्ता आईडी",
+      subscription_plan: "सदस्यता योजना",
+      next_billing_date: "अगली बिलिंग तिथि",
+      reason: "कारण",
+      please_specify: "कृपया निर्दिष्ट करें",
     },
     placeholders: {
       your_name: "आपका पूरा नाम",
+      select_reason: "एक कारण चुनें",
+      provide_reason: "एक विस्तृत कारण प्रदान करें...",
     },
     admin: {
       dashboard: {
@@ -601,7 +605,7 @@ const translations = {
         delete_failed_title: "हटाने में विफल",
         delete_failed_desc: "उपयोगकर्ता को हटाया नहीं जा सका।",
         details_title: "उपयोगकर्ता विवरण",
-        details_desc: "देख रहा है {name} के लिए व्यापक विवरण।",
+        details_desc: "{name} के लिए व्यापक विवरण देखा जा रहा है।",
       },
       farmers_page: {
         title: "सभी किसान",
@@ -634,18 +638,6 @@ const translations = {
       subscription: "सदस्यता",
       activity: "गतिविधि",
     },
-    labels: {
-      date_joined: "शामिल होने की तिथि",
-      user_id: "उपयोगकर्ता आईडी",
-      subscription_plan: "सदस्यता योजना",
-      next_billing_date: "अगली बिलिंग तिथि",
-      reason: "कारण",
-      please_specify: "कृपया निर्दिष्ट करें",
-    },
-    placeholders: {
-      select_reason: "एक कारण चुनें",
-      provide_reason: "एक विस्तृत कारण प्रदान करें...",
-    },
     reasons: {
       user_request: "उपयोगकर्ता अनुरोध",
       payment_failed: "भुगतान विफल",
@@ -658,10 +650,6 @@ const translations = {
       viewed_dashboard: "1 घंटा पहले डैशबोर्ड देखा",
       started_chat: "30 मिनट पहले एआई चैट शुरू की",
     },
-    messages: {
-      loading_users: "उपयोगकर्ताओं को लोड किया जा रहा है...",
-      no_users_found: "कोई उपयोगकर्ता नहीं मिला।",
-    }
   }
 };
 
