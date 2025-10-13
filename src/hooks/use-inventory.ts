@@ -1,4 +1,3 @@
-
 // src/hooks/use-inventory.ts
 'use client';
 
@@ -6,7 +5,6 @@ import { useState, useEffect } from 'react';
 import {
   collection,
   onSnapshot,
-  addDoc,
   serverTimestamp,
   type Firestore,
   type DocumentData,
@@ -17,8 +15,7 @@ import {
 } from 'firebase/firestore';
 import { useFirestore } from '@/firebase/provider';
 import type { InventoryItem } from '@/lib/types';
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
+import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
 // Helper to convert Firestore doc to InventoryItem type
 function toInventoryItem(doc: QueryDocumentSnapshot<DocumentData>): InventoryItem {
@@ -55,11 +52,6 @@ export function useInventory(farmerUID: string | undefined) {
         setLoading(false);
       },
       (err) => {
-        const permissionError = new FirestorePermissionError({
-          path: `inventory where farmerUID == ${farmerUID}`,
-          operation: 'list',
-        });
-        errorEmitter.emit('permission-error', permissionError);
         console.error("Error fetching inventory:", err);
         setLoading(false);
       }
@@ -99,11 +91,6 @@ export function useInventoryByCategory(farmerUID: string, category: InventoryIte
         setLoading(false);
       },
       (err) => {
-        const permissionError = new FirestorePermissionError({
-          path: `inventory where farmerUID == ${farmerUID} and category == ${category}`,
-          operation: 'list',
-        });
-        errorEmitter.emit('permission-error', permissionError);
         console.error(`Error fetching inventory for category ${category}:`, err);
         setLoading(false);
       }
@@ -127,13 +114,5 @@ export async function addInventoryItem(firestore: Firestore, farmerUID: string, 
         lastUpdated: serverTimestamp(),
     };
 
-    addDoc(collectionRef, docData).catch((serverError) => {
-        const permissionError = new FirestorePermissionError({
-            path: 'inventory',
-            operation: 'create',
-            requestResourceData: docData,
-        });
-        errorEmitter.emit('permission-error', permissionError);
-        throw serverError; // Re-throw for form error handling
-    });
+    addDocumentNonBlocking(collectionRef, docData);
 }

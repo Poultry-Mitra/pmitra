@@ -7,22 +7,19 @@ import {
   collection,
   onSnapshot,
   doc,
-  updateDoc,
   type Firestore,
   type DocumentData,
   QueryDocumentSnapshot,
   query,
   where,
   orderBy,
-  addDoc,
-  serverTimestamp,
   runTransaction,
   increment,
+  serverTimestamp,
 } from 'firebase/firestore';
 import { useFirestore, useUser } from '@/firebase/provider';
-import type { Order, User } from '@/lib/types';
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
+import type { Order } from '@/lib/types';
+import { addDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { addLedgerEntryInTransaction } from './use-ledger';
 
 // Helper to convert Firestore doc to Order type
@@ -64,11 +61,6 @@ export function useOrders(dealerUID?: string) {
         setLoading(false);
       },
       (err) => {
-        const permissionError = new FirestorePermissionError({
-          path: `orders ${dealerUID ? `where dealerUID == ${dealerUID}` : ''}`,
-          operation: 'list',
-        });
-        errorEmitter.emit('permission-error', permissionError);
         console.error("Error fetching orders:", err);
         setLoading(false);
       }
@@ -107,11 +99,6 @@ export function useOrdersByFarmer(farmerUID?: string) {
         setLoading(false);
       },
       (err) => {
-        const permissionError = new FirestorePermissionError({
-          path: `orders where farmerUID == ${farmerUID}`,
-          operation: 'list',
-        });
-        errorEmitter.emit('permission-error', permissionError);
         console.error("Error fetching orders by farmer:", err);
         setLoading(false);
       }
@@ -124,7 +111,7 @@ export function useOrdersByFarmer(farmerUID?: string) {
 }
 
 
-export async function createOrder(firestore: Firestore, data: Omit<Order, 'id' | 'createdAt'>) {
+export function createOrder(firestore: Firestore, data: Omit<Order, 'id' | 'createdAt'>) {
     if (!firestore) throw new Error("Firestore not initialized");
 
     const orderCollection = collection(firestore, 'orders');
@@ -134,18 +121,7 @@ export async function createOrder(firestore: Firestore, data: Omit<Order, 'id' |
         createdAt: serverTimestamp(),
     };
 
-    try {
-        await addDoc(orderCollection, orderData);
-    } catch(e: any) {
-         console.error("Error creating order: ", e);
-        const permissionError = new FirestorePermissionError({
-            path: 'orders',
-            operation: 'create',
-            requestResourceData: orderData,
-        });
-        errorEmitter.emit('permission-error', permissionError);
-        throw e;
-    }
+    addDocumentNonBlocking(orderCollection, orderData);
 }
 
 export async function updateOrderStatus(order: Order, newStatus: 'Approved' | 'Rejected', firestore: Firestore | null) {
@@ -153,70 +129,61 @@ export async function updateOrderStatus(order: Order, newStatus: 'Approved' | 'R
 
     const orderRef = doc(firestore, 'orders', order.id);
     
-    try {
-        await runTransaction(firestore, async (transaction) => {
-            const orderDoc = await transaction.get(orderRef);
-            if (!orderDoc.exists() || orderDoc.data().status !== 'Pending') {
-                throw new Error("Order not found or has already been processed.");
-            }
-            
-            // Update the order status
-            transaction.update(orderRef, { status: newStatus });
-
-            // If the order is approved, deduct inventory and create ledger entries
-            if (newStatus === 'Approved') {
-                if (!order.productId) {
-                    throw new Error("Order is missing a product ID.");
-                }
-                const dealerInventoryRef = doc(firestore, 'dealerInventory', order.productId);
-                
-                const farmerDocSnap = await transaction.get(doc(firestore, 'users', order.farmerUID));
-                const dealerInventoryDoc = await transaction.get(dealerInventoryRef);
-                const dealerDocSnap = await transaction.get(doc(firestore, 'users', order.dealerUID));
-
-
-                if (!dealerInventoryDoc.exists()) throw new Error("Product not found in dealer's inventory.");
-                if (!farmerDocSnap.exists()) throw new Error("Farmer not found.");
-                if (!dealerDocSnap.exists()) throw new Error("Dealer not found.");
-
-                const farmerName = farmerDocSnap.data().name;
-                const dealerName = dealerDocSnap.data().name;
-                const currentQuantity = dealerInventoryDoc.data().quantity;
-                if (currentQuantity < order.quantity) {
-                    throw new Error("Not enough stock available to fulfill the order.");
-                }
-
-                // 1. Reduce dealer's inventory
-                transaction.update(dealerInventoryRef, {
-                    quantity: increment(-order.quantity)
-                });
-                
-                // 2. Add credit entry to dealer's ledger
-                await addLedgerEntryInTransaction(transaction, firestore, order.dealerUID, {
-                    description: `Sale to ${farmerName} (Order: ${order.id.substring(0, 5)})`,
-                    amount: order.totalAmount,
-                    date: new Date().toISOString(),
-                }, 'Credit');
-
-                // 3. Add debit entry to farmer's ledger
-                 await addLedgerEntryInTransaction(transaction, firestore, order.farmerUID, {
-                    description: `Purchase from ${dealerName} (Order: ${order.id.substring(0, 5)})`,
-                    amount: order.totalAmount,
-                    date: new Date().toISOString(),
-                }, 'Debit');
-            }
-        });
-    } catch (e: any) {
-        console.error("Error updating order status: ", e);
-        // Avoid re-throwing permission errors if they originate from sub-operations like ledger writes
-        if (!(e instanceof FirestorePermissionError)) {
-            const permissionError = new FirestorePermissionError({
-                path: orderRef.path,
-                operation: 'update',
-                requestResourceData: { status: newStatus },
-            });
-            errorEmitter.emit('permission-error', permissionError);
-        }
-        throw e;
+    if (newStatus === 'Rejected') {
+        updateDocumentNonBlocking(orderRef, { status: newStatus });
+        return;
     }
+
+    await runTransaction(firestore, async (transaction) => {
+        const orderDoc = await transaction.get(orderRef);
+        if (!orderDoc.exists() || orderDoc.data().status !== 'Pending') {
+            throw new Error("Order not found or has already been processed.");
+        }
+        
+        // Update the order status
+        transaction.update(orderRef, { status: newStatus });
+
+        // If the order is approved, deduct inventory and create ledger entries
+        if (newStatus === 'Approved') {
+            if (!order.productId) {
+                throw new Error("Order is missing a product ID.");
+            }
+            const dealerInventoryRef = doc(firestore, 'dealerInventory', order.productId);
+            
+            const farmerDocSnap = await transaction.get(doc(firestore, 'users', order.farmerUID));
+            const dealerInventoryDoc = await transaction.get(dealerInventoryRef);
+            const dealerDocSnap = await transaction.get(doc(firestore, 'users', order.dealerUID));
+
+
+            if (!dealerInventoryDoc.exists()) throw new Error("Product not found in dealer's inventory.");
+            if (!farmerDocSnap.exists()) throw new Error("Farmer not found.");
+            if (!dealerDocSnap.exists()) throw new Error("Dealer not found.");
+
+            const farmerName = farmerDocSnap.data().name;
+            const dealerName = dealerDocSnap.data().name;
+            const currentQuantity = dealerInventoryDoc.data().quantity;
+            if (currentQuantity < order.quantity) {
+                throw new Error("Not enough stock available to fulfill the order.");
+            }
+
+            // 1. Reduce dealer's inventory
+            transaction.update(dealerInventoryRef, {
+                quantity: increment(-order.quantity)
+            });
+            
+            // 2. Add credit entry to dealer's ledger
+            await addLedgerEntryInTransaction(transaction, firestore, order.dealerUID, {
+                description: `Sale to ${farmerName} (Order: ${order.id.substring(0, 5)})`,
+                amount: order.totalAmount,
+                date: new Date().toISOString(),
+            }, 'Credit');
+
+            // 3. Add debit entry to farmer's ledger
+             await addLedgerEntryInTransaction(transaction, firestore, order.farmerUID, {
+                description: `Purchase from ${dealerName} (Order: ${order.id.substring(0, 5)})`,
+                amount: order.totalAmount,
+                date: new Date().toISOString(),
+            }, 'Debit');
+        }
+    });
 }

@@ -16,12 +16,13 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth, useFirestore } from "@/firebase/provider";
-import { createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, type User as FirebaseAuthUser } from "firebase/auth";
+import { GoogleAuthProvider, signInWithPopup, type User as FirebaseAuthUser } from "firebase/auth";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 import { AppIcon } from "@/app/icon";
 import { Loader2 } from "lucide-react";
 import indianStates from "@/lib/indian-states-districts.json";
 import { Separator } from "@/components/ui/separator";
+import { initiateEmailSignUp } from "@/firebase/non-blocking-login";
 
 const formSchema = z.object({
     fullName: z.string().min(3, { message: "Full name must be at least 3 characters." }),
@@ -91,7 +92,7 @@ export default function DetailedSignupPage() {
 
         if (docSnap.exists()) {
             toast({ title: "Account Exists", description: "This email is already registered. Please log in.", variant: "destructive" });
-            await auth?.signOut();
+            if (auth?.currentUser) await auth.signOut();
             router.push('/login');
             return;
         }
@@ -123,7 +124,7 @@ export default function DetailedSignupPage() {
             title: "Account Created!",
             description: "Your account is pending approval. You will be redirected to the login page.",
         });
-        await auth?.signOut();
+        if (auth?.currentUser) await auth.signOut();
         router.push('/login');
     }
 
@@ -134,20 +135,26 @@ export default function DetailedSignupPage() {
         }
 
         try {
-            let userId: string;
             if (authProvider === 'google' && googleUser) {
                 // User already authenticated with Google, just create the profile
-                userId = googleUser.uid;
+                await handleFinalUserCreation(googleUser.uid, values);
             } else {
                 // Create user with email and password
                 if (!values.password) {
                     form.setError('password', { message: 'Password is required for email signup.' });
                     return;
                 }
-                const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
-                userId = userCredential.user.uid;
+                // Use non-blocking sign-up. The rest will be handled by the auth state listener on the login page.
+                initiateEmailSignUp(auth, values.email, values.password);
+                toast({
+                    title: "Creating Account...",
+                    description: "Please wait while we create your account.",
+                });
+                // Temporarily create the profile here, login flow will handle the rest.
+                // A more robust solution might use a cloud function to create the profile on user creation.
+                const tempUserCredential = await auth.createUserWithEmailAndPassword(values.email, values.password);
+                await handleFinalUserCreation(tempUserCredential.user.uid, values);
             }
-            await handleFinalUserCreation(userId, values);
         } catch (error: any) {
             console.error("Signup failed:", error);
             if (error.code === 'auth/email-already-in-use') {

@@ -18,9 +18,8 @@ import {
   arrayUnion,
 } from 'firebase/firestore';
 import type { Connection } from '@/lib/types';
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
 import { useFirestore, useUser } from '@/firebase/provider';
+import { updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
 // Helper to convert Firestore doc to Connection type
 function toConnection(doc: QueryDocumentSnapshot<DocumentData>): Connection {
@@ -63,11 +62,6 @@ export function useConnections(userId: string | undefined, userRole: 'farmer' | 
         setLoading(false);
       },
       (err) => {
-        const permissionError = new FirestorePermissionError({
-          path: 'connections',
-          operation: 'list',
-        });
-        errorEmitter.emit('permission-error', permissionError);
         console.error("Error fetching connections:", err);
         setLoading(false);
       }
@@ -84,35 +78,36 @@ export async function updateConnectionStatus(firestore: Firestore, connectionId:
 
     const connectionRef = doc(firestore, 'connections', connectionId);
     
-    try {
-        await runTransaction(firestore, async (transaction) => {
-            const connDoc = await transaction.get(connectionRef);
-            if (!connDoc.exists()) {
-                throw new Error("Connection request not found.");
-            }
-            
-            const connectionData = connDoc.data() as Omit<Connection, 'id'>;
+    // Use non-blocking update for simple status change.
+    if (newStatus === 'Rejected') {
+        updateDocumentNonBlocking(connectionRef, { status: newStatus });
+        return;
+    }
+    
+    // Use a transaction for the "Approved" case because it involves multiple documents.
+    if (newStatus === 'Approved') {
+        try {
+            await runTransaction(firestore, async (transaction) => {
+                const connDoc = await transaction.get(connectionRef);
+                if (!connDoc.exists()) {
+                    throw new Error("Connection request not found.");
+                }
+                
+                const connectionData = connDoc.data() as Omit<Connection, 'id'>;
 
-            // Update the connection status
-            transaction.update(connectionRef, { status: newStatus });
+                // Update the connection status
+                transaction.update(connectionRef, { status: newStatus });
 
-            // If approved, update both users' connected arrays
-            if (newStatus === 'Approved') {
+                // Update both users' connected arrays
                 const farmerRef = doc(firestore, 'users', connectionData.farmerUID);
                 const dealerRef = doc(firestore, 'users', connectionData.dealerUID);
 
                 transaction.update(farmerRef, { connectedDealers: arrayUnion(connectionData.dealerUID) });
                 transaction.update(dealerRef, { connectedFarmers: arrayUnion(connectionData.farmerUID) });
-            }
-        });
-    } catch (e: any) {
-        console.error("Error updating connection status: ", e);
-        const permissionError = new FirestorePermissionError({
-            path: connectionRef.path,
-            operation: 'update',
-            requestResourceData: { status: newStatus },
-        });
-        errorEmitter.emit('permission-error', permissionError);
-        throw e;
+            });
+        } catch (e: any) {
+            console.error("Error updating connection status: ", e);
+            throw e; // Re-throw to be caught by the UI
+        }
     }
 }

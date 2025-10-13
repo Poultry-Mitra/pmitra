@@ -6,9 +6,7 @@ import { useState, useEffect } from 'react';
 import {
   collection,
   onSnapshot,
-  addDoc,
   doc,
-  updateDoc,
   serverTimestamp,
   type Firestore,
   type DocumentData,
@@ -19,8 +17,7 @@ import {
 } from 'firebase/firestore';
 import { useFirestore } from '@/firebase/provider';
 import type { DealerInventoryItem } from '@/lib/types';
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
+import { addDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
 // Helper to convert Firestore doc to DealerInventoryItem type
 function toDealerInventoryItem(doc: QueryDocumentSnapshot<DocumentData>): DealerInventoryItem {
@@ -72,11 +69,6 @@ export function useDealerInventory(dealerUID: string | undefined) {
         setLoading(false);
       },
       (err) => {
-        const permissionError = new FirestorePermissionError({
-          path: `dealerInventory where dealerUID == ${dealerUID}`,
-          operation: 'list',
-        });
-        errorEmitter.emit('permission-error', permissionError);
         console.error("Error fetching dealer inventory:", err);
         setLoading(false);
       }
@@ -100,15 +92,7 @@ export function addDealerInventoryItem(firestore: Firestore, dealerUID: string, 
         updatedAt: serverTimestamp(),
     };
 
-    addDoc(collectionRef, itemData).catch((serverError) => {
-        const permissionError = new FirestorePermissionError({
-            path: 'dealerInventory',
-            operation: 'create',
-            requestResourceData: itemData,
-        });
-        errorEmitter.emit('permission-error', permissionError);
-        throw serverError; // Re-throw for the form to catch
-    });
+    addDocumentNonBlocking(collectionRef, itemData);
 }
 
 export function updateDealerInventoryItem(firestore: Firestore, itemId: string, data: Partial<Pick<DealerInventoryItem, 'quantity' | 'ratePerUnit' | 'lowStockThreshold'>>) {
@@ -121,13 +105,5 @@ export function updateDealerInventoryItem(firestore: Firestore, itemId: string, 
         updatedAt: serverTimestamp(),
     };
 
-    updateDoc(docRef, itemData).catch((serverError) => {
-        const permissionError = new FirestorePermissionError({
-            path: docRef.path,
-            operation: 'update',
-            requestResourceData: itemData,
-        });
-        errorEmitter.emit('permission-error', permissionError);
-        throw serverError;
-    });
+    updateDocumentNonBlocking(docRef, itemData);
 }

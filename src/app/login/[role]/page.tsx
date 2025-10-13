@@ -13,15 +13,16 @@ import { Input } from '@/components/ui/input';
 import { useUser, useAuth, useFirestore } from '@/firebase/provider';
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc } from 'firebase/firestore';
 import type { User as AppUser, UserRole } from '@/lib/types';
-import { signInWithEmailAndPassword, sendPasswordResetEmail, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { sendPasswordResetEmail, GoogleAuthProvider, signInWithPopup, UserCredential } from 'firebase/auth';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Separator } from '@/components/ui/separator';
+import { initiateEmailSignIn } from '@/firebase/non-blocking-login';
 
 const formSchema = z.object({
   email: z.string().email('Please enter a valid email address.'),
@@ -43,7 +44,7 @@ function GoogleIcon() {
 
 export default function RoleLoginPage() {
   const { t } = useLanguage();
-  const { user: firebaseUser, isUserLoading } = useUser();
+  const { user: firebaseUser, isUserLoading, userError } = useUser();
   const firestore = useFirestore();
   const auth = useAuth();
   const router = useRouter();
@@ -53,6 +54,7 @@ export default function RoleLoginPage() {
   const role = params.role as UserRole;
   const [isCheckingUser, setIsCheckingUser] = useState(true);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -69,80 +71,77 @@ export default function RoleLoginPage() {
 
   useEffect(() => {
     if (isUserLoading) return;
+
     if (firebaseUser && firestore) {
-      const userDocRef = doc(firestore, 'users', firebaseUser.uid);
-      getDoc(userDocRef)
-        .then((docSnap) => {
-          if (docSnap.exists()) {
-            const userData = docSnap.data() as AppUser;
-            router.replace(getRedirectPath(userData.role));
-          } else {
-            setIsCheckingUser(false);
-          }
-        })
-        .catch(() => setIsCheckingUser(false));
+      handleLogin(firebaseUser);
     } else {
       setIsCheckingUser(false);
     }
-  }, [firebaseUser, isUserLoading, firestore, router]);
 
-  async function handleLogin(userCredential: any) {
-    if (!firestore) return;
-    const userDocRef = doc(firestore, 'users', userCredential.user.uid);
+    if (userError) {
+      let message = 'An unknown error occurred.';
+      if (['auth/user-not-found', 'auth/wrong-password', 'auth/invalid-credential'].includes(userError.name)) { // This may need adjustment based on error object
+        message = 'Invalid email or password. Please try again.';
+      }
+      toast({ title: 'Login Failed', description: message, variant: 'destructive' });
+      setIsSubmitting(false);
+    }
+  }, [firebaseUser, isUserLoading, firestore, router, userError]);
+
+  async function handleLogin(user: AppUser | any) { // Accepts Firebase User or AppUser
+    if (!firestore || !auth) return;
+    setIsCheckingUser(true);
+    const userDocRef = doc(firestore, 'users', user.uid);
     const docSnap = await getDoc(userDocRef);
 
     if (docSnap.exists()) {
       const userData = docSnap.data() as AppUser;
       if (userData.role !== role) {
-        await auth?.signOut();
+        await auth.signOut();
         toast({ title: "Role Mismatch", description: `This account is a ${userData.role}. Please use the correct login page.`, variant: "destructive" });
+        setIsCheckingUser(false);
+        setIsSubmitting(false);
         return;
       }
       if (userData.status === 'Pending') {
-        await auth?.signOut();
+        await auth.signOut();
         toast({ title: "Account Pending", description: "Your account is pending approval by an administrator.", variant: "destructive" });
+        setIsCheckingUser(false);
+        setIsSubmitting(false);
         return;
       }
       if (userData.status === 'Suspended') {
-        await auth?.signOut();
+        await auth.signOut();
         toast({ title: "Account Suspended", description: "Your account has been suspended. Please contact support.", variant: "destructive" });
+        setIsCheckingUser(false);
+        setIsSubmitting(false);
         return;
       }
       router.replace(getRedirectPath(role));
     } else {
-      await auth?.signOut();
+      await auth.signOut();
       toast({ title: 'Login Failed', description: 'User profile not found. Please sign up.', variant: 'destructive' });
+      setIsCheckingUser(false);
+      setIsSubmitting(false);
     }
   }
 
   async function onSubmit(values: FormValues) {
-    if (!auth || !firestore) {
+    if (!auth) {
       toast({ title: 'Error', description: 'Authentication service not available.', variant: 'destructive' });
       return;
     }
-    try {
-      const userCredential = await signInWithEmailAndPassword(auth, values.email, values.password);
-      await handleLogin(userCredential);
-    } catch (error: any) {
-      let message = 'An unknown error occurred.';
-      if (['auth/user-not-found', 'auth/wrong-password', 'auth/invalid-credential'].includes(error.code)) {
-        message = 'Invalid email or password. Please try again.';
-      } else if (error.code !== 'auth/popup-closed-by-user'){
-        console.error("Login Error:", error);
-      }
-      if (error.code !== 'auth/popup-closed-by-user') {
-        toast({ title: 'Login Failed', description: message, variant: 'destructive' });
-      }
-    }
+    setIsSubmitting(true);
+    initiateEmailSignIn(auth, values.email, values.password);
   }
 
   const handleGoogleSignIn = async () => {
-    if (!auth || !firestore) return;
+    if (!auth) return;
     setIsGoogleLoading(true);
     const provider = new GoogleAuthProvider();
     try {
-      const result = await signInWithPopup(auth, provider);
-      await handleLogin(result);
+      await signInWithPopup(auth, provider);
+      // The useEffect will handle the successful login
     } catch (error: any) {
         if (error.code === 'auth/popup-closed-by-user') {
             return;
@@ -182,7 +181,7 @@ export default function RoleLoginPage() {
   };
 
 
-  const isLoading = form.formState.isSubmitting || isCheckingUser || isGoogleLoading;
+  const isLoading = isSubmitting || isCheckingUser || isGoogleLoading || isUserLoading;
   
   const title = {
       farmer: "Farmer Login",
@@ -191,7 +190,7 @@ export default function RoleLoginPage() {
   }[role] || "Login";
 
 
-  if (isCheckingUser) {
+  if (isLoading && firebaseUser) {
     return (
       <div className="flex min-h-screen w-full flex-col items-center justify-center bg-muted/30 p-4 font-body">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />
@@ -246,8 +245,8 @@ export default function RoleLoginPage() {
                 )}
               />
               <Button type="submit" className="w-full" disabled={isLoading}>
-                {form.formState.isSubmitting && <Loader2 className="mr-2 animate-spin" />}
-                {form.formState.isSubmitting ? t('messages.loading') : 'Login'}
+                {isSubmitting && <Loader2 className="mr-2 animate-spin" />}
+                {isSubmitting ? t('messages.loading') : 'Login'}
               </Button>
             </form>
           </Form>

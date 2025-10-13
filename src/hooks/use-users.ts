@@ -14,19 +14,18 @@ import {
   getDocs,
   doc,
   updateDoc,
-  arrayUnion,
   addDoc,
   serverTimestamp,
   DocumentSnapshot,
   deleteDoc,
   limit,
   setDoc,
+  type Auth,
 } from 'firebase/firestore';
 import { useAuth, useFirestore } from '@/firebase/provider';
 import type { User, UserRole, UserStatus } from '@/lib/types';
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
-import { createUserWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth';
+import { sendPasswordResetEmail } from 'firebase/auth';
+import { addDocumentNonBlocking, deleteDocumentNonBlocking, setDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
 // Helper to convert Firestore doc to User type
 function toUser(doc: QueryDocumentSnapshot<DocumentData> | DocumentSnapshot<DocumentData>): User {
@@ -64,11 +63,6 @@ export function useUsers(role?: 'farmer' | 'dealer') {
         setLoading(false);
       },
       (err) => {
-        const permissionError = new FirestorePermissionError({
-          path: 'users',
-          operation: 'list',
-        });
-        errorEmitter.emit('permission-error', permissionError);
         console.error("Error fetching users:", err);
         setLoading(false);
       }
@@ -103,12 +97,7 @@ export function useUsersByIds(userIds: string[]) {
                 setLoading(false);
             },
             (err) => {
-                 const permissionError = new FirestorePermissionError({
-                    path: 'users',
-                    operation: 'list',
-                });
-                errorEmitter.emit('permission-error', permissionError);
-                console.error("Error fetching users by IDs:", err);
+                 console.error("Error fetching users by IDs:", err);
                 setLoading(false);
             }
         );
@@ -158,19 +147,12 @@ export async function requestDealerConnection(firestore: Firestore, farmerUID: s
     }
 
     const connectionsCollection = collection(firestore, 'connections');
-    await addDoc(connectionsCollection, {
+    addDocumentNonBlocking(connectionsCollection, {
         farmerUID,
         dealerUID: dealerUser.id,
         status: 'Pending',
         requestedBy: 'farmer',
         createdAt: serverTimestamp(),
-    }).catch(e => {
-        const permissionError = new FirestorePermissionError({
-            path: 'connections',
-            operation: 'create',
-        });
-        errorEmitter.emit('permission-error', permissionError);
-        throw e;
     });
     
     return dealerUser;
@@ -179,36 +161,17 @@ export async function requestDealerConnection(firestore: Firestore, farmerUID: s
 export function deleteUser(firestore: Firestore, userId: string) {
     if (!firestore) throw new Error("Firestore not initialized");
     const docRef = doc(firestore, 'users', userId);
-
-    return deleteDoc(docRef).catch((e) => {
-        const permissionError = new FirestorePermissionError({
-            path: `users/${userId}`,
-            operation: 'delete',
-        });
-        errorEmitter.emit('permission-error', permissionError);
-        throw e;
-    });
+    deleteDocumentNonBlocking(docRef);
 }
 
-export async function updateUserStatus(firestore: Firestore, userId: string, status: UserStatus) {
-     if (!firestore) throw new Error("Firestore not initialized");
+export function updateUserStatus(firestore: Firestore, userId: string, status: UserStatus) {
+    if (!firestore) throw new Error("Firestore not initialized");
     const docRef = doc(firestore, 'users', userId);
-    
-    try {
-        await updateDoc(docRef, { status });
-    } catch (e) {
-         const permissionError = new FirestorePermissionError({
-            path: `users/${userId}`,
-            operation: 'update',
-            requestResourceData: { status }
-        });
-        errorEmitter.emit('permission-error', permissionError);
-        throw e;
-    }
+    updateDocumentNonBlocking(docRef, { status });
 }
 
 
-export async function createUserProfile(firestore: Firestore, auth: any, newUserProfile: Omit<User, 'id'>) {
+export async function createUserProfile(firestore: Firestore, auth: Auth, newUserProfile: Omit<User, 'id'>) {
     if (!firestore || !auth) {
         throw new Error("Firestore or Auth instance is not available.");
     }
@@ -216,26 +179,15 @@ export async function createUserProfile(firestore: Firestore, auth: any, newUser
     // A temporary, secure password for initial creation.
     const tempPassword = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8);
 
-    try {
-        // Step 1: Create the user in Firebase Authentication
-        const userCredential = await createUserWithEmailAndPassword(auth, newUserProfile.email, tempPassword);
-        const user = userCredential.user;
+    const userCredential = await auth.createUserWithEmailAndPassword(auth, newUserProfile.email, tempPassword);
+    const user = userCredential.user;
 
-        // Step 2: Create the user profile document in Firestore
-        const userDocRef = doc(firestore, "users", user.uid);
-        await setDoc(userDocRef, newUserProfile);
+    // Create the user profile document in Firestore using non-blocking update
+    const userDocRef = doc(firestore, "users", user.uid);
+    setDocumentNonBlocking(userDocRef, newUserProfile, { merge: false });
 
-        // Step 3: Send a password reset email so the user can set their own password
-        await sendPasswordResetEmail(auth, newUserProfile.email);
-        
-        return userDocRef;
-    } catch (error) {
-        const permissionError = new FirestorePermissionError({
-            path: 'users',
-            operation: 'create',
-            requestResourceData: newUserProfile,
-        });
-        errorEmitter.emit('permission-error', permissionError);
-        throw error;
-    }
+    // Send a password reset email so the user can set their own password
+    await sendPasswordResetEmail(auth, newUserProfile.email);
+    
+    return userDocRef;
 }

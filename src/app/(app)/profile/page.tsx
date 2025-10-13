@@ -12,15 +12,14 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useUser, useFirestore, useAuth } from '@/firebase/provider';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc } from 'firebase/firestore';
 import { useEffect, useState, useRef } from 'react';
 import { Loader2, Save, KeyRound, Edit } from 'lucide-react';
 import type { User as AppUser } from '@/lib/types';
 import { useLanguage } from '@/components/language-provider';
-import { FirestorePermissionError } from '@/firebase/errors';
-import { errorEmitter } from '@/firebase/error-emitter';
 import { sendPasswordResetEmail } from 'firebase/auth';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
 
 const formSchema = z.object({
@@ -88,17 +87,8 @@ export default function ProfilePage() {
             pinCode: values.pinCode
         };
 
-        try {
-            await updateDoc(userDocRef, updatedData);
-            toast({ title: t('profile.update_success_title'), description: t('profile.update_success_desc') });
-        } catch (error) {
-             const permissionError = new FirestorePermissionError({
-                path: userDocRef.path,
-                operation: 'update',
-                requestResourceData: updatedData,
-            });
-            errorEmitter.emit('permission-error', permissionError);
-        }
+        updateDocumentNonBlocking(userDocRef, updatedData);
+        toast({ title: t('profile.update_success_title'), description: t('profile.update_success_desc') });
     }
     
     const handlePasswordReset = async () => {

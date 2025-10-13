@@ -6,8 +6,6 @@ import { useState, useEffect } from 'react';
 import {
   collection,
   onSnapshot,
-  addDoc,
-  deleteDoc,
   doc,
   serverTimestamp,
   type Firestore,
@@ -22,8 +20,7 @@ import {
 } from 'firebase/firestore';
 import { useFirestore } from '@/firebase/provider';
 import type { Batch, DailyRecord } from '@/lib/types';
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
+import { addDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
 // Helper to convert Firestore doc to Batch type
 function toBatch(doc: QueryDocumentSnapshot<DocumentData> | DocumentSnapshot<DocumentData>): Batch {
@@ -48,7 +45,7 @@ function toDailyRecord(doc: QueryDocumentSnapshot<DocumentData>): DailyRecord {
 }
 
 
-export function useBatches(farmerUID: string) {
+export function useBatches(farmerUID: string | undefined) {
   const firestore = useFirestore();
   const [batches, setBatches] = useState<Batch[]>([]);
   const [loading, setLoading] = useState(true);
@@ -71,11 +68,6 @@ export function useBatches(farmerUID: string) {
         setLoading(false);
       },
       (err) => {
-        const permissionError = new FirestorePermissionError({
-          path: 'batches',
-          operation: 'list',
-        });
-        errorEmitter.emit('permission-error', permissionError);
         console.error("Error fetching batches:", err);
         setLoading(false);
       }
@@ -110,11 +102,6 @@ export function useBatch(batchId: string) {
             setLoading(false);
         },
         (err) => {
-            const permissionError = new FirestorePermissionError({
-              path: docRef.path,
-              operation: 'get',
-            });
-            errorEmitter.emit('permission-error', permissionError);
             console.error(err);
             setLoading(false);
         });
@@ -145,11 +132,6 @@ export function useDailyRecords(batchId: string) {
             setRecords(snapshot.docs.map(toDailyRecord));
             setLoading(false);
         }, (err) => {
-            const permissionError = new FirestorePermissionError({
-                path: `batches/${batchId}/dailyRecords`,
-                operation: 'list',
-            });
-            errorEmitter.emit('permission-error', permissionError);
             console.error("Error fetching daily records:", err);
             setLoading(false);
         });
@@ -173,28 +155,13 @@ export function addBatch(firestore: Firestore, farmerUID: string, data: Omit<Bat
         createdAt: serverTimestamp(),
     };
 
-    addDoc(collectionRef, batchData).catch((serverError) => {
-        const permissionError = new FirestorePermissionError({
-            path: 'batches',
-            operation: 'create',
-            requestResourceData: batchData,
-        });
-        errorEmitter.emit('permission-error', permissionError);
-    });
+    addDocumentNonBlocking(collectionRef, batchData);
 }
 
 export function deleteBatch(firestore: Firestore, batchId: string) {
     if (!firestore) throw new Error("Firestore not initialized");
-
     const docRef = doc(firestore, 'batches', batchId);
-
-    deleteDoc(docRef).catch((serverError) => {
-        const permissionError = new FirestorePermissionError({
-            path: docRef.path,
-            operation: 'delete',
-        });
-        errorEmitter.emit('permission-error', permissionError);
-    });
+    deleteDocumentNonBlocking(docRef);
 }
 
 export async function addDailyRecord(
@@ -210,57 +177,43 @@ export async function addDailyRecord(
     const inventoryItemRef = data.feedItemId ? doc(firestore, 'inventory', data.feedItemId) : null;
 
 
-    try {
-        await runTransaction(firestore, async (transaction) => {
-            const batchDoc = await transaction.get(batchRef);
-            if (!batchDoc.exists()) {
-                throw new Error("Batch does not exist!");
-            }
-
-            // Update main batch document
-            transaction.update(batchRef, {
-                mortalityCount: increment(data.mortality),
-                feedConsumed: increment(data.feedConsumed),
-                avgBodyWeight: data.avgBodyWeight,
-            });
-            
-            // Create new daily record in subcollection
-            transaction.set(dailyRecordRef, {
-                date: data.date.toISOString(),
-                mortality: data.mortality,
-                feedConsumed: data.feedConsumed,
-                avgBodyWeight: data.avgBodyWeight,
-                feedItemId: data.feedItemId || null,
-                createdAt: serverTimestamp(),
-            });
-
-            // If feed was consumed, update inventory
-            if (inventoryItemRef && data.feedConsumed > 0) {
-                 const inventoryDoc = await transaction.get(inventoryItemRef);
-                 if (!inventoryDoc.exists()) {
-                    throw new Error("Feed item does not exist in inventory!");
-                 }
-                 const currentStock = inventoryDoc.data().stockQuantity;
-                 if (currentStock < data.feedConsumed) {
-                    throw new Error("Not enough feed in stock!");
-                 }
-                 transaction.update(inventoryItemRef, {
-                    stockQuantity: increment(-data.feedConsumed),
-                    lastUpdated: serverTimestamp()
-                 });
-            }
-        });
-    } catch(e: any) {
-        console.error("Add daily record transaction failed: ", e);
-        // Avoid double-emitting if it's already a permission error from a sub-operation
-        if (!(e instanceof FirestorePermissionError)) {
-             const permissionError = new FirestorePermissionError({
-                path: batchRef.path, // Use the main batch path for the overall transaction
-                operation: 'update',
-                requestResourceData: data,
-            });
-            errorEmitter.emit('permission-error', permissionError);
+    await runTransaction(firestore, async (transaction) => {
+        const batchDoc = await transaction.get(batchRef);
+        if (!batchDoc.exists()) {
+            throw new Error("Batch does not exist!");
         }
-        throw e;
-    }
+
+        // Update main batch document
+        transaction.update(batchRef, {
+            mortalityCount: increment(data.mortality),
+            feedConsumed: increment(data.feedConsumed),
+            avgBodyWeight: data.avgBodyWeight,
+        });
+        
+        // Create new daily record in subcollection
+        transaction.set(dailyRecordRef, {
+            date: data.date.toISOString(),
+            mortality: data.mortality,
+            feedConsumed: data.feedConsumed,
+            avgBodyWeight: data.avgBodyWeight,
+            feedItemId: data.feedItemId || null,
+            createdAt: serverTimestamp(),
+        });
+
+        // If feed was consumed, update inventory
+        if (inventoryItemRef && data.feedConsumed > 0) {
+             const inventoryDoc = await transaction.get(inventoryItemRef);
+             if (!inventoryDoc.exists()) {
+                throw new Error("Feed item does not exist in inventory!");
+             }
+             const currentStock = inventoryDoc.data().stockQuantity;
+             if (currentStock < data.feedConsumed) {
+                throw new Error("Not enough feed in stock!");
+             }
+             transaction.update(inventoryItemRef, {
+                stockQuantity: increment(-data.feedConsumed),
+                lastUpdated: serverTimestamp()
+             });
+        }
+    });
 }

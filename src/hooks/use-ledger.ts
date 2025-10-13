@@ -1,4 +1,3 @@
-
 // src/hooks/use-ledger.ts
 'use client';
 
@@ -67,11 +66,6 @@ export function useLedger(userId?: string) {
         setLoading(false);
       },
       (err) => {
-        const permissionError = new FirestorePermissionError({
-          path: `ledger ${userId ? `where userId == ${userId}`: ''}`,
-          operation: 'list',
-        });
-        errorEmitter.emit('permission-error', permissionError);
         console.error("Error fetching ledger entries:", err);
         setLoading(false);
       }
@@ -91,8 +85,6 @@ export async function addLedgerEntry(
 ) {
     if (!firestore) throw new Error("Firestore not initialized");
 
-    const ledgerCollection = collection(firestore, 'ledger');
-
     try {
         await runTransaction(firestore, async (transaction) => {
             await addLedgerEntryInTransaction(transaction, firestore, userId, data, type);
@@ -100,7 +92,6 @@ export async function addLedgerEntry(
     } catch (e: any) {
         console.error("Ledger transaction failed: ", e);
         // Re-throw the original error to be handled by the caller.
-        // The permission error would have been emitted inside addLedgerEntryInTransaction if it was a permission issue.
         throw e;
     }
 }
@@ -146,15 +137,8 @@ export async function addLedgerEntryInTransaction(
     };
     
     const newEntryRef = doc(ledgerCollection); // Create a new doc ref for the new entry.
-    try {
-        transaction.set(newEntryRef, newEntryData);
-    } catch(e) {
-        const permissionError = new FirestorePermissionError({
-            path: `ledger/${newEntryRef.id}`,
-            operation: 'create',
-            requestResourceData: newEntryData,
-        });
-        errorEmitter.emit('permission-error', permissionError);
-        throw permissionError;
-    }
+    
+    // We don't need to wrap this in a try/catch for permission errors
+    // because runTransaction handles throwing the error.
+    transaction.set(newEntryRef, newEntryData);
 }
