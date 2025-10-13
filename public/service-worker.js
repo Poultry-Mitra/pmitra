@@ -1,22 +1,76 @@
-// This is a basic service worker
+// Define the cache name
+const CACHE_NAME = 'poultrymitra-cache-v1';
+
+// List of files to cache
+const urlsToCache = [
+  '/',
+  '/login',
+  '/signup',
+  '/manifest.json',
+  '/favicon.ico',
+  // Note: Add other critical static assets here if needed.
+  // Dynamic routes and API calls are handled by the fetch event listener.
+];
+
+// Install event: open cache and add core files
 self.addEventListener('install', (event) => {
-  console.log('Service Worker: Installing...');
-  // Add caching for essential assets if needed
-  // event.waitUntil(
-  //   caches.open('poultrymitra-v1').then((cache) => {
-  //     return cache.addAll([
-  //       '/',
-  //       '/index.html', // Add other critical files
-  //     ]);
-  //   })
-  // );
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+      .then((cache) => {
+        console.log('Opened cache');
+        return cache.addAll(urlsToCache);
+      })
+  );
 });
 
+// Fetch event: serve from cache if available, otherwise fetch from network
 self.addEventListener('fetch', (event) => {
-  // Basic cache-first strategy
-  // event.respondWith(
-  //   caches.match(event.request).then((response) => {
-  //     return response || fetch(event.request);
-  //   })
-  // );
+  event.respondWith(
+    caches.match(event.request)
+      .then((response) => {
+        // Cache hit - return response
+        if (response) {
+          return response;
+        }
+
+        // Not in cache - fetch from network, then cache it
+        return fetch(event.request).then(
+          (response) => {
+            // Check if we received a valid response
+            if (!response || response.status !== 200 || response.type !== 'basic') {
+              return response;
+            }
+
+            // IMPORTANT: Clone the response. A response is a stream
+            // and because we want the browser to consume the response
+            // as well as the cache consuming the response, we need
+            // to clone it so we have two streams.
+            const responseToCache = response.clone();
+
+            caches.open(CACHE_NAME)
+              .then((cache) => {
+                cache.put(event.request, responseToCache);
+              });
+
+            return response;
+          }
+        );
+      })
+  );
+});
+
+// Activate event: remove old caches
+self.addEventListener('activate', (event) => {
+  const cacheWhitelist = [CACHE_NAME];
+  event.waitUntil(
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames.map((cacheName) => {
+          if (cacheWhitelist.indexOf(cacheName) === -1) {
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    })
+  );
 });

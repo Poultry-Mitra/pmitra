@@ -54,7 +54,7 @@ export default function RootLayout({
       <head>
         <title>PoultryMitra - Your AI-Powered Poultry Farming Assistant</title>
         <meta name="description" content="Leverage AI to optimize your poultry farm with data analytics, real-time monitoring, and expert support." />
-        <link rel="icon" href="/icon.svg" />
+        <link rel="icon" href="/favicon.ico" />
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#1565C0" />
       </head>
