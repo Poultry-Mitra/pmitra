@@ -82,6 +82,7 @@ export type LedgerEntry = {
   userId: string; // Generic field for both farmer and dealer
   orderId?: string;
   batchId?: string;
+  purchaseId?: string; // To link to a purchase/inward entry
   type: "Debit" | "Credit";
   description: string;
   amount: number;
@@ -175,5 +176,3 @@ export type Connection = {
     requestedBy: 'farmer' | 'dealer';
     createdAt: string;
 }
-
-    

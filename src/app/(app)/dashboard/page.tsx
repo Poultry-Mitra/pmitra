@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { mockFarmMetrics } from "@/lib/data";
 import { Button } from "@/components/ui/button";
@@ -11,40 +11,26 @@ import { AISuggestions } from "./_components/ai-suggestions";
 import { Badge } from "@/components/ui/badge";
 import { useBatches } from "@/hooks/use-batches";
 import { DashboardStats } from "./_components/DashboardStats";
-import { useUser, useFirestore } from "@/firebase/provider";
-import type { User } from "@/lib/types";
+import { useAppUser } from "@/app/app-provider";
 import { ConnectDealerDialog } from './_components/connect-dealer-dialog';
 import { PendingOrders } from './_components/pending-orders';
-import { doc, getDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/components/language-provider';
 
 
 export default function DashboardPage() {
-  const { user: firebaseUser, isUserLoading } = useUser();
-  const firestore = useFirestore();
-  const [user, setUser] = useState<User | null>(null);
+  const { user, loading: userLoading } = useAppUser();
   const [isConnectDealerOpen, setConnectDealerOpen] = useState(false);
   const { toast } = useToast();
   const { t } = useLanguage();
-  
-  useEffect(() => {
-    if (firebaseUser && firestore) {
-      getDoc(doc(firestore, 'users', firebaseUser.uid)).then((doc) => {
-          if (doc.exists()) {
-              setUser(doc.data() as User);
-          }
-      });
-    }
-  }, [firestore, firebaseUser]);
 
-  const { batches, loading: batchesLoading } = useBatches(firebaseUser?.uid || "");
+  const { batches, loading: batchesLoading } = useBatches(user?.id || "");
   
-  const loading = isUserLoading || !user;
+  const loading = userLoading || !user;
 
   const poultryMitraId = useMemo(() => 
-    firebaseUser ? `PM-FARM-${firebaseUser.uid.substring(0, 5).toUpperCase()}` : '',
-  [firebaseUser]);
+    user ? `PM-FARM-${user.id.substring(0, 5).toUpperCase()}` : '',
+  [user]);
 
   const activeBatches = useMemo(() => 
     batches.filter(b => b.status === 'Active'),
@@ -70,6 +56,7 @@ export default function DashboardPage() {
   }, [activeBatches]);
 
   const handleCopyId = () => {
+    if (!poultryMitraId) return;
     navigator.clipboard.writeText(poultryMitraId);
     toast({ title: t('messages.copied_title'), description: t('messages.copied_desc') });
   }

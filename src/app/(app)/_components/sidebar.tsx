@@ -39,10 +39,9 @@ import {
 import { useLanguage } from "@/components/language-provider";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { useState, useEffect } from "react";
-import type { User } from "@/lib/types";
-import { useUser, useFirestore, useAuth } from "@/firebase/provider";
-import { doc, getDoc } from 'firebase/firestore';
+import { useState } from "react";
+import { useAppUser } from "@/app/app-provider";
+import { useAuth } from "@/firebase/provider";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -77,27 +76,10 @@ export function AppSidebar() {
   const pathname = usePathname();
   const { t } = useLanguage();
   const { state } = useSidebar();
-  const { user: firebaseUser } = useUser();
-  const firestore = useFirestore();
+  const { user, loading } = useAppUser();
   const auth = useAuth();
   const router = useRouter();
-  const [user, setUser] = useState<User | null>(null);
   const [showLogoutAlert, setShowLogoutAlert] = useState(false);
-
-  useEffect(() => {
-    if (firebaseUser && firestore) {
-      const userDocRef = doc(firestore, "users", firebaseUser.uid);
-      getDoc(userDocRef).then((docSnap) => {
-        if (docSnap.exists()) {
-          setUser({ id: docSnap.id, ...docSnap.data() } as User);
-        } else {
-          setUser(null);
-        }
-      });
-    } else {
-      setUser(null);
-    }
-  }, [firebaseUser, firestore]);
   
   const [inventoryOpen, setInventoryOpen] = useState(pathname.startsWith('/inventory'));
 
@@ -109,7 +91,7 @@ export function AppSidebar() {
     setShowLogoutAlert(false);
   };
 
-  if (!user || !firebaseUser) {
+  if (loading || !user) {
     return (
         <Sidebar>
             <SidebarHeader />
@@ -123,8 +105,7 @@ export function AppSidebar() {
     );
   }
 
-  const poultryMitraId = `PM-FARM-${firebaseUser.uid.substring(0, 5).toUpperCase()}`;
-  const planName = user.planType === 'premium' ? 'Premium Plan' : 'Free Plan';
+  const poultryMitraId = `PM-FARM-${user.id.substring(0, 5).toUpperCase()}`;
 
   return (
     <>

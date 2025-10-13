@@ -51,20 +51,20 @@ export default function RootLayout({
         )}
         suppressHydrationWarning
       >
-        <LanguageProvider>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="light"
-            enableSystem
-            disableTransitionOnChange
-          >
-            <FirebaseClientProvider>
+        <FirebaseClientProvider>
+          <LanguageProvider>
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="light"
+              enableSystem
+              disableTransitionOnChange
+            >
                 {children}
                 <Toaster />
                 <FirebaseErrorListener />
-            </FirebaseClientProvider>
-          </ThemeProvider>
-        </LanguageProvider>
+            </ThemeProvider>
+          </LanguageProvider>
+        </FirebaseClientProvider>
       </body>
     </html>
   );

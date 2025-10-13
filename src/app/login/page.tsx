@@ -8,8 +8,10 @@ import { useLanguage } from "@/components/language-provider";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowRight, ArrowLeft } from "lucide-react";
 import { AppIcon } from "../icon";
+import { AppProvider } from "../app-provider";
+import { Loader2 } from "lucide-react";
 
-export default function LoginPage() {
+function LoginPageContent() {
   const { t } = useLanguage();
 
   return (
@@ -86,4 +88,12 @@ export default function LoginPage() {
         </div>
     </div>
   );
+}
+
+export default function LoginPage() {
+  return (
+    <AppProvider allowedRoles={['public']}>
+        <LoginPageContent />
+    </AppProvider>
+  )
 }
