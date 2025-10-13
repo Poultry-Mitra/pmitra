@@ -4,7 +4,7 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { useUser, useFirestore } from '@/firebase/provider';
 import { doc, getDoc } from 'firebase/firestore';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import type { User as AppUser, UserRole } from '@/lib/types';
 import { Loader2 } from 'lucide-react';
 
@@ -27,30 +27,45 @@ export function AppProvider({ children, allowedRoles }: { children: ReactNode; a
   const { user: firebaseUser, isUserLoading: isAuthLoading } = useUser();
   const firestore = useFirestore();
   const router = useRouter();
+  const pathname = usePathname();
   const [appUser, setAppUser] = useState<AppUser | null>(null);
   const [status, setStatus] = useState<'loading' | 'success' | 'redirecting'>('loading');
 
   useEffect(() => {
-    // If auth state is still loading, wait.
-    if (isAuthLoading) {
-      setStatus('loading');
-      return;
-    }
-
-    // If there's no Firebase user
-    if (!firebaseUser) {
-      if (!allowedRoles.includes('public')) {
-        setStatus('redirecting');
-        router.replace('/login');
+    // If it's a public page, no auth checks needed. Render immediately.
+    if (allowedRoles.includes('public')) {
+      // If a logged-in user tries to access a public-only page (e.g., /login), redirect them.
+      if (firebaseUser) {
+        const userDocRef = doc(firestore, 'users', firebaseUser.uid);
+        getDoc(userDocRef).then(docSnap => {
+          if (docSnap.exists()) {
+            const userData = docSnap.data() as AppUser;
+            router.replace(getRedirectPath(userData.role));
+          } else {
+            // User exists in auth but not in firestore, treat as logged out for public page
+            setAppUser(null);
+            setStatus('success');
+          }
+        });
       } else {
-        // It's a public page, so we are done.
         setAppUser(null);
         setStatus('success');
       }
       return;
     }
-    
-    // If there is a Firebase user, fetch their profile.
+
+    // For protected pages:
+    if (isAuthLoading) {
+      setStatus('loading');
+      return;
+    }
+
+    if (!firebaseUser) {
+      setStatus('redirecting');
+      router.replace(`/login?redirect=${pathname}`);
+      return;
+    }
+
     if (!firestore) return;
 
     const userDocRef = doc(firestore, 'users', firebaseUser.uid);
@@ -64,24 +79,14 @@ export function AppProvider({ children, allowedRoles }: { children: ReactNode; a
           const userData = { id: docSnap.id, ...docSnap.data() } as AppUser;
           setAppUser(userData);
 
-          // If it's a public-only page (like /login) but user is logged in, redirect them away.
-          if (allowedRoles.length === 1 && allowedRoles.includes('public')) {
-            setStatus('redirecting');
-            router.replace(getRedirectPath(userData.role));
-            return;
-          }
-
-          // If the user's role is not allowed for this route, redirect them.
           if (!allowedRoles.includes(userData.role)) {
             console.warn(`Role mismatch: User is '${userData.role}', but this layout requires one of [${allowedRoles.join(', ')}]. Redirecting.`);
             setStatus('redirecting');
             router.replace(getRedirectPath(userData.role));
           } else {
-            // Role is allowed, ready to show the page.
             setStatus('success');
           }
         } else {
-          // Retry logic in case of replication delay
           attempts++;
           if (attempts < maxAttempts) {
             setTimeout(fetchUserProfile, delay);
@@ -96,13 +101,12 @@ export function AppProvider({ children, allowedRoles }: { children: ReactNode; a
         setStatus('redirecting');
         router.replace('/login');
       });
-    }
+    };
 
     fetchUserProfile();
 
-  }, [isAuthLoading, firebaseUser, firestore, router, allowedRoles]);
+  }, [isAuthLoading, firebaseUser, firestore, router, pathname, allowedRoles]);
 
-  // While loading or redirecting, show a spinner. This prevents child components from rendering prematurely.
   if (status !== 'success' && !allowedRoles.includes('public')) {
     return (
       <div className="flex h-screen w-full items-center justify-center">
@@ -111,7 +115,6 @@ export function AppProvider({ children, allowedRoles }: { children: ReactNode; a
     );
   }
 
-  // Once status is 'success', render the children with the context.
   return (
     <AppContext.Provider value={{ user: appUser, loading: status !== 'success' }}>
       {status === 'success' ? children : null}

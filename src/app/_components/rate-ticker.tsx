@@ -4,12 +4,13 @@
 import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { TrendingUp, Bird, IndianRupee, Loader2, EyeOff } from 'lucide-react';
-import type { DailyRates, User as AppUser } from '@/lib/types';
-import { useFirestore, useUser } from '@/firebase/provider';
+import type { DailyRates } from '@/lib/types';
+import { useFirestore, useUser, useMemoFirebase } from '@/firebase/provider';
 import { collection, onSnapshot, query, orderBy, limit } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useAppUser } from '@/app/app-provider';
+import { mockDailyRates } from '@/lib/data';
 
 export function RateTicker() {
     const firestore = useFirestore();
@@ -19,8 +20,15 @@ export function RateTicker() {
     const [loading, setLoading] = useState(true);
     const [currentIndex, setCurrentIndex] = useState(0);
 
+    const isLoggedIn = !!firebaseUser;
+
     useEffect(() => {
-        if (!firestore) return;
+        // Only fetch from Firestore if the user is logged in
+        if (!firestore || !isLoggedIn) {
+            setLoading(false);
+            return;
+        }
+        
         setLoading(true);
         const q = query(collection(firestore, 'dailyRates'), orderBy('lastUpdated', 'desc'), limit(10));
         const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -37,41 +45,39 @@ export function RateTicker() {
             setAllRates([]);
         });
         return () => unsubscribe();
-    }, [firestore]);
+    }, [firestore, isLoggedIn]);
 
     const filteredRates = useMemo(() => {
-        if (!appUser || !appUser.state || !appUser.district) {
-            // For free users or users with no location data, show irrelevant data
-            return allRates.filter(rate => rate.location.state !== 'Maharashtra');
-        }
+        if (!isLoggedIn || allRates.length === 0) return [];
+        if (!appUser || !appUser.state || !appUser.district) return allRates;
 
         if (appUser.planType === 'premium') {
             const userDistrictRate = allRates.find(rate => rate.location.district === appUser.district);
             const userStateRates = allRates.filter(rate => rate.location.state === appUser.state && rate.location.district !== appUser.district);
             const otherRates = allRates.filter(rate => rate.location.state !== appUser.state);
-            // Prioritize user's district, then their state, then others
             return [userDistrictRate, ...userStateRates, ...otherRates].filter(Boolean) as DailyRates[];
         } else {
-            // Free user: show rates from a different state to incentivize upgrade
             const otherState = allRates.find(r => r.location.state !== appUser.state)?.location.state;
             if (otherState) {
                 return allRates.filter(rate => rate.location.state === otherState);
             }
-            return allRates; // Fallback to all rates if no other state is found
+            return allRates;
         }
-    }, [allRates, appUser]);
+    }, [allRates, appUser, isLoggedIn]);
+
+    const ratesToDisplay = isLoggedIn ? (filteredRates.length > 0 ? filteredRates : allRates) : mockDailyRates;
 
     useEffect(() => {
-        const ratesToShow = filteredRates.length > 0 ? filteredRates : allRates;
-        if (ratesToShow.length > 1) {
+        if (ratesToDisplay.length > 1) {
             const interval = setInterval(() => {
-                setCurrentIndex(prevIndex => (prevIndex + 1) % ratesToShow.length);
+                setCurrentIndex(prevIndex => (prevIndex + 1) % ratesToDisplay.length);
             }, 5000); // Change location every 5 seconds
             return () => clearInterval(interval);
         }
-    }, [filteredRates, allRates]);
+    }, [ratesToDisplay]);
 
-    const isLoading = loading || isAuthLoading || isAppUserLoading;
+    const isLoading = isAuthLoading || (isLoggedIn && loading);
+    const currentItem = ratesToDisplay.length > 0 ? ratesToDisplay[currentIndex] : { location: { district: 'N/A', state: '' }, readyBird: { medium: '??' }, chickRate: '??' };
 
     if (isLoading) {
         return (
@@ -84,9 +90,7 @@ export function RateTicker() {
         );
     }
     
-    const ratesToDisplay = filteredRates.length > 0 ? filteredRates : allRates;
-
-    if (ratesToDisplay.length === 0 && firebaseUser) {
+    if (ratesToDisplay.length === 0 && isLoggedIn) {
         return (
              <div className="bg-secondary text-secondary-foreground">
                 <div className="container mx-auto px-4 h-10 flex items-center justify-center text-sm">
@@ -95,9 +99,6 @@ export function RateTicker() {
             </div>
         );
     }
-
-    const currentItem = ratesToDisplay.length > 0 ? ratesToDisplay[currentIndex] : { location: { district: 'N/A', state: '' }, readyBird: { medium: '??' }, chickRate: '??' };
-    const isLoggedIn = !!firebaseUser;
 
     return (
         <div className="bg-secondary text-secondary-foreground transition-colors relative">
