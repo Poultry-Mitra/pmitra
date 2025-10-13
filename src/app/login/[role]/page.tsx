@@ -127,6 +127,8 @@ export default function RoleLoginPage() {
       let message = 'An unknown error occurred.';
       if (['auth/user-not-found', 'auth/wrong-password', 'auth/invalid-credential'].includes(error.code)) {
         message = 'Invalid email or password. Please try again.';
+      } else {
+        console.error("Login Error:", error);
       }
       toast({ title: 'Login Failed', description: message, variant: 'destructive' });
     }
