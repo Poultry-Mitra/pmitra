@@ -127,11 +127,12 @@ export default function RoleLoginPage() {
       let message = 'An unknown error occurred.';
       if (['auth/user-not-found', 'auth/wrong-password', 'auth/invalid-credential'].includes(error.code)) {
         message = 'Invalid email or password. Please try again.';
-      } else {
-        // We don't need to log invalid credential errors to the console, as they are expected user errors.
+      } else if (error.code !== 'auth/popup-closed-by-user'){
         console.error("Login Error:", error);
       }
-      toast({ title: 'Login Failed', description: message, variant: 'destructive' });
+      if (error.code !== 'auth/popup-closed-by-user') {
+        toast({ title: 'Login Failed', description: message, variant: 'destructive' });
+      }
     }
   }
 
@@ -144,7 +145,6 @@ export default function RoleLoginPage() {
       await handleLogin(result);
     } catch (error: any) {
         if (error.code === 'auth/popup-closed-by-user') {
-            // User closed the popup, do nothing (no toast, no console log)
             return;
         }
         console.error("Google sign-in error:", error);
