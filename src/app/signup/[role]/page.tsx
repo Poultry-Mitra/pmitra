@@ -164,14 +164,17 @@ export default function DetailedSignupPage() {
             const user = result.user;
             
             // Check if user already exists in Firestore
-            const userDocRef = doc(firestore!, "users", user.uid);
-            const docSnap = await getDoc(userDocRef);
-            if (docSnap.exists()) {
-                toast({ title: "Account Exists", description: "You already have an account. Please log in.", variant: "destructive" });
-                await auth.signOut();
-                router.push('/login');
-                return;
+            if (firestore) {
+                const userDocRef = doc(firestore, "users", user.uid);
+                const docSnap = await getDoc(userDocRef);
+                if (docSnap.exists()) {
+                    toast({ title: "Account Exists", description: "You already have an account. Please log in.", variant: "destructive" });
+                    await auth.signOut();
+                    router.push('/login');
+                    return;
+                }
             }
+            
 
             // Pre-fill form instead of creating user immediately
             form.reset({

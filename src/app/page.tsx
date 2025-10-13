@@ -19,7 +19,7 @@ import {
   Download,
   Store
 } from 'lucide-react';
-import { AppIcon } from '@/app/icon-component';
+import { AppIcon } from './icon-component';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { LanguageToggle } from '@/components/language-toggle';
 import { useLanguage } from '@/components/language-provider';
