@@ -1,8 +1,11 @@
+// This file is updated to use environment variables for Firebase configuration.
+// This is a more secure and flexible approach for production deployments on Vercel.
+
 export const firebaseConfig = {
-  "projectId": "studio-2759667395-3e284",
-  "appId": "1:219591700993:web:526879e1a92724745f0600",
-  "apiKey": "AIzaSyDiBc43ILht21w2qlSWRnEYWdAWVAoY9oo",
-  "authDomain": "poultrymitra.com",
-  "measurementId": "",
-  "messagingSenderId": "219591700993"
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
