@@ -1,4 +1,3 @@
-// src/hooks/use-orders.ts
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -20,7 +19,7 @@ import {
 } from 'firebase/firestore';
 import { useFirestore, useUser } from '@/firebase/provider';
 import type { Order } from '@/lib/types';
-import { addLedgerEntryInTransaction } from './use-ledger';
+import { addLedgerEntryInTransaction } from '@/hooks/use-ledger';
 
 // Helper to convert Firestore doc to Order type
 function toOrder(doc: QueryDocumentSnapshot<DocumentData>): Order {
