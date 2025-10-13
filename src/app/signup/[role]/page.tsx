@@ -168,6 +168,7 @@ export default function DetailedSignupPage() {
             
             // Pre-fill form instead of creating user immediately
             form.reset({
+                ...form.getValues(), // Keep other fields if user has started typing
                 fullName: user.displayName || "",
                 email: user.email || "",
                 password: "", // No password needed for Google sign-up
