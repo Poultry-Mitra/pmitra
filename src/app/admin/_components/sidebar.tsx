@@ -30,6 +30,7 @@ import {
   Loader2,
   AlertTriangle,
   Wallet,
+  Newspaper,
 } from "lucide-react";
 import { useLanguage } from "@/components/language-provider";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
@@ -194,6 +195,14 @@ export function AdminSidebar() {
                     <SidebarMenuButton isActive={pathname.startsWith("/admin/daily-rates")} tooltip={"Daily Rates"}>
                     <TrendingUp />
                     <span>{"Daily Rates"}</span>
+                    </SidebarMenuButton>
+                </Link>
+            </SidebarMenuItem>
+             <SidebarMenuItem>
+                <Link href="/admin/blog">
+                    <SidebarMenuButton isActive={pathname.startsWith("/admin/blog")} tooltip={"Blog Management"}>
+                    <Newspaper />
+                    <span>{"Blog Management"}</span>
                     </SidebarMenuButton>
                 </Link>
             </SidebarMenuItem>

@@ -179,3 +179,17 @@ export type Connection = {
     requestedBy: 'farmer' | 'dealer';
     createdAt: string;
 }
+
+export type Post = {
+    id: string;
+    slug: string;
+    title: string;
+    content: string; // Markdown
+    authorId: string;
+    authorName: string;
+    featuredImageUrl?: string;
+    tags?: string[];
+    isPublished: boolean;
+    createdAt: string;
+    updatedAt: string;
+}
