@@ -179,6 +179,7 @@ function LandingPageContent() {
             <Link href="/" className="transition-colors hover:text-foreground">{t('nav.home')}</Link>
             <Link href="#features" className="text-muted-foreground transition-colors hover:text-foreground">{t('nav.features')}</Link>
             <Link href="/pricing" className="text-muted-foreground transition-colors hover:text-foreground">{t('nav.pricing')}</Link>
+             <Link href="/daily-rates" className="text-muted-foreground transition-colors hover:text-foreground">{t('daily_rates.title')}</Link>
             <Link href="/chat" className="text-muted-foreground transition-colors hover:text-foreground">{t('nav.ai_chat')}</Link>
             <Link href="#contact" className="text-muted-foreground transition-colors hover:text-foreground">{t('nav.contact')}</Link>
           </nav>
