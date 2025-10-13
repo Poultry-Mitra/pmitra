@@ -9,7 +9,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Send, WandSparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { aiQueryPoultry } from "@/ai/flows/ai-query-poultry";
-import { AppIcon } from "@/app/icon";
+import { AppIcon } from "@/app/icon-component";
 import { useUser, useFirestore } from "@/firebase/provider";
 import { doc, getDoc, updateDoc, increment, onSnapshot } from 'firebase/firestore';
 import type { User as AppUser } from '@/lib/types';

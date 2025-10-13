@@ -7,7 +7,7 @@ import { LanguageToggle } from "@/components/language-toggle";
 import { useLanguage } from "@/components/language-provider";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowRight, ArrowLeft } from "lucide-react";
-import { AppIcon } from "../icon";
+import { AppIcon } from "@/app/icon-component";
 import { AppProvider } from "../app-provider";
 import { Loader2 } from "lucide-react";
 
@@ -66,11 +66,11 @@ function LoginPageContent() {
                         {t('login.register_here')}
                     </Link>
                 </p>
-                <div className="flex items-center justify-center gap-6">
-                    <Link href="/" className="flex items-center gap-2 hover:text-primary">
-                        <ArrowLeft className="size-4" /> {t('login.back_to_home')}
-                    </Link>
-                </div>
+                 <p className="mt-2">
+            <Link href="/login" className="font-semibold text-primary hover:underline">
+                Choose a different login type
+            </Link>
+        </p>
             </div>
             <div className="mt-12 text-center">
                  <Link href="/login/admin" className="text-xs text-muted-foreground hover:text-primary">

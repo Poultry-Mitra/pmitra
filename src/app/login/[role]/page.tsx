@@ -1,7 +1,8 @@
+
 'use client';
 
 import Link from 'next/link';
-import { AppIcon } from '@/app/icon';
+import { AppIcon } from '@/app/icon-component';
 import { Button } from '@/components/ui/button';
 import { LanguageToggle } from '@/components/language-toggle';
 import { useLanguage } from '@/components/language-provider';

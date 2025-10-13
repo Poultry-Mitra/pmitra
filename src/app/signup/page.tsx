@@ -7,7 +7,7 @@ import { LanguageToggle } from "@/components/language-toggle";
 import { useLanguage } from "@/components/language-provider";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowRight, ArrowLeft } from "lucide-react";
-import { AppIcon } from "../icon";
+import { AppIcon } from "@/app/icon-component";
 
 export default function SignupPage() {
   const { t } = useLanguage();

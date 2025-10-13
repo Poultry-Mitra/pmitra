@@ -15,7 +15,7 @@ import {
   SidebarSeparator,
   SidebarGroupLabel,
 } from "@/components/ui/sidebar";
-import { AppIcon } from "@/app/icon";
+import { AppIcon } from "@/app/icon-component";
 import {
   LayoutGrid,
   Users,

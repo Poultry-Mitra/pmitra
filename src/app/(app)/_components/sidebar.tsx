@@ -16,7 +16,7 @@ import {
   SidebarGroupLabel,
 } from "@/components/ui/sidebar";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
-import { AppIcon } from "@/app/icon";
+import { AppIcon } from "@/app/icon-component";
 import {
   LayoutDashboard,
   MessageSquare,

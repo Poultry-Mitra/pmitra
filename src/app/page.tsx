@@ -15,9 +15,11 @@ import {
   LayoutGrid,
   Twitter,
   Facebook,
-  Linkedin
+  Linkedin,
+  Download,
+  Store
 } from 'lucide-react';
-import { AppIcon } from '@/app/icon';
+import { AppIcon } from '@/app/icon-component';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { LanguageToggle } from '@/components/language-toggle';
 import { useLanguage } from '@/components/language-provider';
@@ -280,8 +282,8 @@ function LandingPageContent() {
 
       <footer id="contact" className="border-t bg-secondary/50 text-foreground">
         <div className="container py-12">
-            <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
-                <div className="sm:col-span-2 lg:col-span-1">
+            <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">
+                <div className="lg:col-span-1">
                     <Link href="/" className="flex items-center space-x-2">
                         <AppIcon className="size-8 text-primary" />
                         <span className="text-xl font-bold font-headline">PoultryMitra</span>
@@ -296,35 +298,31 @@ function LandingPageContent() {
                     </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-8 sm:col-span-2 lg:col-span-3 lg:grid-cols-3">
-                    <div>
-                        <h3 className="font-semibold">Company</h3>
-                        <nav className="mt-4 flex flex-col space-y-2 text-sm">
-                            <Link href="#features" className="text-muted-foreground hover:text-primary">{t('footer.about')}</Link>
-                            <Link href="/pricing" className="text-muted-foreground hover:text-primary">{t('nav.pricing')}</Link>
-                            <Link href="#" className="text-muted-foreground hover:text-primary">Blog</Link>
-                        </nav>
-                    </div>
-                     <div>
-                        <h3 className="font-semibold">Support</h3>
-                        <nav className="mt-4 flex flex-col space-y-2 text-sm">
-                            <Link href="#contact" className="text-muted-foreground hover:text-primary">{t('footer.contact')}</Link>
-                            <Link href="#" className="text-muted-foreground hover:text-primary">FAQs</Link>
-                             <Link href="/terms" className="text-muted-foreground hover:text-primary">{t('footer.terms')}</Link>
-                            <Link href="/privacy" className="text-muted-foreground hover:text-primary">{t('footer.privacy')}</Link>
-                        </nav>
-                    </div>
-                     <div className="col-span-2 sm:col-span-1">
-                        <h3 className="font-semibold">Stay Updated</h3>
-                        <p className="mt-4 text-sm text-muted-foreground">Subscribe to our newsletter for the latest updates and tips.</p>
-                         <div className="mt-4 flex w-full max-w-sm items-center space-x-2">
-                            <Input type="email" placeholder="Email" />
-                            <Button type="submit">Subscribe</Button>
-                        </div>
-                    </div>
+                <div>
+                    <h3 className="font-semibold">Company</h3>
+                    <nav className="mt-4 flex flex-col space-y-2 text-sm">
+                        <Link href="#features" className="text-muted-foreground hover:text-primary">{t('footer.about')}</Link>
+                        <Link href="/pricing" className="text-muted-foreground hover:text-primary">{t('nav.pricing')}</Link>
+                        <Link href="#" className="text-muted-foreground hover:text-primary">Blog</Link>
+                    </nav>
+                </div>
+                 <div>
+                    <h3 className="font-semibold">Support</h3>
+                    <nav className="mt-4 flex flex-col space-y-2 text-sm">
+                        <Link href="#contact" className="text-muted-foreground hover:text-primary">{t('footer.contact')}</Link>
+                        <Link href="#" className="text-muted-foreground hover:text-primary">FAQs</Link>
+                         <Link href="/terms" className="text-muted-foreground hover:text-primary">{t('footer.terms')}</Link>
+                        <Link href="/privacy" className="text-muted-foreground hover:text-primary">{t('footer.privacy')}</Link>
+                    </nav>
+                </div>
+                 <div className="md:col-span-2 lg:col-span-1">
+                    <h3 className="font-semibold">Get the App</h3>
+                     <div className="flex flex-col space-y-2 mt-4">
+                        <Button variant="outline" className="justify-start"><Download className="mr-2" /> App Store</Button>
+                        <Button variant="outline" className="justify-start"><Store className="mr-2" /> Google Play</Button>
+                     </div>
                 </div>
             </div>
-
              <div className="mt-12 border-t pt-8 text-center text-sm text-muted-foreground">
                 <p>{t('footer.copyright')}</p>
             </div>
