@@ -18,7 +18,7 @@ let firestore: Firestore | null = null;
  * It is designed to be called ONLY on the client-side.
  */
 export function getFirebase() {
-  // If we're on the server, return nulls immediately. This is a safeguard.
+  // If we're on the server, return nulls immediately. This is the crucial safeguard.
   if (typeof window === 'undefined') {
     return { firebaseApp: null, auth: null, firestore: null };
   }
@@ -35,8 +35,8 @@ export function getFirebase() {
     !firebaseConfig.authDomain ||
     !firebaseConfig.projectId
   ) {
-    // Instead of throwing an error which can be caught by Next.js overlay,
-    // we log it and return nulls. The app's auth checks will handle the rest.
+    // We log the error but don't throw, allowing the app to continue
+    // running. Auth-gated pages will handle the lack of services.
     console.error("Firebase configuration is missing or incomplete. Please check your environment variables.");
     return { firebaseApp: null, auth: null, firestore: null };
   }
