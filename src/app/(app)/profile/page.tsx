@@ -11,14 +11,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { useUser, useFirestore } from '@/firebase/provider';
+import { useUser, useFirestore, useAuth } from '@/firebase/provider';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
-import { Loader2, Save } from 'lucide-react';
+import { Loader2, Save, KeyRound } from 'lucide-react';
 import type { User as AppUser } from '@/lib/types';
 import { useLanguage } from '@/components/language-provider';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { errorEmitter } from '@/firebase/error-emitter';
+import { sendPasswordResetEmail } from 'firebase/auth';
 
 
 const formSchema = z.object({
@@ -33,8 +34,10 @@ export default function ProfilePage() {
     const { t } = useLanguage();
     const { user: firebaseUser, isUserLoading } = useUser();
     const firestore = useFirestore();
+    const auth = useAuth();
     const { toast } = useToast();
     const [user, setUser] = useState<AppUser | null>(null);
+    const [isPasswordResetting, setIsPasswordResetting] = useState(false);
 
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
@@ -88,6 +91,27 @@ export default function ProfilePage() {
             errorEmitter.emit('permission-error', permissionError);
         }
     }
+    
+    const handlePasswordReset = async () => {
+        if (!auth || !firebaseUser?.email) {
+            toast({ title: "Error", description: "Could not send reset email. User not found.", variant: "destructive" });
+            return;
+        }
+        setIsPasswordResetting(true);
+        try {
+            await sendPasswordResetEmail(auth, firebaseUser.email);
+            toast({
+                title: "Password Reset Email Sent",
+                description: "Please check your inbox to reset your password.",
+            });
+        } catch (error) {
+            console.error("Password reset error:", error);
+            toast({ title: "Error", description: "Failed to send password reset email.", variant: "destructive" });
+        } finally {
+            setIsPasswordResetting(false);
+        }
+    };
+
 
     if (isUserLoading || !user) {
         return (
@@ -100,7 +124,7 @@ export default function ProfilePage() {
     return (
         <>
             <PageHeader title={t('profile.title')} description={t('profile.description')} />
-            <div className="mt-8 max-w-2xl">
+            <div className="mt-8 grid max-w-4xl grid-cols-1 gap-8 lg:grid-cols-2">
                 <Card>
                     <CardHeader>
                         <CardTitle>{t('profile.card_title')}</CardTitle>
@@ -150,6 +174,26 @@ export default function ProfilePage() {
                                 </Button>
                             </form>
                         </Form>
+                    </CardContent>
+                </Card>
+                 <Card>
+                    <CardHeader>
+                        <CardTitle>Security</CardTitle>
+                        <CardDescription>Manage your password and account security.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <div className="rounded-lg border p-4">
+                             <div className="flex items-center justify-between">
+                                <div>
+                                    <h4 className="font-medium">Password</h4>
+                                    <p className="text-sm text-muted-foreground">A password reset link will be sent to your email.</p>
+                                </div>
+                                <Button variant="outline" onClick={handlePasswordReset} disabled={isPasswordResetting}>
+                                    {isPasswordResetting ? <Loader2 className="mr-2 animate-spin" /> : <KeyRound className="mr-2" />}
+                                    Change Password
+                                </Button>
+                            </div>
+                        </div>
                     </CardContent>
                 </Card>
             </div>
