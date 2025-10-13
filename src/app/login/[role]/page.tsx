@@ -90,6 +90,7 @@ export default function RoleLoginPage() {
         toast({ title: "Role Mismatch", description: `This account is a ${userData.role}. Please use the correct login page.`, variant: "destructive" });
         setIsCheckingUser(false);
         setIsSubmitting(false);
+        router.replace(`/login/${userData.role}`);
         return;
       }
       if (userData.status === 'Pending') {

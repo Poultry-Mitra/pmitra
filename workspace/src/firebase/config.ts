@@ -1,10 +1,28 @@
+import type { DailyRates } from '@/lib/types';
 
-// This file is updated to use environment variables for Firebase configuration.
-// This is a more secure and flexible approach for production deployments on Vercel.
-
-export const firebaseConfig = {
-  apiKey: "AIzaSyDo_1y_1TMA4q_aUS80b2rPDK3wBpc622k",
-  authDomain: "ipoultrymitra.firebaseapp.com",
-  projectId: "ipoultrymitra",
-  storageBucket: "ipoultrymitra.appspot.com",
-};
+export const mockDailyRates: DailyRates[] = [
+    {
+        id: "mock-pune",
+        location: { state: "Maharashtra", district: "Pune" },
+        readyBird: { small: 115, medium: 125, big: 135 },
+        chickRate: 38,
+        feedCostIndex: 45,
+        lastUpdated: new Date().toISOString()
+    },
+    {
+        id: "mock-nashik",
+        location: { state: "Maharashtra", district: "Nashik" },
+        readyBird: { small: 110, medium: 120, big: 130 },
+        chickRate: 37,
+        feedCostIndex: 44,
+        lastUpdated: new Date().toISOString()
+    },
+    {
+        id: "mock-bengaluru",
+        location: { state: "Karnataka", district: "Bengaluru" },
+        readyBird: { small: 118, medium: 128, big: 138 },
+        chickRate: 40,
+        feedCostIndex: 46,
+        lastUpdated: new Date().toISOString()
+    }
+];

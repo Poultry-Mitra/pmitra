@@ -3,11 +3,8 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { mockFarmMetrics } from "@/lib/data";
 import { Button } from "@/components/ui/button";
 import { Copy, Loader2, Link as LinkIcon, Download } from "lucide-react";
-import { ProductionChart } from "./_components/production-chart";
-import { AISuggestions } from "./_components/ai-suggestions";
 import { Badge } from "@/components/ui/badge";
 import { useBatches } from "@/hooks/use-batches";
 import { DashboardStats } from "./_components/DashboardStats";
@@ -56,25 +53,6 @@ export default function DashboardPage() {
   const activeBatches = useMemo(() => 
     batches.filter(b => b.status === 'Active'),
   [batches]);
-
-  const farmDataForAISuggestions = useMemo(() => {
-      if (activeBatches.length === 0) return null;
-
-      const totalInitialChicks = activeBatches.reduce((acc, b) => acc + b.totalChicks, 0);
-      const totalMortality = activeBatches.reduce((acc, b) => acc + b.mortalityCount, 0);
-      const liveBirds = totalInitialChicks - totalMortality;
-      const totalFeedConsumed = activeBatches.reduce((acc, b) => acc + b.feedConsumed, 0);
-      
-      const overallMortalityRate = totalInitialChicks > 0 ? (totalMortality / totalInitialChicks) * 100 : 0;
-      const avgFeedConsumptionPerBirdPerDay = liveBirds > 0 ? (totalFeedConsumed * 1000) / liveBirds / 30 : 0; // rough estimate over 30 days
-
-      return {
-          productionRate: 0, // Assuming broiler, so production rate is 0.
-          mortalityRate: overallMortalityRate,
-          feedConsumption: avgFeedConsumptionPerBirdPerDay,
-          farmSize: liveBirds,
-      };
-  }, [activeBatches]);
 
   const handleCopyId = () => {
     if (!poultryMitraId) return;
@@ -136,38 +114,6 @@ export default function DashboardPage() {
 
       <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-2">
         <PendingOrders />
-      </div>
-
-      <div className="mt-8 grid grid-cols-1 gap-8 xl:grid-cols-7">
-        <Card className="xl:col-span-4">
-          <CardHeader>
-            <CardTitle>{t('dashboard.performance.title')}</CardTitle>
-            <CardDescription>{t('dashboard.performance.description')}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ProductionChart data={mockFarmMetrics} />
-          </CardContent>
-        </Card>
-        <Card className="xl:col-span-3">
-          <CardHeader>
-            <CardTitle>{t('dashboard.ai_suggestions.title')}</CardTitle>
-            <CardDescription>{t('dashboard.ai_suggestions.description')}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {batchesLoading ? (
-                 <div className="text-center text-sm text-muted-foreground p-4">
-                    <Loader2 className="animate-spin mr-2 inline-block" />
-                    {t('messages.loading_ai_data')}
-                 </div>
-            ) : farmDataForAISuggestions ? (
-              <AISuggestions farmData={farmDataForAISuggestions} />
-            ) : (
-              <div className="text-center text-sm text-muted-foreground p-4">
-                {t('messages.add_batch_for_ai')}
-              </div>
-            )}
-          </CardContent>
-        </Card>
       </div>
       <ConnectDealerDialog open={isConnectDealerOpen} onOpenChange={setConnectDealerOpen} />
     </>
