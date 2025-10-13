@@ -1,6 +1,6 @@
 'use client';
-import { getAuth, type User } from 'firebase/auth';
-import { initializeFirebase } from '@/firebase/client';
+import { type User } from 'firebase/auth';
+import { getAuth } from '@/firebase/auth-provider';
 
 type SecurityRuleContext = {
   path: string;
@@ -79,7 +79,7 @@ function buildRequestObject(context: SecurityRuleContext): SecurityRuleRequest {
   let authObject: FirebaseAuthObject | null = null;
   try {
     // Safely attempt to get the current user.
-    const { auth } = initializeFirebase();
+    const auth = getAuth();
     if (auth && auth.currentUser) {
       authObject = buildAuthObject(auth.currentUser);
     }
