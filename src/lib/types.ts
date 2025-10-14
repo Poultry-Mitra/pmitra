@@ -1,4 +1,5 @@
 
+
 import { Timestamp } from "firebase/firestore";
 
 export type UserRole = 'farmer' | 'dealer' | 'admin';
@@ -219,3 +220,4 @@ export type BiosecurityChecklistItem = {
     text: string;
     category: 'Isolation' | 'Traffic Control' | 'Sanitation';
 };
+

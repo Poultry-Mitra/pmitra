@@ -19,8 +19,8 @@ import { useFirestore, useUser } from "@/firebase/provider";
 import { addDealerInventoryItem, type DealerInventoryItem } from "@/hooks/use-dealer-inventory";
 import { addLedgerEntry } from "@/hooks/use-ledger";
 import { cn } from "@/lib/utils";
-import { useEffect } from "react";
-import { Checkbox } from "@/components/ui/checkbox";
+import { useEffect, useCallback } from "react";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 const productSchema = z.object({
   productName: z.string().min(2, "Product name is required."),
@@ -29,8 +29,10 @@ const productSchema = z.object({
   quantity: z.coerce.number().min(0, "Quantity must be non-negative."),
   unit: z.enum(["bag", "packet", "bottle", "pcs", "chick"]),
   purchaseRatePerUnit: z.coerce.number().min(0, "Purchase rate is required."),
-  ratePerUnit: z.coerce.number().min(0, "Sale rate is required."), // This is now Sale Rate
-  discount: z.coerce.number().min(0).default(0),
+  ratePerUnit: z.coerce.number().min(0, "Sale rate is required."),
+  discountType: z.enum(['percentage', 'amount']).default('amount'),
+  discountValue: z.coerce.number().min(0).default(0),
+  discountAmount: z.coerce.number().min(0).default(0),
   unitWeight: z.coerce.number().optional(),
   lowStockThreshold: z.coerce.number().min(0).default(10),
 });
@@ -63,7 +65,7 @@ function SummaryCard({ control }: { control: any }) {
     const values = useWatch({ control });
     const products = values.products || [];
     const subTotal = products.reduce((acc: number, product: any) => acc + (parseFloat(product.purchaseRatePerUnit || '0') * parseFloat(product.quantity || '0')), 0);
-    const totalDiscount = products.reduce((acc: number, product: any) => acc + parseFloat(product.discount || '0'), 0);
+    const totalDiscount = products.reduce((acc: number, product: any) => acc + parseFloat(product.discountAmount || '0'), 0);
 
     const transportCost = parseFloat(values.transportCost || '0');
     const miscCost = parseFloat(values.miscCost || '0');
@@ -128,7 +130,20 @@ export default function AddStockPage() {
         defaultValues: {
             supplierName: "",
             supplierContact: "",
-            products: [{ productName: "", category: "Feed", unit: "bag", purchaseRatePerUnit: 0, ratePerUnit: 0, discount: 0, quantity: 1, unitWeight: 50, lowStockThreshold: 10, pricingBasis: 'TPR' }],
+            products: [{ 
+                productName: "", 
+                category: "Feed", 
+                unit: "bag", 
+                purchaseRatePerUnit: 0, 
+                ratePerUnit: 0, 
+                discountType: 'amount', 
+                discountValue: 0,
+                discountAmount: 0,
+                quantity: 1, 
+                unitWeight: 50, 
+                lowStockThreshold: 10, 
+                pricingBasis: 'TPR' 
+            }],
             transportCost: 0,
             miscCost: 0,
             paymentMethod: "cash",
@@ -166,11 +181,36 @@ export default function AddStockPage() {
         const newUnit = unitDefaults[category] || "pcs";
         form.setValue(`products.${index}.unit`, newUnit);
 
-        // If category is Chicks, set pricing to FOR and disable it
         if (category === "Chicks") {
             form.setValue(`products.${index}.pricingBasis`, 'FOR');
         }
     };
+    
+    const recalculateDiscount = useCallback((index: number) => {
+        const product = form.getValues(`products.${index}`);
+        const { discountType, discountValue, purchaseRatePerUnit, quantity } = product;
+        
+        let calculatedAmount = 0;
+        if (discountType === 'percentage') {
+            const total = (purchaseRatePerUnit || 0) * (quantity || 0);
+            calculatedAmount = total * ((discountValue || 0) / 100);
+        } else {
+            calculatedAmount = discountValue || 0;
+        }
+        form.setValue(`products.${index}.discountAmount`, calculatedAmount, { shouldValidate: true });
+    }, [form]);
+
+    useEffect(() => {
+        const subscription = form.watch((value, { name, type }) => {
+            if (name && type === 'change') {
+                const parts = name.split('.');
+                if (parts.length === 3 && (parts[2] === 'discountType' || parts[2] === 'discountValue' || parts[2] === 'purchaseRatePerUnit' || parts[2] === 'quantity')) {
+                    recalculateDiscount(parseInt(parts[1], 10));
+                }
+            }
+        });
+        return () => subscription.unsubscribe();
+    }, [form.watch, recalculateDiscount]);
 
 
     async function onSubmit(values: FormValues) {
@@ -197,8 +237,7 @@ export default function AddStockPage() {
             }
             
             // 2. Add a single debit entry to the ledger for the total purchase amount
-            const netPayable = values.products.reduce((acc, p) => acc + (p.purchaseRatePerUnit * p.quantity), 0) 
-                             - values.products.reduce((acc, p) => acc + p.discount, 0)
+            const netPayable = values.products.reduce((acc, p) => acc + (p.purchaseRatePerUnit * p.quantity) - p.discountAmount, 0) 
                              + values.transportCost + values.miscCost;
 
             const ledgerDescription = `Purchase from ${values.supplierName || 'Unknown Supplier'}` + (values.invoiceNumber ? ` (Bill: ${values.invoiceNumber})` : '');
@@ -308,31 +347,7 @@ export default function AddStockPage() {
                                                         </FormItem>
                                                     )} />
                                                 </div>
-
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
-                                                    <FormField control={form.control} name={`products.${index}.pricingBasis`} render={({ field }) => (
-                                                        <FormItem>
-                                                            <FormLabel>Pricing Basis</FormLabel>
-                                                            <Select onValueChange={field.onChange} value={field.value} disabled={currentCategory === 'Chicks'}>
-                                                                <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
-                                                                <SelectContent>
-                                                                    <SelectItem value="TPR">TPR</SelectItem>
-                                                                    <SelectItem value="FOR">FOR (Free on Road)</SelectItem>
-                                                                    <SelectItem value="Ex-Factory">Ex-Factory</SelectItem>
-                                                                    <SelectItem value="MRP">MRP</SelectItem>
-                                                                </SelectContent>
-                                                            </Select>
-                                                            <FormMessage />
-                                                        </FormItem>
-                                                    )} />
-                                                     <FormField control={form.control} name={`products.${index}.discount`} render={({ field }) => (
-                                                        <FormItem>
-                                                            <FormLabel>Discount (₹)</FormLabel>
-                                                            <FormControl><Input type="number" {...field} /></FormControl>
-                                                            <FormMessage />
-                                                        </FormItem>
-                                                    )} />
-                                                </div>
+                                                
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
                                                     <FormField control={form.control} name={`products.${index}.purchaseRatePerUnit`} render={({ field }) => (
                                                         <FormItem>
@@ -389,12 +404,67 @@ export default function AddStockPage() {
                                                         </FormItem>
                                                     )} />
                                                 </div>
+                                                
+                                                <Separator />
+
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                                                    <FormField control={form.control} name={`products.${index}.pricingBasis`} render={({ field }) => (
+                                                        <FormItem>
+                                                            <FormLabel>Pricing Basis</FormLabel>
+                                                            <Select onValueChange={field.onChange} value={field.value} disabled={currentCategory === 'Chicks'}>
+                                                                <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
+                                                                <SelectContent>
+                                                                    <SelectItem value="TPR">TPR</SelectItem>
+                                                                    <SelectItem value="FOR">FOR (Free on Road)</SelectItem>
+                                                                    <SelectItem value="Ex-Factory">Ex-Factory</SelectItem>
+                                                                    <SelectItem value="MRP">MRP</SelectItem>
+                                                                </SelectContent>
+                                                            </Select>
+                                                            <FormMessage />
+                                                        </FormItem>
+                                                    )} />
+                                                    <div className="space-y-2">
+                                                        <FormField control={form.control} name={`products.${index}.discountType`} render={({ field }) => (
+                                                            <FormItem className="space-y-3">
+                                                                <FormLabel>Discount Type</FormLabel>
+                                                                <FormControl>
+                                                                    <RadioGroup
+                                                                        onValueChange={field.onChange}
+                                                                        defaultValue={field.value}
+                                                                        className="flex items-center space-x-4"
+                                                                    >
+                                                                        <FormItem className="flex items-center space-x-2 space-y-0">
+                                                                            <FormControl><RadioGroupItem value="percentage" /></FormControl>
+                                                                            <FormLabel className="font-normal">%</FormLabel>
+                                                                        </FormItem>
+                                                                        <FormItem className="flex items-center space-x-2 space-y-0">
+                                                                            <FormControl><RadioGroupItem value="amount" /></FormControl>
+                                                                            <FormLabel className="font-normal">₹</FormLabel>
+                                                                        </FormItem>
+                                                                    </RadioGroup>
+                                                                </FormControl>
+                                                            </FormItem>
+                                                        )} />
+                                                         <FormField control={form.control} name={`products.${index}.discountValue`} render={({ field }) => (
+                                                            <FormItem>
+                                                                <FormControl><Input type="number" placeholder="Discount Value" {...field} /></FormControl>
+                                                                <FormMessage />
+                                                            </FormItem>
+                                                         )} />
+                                                        <FormField control={form.control} name={`products.${index}.discountAmount`} render={({ field }) => (
+                                                            <FormItem className="hidden">
+                                                                <FormControl><Input type="number" readOnly {...field} /></FormControl>
+                                                            </FormItem>
+                                                        )} />
+                                                    </div>
+                                                </div>
+
                                             </CardContent>
                                         </Card>
                                     )})}
                                 </div>
 
-                                <Button type="button" variant="outline" onClick={() => append({ productName: "", category: "Feed", unit: "bag", purchaseRatePerUnit: 0, ratePerUnit: 0, discount: 0, quantity: 1, unitWeight: 50, lowStockThreshold: 10, pricingBasis: 'TPR' })}>
+                                <Button type="button" variant="outline" onClick={() => append({ productName: "", category: "Feed", unit: "bag", purchaseRatePerUnit: 0, ratePerUnit: 0, discountType: "amount", discountValue: 0, discountAmount: 0, quantity: 1, unitWeight: 50, lowStockThreshold: 10, pricingBasis: 'TPR' })}>
                                     <PlusCircle className="mr-2" />
                                     Add Another Product
                                 </Button>
@@ -485,3 +555,4 @@ export default function AddStockPage() {
         </>
     );
 }
+
