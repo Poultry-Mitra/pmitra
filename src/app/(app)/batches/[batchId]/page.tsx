@@ -1,4 +1,3 @@
-
 // src/app/(app)/batches/[batchId]/page.tsx
 "use client";
 
@@ -9,7 +8,7 @@ import { useBatch, useDailyRecords } from "@/hooks/use-batches";
 import { PageHeader } from "../../_components/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Bird, Droplet, Percent, Scale, Wheat, IndianRupee, Loader2, AlertCircle, PlusCircle } from "lucide-react";
+import { Bird, Droplet, Percent, Scale, Wheat, IndianRupee, Loader2, AlertCircle, PlusCircle, Thermometer } from "lucide-react";
 import { AddDailyRecordDialog } from "./_components/add-daily-record-dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { format } from 'date-fns';
@@ -84,6 +83,19 @@ export default function BatchDetailPage() {
     const feedConversionRatio = (batch.feedConsumed > 0 && totalWeightGainKg > 0)
         ? (batch.feedConsumed / totalWeightGainKg).toFixed(2)
         : '0.00';
+    
+    const ageInMs = new Date().getTime() - new Date(batch.batchStartDate).getTime();
+    const ageInDays = Math.floor(ageInMs / (1000 * 60 * 60 * 24));
+    
+    const getIdealTemp = (days: number) => {
+        if (days <= 2) return 35;
+        if (days <= 7) return 32;
+        if (days <= 14) return 29;
+        if (days <= 21) return 26;
+        if (days <= 28) return 24;
+        return 22;
+    }
+    const idealTemp = getIdealTemp(ageInDays);
 
 
     return (
@@ -98,13 +110,13 @@ export default function BatchDetailPage() {
                 </Button>
             </PageHeader>
             
-            <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+            <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6">
                 <StatCard title="Live Birds" value={liveBirds.toLocaleString()} icon={Bird} />
                 <StatCard title="Mortality" value={`${mortalityPercentage}`} unit="%" icon={Percent} />
                 <StatCard title="Avg. Body Weight" value={batch.avgBodyWeight} unit="g" icon={Scale} />
-                <StatCard title="Feed Consumed" value={batch.feedConsumed.toFixed(2)} unit="kg" icon={Wheat} />
+                <StatCard title="Today's Ideal Temp" value={idealTemp} unit="°C" icon={Thermometer} />
                 <StatCard title="FCR" value={feedConversionRatio} icon={Droplet} />
-                <StatCard title="Est. Profit" value="--" icon={IndianRupee} />
+                <StatCard title="Feed Consumed" value={batch.feedConsumed.toFixed(2)} unit="kg" icon={Wheat} />
             </div>
 
             <div className="mt-8">
