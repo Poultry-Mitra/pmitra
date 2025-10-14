@@ -23,16 +23,6 @@ export interface FirebaseContextState {
   userError: Error | null; // Error from auth listener
 }
 
-// Return type for useFirebase()
-export interface FirebaseServicesAndUser {
-  firebaseApp: FirebaseApp;
-  firestore: Firestore;
-  auth: Auth;
-  user: User | null;
-  isUserLoading: boolean;
-  userError: Error | null;
-}
-
 // React Context
 export const FirebaseContext = createContext<FirebaseContextState | undefined>(undefined);
 

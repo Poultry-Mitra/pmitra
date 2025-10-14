@@ -16,31 +16,27 @@ let firestore: Firestore | null = null;
  * It is designed to be called ONLY on the client-side.
  */
 export function initializeFirebase() {
-  // On the server, return null services. This is a crucial guard.
+  // On the server, return null services.
   if (typeof window === 'undefined') {
     return { firebaseApp: null, auth: null, firestore: null };
   }
-
-  // If already initialized, return the existing instances.
-  if (firebaseApp) {
-    return { firebaseApp, auth, firestore };
-  }
-
-  // Final check: Ensure all necessary config values are strings and present.
-  // This prevents initialization with incomplete/undefined environment variables.
-  if (
-    !firebaseConfig.apiKey ||
-    !firebaseConfig.authDomain ||
-    !firebaseConfig.projectId
-  ) {
-    // Silently return null if config is incomplete. The UI should handle the
-    // absence of Firebase services gracefully. This prevents crashing.
-    return { firebaseApp: null, auth: null, firestore: null };
-  }
-
-  // Initialize the Firebase app if it hasn't been already.
-  firebaseApp = !getApps().length ? initializeApp(firebaseConfig) : getApp();
   
+  // Initialize the Firebase app if it hasn't been already.
+  if (!getApps().length) {
+    // Final check: Ensure all necessary config values are strings and present.
+    if (
+      !firebaseConfig.apiKey ||
+      !firebaseConfig.authDomain ||
+      !firebaseConfig.projectId
+    ) {
+      console.error("Firebase config is missing or incomplete. Firebase will not be initialized.");
+      return { firebaseApp: null, auth: null, firestore: null };
+    }
+    firebaseApp = initializeApp(firebaseConfig);
+  } else {
+    firebaseApp = getApp();
+  }
+
   auth = getAuth(firebaseApp);
   firestore = getFirestore(firebaseApp);
   
