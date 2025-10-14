@@ -21,6 +21,12 @@ type Message = {
   sender: 'user' | 'ai';
 };
 
+const suggestedQuestions = [
+    "What is Broiler chicken?",
+    "What is FCR?",
+    "Tell me about Biosecurity",
+];
+
 export function FloatingChatWidget() {
   const { isOpen } = useChat();
   const [messages, setMessages] = useState<Message[]>([]);
@@ -39,17 +45,21 @@ export function FloatingChatWidget() {
   }, [messages, loading]);
 
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent, query?: string) => {
     e.preventDefault();
-    if (!input.trim() || loading) return;
+    const currentQuery = query || input;
+    if (!currentQuery.trim() || loading) return;
 
-    const userMessage: Message = { id: Date.now().toString(), text: input, sender: 'user' };
+    const userMessage: Message = { id: Date.now().toString(), text: currentQuery, sender: 'user' };
     setMessages((prev) => [...prev, userMessage]);
-    setInput('');
+    
+    if (!query) {
+        setInput('');
+    }
     setLoading(true);
 
     try {
-      const result = await siteExpert({ query: input });
+      const result = await siteExpert({ query: currentQuery });
       const aiMessage: Message = { id: (Date.now() + 1).toString(), text: result.answer, sender: 'ai' };
       setMessages((prev) => [...prev, aiMessage]);
     } catch (error) {
@@ -91,8 +101,21 @@ export function FloatingChatWidget() {
                                 <AppIcon className="size-5 text-primary-foreground"/>
                             </div>
                         </Avatar>
-                        <div className="max-w-md rounded-lg px-4 py-3 text-sm bg-secondary">
+                        <div className="max-w-md rounded-lg px-4 py-3 text-sm bg-secondary space-y-3">
                             <p className="whitespace-pre-wrap">Welcome! How can I help you with your broiler farm today?</p>
+                             <div className="flex flex-col items-start gap-2">
+                                {suggestedQuestions.map(q => (
+                                    <Button
+                                        key={q}
+                                        variant="outline"
+                                        size="sm"
+                                        className="bg-background"
+                                        onClick={(e) => handleSubmit(e, q)}
+                                    >
+                                        {q}
+                                    </Button>
+                                ))}
+                            </div>
                         </div>
                     </div>
                 )}
