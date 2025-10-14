@@ -21,7 +21,7 @@ if (!admin.apps.length) {
 }
 const firestore = admin.firestore();
 
-export const CreateProfileInputSchema = z.object({
+const CreateProfileInputSchema = z.object({
   uid: z.string().describe("The user's Firebase Authentication UID."),
   name: z.string().describe("The user's full name."),
   email: z.string().email().describe("The user's email address."),
@@ -33,15 +33,13 @@ export const CreateProfileInputSchema = z.object({
   district: z.string().describe("The user's district."),
   pinCode: z.string().optional().describe("The user's pin code."),
 });
-export type CreateProfileInput = z.infer<typeof CreateProfileInputSchema>;
 
 const CreateProfileOutputSchema = z.object({
   success: z.boolean(),
   message: z.string(),
 });
-export type CreateProfileOutput = z.infer<typeof CreateProfileOutputSchema>;
 
-export async function createProfile(input: CreateProfileInput): Promise<CreateProfileOutput> {
+export async function createProfile(input: z.infer<typeof CreateProfileInputSchema>): Promise<z.infer<typeof CreateProfileOutputSchema>> {
   return createProfileFlow(input);
 }
 

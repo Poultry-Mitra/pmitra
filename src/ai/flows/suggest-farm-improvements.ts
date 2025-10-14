@@ -5,8 +5,6 @@
  * @fileOverview AI-driven suggestions for farm improvements.
  *
  * - suggestFarmImprovements - A function that provides farm improvement suggestions.
- * - SuggestFarmImprovementsInput - The input type for the suggestFarmImprovements function.
- * - SuggestFarmImprovementsOutput - The return type for the suggestFarmImprovements function.
  */
 
 import {ai} from '@/ai/genkit';
@@ -20,24 +18,12 @@ const SuggestFarmImprovementsInputSchema = z.object({
     .describe('Current feed consumption (grams per hen per day).'),
   farmSize: z.number().describe('The number of chickens on the farm.'),
 });
-export type SuggestFarmImprovementsInput = z.infer<
-  typeof SuggestFarmImprovementsInputSchema
->;
 
 const SuggestFarmImprovementsOutputSchema = z.object({
   suggestions: z
     .string()
     .describe('AI-driven suggestions for improving farm efficiency and productivity.'),
 });
-export type SuggestFarmImprovementsOutput = z.infer<
-  typeof SuggestFarmImprovementsOutputSchema
->;
-
-export async function suggestFarmImprovements(
-  input: SuggestFarmImprovementsInput
-): Promise<SuggestFarmImprovementsOutput> {
-  return suggestFarmImprovementsFlow(input);
-}
 
 const prompt = ai.definePrompt({
   name: 'suggestFarmImprovementsPrompt',
@@ -61,6 +47,12 @@ const prompt = ai.definePrompt({
   Consider providing multiple suggestions when applicable.
 `,
 });
+
+export async function suggestFarmImprovements(
+  input: z.infer<typeof SuggestFarmImprovementsInputSchema>
+): Promise<z.infer<typeof SuggestFarmImprovementsOutputSchema>> {
+  return suggestFarmImprovementsFlow(input);
+}
 
 const suggestFarmImprovementsFlow = ai.defineFlow(
   {

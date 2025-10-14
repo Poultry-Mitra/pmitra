@@ -5,8 +5,6 @@
  * @fileOverview An AI flow to suggest biosecurity improvements based on a checklist.
  *
  * - suggestBiosecurityImprovements - A function that returns improvement suggestions.
- * - SuggestBiosecurityImprovementsInput - The input type for the function.
- * - SuggestBiosecurityImprovementsOutput - The return type for the function.
  */
 
 import {ai} from '@/ai/genkit';
@@ -15,19 +13,10 @@ import {z} from 'zod';
 const SuggestBiosecurityImprovementsInputSchema = z.object({
   failedItems: z.array(z.string()).describe('A list of biosecurity checklist items that the user answered "No" to.'),
 });
-export type SuggestBiosecurityImprovementsInput = z.infer<typeof SuggestBiosecurityImprovementsInputSchema>;
 
 const SuggestBiosecurityImprovementsOutputSchema = z.object({
   suggestions: z.string().describe('A detailed, actionable list of suggestions to improve biosecurity, formatted as a markdown list.'),
 });
-export type SuggestBiosecurityImprovementsOutput = z.infer<typeof SuggestBiosecurityImprovementsOutputSchema>;
-
-
-export async function suggestBiosecurityImprovements(
-  input: SuggestBiosecurityImprovementsInput
-): Promise<SuggestBiosecurityImprovementsOutput> {
-  return suggestBiosecurityImprovementsFlow(input);
-}
 
 const prompt = ai.definePrompt({
   name: 'suggestBiosecurityImprovementsPrompt',
@@ -58,6 +47,12 @@ const prompt = ai.definePrompt({
   `,
 });
 
+export async function suggestBiosecurityImprovements(
+  input: z.infer<typeof SuggestBiosecurityImprovementsInputSchema>
+): Promise<z.infer<typeof SuggestBiosecurityImprovementsOutputSchema>> {
+  return suggestBiosecurityImprovementsFlow(input);
+}
+
 const suggestBiosecurityImprovementsFlow = ai.defineFlow(
   {
     name: 'suggestBiosecurityImprovementsFlow',
@@ -74,5 +69,3 @@ const suggestBiosecurityImprovementsFlow = ai.defineFlow(
     return output!;
   }
 );
-
-    

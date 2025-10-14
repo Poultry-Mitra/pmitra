@@ -1,8 +1,8 @@
 
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useState, useRef, useEffect, useContext } from "react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -10,8 +10,8 @@ import { Send, WandSparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { aiQueryPoultry } from "@/ai/flows/ai-query-poultry";
 import { AppIcon } from "@/app/icon-component";
-import { useUser, useFirestore } from "@/firebase/provider";
-import { doc, getDoc, updateDoc, increment, onSnapshot } from 'firebase/firestore';
+import { useFirestore, AuthContext } from "@/firebase/provider";
+import { doc, updateDoc, increment, onSnapshot } from 'firebase/firestore';
 import type { User as AppUser } from '@/lib/types';
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
@@ -30,7 +30,7 @@ export function ChatLayout() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
-  const firebaseUser = useUser();
+  const authContext = useContext(AuthContext);
   const firestore = useFirestore();
   const [appUser, setAppUser] = useState<AppUser | null>(null);
   const [userLoading, setUserLoading] = useState(true);
@@ -44,9 +44,9 @@ export function ChatLayout() {
   }, [messages, loading]);
 
   useEffect(() => {
-    if (firebaseUser && firestore) {
+    if (authContext && authContext.user && firestore) {
       setUserLoading(true);
-      const userDocRef = doc(firestore, 'users', firebaseUser.uid);
+      const userDocRef = doc(firestore, 'users', authContext.user.uid);
       const unsubscribe = onSnapshot(userDocRef, (docSnap) => {
         if (docSnap.exists()) {
           setAppUser({ id: docSnap.id, ...docSnap.data() } as AppUser);
@@ -59,7 +59,7 @@ export function ChatLayout() {
     } else {
         setUserLoading(false);
     }
-  }, [firebaseUser, firestore]);
+  }, [authContext, firestore]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -225,5 +225,3 @@ export function ChatLayout() {
     </div>
   );
 }
-
-    

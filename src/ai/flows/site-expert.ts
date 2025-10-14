@@ -4,8 +4,6 @@
  * @fileOverview A flow that acts as a site expert, answering questions based on provided poultry farming guides.
  *
  * - siteExpert - A function that handles the query process.
- * - SiteExpertInput - The input type for the siteExpert function.
- * - SiteExpertOutput - The return type for the siteExpert function.
  */
 
 import {ai} from '@/ai/genkit';
@@ -14,12 +12,10 @@ import {z} from 'genkit';
 const SiteExpertInputSchema = z.object({
   query: z.string().describe('The user\'s question about poultry farming.'),
 });
-export type SiteExpertInput = z.infer<typeof SiteExpertInputSchema>;
 
 const SiteExpertOutputSchema = z.object({
   answer: z.string().describe('The answer to the user\'s question, based on the provided context.'),
 });
-export type SiteExpertOutput = z.infer<typeof SiteExpertOutputSchema>;
 
 const poultryGuideContext = `
 What is Broiler chicken?
@@ -83,10 +79,6 @@ Common Diseases of Broilers
 5. Gumboro Disease (Infectious Bursal Disease): Attacks the immune system in young chicks.
 `;
 
-export async function siteExpert(input: SiteExpertInput): Promise<SiteExpertOutput> {
-  return siteExpertFlow(input);
-}
-
 const prompt = ai.definePrompt({
   name: 'siteExpertPrompt',
   input: {schema: SiteExpertInputSchema},
@@ -101,6 +93,10 @@ ${poultryGuideContext}
 Question: {{{query}}}
 `,
 });
+
+export async function siteExpert(input: z.infer<typeof SiteExpertInputSchema>): Promise<z.infer<typeof SiteExpertOutputSchema>> {
+  return siteExpertFlow(input);
+}
 
 const siteExpertFlow = ai.defineFlow(
   {

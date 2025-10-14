@@ -5,8 +5,6 @@
  * @fileOverview Analyzes farm data to provide key metrics and a summary.
  *
  * - getFarmAnalytics - A function that returns farm analytics.
- * - FarmAnalyticsInput - The input type for the getFarmAnalytics function.
- * - FarmAnalyticsOutput - The return type for the getFarmAnalytics function.
  */
 
 import {ai} from '@/ai/genkit';
@@ -16,7 +14,6 @@ import type { Batch } from '@/lib/types';
 const FarmAnalyticsInputSchema = z.object({
   batches: z.array(z.any()).describe('An array of batch objects for the farm.'),
 });
-export type FarmAnalyticsInput = z.infer<typeof FarmAnalyticsInputSchema>;
 
 const FarmAnalyticsOutputSchema = z.object({
   totalLiveBirds: z.number().describe('The total number of live birds across all active batches.'),
@@ -25,13 +22,6 @@ const FarmAnalyticsOutputSchema = z.object({
   averageFCR: z.number().describe('The weighted average Feed Conversion Ratio (FCR) across all active batches.'),
   summary: z.string().describe('A brief, insightful summary of the overall farm status, highlighting any areas of concern or positive trends.'),
 });
-export type FarmAnalyticsOutput = z.infer<typeof FarmAnalyticsOutputSchema>;
-
-export async function getFarmAnalytics(
-  input: FarmAnalyticsInput
-): Promise<FarmAnalyticsOutput> {
-  return getFarmAnalyticsFlow(input);
-}
 
 const prompt = ai.definePrompt({
   name: 'getFarmAnalyticsPrompt',
@@ -52,6 +42,12 @@ const prompt = ai.definePrompt({
   Return the results in the specified JSON format.
 `,
 });
+
+export async function getFarmAnalytics(
+  input: z.infer<typeof FarmAnalyticsInputSchema>
+): Promise<z.infer<typeof FarmAnalyticsOutputSchema>> {
+  return getFarmAnalyticsFlow(input);
+}
 
 const getFarmAnalyticsFlow = ai.defineFlow(
   {

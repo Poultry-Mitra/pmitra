@@ -4,8 +4,6 @@
  * @fileOverview Recommends optimal feed based on farm production data.
  *
  * - recommendOptimalFeed - A function that recommends optimal feed based on farm production data.
- * - RecommendOptimalFeedInput - The input type for the recommendOptimalFeed function.
- * - RecommendOptimalFeedOutput - The return type for the recommendOptimalFeed function.
  */
 
 import {ai} from '@/ai/genkit';
@@ -18,17 +16,11 @@ const RecommendOptimalFeedInputSchema = z.object({
   chickenAgeWeeks: z.number().describe('The average age of the chickens in weeks.'),
   environmentalConditions: z.string().describe('Description of the environmental conditions of the farm (temperature, humidity, etc.).'),
 });
-export type RecommendOptimalFeedInput = z.infer<typeof RecommendOptimalFeedInputSchema>;
 
 const RecommendOptimalFeedOutputSchema = z.object({
   recommendation: z.string().describe('The AI-powered feed recommendation.'),
   reasoning: z.string().describe('The reasoning behind the recommendation.'),
 });
-export type RecommendOptimalFeedOutput = z.infer<typeof RecommendOptimalFeedOutputSchema>;
-
-export async function recommendOptimalFeed(input: RecommendOptimalFeedInput): Promise<RecommendOptimalFeedOutput> {
-  return recommendOptimalFeedFlow(input);
-}
 
 const prompt = ai.definePrompt({
   name: 'recommendOptimalFeedPrompt',
@@ -46,6 +38,10 @@ Environmental Conditions: {{{environmentalConditions}}}
 Recommendation:
 Reasoning:`, 
 });
+
+export async function recommendOptimalFeed(input: z.infer<typeof RecommendOptimalFeedInputSchema>): Promise<z.infer<typeof RecommendOptimalFeedOutputSchema>> {
+  return recommendOptimalFeedFlow(input);
+}
 
 const recommendOptimalFeedFlow = ai.defineFlow(
   {
