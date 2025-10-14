@@ -22,6 +22,7 @@ import { Loader2 } from "lucide-react";
 import indianStates from "@/lib/indian-states-districts.json";
 import { Separator } from "@/components/ui/separator";
 import type { Invitation, UserRole } from "@/lib/types";
+import { setDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 
 const formSchema = z.object({
     fullName: z.string().min(3, { message: "Full name must be at least 3 characters." }),
@@ -108,17 +109,10 @@ export default function DetailedSignupPage() {
     }, [selectedState, form]);
     
     async function handleFinalUserCreation(userId: string, values: FormValues, isGoogleSignIn: boolean = false) {
-        if (!firestore) return;
+        if (!firestore || !auth) return;
+        
         const userDocRef = doc(firestore, "users", userId);
-        const docSnap = await getDoc(userDocRef);
-
-        if (docSnap.exists()) {
-            toast({ title: "Account Exists", description: "This email is already registered. Please log in.", variant: "destructive" });
-            if (auth?.currentUser) await auth.signOut();
-            router.push('/login');
-            return;
-        }
-
+        
         const isAdminEmail = values.email.toLowerCase() === 'ipoultrymitra@gmail.com';
         const finalRole = invitation?.role || (isAdminEmail ? 'admin' : initialRole);
         const finalStatus = invitation ? 'Active' : (isAdminEmail ? 'Active' : 'Pending');
@@ -140,7 +134,8 @@ export default function DetailedSignupPage() {
             ...(finalRole === 'farmer' && { connectedDealers: [] }),
         };
 
-        await setDoc(userDocRef, userProfile);
+        // Use the non-blocking write function
+        setDocumentNonBlocking(userDocRef, userProfile, { merge: false }, auth);
         
         // If it was an invitation, delete it
         if (invitation) {
@@ -160,7 +155,7 @@ export default function DetailedSignupPage() {
             toast({ title: successTitle, description: successDescription, duration: 8000 });
         }
         
-        
+        // We still sign out to force a clean login, which triggers the AppProvider's redirection logic correctly.
         if (auth?.currentUser) await auth.signOut();
         router.push(`/login/${finalRole}`);
     }

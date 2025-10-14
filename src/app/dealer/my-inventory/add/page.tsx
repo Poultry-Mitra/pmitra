@@ -260,7 +260,7 @@ export default function AddStockPage() {
                 const ledgerDescription = `Purchase from ${supplier?.name || 'Unknown Supplier'}` + (values.invoiceNumber ? ` (Bill: ${values.invoiceNumber})` : '');
                 
                 if (netPayable > 0) {
-                     await addLedgerEntry(firestore, auth, user.uid, {
+                     await addLedgerEntry(firestore, user.uid, {
                         description: ledgerDescription,
                         amount: netPayable,
                         date: new Date(values.invoiceDate).toISOString(),
@@ -269,7 +269,7 @@ export default function AddStockPage() {
 
                 // 3. Add a credit entry if payment was made
                 if (values.amountPaid > 0) {
-                     await addLedgerEntry(firestore, auth, user.uid, {
+                     await addLedgerEntry(firestore, user.uid, {
                         description: `Payment to ${supplier?.name || 'Unknown Supplier'} via ${values.paymentMethod}`,
                         amount: values.amountPaid,
                         date: new Date(values.invoiceDate).toISOString(),

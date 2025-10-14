@@ -106,8 +106,8 @@ export function useInventoryByCategory(farmerUID: string, category: InventoryIte
 }
 
 
-export function addInventoryItem(firestore: Firestore, auth: Auth, farmerUID: string, data: Omit<InventoryItem, 'id' | 'farmerUID' | 'lastUpdated'>) {
-    if (!firestore || !auth) throw new Error("Firestore or Auth not initialized");
+export function addInventoryItem(firestore: Firestore, farmerUID: string, data: Omit<InventoryItem, 'id' | 'farmerUID' | 'lastUpdated'>) {
+    if (!firestore) throw new Error("Firestore not initialized");
 
     const collectionRef = collection(firestore, 'inventory');
     
@@ -117,5 +117,5 @@ export function addInventoryItem(firestore: Firestore, auth: Auth, farmerUID: st
         lastUpdated: serverTimestamp(),
     };
 
-    addDocumentNonBlocking(collectionRef, docData, auth);
+    addDocumentNonBlocking(collectionRef, docData, null);
 }

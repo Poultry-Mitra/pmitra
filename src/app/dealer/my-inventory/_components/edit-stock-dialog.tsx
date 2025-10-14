@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { useFirestore } from '@/firebase/provider';
+import { useFirestore, useAuth } from '@/firebase/provider';
 import { updateDealerInventoryItem, type DealerInventoryItem } from '@/hooks/use-dealer-inventory';
 import { IndianRupee, Save, Loader2 } from 'lucide-react';
 
@@ -38,6 +38,7 @@ type FormValues = z.infer<typeof formSchema>;
 export function EditStockDialog({ open, onOpenChange, item }: { open: boolean; onOpenChange: (open: boolean) => void, item: DealerInventoryItem }) {
     const { toast } = useToast();
     const firestore = useFirestore();
+    const auth = useAuth();
 
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
@@ -49,13 +50,13 @@ export function EditStockDialog({ open, onOpenChange, item }: { open: boolean; o
     });
 
     async function onSubmit(values: FormValues) {
-        if (!firestore) {
+        if (!firestore || !auth) {
             toast({ title: "Error", description: "Could not update stock.", variant: "destructive" });
             return;
         }
 
         try {
-            updateDealerInventoryItem(firestore, item.id, values);
+            updateDealerInventoryItem(firestore, auth, item.id, values);
             toast({
                 title: "Stock Updated",
                 description: `Stock for ${item.productName} has been updated.`,

@@ -83,8 +83,8 @@ export function useDealerInventory(dealerUID: string | undefined) {
   return { inventory, loading };
 }
 
-export function addDealerInventoryItem(firestore: Firestore, auth: Auth, dealerUID: string, data: Omit<DealerInventoryItem, 'id' | 'dealerUID' | 'updatedAt'>) {
-    if (!firestore || !auth) throw new Error("Firestore or Auth not initialized");
+export function addDealerInventoryItem(firestore: Firestore, auth: Auth | null, dealerUID: string, data: Omit<DealerInventoryItem, 'id' | 'dealerUID' | 'updatedAt'>) {
+    if (!firestore) throw new Error("Firestore not initialized");
 
     const collectionRef = collection(firestore, 'dealerInventory');
     
@@ -98,8 +98,8 @@ export function addDealerInventoryItem(firestore: Firestore, auth: Auth, dealerU
     addDocumentNonBlocking(collectionRef, itemData, auth);
 }
 
-export function updateDealerInventoryItem(firestore: Firestore, auth: Auth, itemId: string, data: Partial<Pick<DealerInventoryItem, 'quantity' | 'ratePerUnit' | 'lowStockThreshold'>>) {
-    if (!firestore || !auth) throw new Error("Firestore or Auth not initialized");
+export function updateDealerInventoryItem(firestore: Firestore, itemId: string, data: Partial<Pick<DealerInventoryItem, 'quantity' | 'ratePerUnit' | 'lowStockThreshold'>>) {
+    if (!firestore) throw new Error("Firestore not initialized");
 
     const docRef = doc(firestore, 'dealerInventory', itemId);
     
@@ -108,5 +108,7 @@ export function updateDealerInventoryItem(firestore: Firestore, auth: Auth, item
         updatedAt: serverTimestamp(),
     };
 
-    updateDocumentNonBlocking(docRef, itemData, auth);
+    // Auth is passed as null as this should be called by an authenticated user,
+    // and rules will handle the permission check based on the resource's dealerUID.
+    updateDocumentNonBlocking(docRef, itemData, null);
 }

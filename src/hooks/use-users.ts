@@ -25,7 +25,7 @@ import {
 import { useFirestore } from '@/firebase/provider';
 import type { User, UserRole, UserStatus } from '@/lib/types';
 import { sendPasswordResetEmail, createUserWithEmailAndPassword } from 'firebase/auth';
-import { deleteDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { deleteDocumentNonBlocking, updateDocumentNonBlocking, addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
 // Helper to convert Firestore doc to User type
 function toUser(doc: QueryDocumentSnapshot<DocumentData> | DocumentSnapshot<DocumentData>): User {
@@ -135,8 +135,8 @@ export async function findUserByUniqueCode(firestore: Firestore, uniqueCode: str
 }
 
 
-export function requestDealerConnection(firestore: Firestore, auth: Auth, farmerUID: string, dealerCode: string): Promise<User> {
-    if (!firestore || !auth) throw new Error("Firestore or Auth not initialized");
+export function requestDealerConnection(firestore: Firestore, farmerUID: string, dealerCode: string): Promise<User> {
+    if (!firestore) throw new Error("Firestore not initialized");
 
     return new Promise(async (resolve, reject) => {
         try {
@@ -152,13 +152,15 @@ export function requestDealerConnection(firestore: Firestore, auth: Auth, farmer
             }
 
             const connectionsCollection = collection(firestore, 'connections');
+            // Auth is passed as null because the security rules for creating a connection
+            // are based on the UIDs in the data, not the logged-in user.
             addDocumentNonBlocking(connectionsCollection, {
                 farmerUID,
                 dealerUID: dealerUser.id,
                 status: 'Pending',
                 requestedBy: 'farmer',
                 createdAt: serverTimestamp(),
-            }, auth);
+            }, null);
             
             resolve(dealerUser);
         } catch (error) {
@@ -168,22 +170,22 @@ export function requestDealerConnection(firestore: Firestore, auth: Auth, farmer
 }
 
 
-export function deleteUser(firestore: Firestore, auth: Auth, userId: string) {
-    if (!firestore || !auth) throw new Error("Firestore or Auth not initialized");
+export function deleteUser(firestore: Firestore, auth: Auth | null, userId: string) {
+    if (!firestore) throw new Error("Firestore not initialized");
     const docRef = doc(firestore, 'users', userId);
     // In a real app, you would also need to delete the user from Firebase Auth,
     // which requires admin privileges and should be done via a Cloud Function.
     deleteDocumentNonBlocking(docRef, auth);
 }
 
-export function updateUserStatus(firestore: Firestore, auth: Auth, userId: string, status: UserStatus) {
-    if (!firestore || !auth) throw new Error("Firestore or Auth not initialized");
+export function updateUserStatus(firestore: Firestore, auth: Auth | null, userId: string, status: UserStatus) {
+    if (!firestore) throw new Error("Firestore not initialized");
     const docRef = doc(firestore, 'users', userId);
     updateDocumentNonBlocking(docRef, { status }, auth);
 }
 
-export function updateUserPlan(firestore: Firestore, auth: Auth, userId: string, planType: 'free' | 'premium') {
-    if (!firestore || !auth) throw new Error("Firestore or Auth not initialized");
+export function updateUserPlan(firestore: Firestore, auth: Auth | null, userId: string, planType: 'free' | 'premium') {
+    if (!firestore) throw new Error("Firestore not initialized");
     const docRef = doc(firestore, 'users', userId);
     updateDocumentNonBlocking(docRef, { planType }, auth);
 }

@@ -147,7 +147,7 @@ export function useDailyRecords(batchId: string) {
 }
 
 
-export function addBatch(firestore: Firestore, auth: Auth, farmerUID: string, data: Omit<Batch, 'id' | 'createdAt' | 'farmerUID'>) {
+export function addBatch(firestore: Firestore, auth: Auth | null, farmerUID: string, data: Omit<Batch, 'id' | 'createdAt' | 'farmerUID'>) {
     if (!firestore || !auth) throw new Error("Firestore or Auth not initialized");
 
     const collectionRef = collection(firestore, 'batches');
@@ -161,7 +161,7 @@ export function addBatch(firestore: Firestore, auth: Auth, farmerUID: string, da
     addDocumentNonBlocking(collectionRef, batchData, auth);
 }
 
-export function deleteBatch(firestore: Firestore, auth: Auth, batchId: string) {
+export function deleteBatch(firestore: Firestore, auth: Auth | null, batchId: string) {
     if (!firestore || !auth) throw new Error("Firestore or Auth not initialized");
     const docRef = doc(firestore, 'batches', batchId);
     deleteDocumentNonBlocking(docRef, auth);

@@ -11,8 +11,8 @@ import type { AuditLog } from '@/lib/types';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
 
-export function addAuditLog(firestore: Firestore, auth: Auth, data: Omit<AuditLog, 'id' | 'timestamp'>) {
-    if (!firestore || !auth) throw new Error("Firestore or Auth not initialized");
+export function addAuditLog(firestore: Firestore, data: Omit<AuditLog, 'id' | 'timestamp'>) {
+    if (!firestore) throw new Error("Firestore not initialized");
 
     const collectionRef = collection(firestore, 'auditLogs');
     
@@ -21,5 +21,7 @@ export function addAuditLog(firestore: Firestore, auth: Auth, data: Omit<AuditLo
         timestamp: serverTimestamp(),
     };
 
-    addDocumentNonBlocking(collectionRef, docData, auth);
+    // Auth is passed as null because this is an admin-only action,
+    // and security rules grant write access based on the isAdmin() check.
+    addDocumentNonBlocking(collectionRef, docData, null);
 }

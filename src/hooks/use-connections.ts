@@ -73,8 +73,8 @@ export function useConnections(userId: string | undefined, userRole: 'farmer' | 
   return { connections, loading };
 }
 
-export async function updateConnectionStatus(firestore: Firestore, auth: Auth, connectionId: string, newStatus: 'Approved' | 'Rejected') {
-    if (!firestore || !auth) throw new Error("Firestore not initialized");
+export async function updateConnectionStatus(firestore: Firestore, auth: Auth | null, connectionId: string, newStatus: 'Approved' | 'Rejected') {
+    if (!firestore) throw new Error("Firestore not initialized");
 
     const connectionRef = doc(firestore, 'connections', connectionId);
     
