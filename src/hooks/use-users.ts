@@ -1,4 +1,3 @@
-
 // src/hooks/use-users.ts
 'use client';
 
@@ -13,18 +12,13 @@ import {
   where,
   getDocs,
   doc,
-  updateDoc,
-  addDoc,
   serverTimestamp,
   DocumentSnapshot,
-  deleteDoc,
   limit,
-  setDoc,
   type Auth,
 } from 'firebase/firestore';
-import { useFirestore } from '@/firebase/provider';
+import { useFirestore, useMemoFirebase } from '@/firebase/provider';
 import type { User, UserRole, UserStatus } from '@/lib/types';
-import { sendPasswordResetEmail, createUserWithEmailAndPassword } from 'firebase/auth';
 import { deleteDocumentNonBlocking, updateDocumentNonBlocking, addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
 // Helper to convert Firestore doc to User type
@@ -42,19 +36,22 @@ export function useUsers(role?: 'farmer' | 'dealer' | 'admin') {
   const firestore = useFirestore();
   const [allUsers, setAllUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  const usersQuery = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return query(collection(firestore, 'users'));
+  }, [firestore]);
+
 
   useEffect(() => {
-    if (!firestore) {
+    if (!usersQuery) {
         setLoading(false);
         return;
     }
     
     setLoading(true);
-    const usersCollection = collection(firestore, 'users');
-    const q = query(usersCollection); // Fetch all users initially
-
     const unsubscribe = onSnapshot(
-      q,
+      usersQuery,
       (snapshot) => {
         setAllUsers(snapshot.docs.map(d => toUser(d)));
         setLoading(false);
@@ -66,7 +63,7 @@ export function useUsers(role?: 'farmer' | 'dealer' | 'admin') {
     );
 
     return () => unsubscribe();
-  }, [firestore]);
+  }, [usersQuery]);
 
   const users = role ? allUsers.filter(user => user.role === role) : allUsers;
   
@@ -84,18 +81,22 @@ export function useUsersByIds(userIds: string[]) {
     const [users, setUsers] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
 
+    const usersByIdsQuery = useMemoFirebase(() => {
+      if (!firestore || !userIds || userIds.length === 0) return null;
+      return query(collection(firestore, 'users'), where('__name__', 'in', userIds.slice(0, 30)));
+    }, [firestore, JSON.stringify(userIds)]);
+
+
     useEffect(() => {
-        if (!firestore || !userIds || userIds.length === 0) {
+        if (!usersByIdsQuery) {
             setUsers([]);
             setLoading(false);
             return;
         }
 
         setLoading(true);
-        const q = query(collection(firestore, 'users'), where('__name__', 'in', userIds.slice(0, 30)));
-
         const unsubscribe = onSnapshot(
-            q,
+            usersByIdsQuery,
             (snapshot) => {
                 setUsers(snapshot.docs.map(toUser));
                 setLoading(false);
@@ -107,7 +108,7 @@ export function useUsersByIds(userIds: string[]) {
         );
 
         return () => unsubscribe();
-    }, [firestore, JSON.stringify(userIds)]);
+    }, [usersByIdsQuery]);
 
     return { users, loading };
 }
@@ -187,32 +188,4 @@ export function updateUserPlan(firestore: Firestore, auth: Auth | null, userId: 
     if (!firestore) throw new Error("Firestore not initialized");
     const docRef = doc(firestore, 'users', userId);
     updateDocumentNonBlocking(docRef, { planType }, auth);
-}
-
-
-export async function createUserProfile(firestore: Firestore, auth: Auth, newUserProfile: Omit<User, 'id'>) {
-    if (!firestore || !auth) {
-        throw new Error("Firestore or Auth instance is not available.");
-    }
-
-    // A temporary, secure password for initial creation.
-    const tempPassword = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8);
-
-    try {
-        const userCredential = await createUserWithEmailAndPassword(auth, newUserProfile.email, tempPassword);
-        const user = userCredential.user;
-
-        // Create the user profile document in Firestore
-        const userDocRef = doc(firestore, "users", user.uid);
-        await setDoc(userDocRef, { ...newUserProfile, dateJoined: serverTimestamp() });
-
-        // Send a password reset email so the user can set their own password
-        await sendPasswordResetEmail(auth, newUserProfile.email);
-        
-        return userDocRef;
-    } catch(e) {
-        // This can fail if the email is already in use.
-        console.error("Error creating auth user", e);
-        throw e;
-    }
 }

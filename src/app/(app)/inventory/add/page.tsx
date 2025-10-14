@@ -14,9 +14,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { Save, Trash2, PlusCircle, IndianRupee, Loader2 } from "lucide-react";
-import { useFirestore, useUser } from "@/firebase/provider";
+import { useFirestore } from "@/firebase/provider";
 import { addInventoryItem } from "@/hooks/use-inventory";
-import { addLedgerEntry } from "@/hooks/use-ledger";
+import { addLedgerEntryInTransaction } from "@/hooks/use-ledger";
 import { runTransaction } from "firebase/firestore";
 import { useAppUser } from "@/app/app-provider";
 

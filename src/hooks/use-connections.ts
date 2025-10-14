@@ -1,4 +1,3 @@
-
 // src/hooks/use-connections.ts
 'use client';
 
@@ -21,6 +20,7 @@ import {
 import type { Connection } from '@/lib/types';
 import { useFirestore } from '@/firebase/provider';
 import { updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { useMemoFirebase } from '@/firebase/provider';
 
 // Helper to convert Firestore doc to Connection type
 function toConnection(doc: QueryDocumentSnapshot<DocumentData>): Connection {
@@ -38,25 +38,28 @@ export function useConnections(userId: string | undefined, userRole: 'farmer' | 
   const [connections, setConnections] = useState<Connection[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const connectionsQuery = useMemoFirebase(() => {
+    if (!firestore || !userId) return null;
+    const connectionsCollection = collection(firestore, 'connections');
+    const field = userRole === 'farmer' ? 'farmerUID' : 'dealerUID';
+    return query(
+        connectionsCollection, 
+        where(field, "==", userId),
+        orderBy("createdAt", "desc")
+    );
+  }, [firestore, userId, userRole]);
+
+
   useEffect(() => {
-    if (!firestore || !userId) {
+    if (!connectionsQuery) {
         setConnections([]);
         setLoading(false);
         return;
     }
     
     setLoading(true);
-    const connectionsCollection = collection(firestore, 'connections');
-    const field = userRole === 'farmer' ? 'farmerUID' : 'dealerUID';
-
-    const q = query(
-        connectionsCollection, 
-        where(field, "==", userId),
-        orderBy("createdAt", "desc")
-    );
-
     const unsubscribe = onSnapshot(
-      q,
+      connectionsQuery,
       (snapshot) => {
         setConnections(snapshot.docs.map(toConnection));
         setLoading(false);
@@ -68,18 +71,19 @@ export function useConnections(userId: string | undefined, userRole: 'farmer' | 
     );
 
     return () => unsubscribe();
-  }, [firestore, userId, userRole]);
+  }, [connectionsQuery]);
 
   return { connections, loading };
 }
 
-export async function updateConnectionStatus(firestore: Firestore, auth: Auth | null, connectionId: string, newStatus: 'Approved' | 'Rejected') {
+export async function updateConnectionStatus(firestore: Firestore, connectionId: string, newStatus: 'Approved' | 'Rejected') {
     if (!firestore) throw new Error("Firestore not initialized");
 
     const connectionRef = doc(firestore, 'connections', connectionId);
     
     if (newStatus === 'Rejected') {
-        updateDocumentNonBlocking(connectionRef, { status: newStatus }, auth);
+        // Here auth can be null because security rules for update might be based on resource data
+        updateDocumentNonBlocking(connectionRef, { status: newStatus }, null);
         return;
     }
     

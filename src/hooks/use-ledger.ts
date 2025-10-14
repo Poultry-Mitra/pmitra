@@ -1,11 +1,10 @@
-
+// src/hooks/use-ledger.ts
 'use client';
 
 import { useState, useEffect } from 'react';
 import {
   collection,
   onSnapshot,
-  addDoc,
   type Firestore,
   type DocumentData,
   QueryDocumentSnapshot,
@@ -14,11 +13,12 @@ import {
   orderBy,
   runTransaction,
   doc,
-  getDocs,
   limit,
   Transaction,
 } from 'firebase/firestore';
 import type { LedgerEntry } from '@/lib/types';
+import { useFirestore } from '@/firebase/provider';
+import { useMemoFirebase } from '@/firebase/provider';
 
 // Helper to convert Firestore doc to LedgerEntry type
 function toLedgerEntry(doc: QueryDocumentSnapshot<DocumentData>): LedgerEntry {
@@ -31,33 +31,30 @@ function toLedgerEntry(doc: QueryDocumentSnapshot<DocumentData>): LedgerEntry {
 }
 
 export function useLedger(userId?: string) {
-  const [firestore, setFirestore] = useState<Firestore | null>(null);
+  const firestore = useFirestore();
   const [entries, setEntries] = useState<LedgerEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Dynamically import firestore to avoid server-side issues
-  useEffect(() => {
-    import('firebase/firestore').then(module => {
-      const { getFirestore } = module;
-      setFirestore(getFirestore());
-    });
-  }, []);
+  const ledgerQuery = useMemoFirebase(() => {
+    if (!firestore || !userId) return null;
+    return query(
+        collection(firestore, 'ledger'), 
+        where("userId", "==", userId), 
+        orderBy("date", "desc")
+    );
+  }, [firestore, userId]);
+
 
   useEffect(() => {
-    // If firestore is not available, do nothing.
-    if (!firestore || !userId) {
+    if (!ledgerQuery) {
         setEntries([]);
         setLoading(false);
         return;
     }
     
     setLoading(true);
-    const ledgerCollection = collection(firestore, 'ledger');
-    
-    const q = query(ledgerCollection, where("userId", "==", userId), orderBy("date", "desc"));
-
     const unsubscribe = onSnapshot(
-      q,
+      ledgerQuery,
       (snapshot) => {
         const fetchedEntries = snapshot.docs.map(toLedgerEntry);
         setEntries(fetchedEntries);
@@ -70,7 +67,7 @@ export function useLedger(userId?: string) {
     );
 
     return () => unsubscribe();
-  }, [firestore, userId]);
+  }, [ledgerQuery]);
 
   return { entries, loading };
 }
@@ -89,7 +86,6 @@ export async function addLedgerEntry(
         });
     } catch (e: any) {
         console.error("Ledger transaction failed: ", e);
-        // Re-throw the original error to be handled by the caller.
         throw e;
     }
 }
@@ -111,7 +107,6 @@ export async function addLedgerEntryInTransaction(
         limit(1)
     );
 
-    // We get the last entry using the transaction to ensure a consistent read.
     const lastEntryDocs = await transaction.get(lastEntryQuery);
 
     let lastBalance = 0;
@@ -134,9 +129,7 @@ export async function addLedgerEntryInTransaction(
         balanceAfter: newBalance,
     };
     
-    const newEntryRef = doc(ledgerCollection); // Create a new doc ref for the new entry.
+    const newEntryRef = doc(ledgerCollection);
     
-    // We don't need to wrap this in a try/catch for permission errors
-    // because runTransaction handles throwing the error.
     transaction.set(newEntryRef, newEntryData);
 }

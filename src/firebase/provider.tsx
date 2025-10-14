@@ -69,13 +69,11 @@ export const useFirebaseApp = (): FirebaseApp => useFirebase().app;
 export const useAuth = (): Auth => useFirebase().auth;
 export const useFirestore = (): Firestore => useFirebase().firestore;
 
-// DEPRECATED: useAppUser from AppProvider is now the standard.
-// This hook remains for any legacy internal components that might still reference it,
-// but all new development and refactoring should use useAppUser.
-export const useUser = (): AuthContextType => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useUser must be used within a FirebaseProvider');
-  }
-  return context;
-};
+// Hook to memoize Firestore queries.
+export const useMemoFirebase = <T>(
+  factory: () => T | null,
+  deps: React.DependencyList,
+): T | null => {
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  return useMemo(factory, deps);
+}

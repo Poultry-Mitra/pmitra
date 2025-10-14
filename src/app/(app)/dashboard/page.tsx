@@ -2,10 +2,10 @@
 // src/app/(app)/dashboard/page.tsx
 "use client";
 
-import { useState, useMemo, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { useState, useMemo } from 'react';
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Copy, Loader2, Link as LinkIcon, Download, CheckCircle, XCircle } from "lucide-react";
+import { Copy, Loader2, Link as LinkIcon, CheckCircle, XCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useBatches } from "@/hooks/use-batches";
 import { DashboardStats } from "./_components/DashboardStats";
@@ -18,13 +18,13 @@ import { useConnections, updateConnectionStatus } from '@/hooks/use-connections'
 import { useUsersByIds } from '@/hooks/use-users';
 import { useFirestore, useAuth } from '@/firebase/provider';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { PageHeader } from '../_components/page-header';
 
 
 function DealerConnectionRequests() {
     const { user: appUser, loading: appUserLoading } = useAppUser();
     const { connections, loading: connectionsLoading } = useConnections(appUser?.id, 'farmer');
     const firestore = useFirestore();
-    const auth = useAuth();
     const { toast } = useToast();
 
     const pendingRequests = useMemo(() => 
@@ -45,9 +45,9 @@ function DealerConnectionRequests() {
     }
 
     const handleAction = async (connectionId: string, status: 'Approved' | 'Rejected') => {
-        if (!firestore || !auth) return;
+        if (!firestore) return;
         try {
-            await updateConnectionStatus(firestore, auth, connectionId, status);
+            await updateConnectionStatus(firestore, connectionId, status);
             toast({
                 title: `Request ${status}`,
                 description: "The connection has been updated."
@@ -60,39 +60,39 @@ function DealerConnectionRequests() {
 
     return (
         <Card>
-            <CardHeader>
-                <CardTitle>Dealer Connection Requests</CardTitle>
-                <CardDescription>Review and respond to connection requests from dealers.</CardDescription>
-            </CardHeader>
-            <CardContent>
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Dealer Name</TableHead>
-                            <TableHead>Date</TableHead>
-                            <TableHead className="text-right">Actions</TableHead>
+            <TableHeader>
+                <div className="p-6">
+                    <h3 className="font-semibold">Dealer Connection Requests</h3>
+                    <p className="text-sm text-muted-foreground">Review and respond to connection requests from dealers.</p>
+                </div>
+            </TableHeader>
+            <Table>
+                <TableHeader>
+                    <TableRow>
+                        <TableHead>Dealer Name</TableHead>
+                        <TableHead>Date</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    {pendingRequests.map(req => (
+                        <TableRow key={req.id}>
+                            <TableCell className="font-medium">{getDealerName(req.dealerUID)}</TableCell>
+                            <TableCell>{new Date(req.createdAt).toLocaleDateString()}</TableCell>
+                            <TableCell className="text-right space-x-2">
+                                 <Button size="sm" variant="outline" className="text-green-600 hover:bg-green-50 hover:text-green-700" onClick={() => handleAction(req.id, 'Approved')}>
+                                    <CheckCircle className="mr-2" />
+                                    Approve
+                                </Button>
+                                 <Button size="sm" variant="outline" className="text-red-600 hover:bg-red-50 hover:text-red-700" onClick={() => handleAction(req.id, 'Rejected')}>
+                                    <XCircle className="mr-2" />
+                                    Reject
+                                </Button>
+                            </TableCell>
                         </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {pendingRequests.map(req => (
-                            <TableRow key={req.id}>
-                                <TableCell className="font-medium">{getDealerName(req.dealerUID)}</TableCell>
-                                <TableCell>{new Date(req.createdAt).toLocaleDateString()}</TableCell>
-                                <TableCell className="text-right space-x-2">
-                                     <Button size="sm" variant="outline" className="text-green-600 hover:bg-green-50 hover:text-green-700" onClick={() => handleAction(req.id, 'Approved')}>
-                                        <CheckCircle className="mr-2" />
-                                        Approve
-                                    </Button>
-                                     <Button size="sm" variant="outline" className="text-red-600 hover:bg-red-50 hover:text-red-700" onClick={() => handleAction(req.id, 'Rejected')}>
-                                        <XCircle className="mr-2" />
-                                        Reject
-                                    </Button>
-                                </TableCell>
-                            </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
-            </CardContent>
+                    ))}
+                </TableBody>
+            </Table>
         </Card>
     )
 }
@@ -126,26 +126,22 @@ export default function DashboardPage() {
 
   return (
     <>
-      <div className="flex flex-col gap-4">
-        <div>
-            <h1 className="font-headline text-3xl font-bold tracking-tight">{t('dashboard.welcome', { name: user.name.split(' ')[0] })} 👋</h1>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <span>{poultryMitraId}</span>
-                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={handleCopyId}>
-                    <Copy className="size-3" />
-                </Button>
-            </div>
-        </div>
+      <PageHeader title={t('dashboard.welcome', { name: user.name.split(' ')[0] })} />
 
-        <div className="flex items-center gap-2 flex-wrap">
-            <Badge className="capitalize" variant={user.planType === 'premium' ? 'default' : 'secondary'}>{t(`plans.${user.planType}`)}</Badge>
-             {user.role === 'farmer' && (
-                <Button size="sm" variant="outline" className="border-primary text-primary hover:bg-primary/10 hover:text-primary" onClick={() => setConnectDealerOpen(true)}>
-                    <LinkIcon className="mr-2" />
-                    {t('dashboard.connect_dealer')}
-                </Button>
-             )}
+      <div className="mt-4 flex items-center gap-4 flex-wrap">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <span>{poultryMitraId}</span>
+            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={handleCopyId}>
+                <Copy className="size-3" />
+            </Button>
         </div>
+        <Badge className="capitalize" variant={user.planType === 'premium' ? 'default' : 'secondary'}>{t(`plans.${user.planType}`)}</Badge>
+         {user.role === 'farmer' && (
+            <Button size="sm" variant="outline" className="border-primary text-primary hover:bg-primary/10 hover:text-primary" onClick={() => setConnectDealerOpen(true)}>
+                <LinkIcon className="mr-2" />
+                {t('dashboard.connect_dealer')}
+            </Button>
+         )}
       </div>
       
       <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">

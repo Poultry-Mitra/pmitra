@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -21,6 +20,8 @@ import {
 } from 'firebase/firestore';
 import type { Order } from '@/lib/types';
 import { addLedgerEntryInTransaction } from '@/hooks/use-ledger';
+import { useFirestore } from '@/firebase/provider';
+import { useMemoFirebase } from '@/firebase/provider';
 
 // Helper to convert Firestore doc to Order type
 function toOrder(doc: QueryDocumentSnapshot<DocumentData>): Order {
@@ -35,34 +36,28 @@ function toOrder(doc: QueryDocumentSnapshot<DocumentData>): Order {
 
 
 export function useOrders(dealerUID?: string) {
-  const [firestore, setFirestore] = useState<Firestore | null>(null);
+  const firestore = useFirestore();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   
-  useEffect(() => {
-    import('firebase/firestore').then(module => {
-      const { getFirestore } = module;
-      setFirestore(getFirestore());
-    });
-  }, []);
+  const ordersQuery = useMemoFirebase(() => {
+    if (!firestore) return null;
+    const ordersCollection = collection(firestore, 'orders');
+    return dealerUID 
+      ? query(ordersCollection, where("dealerUID", "==", dealerUID), orderBy("createdAt", "desc"))
+      : query(ordersCollection, orderBy("createdAt", "desc"));
+  }, [firestore, dealerUID]);
 
   useEffect(() => {
-    if (!firestore) {
+    if (!ordersQuery) {
         setOrders([]);
         setLoading(false);
         return;
     }
     
     setLoading(true);
-    const ordersCollection = collection(firestore, 'orders');
-
-    const q = dealerUID 
-      ? query(ordersCollection, where("dealerUID", "==", dealerUID), orderBy("createdAt", "desc"))
-      : query(ordersCollection, orderBy("createdAt", "desc")); // Admin query for all orders
-
-
     const unsubscribe = onSnapshot(
-      q,
+      ordersQuery,
       (snapshot) => {
         setOrders(snapshot.docs.map(toOrder));
         setLoading(false);
@@ -74,40 +69,36 @@ export function useOrders(dealerUID?: string) {
     );
 
     return () => unsubscribe();
-  }, [firestore, dealerUID]);
+  }, [ordersQuery]);
 
   return { orders, loading };
 }
 
 export function useOrdersByFarmer(farmerUID?: string) {
-  const [firestore, setFirestore] = useState<Firestore | null>(null);
+  const firestore = useFirestore();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    import('firebase/firestore').then(module => {
-      const { getFirestore } = module;
-      setFirestore(getFirestore());
-    });
-  }, []);
+  const farmerOrdersQuery = useMemoFirebase(() => {
+      if (!firestore || !farmerUID) return null;
+      const ordersCollection = collection(firestore, 'orders');
+      return query(
+        ordersCollection, 
+        where("farmerUID", "==", farmerUID),
+        orderBy("createdAt", "desc")
+      );
+  }, [firestore, farmerUID]);
 
   useEffect(() => {
-    if (!firestore || !farmerUID) {
+    if (!farmerOrdersQuery) {
         setOrders([]);
         setLoading(false);
         return;
     }
     
     setLoading(true);
-    const ordersCollection = collection(firestore, 'orders');
-    const q = query(
-        ordersCollection, 
-        where("farmerUID", "==", farmerUID),
-        orderBy("createdAt", "desc")
-    );
-
     const unsubscribe = onSnapshot(
-      q,
+      farmerOrdersQuery,
       (snapshot) => {
         setOrders(snapshot.docs.map(toOrder));
         setLoading(false);
@@ -119,7 +110,7 @@ export function useOrdersByFarmer(farmerUID?: string) {
     );
 
     return () => unsubscribe();
-  }, [firestore, farmerUID]);
+  }, [farmerOrdersQuery]);
 
   return { orders, loading };
 }
@@ -135,11 +126,8 @@ export async function createOrder(firestore: Firestore, auth: Auth, data: Omit<O
         createdAt: serverTimestamp(),
     };
     
-    // We don't need a custom non-blocking wrapper here because the UI expects to navigate
-    // or give feedback based on the result of this operation.
     const docRef = await addDoc(orderCollection, orderData);
     
-    // If it's an offline sale, immediately run the approval transaction
     if (data.isOfflineSale) {
         const newOrder = { id: docRef.id, ...orderData, createdAt: new Date().toISOString() } as Order;
         await updateOrderStatus(newOrder, 'Completed', firestore, auth);
@@ -154,13 +142,11 @@ export async function updateOrderStatus(order: Order, newStatus: 'Approved' | 'R
 
     const orderRef = doc(firestore, 'orders', order.id);
     
-    // For simple rejection, just update the status
     if (newStatus === 'Rejected') {
         await updateDoc(orderRef, { status: newStatus });
         return;
     }
 
-    // Use a transaction for Approved/Completed status to ensure atomicity
     await runTransaction(firestore, async (transaction) => {
         const orderDoc = await transaction.get(orderRef);
         if (!orderDoc.exists()) {
@@ -168,12 +154,10 @@ export async function updateOrderStatus(order: Order, newStatus: 'Approved' | 'R
         }
         
         const currentStatus = orderDoc.data().status;
-        // Prevent re-processing an already processed order, unless it's an offline sale being marked as complete
         if (currentStatus !== 'Pending' && !order.isOfflineSale) {
             throw new Error("This order has already been processed.");
         }
         
-        // --- Shared Logic for Approved/Completed Orders ---
         if (!order.productId) {
             throw new Error("Order is missing a product ID.");
         }
@@ -187,12 +171,10 @@ export async function updateOrderStatus(order: Order, newStatus: 'Approved' | 'R
             throw new Error(`Not enough stock for ${order.productName}. Available: ${currentQuantity}, Ordered: ${order.quantity}.`);
         }
         
-        // 1. Reduce dealer's inventory
         transaction.update(dealerInventoryRef, {
             quantity: increment(-order.quantity)
         });
 
-        // 2. Add credit entry to dealer's ledger
         const customerName = order.isOfflineSale ? order.offlineCustomerName : (await transaction.get(doc(firestore, 'users', order.farmerUID!))).data()?.name;
         await addLedgerEntryInTransaction(transaction, firestore, order.dealerUID, {
             description: `Sale to ${customerName || 'Unknown'} (Order: ${order.id.substring(0, 5)})`,
@@ -200,7 +182,6 @@ export async function updateOrderStatus(order: Order, newStatus: 'Approved' | 'R
             date: new Date().toISOString(),
         }, 'Credit');
         
-        // 3. If it's an online sale, add debit entry to farmer's ledger
         if (!order.isOfflineSale && order.farmerUID) {
             const dealerName = (await transaction.get(doc(firestore, 'users', order.dealerUID))).data()?.name;
             await addLedgerEntryInTransaction(transaction, firestore, order.farmerUID, {
@@ -210,7 +191,6 @@ export async function updateOrderStatus(order: Order, newStatus: 'Approved' | 'R
            }, 'Debit');
         }
 
-        // Update the order status at the end of the transaction
         transaction.update(orderRef, { status: newStatus });
     });
 }

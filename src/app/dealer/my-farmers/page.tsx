@@ -1,9 +1,7 @@
-
-
 // src/app/dealer/my-farmers/page.tsx
 "use client";
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { PageHeader } from "../_components/page-header";
 import { Button } from "@/components/ui/button";
@@ -32,36 +30,28 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Badge } from "@/components/ui/badge";
-import { PlusCircle, MoreHorizontal, AlertTriangle, Loader2, CheckCircle, XCircle } from "lucide-react";
+import { PlusCircle, AlertTriangle, Loader2 } from "lucide-react";
 import { useUsersByIds } from '@/hooks/use-users';
 import { ConnectFarmerDialog } from './_components/connect-farmer-dialog';
-import { useUser, useFirestore, useAuth } from '@/firebase/provider';
-import type { User, Connection } from '@/lib/types';
-import { doc, onSnapshot } from 'firebase/firestore';
-import { useConnections, updateConnectionStatus } from '@/hooks/use-connections';
-import { useToast } from '@/hooks/use-toast';
+import { useFirestore } from '@/firebase/provider';
+import type { User } from '@/lib/types';
+import { useConnections } from '@/hooks/use-connections';
 import { FarmerDetailsDialog } from './_components/farmer-details-dialog';
 import { useAppUser } from '@/app/app-provider';
 import { useLanguage } from '@/components/language-provider';
+import { Badge } from '@/components/ui/badge';
 
 export default function MyFarmersPage() {
-    const { user: dealerUser } = useAppUser();
-    const firestore = useFirestore();
-    const auth = useAuth();
-    const { toast } = useToast();
+    const { user: dealerUser, loading: appUserLoading } = useAppUser();
     const { t } = useLanguage();
     
-    const { connections: allConnections, loading: connectionsLoading } = useConnections(dealerUser?.id, 'dealer');
+    const { connections, loading: connectionsLoading } = useConnections(dealerUser?.id, 'dealer');
     
-    const pendingConnections = useMemo(() => allConnections.filter(c => c.status === 'Pending' && c.requestedBy === 'farmer'), [allConnections]);
-    const approvedConnections = useMemo(() => allConnections.filter(c => c.status === 'Approved'), [allConnections]);
+    const approvedConnections = useMemo(() => connections.filter(c => c.status === 'Approved'), [connections]);
 
     const connectedFarmerIds = useMemo(() => approvedConnections.map(c => c.farmerUID), [approvedConnections]);
-    const pendingFarmerIds = useMemo(() => pendingConnections.map(c => c.farmerUID), [pendingConnections]);
 
     const { users: connectedFarmers, loading: connectedFarmersLoading } = useUsersByIds(connectedFarmerIds);
-    const { users: pendingFarmers, loading: pendingFarmersLoading } = useUsersByIds(pendingFarmerIds);
 
     const planType = dealerUser?.planType || 'free';
     const [isConnectDialogOpen, setConnectDialogOpen] = useState(false);
@@ -70,26 +60,13 @@ export default function MyFarmersPage() {
 
     const farmerLimit = 2;
     const canAddMoreFarmers = planType === 'premium' || connectedFarmers.length < farmerLimit;
-    const loading = !dealerUser || connectionsLoading || connectedFarmersLoading || pendingFarmersLoading;
+    const loading = appUserLoading || connectionsLoading || connectedFarmersLoading;
 
     const handleConnectClick = () => {
         if (canAddMoreFarmers) {
             setConnectDialogOpen(true);
         } else {
             setShowUpgradeAlert(true);
-        }
-    };
-    
-    const handleConnectionAction = async (connectionId: string, status: 'Approved' | 'Rejected') => {
-        if (!firestore || !auth) return;
-        try {
-            await updateConnectionStatus(firestore, auth, connectionId, status);
-            toast({
-                title: `Request ${status}`,
-                description: `The connection request has been ${status.toLowerCase()}.`
-            });
-        } catch (error: any) {
-            toast({ title: t('messages.error'), description: error.message, variant: "destructive" });
         }
     };
     
@@ -113,47 +90,7 @@ export default function MyFarmersPage() {
 
             {!loading && (
                 <div className="mt-8 space-y-8">
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Connection Requests</CardTitle>
-                        <CardDescription>Farmers who have sent you a connection request.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                         <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Farmer Name</TableHead>
-                                    <TableHead>Email</TableHead>
-                                    <TableHead>Requested On</TableHead>
-                                    <TableHead className="text-right">{t('tables.actions')}</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {pendingConnections.length === 0 && <TableRow><TableCell colSpan={4} className="h-24 text-center">No pending requests.</TableCell></TableRow>}
-                                {pendingConnections.map(conn => {
-                                    const farmer = pendingFarmers.find(f => f.id === conn.farmerUID);
-                                    if (!farmer) return null;
-                                    return (
-                                        <TableRow key={conn.id}>
-                                            <TableCell className="font-medium">{farmer.name}</TableCell>
-                                            <TableCell>{farmer.email}</TableCell>
-                                            <TableCell>{new Date(conn.createdAt).toLocaleDateString()}</TableCell>
-                                            <TableCell className="text-right space-x-2">
-                                                <Button size="sm" variant="outline" className="text-green-600 hover:text-green-700" onClick={() => handleConnectionAction(conn.id, 'Approved')} disabled={!canAddMoreFarmers}>
-                                                    <CheckCircle className="mr-2" /> Approve
-                                                </Button>
-                                                <Button size="sm" variant="outline" className="text-red-600 hover:text-red-700" onClick={() => handleConnectionAction(conn.id, 'Rejected')}>
-                                                     <XCircle className="mr-2" /> Reject
-                                                </Button>
-                                            </TableCell>
-                                        </TableRow>
-                                    )
-                                })}
-                            </TableBody>
-                        </Table>
-                    </CardContent>
-                </Card>
-
+                
                 <Card>
                     <CardHeader>
                         <CardTitle>Connected Farmers</CardTitle>
@@ -168,19 +105,22 @@ export default function MyFarmersPage() {
                                 <TableRow>
                                     <TableHead>Farmer Name</TableHead>
                                     <TableHead>Email</TableHead>
-                                    <TableHead>Connected Since</TableHead>
+                                    <TableHead>Location</TableHead>
+                                    <TableHead>Plan</TableHead>
                                     <TableHead className='text-right'>{t('tables.actions')}</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {connectedFarmers.length === 0 && <TableRow><TableCell colSpan={4} className="h-24 text-center">No farmers connected yet.</TableCell></TableRow>}
+                                {connectedFarmers.length === 0 && <TableRow><TableCell colSpan={5} className="h-24 text-center">No farmers connected yet.</TableCell></TableRow>}
                                 {connectedFarmers.map((farmer) => {
-                                    const connection = approvedConnections.find(c => c.farmerUID === farmer.id);
                                     return (
                                     <TableRow key={farmer.id}>
                                         <TableCell className="font-medium">{farmer.name}</TableCell>
                                         <TableCell>{farmer.email}</TableCell>
-                                        <TableCell>{connection ? new Date(connection.createdAt).toLocaleDateString() : 'N/A'}</TableCell>
+                                        <TableCell>{farmer.district}, {farmer.state}</TableCell>
+                                        <TableCell>
+                                            <Badge variant={farmer.planType === 'premium' ? 'default' : 'secondary'} className="capitalize">{farmer.planType}</Badge>
+                                        </TableCell>
                                         <TableCell className="text-right">
                                              <Button variant="outline" size="sm" onClick={() => handleViewDetails(farmer)}>{t('actions.view_details')}</Button>
                                         </TableCell>

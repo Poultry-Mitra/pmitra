@@ -24,8 +24,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Send, Loader2 } from 'lucide-react';
-import { useFirestore, useUser } from '@/firebase/provider';
+import { useFirestore } from '@/firebase/provider';
 import { requestDealerConnection } from '@/hooks/use-users';
+import { useAppUser } from '@/app/app-provider';
 
 const formSchema = z.object({
     dealerCode: z.string().min(1, "Please enter a Dealer Code."),
@@ -36,7 +37,7 @@ type FormValues = z.infer<typeof formSchema>;
 export function ConnectDealerDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
     const { toast } = useToast();
     const firestore = useFirestore();
-    const { user: farmerUser } = useUser();
+    const { user: farmerUser } = useAppUser();
 
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
@@ -52,7 +53,7 @@ export function ConnectDealerDialog({ open, onOpenChange }: { open: boolean; onO
         }
 
         try {
-            const dealer = await requestDealerConnection(firestore, farmerUser.uid, values.dealerCode);
+            const dealer = await requestDealerConnection(firestore, farmerUser.id, values.dealerCode);
 
             toast({
                 title: "Connection Request Sent!",
@@ -82,7 +83,7 @@ export function ConnectDealerDialog({ open, onOpenChange }: { open: boolean; onO
                             render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>Dealer's Unique Code</FormLabel>
-                                    <FormControl><Input placeholder="e.g., DEAL-ABCDE" {...field} /></FormControl>
+                                    <FormControl><Input placeholder="e.g., DL-ABCDE1" {...field} /></FormControl>
                                     <FormMessage />
                                 </FormItem>
                             )}

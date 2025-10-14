@@ -1,4 +1,3 @@
-
 // src/app/admin/dashboard/_components/recent-transactions.tsx
 "use client";
 
@@ -7,6 +6,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import type { User } from "@/lib/types"; // Assuming a shared types definition
 import Link from 'next/link';
+import { Skeleton } from "@/components/ui/skeleton";
 
 // Mock data, in a real app this would come from a Firestore hook
 const mockTransactions = [
@@ -17,7 +17,29 @@ const mockTransactions = [
 
 export function RecentTransactions({ users, loading }: { users: User[], loading: boolean }) {
   if (loading) {
-    return <CardDescription>Loading transactions...</CardDescription>
+    return (
+        <Card>
+            <CardHeader>
+                <Skeleton className="h-5 w-3/4" />
+                <Skeleton className="h-4 w-1/2" />
+            </CardHeader>
+            <CardContent className="grid gap-6">
+                 {[...Array(3)].map((_, i) => (
+                    <div key={i} className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                            <Skeleton className="h-9 w-9 rounded-full" />
+                            <div className="space-y-1">
+                                <Skeleton className="h-4 w-24" />
+                                <Skeleton className="h-3 w-32" />
+                            </div>
+                        </div>
+                        <Skeleton className="h-6 w-16 rounded-md" />
+                    </div>
+                ))}
+                 <Skeleton className="h-9 w-full" />
+            </CardContent>
+        </Card>
+    )
   }
   return (
     <Card>

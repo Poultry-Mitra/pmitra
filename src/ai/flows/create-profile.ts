@@ -61,14 +61,20 @@ const createProfileFlow = ai.defineFlow(
         role: input.role,
         status: input.status,
         planType: input.planType,
-        mobileNumber: input.mobileNumber || "",
         state: input.state,
         district: input.district,
-        pinCode: input.pinCode || "",
         aiQueriesCount: 0,
         lastQueryDate: "",
         dateJoined: new Date().toISOString(),
       };
+      
+      // Only add optional fields if they have a value
+      if (input.mobileNumber) {
+        userProfile.mobileNumber = input.mobileNumber;
+      }
+      if (input.pinCode) {
+        userProfile.pinCode = input.pinCode;
+      }
 
       if (input.role === 'dealer') {
         userProfile.uniqueDealerCode = `DL-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
