@@ -221,3 +221,13 @@ export type BiosecurityChecklistItem = {
     category: 'Isolation' | 'Traffic Control' | 'Sanitation';
 };
 
+export type Supplier = {
+  id: string;
+  dealerUID: string;
+  name: string;
+  contactPerson?: string;
+  contactNumber?: string;
+  address?: string;
+  gstin?: string;
+  createdAt: string;
+};

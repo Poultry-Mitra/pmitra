@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import Link from "next/link";
@@ -31,6 +32,7 @@ import {
   LineChart,
   Rocket,
   PlusCircle,
+  Truck,
 } from "lucide-react";
 import { useLanguage } from "@/components/language-provider";
 import type { User as UserType } from "@/lib/types";
@@ -141,6 +143,14 @@ export function DealerSidebar() {
                     </Link>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
+                    <Link href="/dealer/suppliers">
+                        <SidebarMenuButton isActive={pathname.startsWith("/dealer/suppliers")} tooltip={"Suppliers"}>
+                        <Truck />
+                        <span>{"Suppliers"}</span>
+                        </SidebarMenuButton>
+                    </Link>
+                </SidebarMenuItem>
+                 <SidebarMenuItem>
                     <Link href="/dealer/my-inventory" onClick={handleInventoryClick}>
                         <SidebarMenuButton isActive={pathname.startsWith("/dealer/my-inventory")} tooltip={"My Inventory"}>
                         <Warehouse />

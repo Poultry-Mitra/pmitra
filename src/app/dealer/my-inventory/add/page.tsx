@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useForm, useFieldArray, useWatch } from "react-hook-form";
@@ -18,7 +19,9 @@ import { useFirestore, useUser } from "@/firebase/provider";
 import { addDealerInventoryItem, type DealerInventoryItem } from "@/hooks/use-dealer-inventory";
 import { addLedgerEntry } from "@/hooks/use-ledger";
 import { cn } from "@/lib/utils";
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useState } from "react";
+import Link from 'next/link';
+import { useSuppliers } from "@/hooks/use-suppliers";
 
 const productSchema = z.object({
   productName: z.string().min(2, "Product name is required."),
@@ -39,8 +42,7 @@ const productSchema = z.object({
 
 const formSchema = z.object({
   // Supplier
-  supplierName: z.string().min(1, "Supplier name is required"),
-  supplierContact: z.string().optional(),
+  supplierName: z.string().min(1, "Please select a supplier."),
   
   // Products Array
   products: z.array(productSchema).min(1, "Please add at least one product."),
@@ -124,12 +126,12 @@ export default function AddStockPage() {
     const router = useRouter();
     const firestore = useFirestore();
     const { user } = useUser();
+    const { suppliers, loading: suppliersLoading } = useSuppliers(user?.uid);
 
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
         defaultValues: {
             supplierName: "",
-            supplierContact: "",
             products: [{ 
                 productName: "", 
                 category: "Feed", 
@@ -252,7 +254,8 @@ export default function AddStockPage() {
             const netPayable = values.products.reduce((acc, p) => acc + (p.purchaseRatePerUnit * p.quantity) - p.discountAmount, 0) 
                              + values.transportCost + values.miscCost;
 
-            const ledgerDescription = `Purchase from ${values.supplierName || 'Unknown Supplier'}` + (values.invoiceNumber ? ` (Bill: ${values.invoiceNumber})` : '');
+            const supplier = suppliers.find(s => s.id === values.supplierName);
+            const ledgerDescription = `Purchase from ${supplier?.name || 'Unknown Supplier'}` + (values.invoiceNumber ? ` (Bill: ${values.invoiceNumber})` : '');
             
             if (netPayable > 0) {
                  await addLedgerEntry(firestore, user.uid, {
@@ -260,6 +263,15 @@ export default function AddStockPage() {
                     amount: netPayable,
                     date: new Date(values.invoiceDate).toISOString(),
                 }, 'Debit');
+            }
+
+            // 3. Add a credit entry if payment was made
+            if (values.amountPaid > 0) {
+                 await addLedgerEntry(firestore, user.uid, {
+                    description: `Payment to ${supplier?.name || 'Unknown Supplier'} via ${values.paymentMethod}`,
+                    amount: values.amountPaid,
+                    date: new Date(values.invoiceDate).toISOString(),
+                }, 'Credit');
             }
             
             toast({
@@ -291,22 +303,27 @@ export default function AddStockPage() {
                                         <CardTitle>Supplier Details</CardTitle>
                                     </CardHeader>
                                     <CardContent>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                            <FormField name="supplierName" control={form.control} render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>Supplier Name</FormLabel>
-                                                    <FormControl><Input placeholder="e.g., National Feed Corp" {...field} /></FormControl>
-                                                    <FormMessage />
-                                                </FormItem>
-                                            )} />
-                                            <FormField name="supplierContact" control={form.control} render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>Supplier Contact (Optional)</FormLabel>
-                                                    <FormControl><Input placeholder="e.g., 9876543210" {...field} /></FormControl>
-                                                    <FormMessage />
-                                                </FormItem>
-                                            )} />
-                                        </div>
+                                        <FormField name="supplierName" control={form.control} render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Select Supplier</FormLabel>
+                                                <Select onValueChange={field.onChange} defaultValue={field.value} disabled={suppliersLoading}>
+                                                    <FormControl>
+                                                        <SelectTrigger>
+                                                            <SelectValue placeholder={suppliersLoading ? "Loading suppliers..." : "Select a supplier"} />
+                                                        </SelectTrigger>
+                                                    </FormControl>
+                                                    <SelectContent>
+                                                        {suppliers.map(supplier => (
+                                                            <SelectItem key={supplier.id} value={supplier.id}>{supplier.name}</SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                                <FormDescription>
+                                                    If supplier not in list, <Link href="/dealer/suppliers" className="text-primary hover:underline">add new supplier here</Link>.
+                                                </FormDescription>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )} />
                                     </CardContent>
                                 </Card>
                                 
@@ -601,5 +618,3 @@ export default function AddStockPage() {
         </>
     );
 }
-
-    
