@@ -85,10 +85,15 @@ export function DashboardStats({ batches, loading: batchesLoading }: { batches: 
             setLoading(true);
             try {
                 // Ensure batches are serializable before sending to the AI flow
-                const serializableBatches = activeBatches.map(batch => ({
-                    ...batch,
-                    createdAt: batch.createdAt ? new Date(batch.createdAt.seconds * 1000).toISOString() : new Date().toISOString(),
-                }));
+                const serializableBatches = activeBatches.map(batch => {
+                    const plainBatch = { ...batch };
+                    // Convert any non-serializable fields here if necessary
+                    if (plainBatch.createdAt && typeof plainBatch.createdAt !== 'string') {
+                       plainBatch.createdAt = new Date((plainBatch.createdAt as any).seconds * 1000).toISOString();
+                    }
+                    return plainBatch;
+                });
+
                 const result = await getFarmAnalytics({ batches: serializableBatches });
                 setAnalytics(result);
             } catch (error) {

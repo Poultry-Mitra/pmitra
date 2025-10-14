@@ -15,13 +15,15 @@ import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { Save, Trash2, PlusCircle, IndianRupee, Loader2 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
-import { useFirestore, useUser } from "@/firebase/provider";
+import { useFirestore, useUser, useAuth } from "@/firebase/provider";
 import { addDealerInventoryItem, type DealerInventoryItem } from "@/hooks/use-dealer-inventory";
 import { addLedgerEntry } from "@/hooks/use-ledger";
 import { cn } from "@/lib/utils";
 import { useEffect, useCallback, useState } from "react";
 import Link from 'next/link';
 import { useSuppliers } from "@/hooks/use-suppliers";
+import { addDocumentNonBlocking } from "@/firebase/non-blocking-updates";
+import { collection, runTransaction } from "firebase/firestore";
 
 const productSchema = z.object({
   productName: z.string().min(2, "Product name is required."),
@@ -125,6 +127,7 @@ export default function AddStockPage() {
     const { toast } = useToast();
     const router = useRouter();
     const firestore = useFirestore();
+    const auth = useAuth();
     const { user } = useUser();
     const { suppliers, loading: suppliersLoading } = useSuppliers(user?.uid);
 
@@ -228,51 +231,55 @@ export default function AddStockPage() {
 
 
     async function onSubmit(values: FormValues) {
-        if (!firestore || !user) {
+        if (!firestore || !user || !auth) {
             toast({ title: "Error", description: "You must be logged in to add stock.", variant: "destructive" });
             return;
         }
 
         try {
-            // 1. Add each product to the dealer's inventory
-            for (const product of values.products) {
-                const newItem: Omit<DealerInventoryItem, 'id' | 'dealerUID' | 'updatedAt' | 'phaseApplicable'> = {
-                    supplierName: values.supplierName,
-                    productName: product.productName,
-                    category: product.category,
-                    quantity: product.quantity,
-                    unit: product.unit,
-                    ratePerUnit: product.ratePerUnit, // This is the sale rate
-                    purchaseRatePerUnit: product.purchaseRatePerUnit,
-                    unitWeight: ['pcs', 'chick'].includes(product.unit) ? undefined : product.unitWeight,
-                    lowStockThreshold: product.lowStockThreshold,
-                };
-                await addDealerInventoryItem(firestore, user.uid, newItem);
-            }
-            
-            // 2. Add a single debit entry to the ledger for the total purchase amount
-            const netPayable = values.products.reduce((acc, p) => acc + (p.purchaseRatePerUnit * p.quantity) - p.discountAmount, 0) 
-                             + values.transportCost + values.miscCost;
+             await runTransaction(firestore, async (transaction) => {
+                // 1. Add inventory items
+                for (const product of values.products) {
+                    const newItemRef = collection(firestore, "dealerInventory");
+                     const itemData = {
+                        dealerUID: user.uid,
+                        supplierName: values.supplierName,
+                        productName: product.productName,
+                        category: product.category,
+                        quantity: product.quantity,
+                        unit: product.unit,
+                        ratePerUnit: product.ratePerUnit, // This is the sale rate
+                        purchaseRatePerUnit: product.purchaseRatePerUnit,
+                        unitWeight: ['pcs', 'chick'].includes(product.unit) ? undefined : product.unitWeight,
+                        lowStockThreshold: product.lowStockThreshold,
+                    };
+                    addDocumentNonBlocking(newItemRef, itemData, auth);
+                }
+                
+                // 2. Add a single debit entry to the ledger for the total purchase amount
+                const netPayable = values.products.reduce((acc, p) => acc + (p.purchaseRatePerUnit * p.quantity) - p.discountAmount, 0) 
+                                 + values.transportCost + values.miscCost;
 
-            const supplier = suppliers.find(s => s.id === values.supplierName);
-            const ledgerDescription = `Purchase from ${supplier?.name || 'Unknown Supplier'}` + (values.invoiceNumber ? ` (Bill: ${values.invoiceNumber})` : '');
-            
-            if (netPayable > 0) {
-                 await addLedgerEntry(firestore, user.uid, {
-                    description: ledgerDescription,
-                    amount: netPayable,
-                    date: new Date(values.invoiceDate).toISOString(),
-                }, 'Debit');
-            }
+                const supplier = suppliers.find(s => s.id === values.supplierName);
+                const ledgerDescription = `Purchase from ${supplier?.name || 'Unknown Supplier'}` + (values.invoiceNumber ? ` (Bill: ${values.invoiceNumber})` : '');
+                
+                if (netPayable > 0) {
+                     await addLedgerEntry(firestore, user.uid, {
+                        description: ledgerDescription,
+                        amount: netPayable,
+                        date: new Date(values.invoiceDate).toISOString(),
+                    }, 'Debit');
+                }
 
-            // 3. Add a credit entry if payment was made
-            if (values.amountPaid > 0) {
-                 await addLedgerEntry(firestore, user.uid, {
-                    description: `Payment to ${supplier?.name || 'Unknown Supplier'} via ${values.paymentMethod}`,
-                    amount: values.amountPaid,
-                    date: new Date(values.invoiceDate).toISOString(),
-                }, 'Credit');
-            }
+                // 3. Add a credit entry if payment was made
+                if (values.amountPaid > 0) {
+                     await addLedgerEntry(firestore, user.uid, {
+                        description: `Payment to ${supplier?.name || 'Unknown Supplier'} via ${values.paymentMethod}`,
+                        amount: values.amountPaid,
+                        date: new Date(values.invoiceDate).toISOString(),
+                    }, 'Credit');
+                }
+            });
             
             toast({
                 title: "Stock Added",

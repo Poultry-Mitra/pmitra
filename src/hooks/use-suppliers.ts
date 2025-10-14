@@ -21,6 +21,7 @@ import type { Supplier } from '@/lib/types';
 import { useFirestore } from '@/firebase/provider';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { errorEmitter } from '@/firebase/error-emitter';
+import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
 // Helper to convert Firestore doc to Supplier type
 function toSupplier(doc: QueryDocumentSnapshot<DocumentData>): Supplier {
@@ -84,17 +85,5 @@ export function addSupplier(firestore: Firestore, auth: Auth, dealerUID: string,
     };
 
     // Non-blocking write with contextual error handling
-    addDoc(collectionRef, supplierData)
-        .catch(serverError => {
-            const permissionError = new FirestorePermissionError({
-                path: collectionRef.path,
-                operation: 'create',
-                requestResourceData: supplierData,
-            }, auth);
-            errorEmitter.emit('permission-error', permissionError);
-            
-            // Allow the original error to be caught by the component's try/catch block
-            // to show a user-facing toast notification.
-            throw permissionError;
-        });
+    addDocumentNonBlocking(collectionRef, supplierData, auth);
 }

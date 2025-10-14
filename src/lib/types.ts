@@ -57,7 +57,7 @@ export type Batch = {
   feedConsumed: number; // in kg
   dealerUID?: string;
   status: 'Active' | 'Completed' | 'Planned';
-  createdAt?: Timestamp;
+  createdAt: Timestamp | string; // Allow string for serialization
 };
 
 export type DailyRecord = {
