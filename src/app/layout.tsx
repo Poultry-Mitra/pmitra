@@ -1,3 +1,4 @@
+
 'use client';
 
 import './globals.css';
@@ -9,6 +10,8 @@ import { cn } from '@/lib/utils';
 import { AppProvider } from '@/app/app-provider';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
 import { FirebaseProvider } from '@/firebase/provider';
+import { ChatProvider } from '@/components/chat/chat-provider';
+import { FloatingChatWidget } from '@/components/chat/floating-chat-widget';
 
 const fontInter = Inter({
   subsets: ['latin'],
@@ -61,9 +64,12 @@ export default function RootLayout({
           >
             <FirebaseProvider>
               <AppProvider>
-                <FirebaseErrorListener />
-                {children}
-                <Toaster />
+                <ChatProvider>
+                  <FirebaseErrorListener />
+                  {children}
+                  <FloatingChatWidget />
+                  <Toaster />
+                </ChatProvider>
               </AppProvider>
             </FirebaseProvider>
           </ThemeProvider>
