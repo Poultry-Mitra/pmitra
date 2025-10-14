@@ -8,11 +8,13 @@ import { useBatch, useDailyRecords } from "@/hooks/use-batches";
 import { PageHeader } from "../../_components/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Bird, Droplet, Percent, Scale, Wheat, IndianRupee, Loader2, AlertCircle, PlusCircle, Thermometer } from "lucide-react";
+import { Bird, Droplet, Percent, Scale, Wheat, IndianRupee, Loader2, AlertCircle, PlusCircle, Thermometer, ShieldCheck } from "lucide-react";
 import { AddDailyRecordDialog } from "./_components/add-daily-record-dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { format } from 'date-fns';
+import { format }s from 'date-fns';
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
 
 // Dynamically import the charts component to reduce initial bundle size
 const BatchCharts = dynamic(
@@ -43,6 +45,14 @@ const StatCard = memo(function StatCard({ title, value, icon: Icon, unit }: { ti
         </Card>
     );
 });
+
+const vaccinationSchedule = [
+  { day: 'Day 1', vaccine: "Marek's Disease", method: 'Injection (at hatchery)', status: 'Done' },
+  { day: 'Day 7', vaccine: 'Ranikhet (LaSota/F-strain)', method: 'Eye Drop / Drinking Water', status: 'Pending' },
+  { day: 'Day 14', vaccine: 'Gumboro (IBD) - Mild Strain', method: 'Eye Drop / Drinking Water', status: 'Pending' },
+  { day: 'Day 21', vaccine: 'Ranikhet (LaSota) - Booster', method: 'Drinking Water', status: 'Pending' },
+  { day: 'Day 28', vaccine: 'Gumboro (IBD) - Booster', method: 'Drinking Water', status: 'Pending' },
+];
 
 
 export default function BatchDetailPage() {
@@ -75,9 +85,7 @@ export default function BatchDetailPage() {
     const liveBirds = batch.totalChicks - batch.mortalityCount;
     const mortalityPercentage = batch.totalChicks > 0 ? ((batch.mortalityCount / batch.totalChicks) * 100).toFixed(2) : '0.00';
     
-    // FCR Calculation: Total feed consumed (kg) / Total weight gain (kg)
     const INITIAL_CHICK_WEIGHT_G = 40;
-    // Total weight gain of all live birds in KG
     const totalWeightGainKg = liveBirds > 0 ? (liveBirds * (batch.avgBodyWeight - INITIAL_CHICK_WEIGHT_G)) / 1000 : 0;
 
     const feedConversionRatio = (batch.feedConsumed > 0 && totalWeightGainKg > 0)
@@ -121,62 +129,88 @@ export default function BatchDetailPage() {
 
             <div className="mt-8">
                  <Card>
-                    <CardHeader>
-                        <CardTitle>Batch Analytics</CardTitle>
-                        <CardDescription>Visualizing daily trends for mortality and feed consumption.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                       <BatchCharts data={[...records].reverse()} />
-                    </CardContent>
-                </Card>
-            </div>
-
-            <div className="mt-8">
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Daily Records</CardTitle>
-                        <CardDescription>History of daily mortality, feed consumption, and weight records.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="overflow-x-auto">
-                       <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Date</TableHead>
-                                    <TableHead>Medication/Vaccine</TableHead>
-                                    <TableHead className="text-right">Mortality</TableHead>
-                                    <TableHead className="text-right">Feed Consumed (kg)</TableHead>
-                                    <TableHead className="text-right">Avg. Weight (g)</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {recordsLoading && (
+                    <Tabs defaultValue="analytics" className="w-full">
+                         <CardHeader>
+                            <CardTitle>Batch Details</CardTitle>
+                            <div className="flex justify-between items-end">
+                                <CardDescription>Visualizing trends, health records, and daily data for this batch.</CardDescription>
+                                <TabsList>
+                                    <TabsTrigger value="analytics">Analytics</TabsTrigger>
+                                    <TabsTrigger value="records">Daily Records</TabsTrigger>
+                                    <TabsTrigger value="vaccination">Vaccination</TabsTrigger>
+                                </TabsList>
+                            </div>
+                        </CardHeader>
+                        <CardContent>
+                           <TabsContent value="analytics">
+                                <BatchCharts data={[...records].reverse()} />
+                           </TabsContent>
+                           <TabsContent value="records">
+                               <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Date</TableHead>
+                                            <TableHead>Medication/Vaccine</TableHead>
+                                            <TableHead className="text-right">Mortality</TableHead>
+                                            <TableHead className="text-right">Feed Consumed (kg)</TableHead>
+                                            <TableHead className="text-right">Avg. Weight (g)</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {recordsLoading && (
+                                            <TableRow>
+                                                <TableCell colSpan={5} className="text-center">
+                                                    <div className="flex justify-center items-center p-4">
+                                                        <Loader2 className="animate-spin mr-2" /> Loading records...
+                                                    </div>
+                                                </TableCell>
+                                            </TableRow>
+                                        )}
+                                        {!recordsLoading && records.length === 0 && (
+                                            <TableRow>
+                                                <TableCell colSpan={5} className="text-center p-8">
+                                                    No daily records found. Click "Add Daily Record" to get started.
+                                                </TableCell>
+                                            </TableRow>
+                                        )}
+                                        {!recordsLoading && records.map((record) => (
+                                            <TableRow key={record.id}>
+                                                <TableCell>{format(new Date(record.date), "PPP")}</TableCell>
+                                                <TableCell>{record.medicationGiven || '—'}</TableCell>
+                                                <TableCell className="text-right">{record.mortality}</TableCell>
+                                                <TableCell className="text-right">{record.feedConsumed.toFixed(2)}</TableCell>
+                                                <TableCell className="text-right">{record.avgBodyWeight}</TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                               </Table>
+                           </TabsContent>
+                           <TabsContent value="vaccination">
+                               <Table>
+                                <TableHeader>
                                     <TableRow>
-                                        <TableCell colSpan={5} className="text-center">
-                                            <div className="flex justify-center items-center p-4">
-                                                <Loader2 className="animate-spin mr-2" /> Loading records...
-                                            </div>
-                                        </TableCell>
+                                        <TableHead>Recommended Day</TableHead>
+                                        <TableHead>Vaccine / Treatment</TableHead>
+                                        <TableHead>Method</TableHead>
+                                        <TableHead>Status</TableHead>
                                     </TableRow>
-                                )}
-                                {!recordsLoading && records.length === 0 && (
-                                    <TableRow>
-                                        <TableCell colSpan={5} className="text-center p-8">
-                                            No daily records found. Click "Add Daily Record" to get started.
-                                        </TableCell>
-                                    </TableRow>
-                                )}
-                                {!recordsLoading && records.map((record) => (
-                                    <TableRow key={record.id}>
-                                        <TableCell>{format(new Date(record.date), "PPP")}</TableCell>
-                                        <TableCell>{record.medicationGiven || '—'}</TableCell>
-                                        <TableCell className="text-right">{record.mortality}</TableCell>
-                                        <TableCell className="text-right">{record.feedConsumed.toFixed(2)}</TableCell>
-                                        <TableCell className="text-right">{record.avgBodyWeight}</TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                       </Table>
-                    </CardContent>
+                                </TableHeader>
+                                <TableBody>
+                                    {vaccinationSchedule.map(item => (
+                                        <TableRow key={item.vaccine}>
+                                            <TableCell className="font-medium">{item.day}</TableCell>
+                                            <TableCell>{item.vaccine}</TableCell>
+                                            <TableCell>{item.method}</TableCell>
+                                            <TableCell>
+                                                <Badge variant={item.status === 'Done' ? 'default' : 'secondary'}>{item.status}</Badge>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                               </Table>
+                           </TabsContent>
+                        </CardContent>
+                    </Tabs>
                 </Card>
             </div>
             <AddDailyRecordDialog open={isAddRecordOpen} onOpenChange={setAddRecordOpen} batchId={batchId} />

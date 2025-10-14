@@ -51,7 +51,7 @@ Based on this information, provide a diagnosis. Your response must be in a struc
 2.  **recommendedActions**: List 2-3 critical, immediate actions the farmer must take to manage the situation and prevent further spread.
 3.  **preventativeMeasures**: Suggest 2-3 long-term measures to prevent similar issues in the future.
 
-Prioritize common diseases and consider the flock's age. For example, Gumboro is more common in young chicks. Coccidiosis is often linked to bloody diarrhea and wet litter. Provide clear, concise, and practical advice.`;
+Prioritize common diseases and consider the flock's age. For example, Gumboro is more common in young chicks. Coccidiosis is often linked to bloody diarrhea and wet litter. Consider the flock's vaccination history if available. An unvaccinated flock is more susceptible to diseases like Gumboro or Newcastle disease. Provide clear, concise, and practical advice.`;
 
 
 const diagnosePrompt = ai.definePrompt({
