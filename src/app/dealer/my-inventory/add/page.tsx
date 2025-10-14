@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useForm, useFieldArray, useWatch } from "react-hook-form";
@@ -62,9 +61,9 @@ function SummaryCard({ control }: { control: any }) {
     const subTotal = products.reduce((acc: number, product: any) => acc + (product.ratePerUnit * product.quantity), 0);
     const totalDiscount = products.reduce((acc: number, product: any) => acc + product.discount, 0);
 
-    const transportCost = parseFloat(values.transportCost || 0);
-    const miscCost = parseFloat(values.miscCost || 0);
-    const amountPaid = parseFloat(values.amountPaid || 0);
+    const transportCost = parseFloat(values.transportCost || '0');
+    const miscCost = parseFloat(values.miscCost || '0');
+    const amountPaid = parseFloat(values.amountPaid || '0');
 
     const netPayable = subTotal - totalDiscount + transportCost + miscCost;
     const balanceDue = netPayable - amountPaid;
