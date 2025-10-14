@@ -53,7 +53,6 @@ export default function RootLayout({
           fontNotoSans.variable,
           fontHind.variable
         )}
-        suppressHydrationWarning
       >
         <LanguageProvider>
           <ThemeProvider

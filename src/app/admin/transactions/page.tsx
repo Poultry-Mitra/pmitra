@@ -25,31 +25,50 @@ function LedgerDetails({ userId, userName }: { userId: string, userName: string 
          return <div className="text-center text-muted-foreground py-8">No transactions found for {userName}.</div>;
     }
 
+    const finalBalance = entries.length > 0 ? entries[0].balanceAfter : 0;
+
     return (
-        <Table>
-            <TableHeader>
-                <TableRow>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Description</TableHead>
-                    <TableHead>Amount</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead className="text-right">Balance</TableHead>
-                </TableRow>
-            </TableHeader>
-            <TableBody>
-                {entries.map(txn => (
-                    <TableRow key={txn.id}>
-                        <TableCell>{new Date(txn.date).toLocaleDateString()}</TableCell>
-                        <TableCell>{txn.description}</TableCell>
-                        <TableCell>₹{txn.amount.toLocaleString()}</TableCell>
-                        <TableCell>
-                            <Badge variant={txn.type === 'Debit' ? 'destructive' : 'default'}>{txn.type}</Badge>
-                        </TableCell>
-                        <TableCell className="text-right font-semibold">₹{txn.balanceAfter.toLocaleString()}</TableCell>
-                    </TableRow>
-                ))}
-            </TableBody>
-        </Table>
+        <Card>
+            <CardHeader>
+                <div className="flex justify-between items-center">
+                    <CardTitle>Transactions for {userName}</CardTitle>
+                    <div className="text-right">
+                        <div className="text-sm text-muted-foreground">Final Balance</div>
+                        <div className={`text-xl font-bold ${finalBalance >= 0 ? 'text-green-600' : 'text-destructive'}`}>
+                            ₹{finalBalance.toLocaleString()}
+                        </div>
+                    </div>
+                </div>
+            </CardHeader>
+            <CardContent>
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>Date</TableHead>
+                            <TableHead>Description</TableHead>
+                            <TableHead className="text-right">Debit</TableHead>
+                            <TableHead className="text-right">Credit</TableHead>
+                            <TableHead className="text-right">Balance</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {entries.map(txn => (
+                            <TableRow key={txn.id}>
+                                <TableCell>{new Date(txn.date).toLocaleDateString()}</TableCell>
+                                <TableCell className="font-medium">{txn.description}</TableCell>
+                                <TableCell className="text-right text-destructive">
+                                    {txn.type === 'Debit' ? `₹${txn.amount.toFixed(2)}` : '—'}
+                                </TableCell>
+                                <TableCell className="text-right text-green-600">
+                                    {txn.type === 'Credit' ? `₹${txn.amount.toFixed(2)}` : '—'}
+                                </TableCell>
+                                <TableCell className="text-right font-semibold">₹{txn.balanceAfter.toFixed(2)}</TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </CardContent>
+        </Card>
     );
 }
 
@@ -64,7 +83,7 @@ export default function TransactionsPage() {
             <PageHeader title="All Transactions" description="View and manage all transactions across the platform.">
                 <Button variant="outline" disabled={!selectedUserId}>
                     <FileDown className="mr-2" />
-                    Export
+                    Export Ledger
                 </Button>
             </PageHeader>
             <div className="mt-8">
@@ -93,14 +112,7 @@ export default function TransactionsPage() {
                         </div>
                         
                         {selectedUser && (
-                             <Card>
-                                <CardHeader>
-                                    <CardTitle>Transactions for {selectedUser.name}</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <LedgerDetails userId={selectedUser.id} userName={selectedUser.name} />
-                                </CardContent>
-                            </Card>
+                           <LedgerDetails userId={selectedUser.id} userName={selectedUser.name} />
                         )}
                     </CardContent>
                 </Card>

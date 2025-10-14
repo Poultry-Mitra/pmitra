@@ -4,7 +4,7 @@
 import { useMemo } from 'react';
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { ChartConfig, ChartContainer, ChartTooltipContent } from '@/components/ui/chart';
-import type { LedgerEntry } from '@/lib/types';
+import type { Order } from '@/lib/types';
 import { format, subDays, startOfDay } from 'date-fns';
 
 const chartConfig = {
@@ -14,12 +14,12 @@ const chartConfig = {
     },
 } satisfies ChartConfig;
 
-export function RevenueChart({ ledgerEntries }: { ledgerEntries: LedgerEntry[] }) {
+export function RevenueChart({ orders }: { orders: Order[] }) {
     
     const revenueData = useMemo(() => {
-        if (!ledgerEntries || ledgerEntries.length === 0) return [];
+        if (!orders || orders.length === 0) return [];
         
-        const creditEntries = ledgerEntries.filter(e => e.type === 'Credit');
+        const successfulOrders = orders.filter(o => o.status === 'Approved' || o.status === 'Completed');
         const dailyRevenue: { [key: string]: number } = {};
 
         // Initialize last 30 days
@@ -28,11 +28,13 @@ export function RevenueChart({ ledgerEntries }: { ledgerEntries: LedgerEntry[] }
             dailyRevenue[date] = 0;
         }
 
-        // Populate revenue for each day
-        creditEntries.forEach(entry => {
-            const date = format(startOfDay(new Date(entry.date)), 'yyyy-MM-dd');
-            if (date in dailyRevenue) {
-                dailyRevenue[date] += entry.amount;
+        // Populate revenue for each day from successful orders
+        successfulOrders.forEach(order => {
+            if (order.createdAt) {
+                const date = format(startOfDay(new Date(order.createdAt)), 'yyyy-MM-dd');
+                if (date in dailyRevenue) {
+                    dailyRevenue[date] += order.totalAmount;
+                }
             }
         });
 
@@ -46,12 +48,12 @@ export function RevenueChart({ ledgerEntries }: { ledgerEntries: LedgerEntry[] }
             };
         });
 
-    }, [ledgerEntries]);
+    }, [orders]);
 
     if (revenueData.length === 0) {
         return (
             <div className="flex h-[300px] w-full items-center justify-center text-sm text-muted-foreground">
-                Not enough data to display chart.
+                Not enough transaction data to display chart.
             </div>
         )
     }

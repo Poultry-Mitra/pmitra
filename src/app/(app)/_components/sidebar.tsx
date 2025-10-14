@@ -35,6 +35,7 @@ import {
   Loader2,
   AlertTriangle,
   User as UserIcon,
+  AreaChart,
 } from "lucide-react";
 import { useLanguage } from "@/components/language-provider";
 import { Badge } from "@/components/ui/badge";
@@ -66,9 +67,8 @@ const connectNavItems = [
 ];
 
 const aiNavItems = [
-    { href: "/chat", icon: MessageSquare, label: "ai_chat.title" },
     { href: "/biosecurity", icon: ShieldCheck, label: "biosecurity.title" },
-    { href: "/analytics", icon: TrendingUp, label: "analytics.title"},
+    { href: "/analytics", icon: AreaChart, label: "analytics.title"},
     { href: "/feed-recommendation", icon: WandSparkles, label: "feed_ai.title"},
 ];
 
