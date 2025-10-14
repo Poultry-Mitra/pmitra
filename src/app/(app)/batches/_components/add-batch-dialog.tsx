@@ -27,7 +27,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { addBatch, type Batch } from '@/hooks/use-batches';
-import { useFirestore, useUser } from '@/firebase/provider';
+import { useFirestore, useUser, useAuth } from '@/firebase/provider';
 import { Calendar as CalendarIcon } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
@@ -48,6 +48,7 @@ type FormValues = z.infer<typeof formSchema>;
 export function AddBatchDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
     const { toast } = useToast();
     const firestore = useFirestore();
+    const auth = useAuth();
     const user = useUser();
 
     const form = useForm<FormValues>({
@@ -64,8 +65,8 @@ export function AddBatchDialog({ open, onOpenChange }: { open: boolean; onOpenCh
 
     const batchType = useWatch({ control: form.control, name: 'batchType' });
 
-    async function onSubmit(values: FormValues) {
-        if (!firestore || !user) {
+    function onSubmit(values: FormValues) {
+        if (!firestore || !user.user || !auth) {
             toast({ title: "Error", description: "You must be logged in to add a batch.", variant: "destructive" });
             return;
         }
@@ -81,18 +82,13 @@ export function AddBatchDialog({ open, onOpenChange }: { open: boolean; onOpenCh
             breed: values.batchType === 'Broiler' ? values.breed : undefined,
         };
 
-        try {
-            addBatch(firestore, user.uid, newBatch);
-            toast({
-                title: "Batch Added",
-                description: `${newBatch.batchName} has been successfully created.`,
-            });
-            onOpenChange(false);
-            form.reset();
-        } catch (error) {
-             toast({ title: "Error", description: "Failed to add batch.", variant: "destructive" });
-             console.error("Failed to add batch", error)
-        }
+        addBatch(firestore, auth, user.user.uid, newBatch);
+        toast({
+            title: "Batch Added",
+            description: `${newBatch.batchName} has been successfully created.`,
+        });
+        onOpenChange(false);
+        form.reset();
     }
     
     return (

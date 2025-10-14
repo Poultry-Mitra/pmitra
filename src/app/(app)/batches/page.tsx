@@ -31,7 +31,7 @@ import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
-import { useUser, useFirestore } from '@/firebase/provider';
+import { useUser, useFirestore, useAuth } from '@/firebase/provider';
 import { AddBatchDialog } from "./_components/add-batch-dialog";
 import { useAppUser } from "@/app/app-provider";
 
@@ -50,6 +50,7 @@ const statusColorScheme = {
 
 export default function BatchesPage() {
   const firestore = useFirestore();
+  const auth = useAuth();
   const { user: appUser, loading: appUserLoading } = useAppUser();
 
   const { batches, loading: batchesLoading } = useBatches(appUser?.id || '');
@@ -73,8 +74,8 @@ export default function BatchesPage() {
   };
 
   const handleDeleteBatch = () => {
-    if(showDeleteAlert && firestore && appUser) {
-      deleteBatch(firestore, showDeleteAlert.id);
+    if(showDeleteAlert && firestore && appUser && auth) {
+      deleteBatch(firestore, auth, showDeleteAlert.id);
       toast({
         title: "Batch Deleted",
         description: `Batch ${showDeleteAlert.batchName} has been deleted.`,
