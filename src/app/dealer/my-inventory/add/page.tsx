@@ -32,7 +32,6 @@ const productSchema = z.object({
   discount: z.coerce.number().min(0).default(0),
   unitWeight: z.coerce.number().optional(),
   lowStockThreshold: z.coerce.number().min(0).default(10),
-  phaseApplicable: z.array(z.string()).optional(),
 });
 
 const formSchema = z.object({
@@ -128,7 +127,7 @@ export default function AddStockPage() {
         defaultValues: {
             supplierName: "",
             supplierContact: "",
-            products: [{ productName: "", category: "Feed", unit: "bag", purchaseRatePerUnit: 0, ratePerUnit: 0, discount: 0, quantity: 1, unitWeight: 50, lowStockThreshold: 10, pricingBasis: 'TPR', phaseApplicable: [] }],
+            products: [{ productName: "", category: "Feed", unit: "bag", purchaseRatePerUnit: 0, ratePerUnit: 0, discount: 0, quantity: 1, unitWeight: 50, lowStockThreshold: 10, pricingBasis: 'TPR' }],
             transportCost: 0,
             miscCost: 0,
             paymentMethod: "cash",
@@ -177,7 +176,7 @@ export default function AddStockPage() {
         try {
             // 1. Add each product to the dealer's inventory
             for (const product of values.products) {
-                const newItem: Omit<DealerInventoryItem, 'id' | 'dealerUID' | 'updatedAt'> = {
+                const newItem: Omit<DealerInventoryItem, 'id' | 'dealerUID' | 'updatedAt' | 'phaseApplicable'> = {
                     productName: product.productName,
                     category: product.category,
                     quantity: product.quantity,
@@ -186,7 +185,6 @@ export default function AddStockPage() {
                     // We need to add purchaseRatePerUnit to the type and firestore
                     unitWeight: ['pcs', 'chick'].includes(product.unit) ? undefined : product.unitWeight,
                     lowStockThreshold: product.lowStockThreshold,
-                    phaseApplicable: product.category === 'Feed' ? product.phaseApplicable : [],
                 };
                 await addDealerInventoryItem(firestore, user.uid, newItem);
             }
@@ -221,12 +219,6 @@ export default function AddStockPage() {
             });
         }
     }
-
-    const feedPhases = [
-      { id: "Pre-Starter", label: "Pre-Starter" },
-      { id: "Starter", label: "Starter" },
-      { id: "Finisher", label: "Finisher" },
-    ];
 
     return (
         <>
@@ -310,60 +302,6 @@ export default function AddStockPage() {
                                                     )} />
                                                 </div>
 
-                                                {currentCategory === "Feed" && (
-                                                   <FormField
-                                                      control={form.control}
-                                                      name={`products.${index}.phaseApplicable`}
-                                                      render={() => (
-                                                        <FormItem className="space-y-3 rounded-md border p-4">
-                                                          <div>
-                                                            <FormLabel className="text-base font-medium">Phase Applicable</FormLabel>
-                                                            <FormDescription className="text-sm">
-                                                              Select which flock phases this feed applies to.
-                                                            </FormDescription>
-                                                          </div>
-                                                          <div className="flex items-center space-x-4">
-                                                            {feedPhases.map((item) => (
-                                                              <FormField
-                                                                key={item.id}
-                                                                control={form.control}
-                                                                name={`products.${index}.phaseApplicable`}
-                                                                render={({ field }) => {
-                                                                  return (
-                                                                    <FormItem
-                                                                      key={item.id}
-                                                                      className="flex flex-row items-start space-x-3 space-y-0"
-                                                                    >
-                                                                      <FormControl>
-                                                                        <Checkbox
-                                                                          checked={field.value?.includes(item.id)}
-                                                                          onCheckedChange={(checked) => {
-                                                                            return checked
-                                                                              ? field.onChange([...(field.value || []), item.id])
-                                                                              : field.onChange(
-                                                                                field.value?.filter(
-                                                                                  (value) => value !== item.id
-                                                                                )
-                                                                              )
-                                                                          }}
-                                                                        />
-                                                                      </FormControl>
-                                                                      <FormLabel className="font-normal">
-                                                                        {item.label}
-                                                                      </FormLabel>
-                                                                    </FormItem>
-                                                                  )
-                                                                }}
-                                                              />
-                                                            ))}
-                                                          </div>
-                                                          <FormMessage />
-                                                        </FormItem>
-                                                      )}
-                                                    />
-                                                )}
-
-                                                
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
                                                     <FormField control={form.control} name={`products.${index}.pricingBasis`} render={({ field }) => (
                                                         <FormItem>
@@ -449,7 +387,7 @@ export default function AddStockPage() {
                                     )})}
                                 </div>
 
-                                <Button type="button" variant="outline" onClick={() => append({ productName: "", category: "Feed", unit: "bag", purchaseRatePerUnit: 0, ratePerUnit: 0, discount: 0, quantity: 1, unitWeight: 50, lowStockThreshold: 10, pricingBasis: 'TPR', phaseApplicable: [] })}>
+                                <Button type="button" variant="outline" onClick={() => append({ productName: "", category: "Feed", unit: "bag", purchaseRatePerUnit: 0, ratePerUnit: 0, discount: 0, quantity: 1, unitWeight: 50, lowStockThreshold: 10, pricingBasis: 'TPR' })}>
                                     <PlusCircle className="mr-2" />
                                     Add Another Product
                                 </Button>
@@ -484,7 +422,6 @@ export default function AddStockPage() {
                                                     <FormLabel>Transport Cost</FormLabel>
                                                     <FormControl><Input type="number" {...field} disabled={isTransportDisabled} /></FormControl>
                                                     {isTransportDisabled && <FormDescription className="text-xs">Disabled because a product is 'FOR'.</FormDescription>}
-                                                    <FormMessage />
                                                 </FormItem>
                                             )} />
                                             <FormField name="miscCost" control={form.control} render={({ field }) => (
