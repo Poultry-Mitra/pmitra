@@ -16,7 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { useAuth, useFirestore } from "@/firebase/provider";
 import { GoogleAuthProvider, signInWithPopup, type User as FirebaseAuthUser, createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth";
-import { doc, getDoc, collection, query, where, getDocs, limit, deleteDoc } from "firebase/firestore";
+import { doc, getDoc, collection, query, where, getDocs, limit, deleteDoc, setDoc } from "firebase/firestore";
 import { AppIcon } from "@/app/icon-component";
 import { Loader2 } from "lucide-react";
 import indianStates from "@/lib/indian-states-districts.json";
@@ -119,7 +119,8 @@ export default function DetailedSignupPage() {
         const finalStatus = invitation ? 'Active' : (isAdminEmail ? 'Active' : 'Pending');
         const finalPlan = invitation?.planType || (isAdminEmail ? 'premium' : 'free');
 
-        const profileResult = await createProfile({
+        // This flow now only constructs the object, it doesn't write to DB.
+        const profileData = await createProfile({
             uid: userId,
             name: values.fullName,
             email: values.email,
@@ -132,9 +133,9 @@ export default function DetailedSignupPage() {
             pinCode: values.pinCode || "",
         });
 
-        if (!profileResult.success) {
-            throw new Error(profileResult.message || "Profile creation failed in backend flow.");
-        }
+        // The client (this component) is now responsible for writing to Firestore.
+        const userDocRef = doc(firestore, 'users', userId);
+        await setDoc(userDocRef, profileData);
         
         if (invitation) {
             await deleteDoc(doc(firestore, 'invitations', invitation.id));

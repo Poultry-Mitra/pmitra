@@ -1,4 +1,3 @@
-'use server';
 
 /**
  * @fileOverview A flow that answers user questions about poultry farming.
@@ -12,12 +11,10 @@ import {z} from 'genkit';
 const AIQueryPoultryInputSchema = z.object({
   query: z.string().describe('The question about poultry farming.'),
 });
-type AIQueryPoultryInput = z.infer<typeof AIQueryPoultryInputSchema>;
 
 const AIQueryPoultryOutputSchema = z.object({
   answer: z.string().describe('The answer to the question.'),
 });
-export type AIQueryPoultryOutput = z.infer<typeof AIQueryPoultryOutputSchema>;
 
 const prompt = ai.definePrompt({
   name: 'aiQueryPoultryPrompt',
