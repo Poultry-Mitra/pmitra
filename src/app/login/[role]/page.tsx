@@ -1,4 +1,3 @@
-
 'use client';
 
 import Link from 'next/link';
@@ -108,12 +107,15 @@ export default function RoleLoginPage() {
       router.replace(`/login/${userData.role}`);
       return;
     }
+    
     if (userData.status !== 'Active') {
-      await auth.signOut();
-      const message = userData.status === 'Pending' ? "Your account is pending approval." : "Your account has been suspended.";
-      toast({ title: `Account Not Active`, description: message, variant: "destructive" });
-      provider === 'email' ? setIsSubmitting(false) : setIsGoogleLoading(false);
-      return;
+        await auth.signOut();
+        const message = userData.status === 'Pending' 
+            ? "Your account is pending approval. Please contact support if you have questions."
+            : "Your account has been suspended. Please contact support.";
+        toast({ title: `Account Not Active`, description: message, variant: "destructive" });
+        provider === 'email' ? setIsSubmitting(false) : setIsGoogleLoading(false);
+        return;
     }
     
     router.replace(getRedirectPath(role));
