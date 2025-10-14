@@ -36,6 +36,7 @@ import {
   AlertTriangle,
   User as UserIcon,
   AreaChart,
+  HeartPulse,
 } from "lucide-react";
 import { useLanguage } from "@/components/language-provider";
 import { Badge } from "@/components/ui/badge";
@@ -70,6 +71,7 @@ const aiNavItems = [
     { href: "/biosecurity", icon: ShieldCheck, label: "biosecurity.title" },
     { href: "/analytics", icon: AreaChart, label: "analytics.title"},
     { href: "/feed-recommendation", icon: WandSparkles, label: "feed_ai.title"},
+    { href: "/diagnose-health", icon: HeartPulse, label: "diagnose_health.title" },
 ];
 
 export function AppSidebar() {
