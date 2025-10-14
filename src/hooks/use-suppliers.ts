@@ -24,10 +24,11 @@ import { errorEmitter } from '@/firebase/error-emitter';
 // Helper to convert Firestore doc to Supplier type
 function toSupplier(doc: QueryDocumentSnapshot<DocumentData>): Supplier {
     const data = doc.data();
+    const createdAt = data.createdAt?.toDate ? data.createdAt.toDate().toISOString() : new Date().toISOString();
     return {
         id: doc.id,
         ...data,
-        createdAt: data.createdAt?.toDate().toISOString() || new Date().toISOString(),
+        createdAt: createdAt,
     } as Supplier;
 }
 
@@ -78,7 +79,7 @@ export function addSupplier(firestore: Firestore, auth: Auth, dealerUID: string,
     const supplierData = {
         ...data,
         dealerUID,
-        createdAt: new Date().toISOString(),
+        createdAt: serverTimestamp(),
     };
 
     // Non-blocking write with contextual error handling
