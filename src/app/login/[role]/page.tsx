@@ -43,8 +43,8 @@ function GoogleIcon() {
 export default function RoleLoginPage() {
   const { t } = useLanguage();
   const { user: firebaseUser, isUserLoading } = useUser();
+  const { auth, isLoading: isAuthLoading } = useAuth();
   const firestore = useFirestore();
-  const auth = useAuth();
   const router = useRouter();
   const params = useParams();
   const { toast } = useToast();
@@ -68,14 +68,14 @@ export default function RoleLoginPage() {
   }
 
   useEffect(() => {
-    if (isUserLoading) return;
+    if (isUserLoading || isAuthLoading) return;
 
     if (firebaseUser && firestore) {
       handleLogin(firebaseUser);
     } else {
       setIsCheckingUser(false);
     }
-  }, [firebaseUser, isUserLoading, firestore, router]);
+  }, [firebaseUser, isUserLoading, isAuthLoading, firestore, router]);
 
   async function handleLogin(user: AppUser | any) { // Accepts Firebase User or AppUser
     if (!firestore || !auth) return;
@@ -109,8 +109,6 @@ export default function RoleLoginPage() {
       }
       router.replace(getRedirectPath(role));
     } else {
-      // This can happen if a user signs up with Google but doesn't complete the profile
-      // Or if the Firestore document creation failed silently before.
       await auth.signOut();
       toast({ title: 'Login Failed', description: 'User profile not found. Please sign up or contact support.', variant: 'destructive' });
       setIsCheckingUser(false);
@@ -183,7 +181,7 @@ export default function RoleLoginPage() {
     }
   };
 
-  const isLoading = isSubmitting || isCheckingUser || isGoogleLoading || isUserLoading;
+  const isLoading = isSubmitting || isCheckingUser || isGoogleLoading || isUserLoading || isAuthLoading;
   
   const title = {
       farmer: "Farmer Login",
@@ -192,7 +190,7 @@ export default function RoleLoginPage() {
   }[role] || "Login";
 
 
-  if (isLoading && firebaseUser) {
+  if (isLoading && (firebaseUser || isAuthLoading)) {
     return (
       <div className="flex min-h-screen w-full flex-col items-center justify-center bg-muted/30 p-4 font-body">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />

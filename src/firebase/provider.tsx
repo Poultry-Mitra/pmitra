@@ -17,6 +17,7 @@ export interface FirebaseContextState {
   firebaseApp: FirebaseApp | null;
   firestore: Firestore | null;
   auth: Auth | null; // The Auth service instance
+  isAuthLoading: boolean; // True while the auth service itself is initializing
   // User authentication state
   user: User | null;
   isUserLoading: boolean; // True during initial auth check
@@ -48,6 +49,8 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
     userError: null,
   });
 
+  const isAuthServiceLoading = !auth;
+
   // Effect to subscribe to Firebase auth state changes
   useEffect(() => {
     if (!auth) { 
@@ -74,11 +77,12 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
       firebaseApp,
       firestore,
       auth,
+      isAuthLoading: isAuthServiceLoading,
       user: userAuthState.user,
       isUserLoading: userAuthState.isUserLoading,
       userError: userAuthState.userError,
     };
-  }, [firebaseApp, firestore, auth, userAuthState]);
+  }, [firebaseApp, firestore, auth, isAuthServiceLoading, userAuthState]);
 
   return (
     <FirebaseContext.Provider value={contextValue}>
@@ -101,10 +105,10 @@ export const useFirebase = (): FirebaseContextState => {
   return context;
 };
 
-/** Hook to access Firebase Auth instance. */
-export const useAuth = (): Auth | null => {
-  const { auth } = useFirebase();
-  return auth;
+/** Hook to access Firebase Auth instance and its loading state. */
+export const useAuth = (): { auth: Auth | null; isLoading: boolean } => {
+  const { auth, isAuthLoading } = useFirebase();
+  return { auth, isLoading: isAuthLoading };
 };
 
 /** Hook to access Firestore instance. */
