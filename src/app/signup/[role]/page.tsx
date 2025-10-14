@@ -15,7 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth, useFirestore } from "@/firebase/provider";
-import { GoogleAuthProvider, signInWithPopup, type User as FirebaseAuthUser, createUserWithEmailAndPassword } from "firebase/auth";
+import { GoogleAuthProvider, signInWithPopup, type User as FirebaseAuthUser, createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth";
 import { doc, setDoc, getDoc, collection, query, where, getDocs, limit, deleteDoc } from "firebase/firestore";
 import { AppIcon } from "@/app/icon-component";
 import { Loader2 } from "lucide-react";
@@ -107,7 +107,7 @@ export default function DetailedSignupPage() {
         }
     }, [selectedState, form]);
     
-    async function handleFinalUserCreation(userId: string, values: FormValues) {
+    async function handleFinalUserCreation(userId: string, values: FormValues, isGoogleSignIn: boolean = false) {
         if (!firestore) return;
         const userDocRef = doc(firestore, "users", userId);
         const docSnap = await getDoc(userDocRef);
@@ -147,9 +147,20 @@ export default function DetailedSignupPage() {
             await deleteDoc(doc(firestore, 'invitations', invitation.id));
         }
         
+        const successTitle = "Account Created!";
+        let successDescription = "";
+
+        if (isGoogleSignIn) {
+            successDescription = finalStatus === 'Active' 
+                ? "Your account is active. Redirecting to login." 
+                : "Your account is pending approval. You will be notified once active.";
+        } else {
+            successDescription = "A verification email has been sent. Please check your inbox.";
+        }
+        
         toast({
-            title: "Account Created!",
-            description: finalStatus === 'Active' ? "Your account is active. Redirecting to login." : "Your account is pending approval. You will be notified once active.",
+            title: successTitle,
+            description: successDescription,
         });
         
         if (auth?.currentUser) await auth.signOut();
@@ -164,14 +175,15 @@ export default function DetailedSignupPage() {
 
         try {
             if (authProvider === 'google' && googleUser) {
-                await handleFinalUserCreation(googleUser.uid, values);
+                await handleFinalUserCreation(googleUser.uid, values, true);
             } else {
                 if (!values.password) {
                     form.setError('password', { message: 'Password is required for email signup.' });
                     return;
                 }
                 const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
-                await handleFinalUserCreation(userCredential.user.uid, values);
+                await sendEmailVerification(userCredential.user);
+                await handleFinalUserCreation(userCredential.user.uid, values, false);
             }
         } catch (error: any) {
             console.error("Signup failed:", error);

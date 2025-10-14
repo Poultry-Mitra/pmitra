@@ -79,9 +79,37 @@ export default function RoleLoginPage() {
     }
   }, [appUser, isAppLoading, router]);
 
+  const resendVerificationEmail = async () => {
+    if (auth && auth.currentUser) {
+      try {
+        await sendEmailVerification(auth.currentUser);
+        toast({ title: "Verification Email Sent", description: "A new verification link has been sent to your email address." });
+      } catch (error) {
+        toast({ title: "Error", description: "Failed to send verification email. Please try again later.", variant: "destructive" });
+      }
+    }
+  };
+
   async function handleLoginSuccess(user: FirebaseAuthUser) {
     if (!firestore || !auth) {
       throw new Error('System not ready. Please try again.');
+    }
+
+    // Handle email verification check for non-Google sign-ins
+    const isEmailPasswordSignIn = user.providerData.some(
+      (provider) => provider.providerId === 'password'
+    );
+    if (isEmailPasswordSignIn && !user.emailVerified) {
+        await auth.signOut();
+        toast({
+            title: "Email Not Verified",
+            description: "Please verify your email address before logging in. Check your inbox for a verification link.",
+            variant: "destructive",
+            action: <Button variant="secondary" size="sm" onClick={resendVerificationEmail}>Resend Email</Button>,
+            duration: 10000,
+        });
+        // We throw an error to stop the login process in the calling function.
+        throw new Error("Email not verified");
     }
 
     // Special handling for admin role, no need to check 'users' collection
@@ -135,7 +163,12 @@ export default function RoleLoginPage() {
         if (['auth/user-not-found', 'auth/wrong-password', 'auth/invalid-credential'].includes(error.code)) {
             message = 'Invalid email or password. Please try again.';
         }
-        toast({ title: 'Login Failed', description: message, variant: 'destructive' });
+        
+        // Don't show toast if it's our custom "Email not verified" error
+        if (message !== "Email not verified") {
+            toast({ title: 'Login Failed', description: message, variant: 'destructive' });
+        }
+    } finally {
         setIsSubmitting(false);
     }
   }
@@ -156,6 +189,7 @@ export default function RoleLoginPage() {
         
         console.error("Google sign-in error:", error);
         toast({ title: "Google Sign-In Failed", description: message, variant: "destructive" });
+    } finally {
         setIsGoogleLoading(false);
     }
   };
