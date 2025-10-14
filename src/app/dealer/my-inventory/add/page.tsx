@@ -169,7 +169,7 @@ export default function AddStockPage() {
                     quantity: product.quantity,
                     unit: product.unit,
                     ratePerUnit: product.ratePerUnit,
-                    unitWeight: product.unitWeight,
+                    unitWeight: ['pcs', 'chick'].includes(product.unit) ? undefined : product.unitWeight,
                     lowStockThreshold: product.lowStockThreshold,
                     phaseApplicable: [], // Default empty for now
                 };
@@ -241,7 +241,11 @@ export default function AddStockPage() {
                                 
                                 <div className="space-y-4">
                                     <h3 className="text-xl font-bold">Products</h3>
-                                    {fields.map((field, index) => (
+                                    {fields.map((field, index) => {
+                                        const currentUnit = watchedProducts && watchedProducts[index]?.unit;
+                                        const showUnitWeight = !['pcs', 'chick'].includes(currentUnit);
+
+                                        return (
                                         <Card key={field.id} className="relative border-border">
                                              <CardHeader>
                                                  <CardTitle className="text-lg">Product #{index + 1}</CardTitle>
@@ -340,13 +344,13 @@ export default function AddStockPage() {
                                                             <FormMessage />
                                                         </FormItem>
                                                     )} />
-                                                    <FormField control={form.control} name={`products.${index}.unitWeight`} render={({ field }) => (
+                                                    {showUnitWeight && <FormField control={form.control} name={`products.${index}.unitWeight`} render={({ field }) => (
                                                         <FormItem>
                                                             <FormLabel>Unit Wt. (kg)</FormLabel>
                                                             <FormControl><Input type="number" placeholder="Optional" {...field} /></FormControl>
                                                             <FormMessage />
                                                         </FormItem>
-                                                    )} />
+                                                    )} />}
                                                     <FormField control={form.control} name={`products.${index}.lowStockThreshold`} render={({ field }) => (
                                                         <FormItem>
                                                             <FormLabel>Low Stock At</FormLabel>
@@ -357,7 +361,7 @@ export default function AddStockPage() {
                                                 </div>
                                             </CardContent>
                                         </Card>
-                                    ))}
+                                    )})}
                                 </div>
 
                                 <Button type="button" variant="outline" onClick={() => append({ productName: "", category: "Feed", unit: "bag", ratePerUnit: 0, discount: 0, quantity: 1, unitWeight: 50, lowStockThreshold: 10, pricingBasis: 'TPR' })}>
