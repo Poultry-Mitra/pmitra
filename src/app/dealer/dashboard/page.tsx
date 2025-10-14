@@ -1,8 +1,9 @@
 
+
 // src/app/dealer/dashboard/page.tsx
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, IndianRupee, Activity, PlusCircle, ShoppingBag, Loader2 } from "lucide-react";
 import { RevenueChart } from "../_components/revenue-chart";
 import { PageHeader } from "@/app/dealer/_components/page-header";
@@ -179,7 +180,7 @@ export default function DealerDashboardPage() {
                 <Card className="lg:col-span-3">
                     <CardHeader>
                         <CardTitle>Revenue Analytics</CardTitle>
-                        <CardDescription>Cumulative revenue from successful orders in the last 30 days.</CardDescription>
+                         <p className="text-sm text-muted-foreground">Cumulative revenue from successful orders in the last 30 days.</p>
                     </CardHeader>
                     <CardContent>
                         <RevenueChart orders={orders.filter(o => o.status === 'Approved')} />
@@ -188,7 +189,7 @@ export default function DealerDashboardPage() {
                  <Card className="lg:col-span-2">
                     <CardHeader>
                         <CardTitle>Recent Pending Orders</CardTitle>
-                        <CardDescription>Orders that require your immediate attention.</CardDescription>
+                        <p className="text-sm text-muted-foreground">Orders that require your immediate attention.</p>
                     </CardHeader>
                     <CardContent className="overflow-x-auto">
                        <Table>

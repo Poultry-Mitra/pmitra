@@ -1,7 +1,7 @@
 // src/app/dealer/_components/revenue-chart.tsx
 "use client";
 
-import { Line, LineChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { ChartConfig, ChartContainer, ChartTooltipContent } from '@/components/ui/chart';
 import { useMemo } from 'react';
 import { format, subDays, startOfDay } from 'date-fns';
@@ -52,7 +52,21 @@ export function RevenueChart({ orders }: { orders: Order[] }) {
     return (
         <ChartContainer config={chartConfig} className="min-h-[300px] w-full">
             <ResponsiveContainer>
-                <LineChart data={revenueData}>
+                <AreaChart data={revenueData}>
+                     <defs>
+                        <linearGradient id="fillRevenue" x1="0" y1="0" x2="0" y2="1">
+                        <stop
+                            offset="5%"
+                            stopColor="var(--color-revenue)"
+                            stopOpacity={0.8}
+                        />
+                        <stop
+                            offset="95%"
+                            stopColor="var(--color-revenue)"
+                            stopOpacity={0.1}
+                        />
+                        </linearGradient>
+                    </defs>
                     <CartesianGrid vertical={false} />
                     <XAxis
                         dataKey="date"
@@ -62,7 +76,7 @@ export function RevenueChart({ orders }: { orders: Order[] }) {
                         fontSize={12}
                     />
                      <YAxis 
-                        tickFormatter={(value) => `₹${value / 1000}k`}
+                        tickFormatter={(value) => `₹${Number(value) / 1000}k`}
                      />
                     <Tooltip content={<ChartTooltipContent 
                         formatter={(value) => {
@@ -72,8 +86,14 @@ export function RevenueChart({ orders }: { orders: Order[] }) {
                             return value;
                         }}
                     />} />
-                    <Line type="monotone" dataKey="revenue" stroke="var(--color-revenue)" strokeWidth={2} dot={false} />
-                </LineChart>
+                    <Area 
+                        dataKey="revenue" 
+                        type="natural"
+                        fill="url(#fillRevenue)"
+                        stroke="var(--color-revenue)" 
+                        stackId="a"
+                        />
+                </AreaChart>
             </ResponsiveContainer>
         </ChartContainer>
     );
