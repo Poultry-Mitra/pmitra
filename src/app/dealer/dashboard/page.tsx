@@ -2,7 +2,7 @@
 // src/app/dealer/dashboard/page.tsx
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Users, IndianRupee, Activity, PlusCircle, ShoppingBag, Loader2 } from "lucide-react";
 import { RevenueChart } from "../_components/revenue-chart";
 import { PageHeader } from "@/app/dealer/_components/page-header";
