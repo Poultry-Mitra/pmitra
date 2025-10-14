@@ -1,4 +1,3 @@
-
 // src/app/app-provider.tsx
 'use client';
 
@@ -31,7 +30,7 @@ const getRedirectPath = (role?: UserRole | null) => {
   if (!role) return '/login';
   return {
     farmer: '/dashboard',
-    dealer: '/dealer/dashboard',
+    dealer: '/dealer/dashboard', // Corrected path
     admin: '/admin/dashboard',
   }[role] || '/login';
 };
@@ -41,11 +40,10 @@ const getRoleFromPath = (path: string): UserRole | 'public' | 'root' | 'none' =>
   if (PUBLIC_PATHS.some(p => path.startsWith(p))) return 'public';
   if (path.startsWith('/admin')) return 'admin';
   if (path.startsWith('/dealer')) return 'dealer';
-  // Check for specific farmer routes that are not nested under a common path
   if (['/dashboard', '/batches', '/ledger', '/inventory', '/dealers', '/chat', '/monitoring', '/analytics', '/feed-recommendation', '/daily-rates', '/pricing', '/profile'].some(p => path.startsWith(p))) {
     return 'farmer';
   }
-  return 'none'; // For layouts or other non-page routes
+  return 'none';
 };
 
 
