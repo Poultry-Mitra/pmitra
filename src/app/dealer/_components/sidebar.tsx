@@ -30,6 +30,7 @@ import {
   TrendingUp,
   LineChart,
   Rocket,
+  PlusCircle,
 } from "lucide-react";
 import { useLanguage } from "@/components/language-provider";
 import type { User as UserType } from "@/lib/types";
@@ -49,6 +50,7 @@ import {
 import { signOut } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import { Badge } from "@/components/ui/badge";
+import { useDealerInventory } from "@/hooks/use-dealer-inventory";
 
 
 export function DealerSidebar() {
@@ -61,6 +63,9 @@ export function DealerSidebar() {
   const firestore = useFirestore();
   const [currentUser, setCurrentUser] = useState<UserType | null>(null);
   const [showLogoutAlert, setShowLogoutAlert] = useState(false);
+  const [showInventoryGuide, setShowInventoryGuide] = useState(false);
+
+  const { inventory, loading: inventoryLoading } = useDealerInventory(firebaseUser?.uid);
 
   useEffect(() => {
     if (firebaseUser && firestore) {
@@ -85,6 +90,13 @@ export function DealerSidebar() {
       });
     }
     setShowLogoutAlert(false);
+  };
+
+  const handleInventoryClick = (e: React.MouseEvent) => {
+    if (!inventoryLoading && (!inventory || inventory.length === 0)) {
+        e.preventDefault();
+        setShowInventoryGuide(true);
+    }
   };
   
   const isPremium = currentUser?.planType === 'premium';
@@ -129,7 +141,7 @@ export function DealerSidebar() {
                     </Link>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                    <Link href="/dealer/my-inventory">
+                    <Link href="/dealer/my-inventory" onClick={handleInventoryClick}>
                         <SidebarMenuButton isActive={pathname.startsWith("/dealer/my-inventory")} tooltip={"My Inventory"}>
                         <Warehouse />
                         <span>{"My Inventory"}</span>
@@ -243,6 +255,26 @@ export function DealerSidebar() {
                      {t('actions.logout')}
                 </AlertDialogAction>
             </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
+
+        <AlertDialog open={showInventoryGuide} onOpenChange={setShowInventoryGuide}>
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle className="flex items-center gap-2">
+                        <PlusCircle className="text-primary"/>
+                        Let's Add Your First Purchase!
+                    </AlertDialogTitle>
+                    <AlertDialogDescription>
+                        The first step is to record a purchase from a supplier. This will automatically add items to your inventory.
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction asChild>
+                        <Link href="/dealer/my-inventory/add">Add Purchase</Link>
+                    </AlertDialogAction>
+                </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>
     </>
