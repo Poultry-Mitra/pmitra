@@ -1,3 +1,4 @@
+// src/hooks/use-users.ts
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -35,28 +36,25 @@ function toUser(doc: QueryDocumentSnapshot<DocumentData> | DocumentSnapshot<Docu
     } as User;
 }
 
-export function useUsers(role?: 'farmer' | 'dealer') {
+export function useUsers(role?: 'farmer' | 'dealer' | 'admin') {
   const firestore = useFirestore();
-  const { user: adminUser } = useAuth(); // Using the auth user to check for admin role implicitly
-  const [users, setUsers] = useState<User[]>([]);
+  const [allUsers, setAllUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Only admins can fetch all users. If not an admin/logged out, do nothing.
-    if (!firestore || !adminUser) {
-        setUsers([]);
+    if (!firestore) {
         setLoading(false);
         return;
     }
     
     setLoading(true);
     const usersCollection = collection(firestore, 'users');
-    const q = role ? query(usersCollection, where("role", "==", role)) : query(usersCollection);
+    const q = query(usersCollection); // Fetch all users initially
 
     const unsubscribe = onSnapshot(
       q,
       (snapshot) => {
-        setUsers(snapshot.docs.map(d => toUser(d)));
+        setAllUsers(snapshot.docs.map(d => toUser(d)));
         setLoading(false);
       },
       (err) => {
@@ -66,10 +64,14 @@ export function useUsers(role?: 'farmer' | 'dealer') {
     );
 
     return () => unsubscribe();
-  }, [firestore, role, adminUser]);
+  }, [firestore]);
+
+  // Perform filtering on the client side
+  const users = role ? allUsers.filter(user => user.role === role) : allUsers;
 
   return { users, loading };
 }
+
 
 export function useUsersByIds(userIds: string[]) {
     const firestore = useFirestore();

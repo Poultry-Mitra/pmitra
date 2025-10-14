@@ -1,4 +1,4 @@
-
+// src/app/admin/_components/user-management-summary.tsx
 
 "use client";
 
@@ -68,7 +68,7 @@ const statusColorScheme = {
 
 
 export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 'dealer' }) {
-    const { users, loading } = useUsers(roleToShow);
+    const { users: allUsers, loading } = useUsers();
     
     const [dialogState, setDialogState] = useState<{ action: 'delete' | 'suspend' | 'approve' | null, user: User | null }>({ action: null, user: null });
     const [reason, setReason] = useState("");
@@ -79,6 +79,11 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
     const adminUser = useAuthUser();
     const { t } = useLanguage();
     const [activeTab, setActiveTab] = useState<string>("pending");
+    
+    const users = useMemo(() => {
+        if (!roleToShow) return allUsers.slice(0, 5); // For dashboard recent users
+        return allUsers.filter(user => user.role === roleToShow);
+    }, [allUsers, roleToShow]);
     
     const { pendingUsers, activeUsers, suspendedUsers } = useMemo(() => {
         const pending: User[] = [];
@@ -100,7 +105,7 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
         suspended: suspendedUsers,
     };
     
-    const filteredUsers = roleToShow ? usersByTab[activeTab] : users.slice(0, 5);
+    const filteredUsers = roleToShow ? usersByTab[activeTab] : users;
 
     const title = roleToShow ? t(`admin.users.title_${roleToShow}`) : t('admin.users.title_recent');
     const description = roleToShow ? t(`admin.users.description_${roleToShow}`) : t('admin.users.description_recent');
