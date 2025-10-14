@@ -23,7 +23,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Loader2, PlusCircle, CheckCircle, XCircle } from "lucide-react";
 import { useToast } from '@/hooks/use-toast';
-import { useUser, useFirestore } from '@/firebase/provider';
+import { useUser, useFirestore, useAuth } from '@/firebase/provider';
 import { useOrders, updateOrderStatus } from '@/hooks/use-orders';
 import { useUsersByIds } from '@/hooks/use-users';
 import type { Order, User as AppUser } from '@/lib/types';
@@ -42,6 +42,7 @@ const statusConfig = {
 export default function MyOrdersPage() {
     const { user: firebaseUser } = useUser();
     const firestore = useFirestore();
+    const auth = useAuth();
     const { orders, loading: ordersLoading } = useOrders(firebaseUser?.uid);
     const { toast } = useToast();
     const [activeTab, setActiveTab] = useState("pending");
@@ -64,9 +65,9 @@ export default function MyOrdersPage() {
     const loading = ordersLoading || (farmerIds.length > 0 && farmersLoading);
 
     const handleUpdateStatus = async (order: Order, newStatus: 'Approved' | 'Rejected') => {
-        if (!firestore) return;
+        if (!firestore || !auth) return;
         try {
-            await updateOrderStatus(order, newStatus, firestore);
+            await updateOrderStatus(order, newStatus, firestore, auth);
             toast({
                 title: `Order ${newStatus}`,
                 description: `The order has been successfully ${newStatus.toLowerCase()}.`

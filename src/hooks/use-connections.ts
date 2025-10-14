@@ -16,9 +16,11 @@ import {
   orderBy,
   runTransaction,
   arrayUnion,
+  Auth,
 } from 'firebase/firestore';
 import type { Connection } from '@/lib/types';
 import { useFirestore } from '@/firebase/provider';
+import { updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
 // Helper to convert Firestore doc to Connection type
 function toConnection(doc: QueryDocumentSnapshot<DocumentData>): Connection {
@@ -71,13 +73,13 @@ export function useConnections(userId: string | undefined, userRole: 'farmer' | 
   return { connections, loading };
 }
 
-export async function updateConnectionStatus(firestore: Firestore, connectionId: string, newStatus: 'Approved' | 'Rejected') {
-    if (!firestore) throw new Error("Firestore not initialized");
+export async function updateConnectionStatus(firestore: Firestore, auth: Auth, connectionId: string, newStatus: 'Approved' | 'Rejected') {
+    if (!firestore || !auth) throw new Error("Firestore not initialized");
 
     const connectionRef = doc(firestore, 'connections', connectionId);
     
     if (newStatus === 'Rejected') {
-        await updateDoc(connectionRef, { status: newStatus });
+        updateDocumentNonBlocking(connectionRef, { status: newStatus }, auth);
         return;
     }
     

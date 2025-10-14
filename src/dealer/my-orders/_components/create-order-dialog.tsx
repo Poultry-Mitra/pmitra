@@ -1,3 +1,4 @@
+
 // src/app/dealer/my-orders/_components/create-order-dialog.tsx
 "use client";
 
@@ -24,7 +25,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { useUser, useFirestore } from "@/firebase/provider";
+import { useUser, useFirestore, useAuth } from "@/firebase/provider";
 import { useUsersByIds } from "@/hooks/use-users";
 import { useDealerInventory } from "@/hooks/use-dealer-inventory";
 import { createOrder } from "@/hooks/use-orders";
@@ -44,6 +45,7 @@ type FormValues = z.infer<typeof formSchema>;
 export function CreateOrderDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
     const { toast } = useToast();
     const firestore = useFirestore();
+    const auth = useAuth();
     const { user: dealerUser } = useUser();
     const [dealerInfo, setDealerInfo] = useState<User | null>(null);
 
@@ -75,7 +77,7 @@ export function CreateOrderDialog({ open, onOpenChange }: { open: boolean; onOpe
     const selectedProduct = products.find(p => p.id === selectedProductId);
 
     async function onSubmit(values: FormValues) {
-        if (!dealerUser || !selectedProduct || !firestore) {
+        if (!dealerUser || !selectedProduct || !firestore || !auth) {
             toast({ title: "Error", description: "Could not create order.", variant: "destructive" });
             return;
         }
@@ -87,9 +89,10 @@ export function CreateOrderDialog({ open, onOpenChange }: { open: boolean; onOpe
         }
 
         try {
-            await createOrder(firestore, {
+            await createOrder(firestore, auth, {
                 farmerUID: values.farmerUID,
                 dealerUID: dealerUser.uid,
+                isOfflineSale: false,
                 productId: values.productId,
                 productName: selectedProduct.productName,
                 quantity: values.quantity,

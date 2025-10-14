@@ -35,7 +35,7 @@ import { Badge } from "@/components/ui/badge";
 import { PlusCircle, MoreHorizontal, AlertTriangle, Loader2, CheckCircle, XCircle } from "lucide-react";
 import { useUsersByIds } from '@/hooks/use-users';
 import { ConnectFarmerDialog } from './_components/connect-farmer-dialog';
-import { useUser, useFirestore } from '@/firebase/provider';
+import { useUser, useFirestore, useAuth } from '@/firebase/provider';
 import type { User, Connection } from '@/lib/types';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { useConnections, updateConnectionStatus } from '@/hooks/use-connections';
@@ -46,6 +46,7 @@ import { useAppUser } from '@/app/app-provider';
 export default function MyFarmersPage() {
     const { user: dealerUser } = useAppUser();
     const firestore = useFirestore();
+    const auth = useAuth();
     const { toast } = useToast();
     
     const { connections: allConnections, loading: connectionsLoading } = useConnections(dealerUser?.id, 'dealer');
@@ -77,9 +78,9 @@ export default function MyFarmersPage() {
     };
     
     const handleConnectionAction = async (connectionId: string, status: 'Approved' | 'Rejected') => {
-        if (!firestore) return;
+        if (!firestore || !auth) return;
         try {
-            await updateConnectionStatus(firestore, connectionId, status);
+            await updateConnectionStatus(firestore, auth, connectionId, status);
             toast({
                 title: `Request ${status}`,
                 description: `The connection request has been ${status.toLowerCase()}.`

@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useForm, useFieldArray, useWatch } from "react-hook-form";
@@ -240,9 +239,7 @@ export default function AddStockPage() {
              await runTransaction(firestore, async (transaction) => {
                 // 1. Add inventory items
                 for (const product of values.products) {
-                    const newItemRef = collection(firestore, "dealerInventory");
-                     const itemData = {
-                        dealerUID: user.uid,
+                    addDealerInventoryItem(firestore, auth, user.uid, {
                         supplierName: values.supplierName,
                         productName: product.productName,
                         category: product.category,
@@ -252,8 +249,7 @@ export default function AddStockPage() {
                         purchaseRatePerUnit: product.purchaseRatePerUnit,
                         unitWeight: ['pcs', 'chick'].includes(product.unit) ? undefined : product.unitWeight,
                         lowStockThreshold: product.lowStockThreshold,
-                    };
-                    addDocumentNonBlocking(newItemRef, itemData, auth);
+                    });
                 }
                 
                 // 2. Add a single debit entry to the ledger for the total purchase amount
@@ -264,7 +260,7 @@ export default function AddStockPage() {
                 const ledgerDescription = `Purchase from ${supplier?.name || 'Unknown Supplier'}` + (values.invoiceNumber ? ` (Bill: ${values.invoiceNumber})` : '');
                 
                 if (netPayable > 0) {
-                     await addLedgerEntry(firestore, user.uid, {
+                     await addLedgerEntry(firestore, auth, user.uid, {
                         description: ledgerDescription,
                         amount: netPayable,
                         date: new Date(values.invoiceDate).toISOString(),
@@ -273,7 +269,7 @@ export default function AddStockPage() {
 
                 // 3. Add a credit entry if payment was made
                 if (values.amountPaid > 0) {
-                     await addLedgerEntry(firestore, user.uid, {
+                     await addLedgerEntry(firestore, auth, user.uid, {
                         description: `Payment to ${supplier?.name || 'Unknown Supplier'} via ${values.paymentMethod}`,
                         amount: values.amountPaid,
                         date: new Date(values.invoiceDate).toISOString(),

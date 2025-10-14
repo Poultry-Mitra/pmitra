@@ -1,3 +1,4 @@
+
 // src/hooks/use-inventory.ts
 'use client';
 
@@ -13,9 +14,11 @@ import {
   where,
   doc,
   addDoc,
+  Auth,
 } from 'firebase/firestore';
 import { useFirestore } from '@/firebase/provider';
 import type { InventoryItem } from '@/lib/types';
+import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
 // Helper to convert Firestore doc to InventoryItem type
 function toInventoryItem(doc: QueryDocumentSnapshot<DocumentData>): InventoryItem {
@@ -103,8 +106,8 @@ export function useInventoryByCategory(farmerUID: string, category: InventoryIte
 }
 
 
-export async function addInventoryItem(firestore: Firestore, farmerUID: string, data: Omit<InventoryItem, 'id' | 'farmerUID' | 'lastUpdated'>) {
-    if (!firestore) throw new Error("Firestore not initialized");
+export function addInventoryItem(firestore: Firestore, auth: Auth, farmerUID: string, data: Omit<InventoryItem, 'id' | 'farmerUID' | 'lastUpdated'>) {
+    if (!firestore || !auth) throw new Error("Firestore or Auth not initialized");
 
     const collectionRef = collection(firestore, 'inventory');
     
@@ -114,5 +117,5 @@ export async function addInventoryItem(firestore: Firestore, farmerUID: string, 
         lastUpdated: serverTimestamp(),
     };
 
-    await addDoc(collectionRef, docData);
+    addDocumentNonBlocking(collectionRef, docData, auth);
 }

@@ -16,9 +16,11 @@ import {
   orderBy,
   addDoc,
   updateDoc,
+  Auth,
 } from 'firebase/firestore';
 import { useFirestore } from '@/firebase/provider';
 import type { DealerInventoryItem } from '@/lib/types';
+import { addDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
 // Helper to convert Firestore doc to DealerInventoryItem type
 function toDealerInventoryItem(doc: QueryDocumentSnapshot<DocumentData>): DealerInventoryItem {
@@ -81,8 +83,8 @@ export function useDealerInventory(dealerUID: string | undefined) {
   return { inventory, loading };
 }
 
-export async function addDealerInventoryItem(firestore: Firestore, dealerUID: string, data: Omit<DealerInventoryItem, 'id' | 'dealerUID' | 'updatedAt'>) {
-    if (!firestore) throw new Error("Firestore not initialized");
+export function addDealerInventoryItem(firestore: Firestore, auth: Auth, dealerUID: string, data: Omit<DealerInventoryItem, 'id' | 'dealerUID' | 'updatedAt'>) {
+    if (!firestore || !auth) throw new Error("Firestore or Auth not initialized");
 
     const collectionRef = collection(firestore, 'dealerInventory');
     
@@ -93,11 +95,11 @@ export async function addDealerInventoryItem(firestore: Firestore, dealerUID: st
         updatedAt: serverTimestamp(),
     };
 
-    await addDoc(collectionRef, itemData);
+    addDocumentNonBlocking(collectionRef, itemData, auth);
 }
 
-export async function updateDealerInventoryItem(firestore: Firestore, itemId: string, data: Partial<Pick<DealerInventoryItem, 'quantity' | 'ratePerUnit' | 'lowStockThreshold'>>) {
-    if (!firestore) throw new Error("Firestore not initialized");
+export function updateDealerInventoryItem(firestore: Firestore, auth: Auth, itemId: string, data: Partial<Pick<DealerInventoryItem, 'quantity' | 'ratePerUnit' | 'lowStockThreshold'>>) {
+    if (!firestore || !auth) throw new Error("Firestore or Auth not initialized");
 
     const docRef = doc(firestore, 'dealerInventory', itemId);
     
@@ -106,6 +108,5 @@ export async function updateDealerInventoryItem(firestore: Firestore, itemId: st
         updatedAt: serverTimestamp(),
     };
 
-    await updateDoc(docRef, itemData);
+    updateDocumentNonBlocking(docRef, itemData, auth);
 }
-

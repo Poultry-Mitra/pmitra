@@ -6,15 +6,17 @@ import {
   addDoc,
   serverTimestamp,
   type Firestore,
+  Auth,
 } from 'firebase/firestore';
 import type { AuditLog } from '@/lib/types';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { useAuth } from '@/firebase/provider';
+import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
-export async function addAuditLog(firestore: Firestore, data: Omit<AuditLog, 'id' | 'timestamp'> & { timestamp?: string }) {
-    const auth = useAuth();
-    if (!firestore) throw new Error("Firestore not initialized");
+
+export function addAuditLog(firestore: Firestore, auth: Auth, data: Omit<AuditLog, 'id' | 'timestamp'> & { timestamp?: string }) {
+    if (!firestore || !auth) throw new Error("Firestore or Auth not initialized");
 
     const collectionRef = collection(firestore, 'auditLogs');
     
@@ -23,18 +25,5 @@ export async function addAuditLog(firestore: Firestore, data: Omit<AuditLog, 'id
         timestamp: serverTimestamp(),
     };
 
-    try {
-        await addDoc(collectionRef, docData);
-    } catch (e: any) {
-        console.error("Error creating audit log: ", e);
-        // We don't want to show permission errors for audit log creation failures to the admin
-        // but we should log them internally.
-        const permissionError = new FirestorePermissionError({
-            path: 'auditLogs',
-            operation: 'create',
-            requestResourceData: docData,
-        }, auth);
-        // We could emit this to a different channel or just log it
-        console.error("Audit Log Permission Error:", permissionError);
-    }
+    addDocumentNonBlocking(collectionRef, docData, auth);
 }

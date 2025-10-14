@@ -17,10 +17,12 @@ import {
   serverTimestamp,
   addDoc,
   updateDoc,
+  Auth,
 } from 'firebase/firestore';
 import { useFirestore, useUser } from '@/firebase/provider';
 import type { Order } from '@/lib/types';
 import { addLedgerEntryInTransaction } from '@/hooks/use-ledger';
+import { addDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
 // Helper to convert Firestore doc to Order type
 function toOrder(doc: QueryDocumentSnapshot<DocumentData>): Order {
@@ -112,8 +114,8 @@ export function useOrdersByFarmer(farmerUID?: string) {
 }
 
 
-export async function createOrder(firestore: Firestore, data: Omit<Order, 'id' | 'createdAt'>): Promise<string> {
-    if (!firestore) throw new Error("Firestore not initialized");
+export async function createOrder(firestore: Firestore, auth: Auth, data: Omit<Order, 'id' | 'createdAt'>): Promise<string> {
+    if (!firestore || !auth) throw new Error("Firestore or Auth not initialized");
 
     const orderCollection = collection(firestore, 'orders');
 
@@ -122,26 +124,26 @@ export async function createOrder(firestore: Firestore, data: Omit<Order, 'id' |
         createdAt: serverTimestamp(),
     };
 
-    const docRef = await addDoc(orderCollection, orderData);
+    const docRef = await addDocumentNonBlocking(orderCollection, orderData, auth);
     
     // If it's an offline sale, immediately run the approval transaction
-    if (data.isOfflineSale) {
+    if (data.isOfflineSale && docRef) {
         const newOrder = { id: docRef.id, ...orderData, createdAt: new Date().toISOString() } as Order;
-        await updateOrderStatus(newOrder, 'Completed', firestore);
+        await updateOrderStatus(newOrder, 'Completed', firestore, auth);
     }
     
-    return docRef.id;
+    return docRef?.id || '';
 }
 
 
-export async function updateOrderStatus(order: Order, newStatus: 'Approved' | 'Rejected' | 'Completed', firestore: Firestore | null) {
-    if (!firestore) throw new Error("Firestore not initialized");
+export async function updateOrderStatus(order: Order, newStatus: 'Approved' | 'Rejected' | 'Completed', firestore: Firestore | null, auth: Auth | null) {
+    if (!firestore || !auth) throw new Error("Firestore or Auth not initialized");
 
     const orderRef = doc(firestore, 'orders', order.id);
     
     // For simple rejection, just update the status
     if (newStatus === 'Rejected') {
-        await updateDoc(orderRef, { status: newStatus });
+        updateDocumentNonBlocking(orderRef, { status: newStatus }, auth);
         return;
     }
 
