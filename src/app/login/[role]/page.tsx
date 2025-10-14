@@ -59,9 +59,11 @@ export default function RoleLoginPage() {
     defaultValues: { email: '', password: '' },
   });
   
-  const getRedirectPath = (userRole: UserRole) => {
+  const getRedirectPath = (userRole?: UserRole | null) => {
     const redirectParam = searchParams.get('redirect');
     if (redirectParam) return redirectParam;
+
+    if (!userRole) return '/login';
 
     return {
       farmer: '/dashboard',
@@ -84,11 +86,9 @@ export default function RoleLoginPage() {
         return;
     }
 
-    // Admins have a special role document, not a standard user profile.
-    // Skip the profile check for them and let the AppProvider handle redirection based on role.
     if (role === 'admin') {
-        // Successful login for admin, AppProvider will handle role check and redirect
-        return;
+      router.replace(getRedirectPath(role));
+      return;
     }
 
     const userDocRef = doc(firestore, 'users', user.uid);
@@ -116,7 +116,7 @@ export default function RoleLoginPage() {
       return;
     }
     
-    // Success: The AppProvider will handle redirection for non-admin roles.
+    router.replace(getRedirectPath(role));
   }
 
   async function onSubmit(values: FormValues) {

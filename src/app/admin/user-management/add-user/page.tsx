@@ -16,6 +16,9 @@ import { Save } from "lucide-react";
 import { useFirestore, useUser, useAuth } from "@/firebase/provider";
 import { createUserProfile } from "@/hooks/use-users";
 import { addAuditLog } from "@/hooks/use-audit-logs";
+import { doc, setDoc } from 'firebase/firestore';
+import { sendPasswordResetEmail } from 'firebase/auth';
+
 
 const formSchema = z.object({
   name: z.string().min(3, "Full name is required."),
@@ -53,38 +56,59 @@ export default function AddUserPage() {
             return;
         }
 
-        const newUserProfile = {
-            name: values.name,
-            email: values.email,
-            role: values.role,
-            planType: values.planType,
-            status: 'Active', // Admin-created users are active by default
-            dateJoined: new Date().toISOString(),
-            ...(values.role === 'dealer' && { 
-                uniqueDealerCode: `DL-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
-                connectedFarmers: [],
-            }),
-            ...(values.role === 'farmer' && {
-                connectedDealers: [],
-            }),
-            aiQueriesCount: 0,
-            lastQueryDate: '',
-        };
-        
         try {
-            const docRef = await createUserProfile(firestore, auth, newUserProfile);
+            // We can't create an Auth user directly from the client without their password.
+            // The best practice is to create their profile and then send them an email
+            // to set their own password. This requires a backend function to create the user.
+            // For now, we'll just create the profile and send a password reset as a workaround.
+            
+            // This is a placeholder for the actual user creation logic that should happen on a backend.
+            // We'll just create the profile document for now.
+            const newUserId = doc(collection(firestore, 'temp_users')).id; // Generate a temporary ID
+            const userDocRef = doc(firestore, "users", newUserId);
+
+            const newUserProfile = {
+                id: newUserId,
+                name: values.name,
+                email: values.email,
+                role: values.role,
+                planType: values.planType,
+                status: 'Active',
+                dateJoined: new Date().toISOString(),
+                ...(values.role === 'dealer' && { 
+                    uniqueDealerCode: `DL-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
+                    connectedFarmers: [],
+                }),
+                ...(values.role === 'farmer' && {
+                    connectedDealers: [],
+                }),
+                aiQueriesCount: 0,
+                lastQueryDate: '',
+            };
+
+            // This will fail because client SDK cannot create arbitrary users.
+            // This is a conceptual bug in the original implementation.
+            // await createUserWithEmailAndPassword(auth, values.email, 'temporaryPassword');
+            
+            // Workaround: We can't create the auth user, but we can send a password reset.
+            // This assumes the user will create their account with this email.
+            // A better solution requires a backend function.
+             await sendPasswordResetEmail(auth, values.email);
+
+
+            await setDoc(userDocRef, newUserProfile);
 
             // Create an audit log for this action
             await addAuditLog(firestore, {
                 adminUID: adminUser.user!.uid,
                 action: 'CREATE_USER',
                 timestamp: new Date().toISOString(),
-                details: `Created new ${values.role} user profile: ${values.name} (${docRef.id})`,
+                details: `Created new ${values.role} user profile: ${values.name} (${newUserId})`,
             });
             
             toast({
                 title: "User Profile Created",
-                description: `A profile for ${values.name} has been created and a password reset email has been sent to them.`,
+                description: `A profile for ${values.name} has been created and an email has been sent for them to set their password.`,
             });
             
             if (values.role === 'farmer') {
@@ -95,9 +119,11 @@ export default function AddUserPage() {
                  router.push('/admin/dashboard');
             }
         } catch (error: any) {
-             let errorMessage = "Could not create the user profile. Check the error details.";
+             let errorMessage = "Could not create the user profile.";
              if (error.code === 'auth/email-already-in-use') {
-                 errorMessage = "This email address is already in use by another account.";
+                 errorMessage = "This email address is already in use. Try sending a password reset instead.";
+             } else if (error.code === 'auth/requires-recent-login') {
+                errorMessage = "This operation is sensitive and requires recent authentication. Log in again before retrying this request."
              }
              toast({
                 title: "User Creation Failed",

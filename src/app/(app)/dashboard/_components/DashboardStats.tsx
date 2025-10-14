@@ -67,8 +67,24 @@ export function DashboardStats({ batches, loading: batchesLoading }: { batches: 
                 setLoading(true);
                 return;
             }
+            
+            const activeBatches = batches.filter(b => b.status === 'Active');
+
+            if (activeBatches.length === 0) {
+                 setAnalytics({
+                    totalLiveBirds: 0,
+                    overallMortalityRate: 0,
+                    totalFeedConsumed: 0,
+                    averageFCR: 0,
+                    summary: "No active batches found. Add a batch to see your farm's analytics.",
+                });
+                setLoading(false);
+                return;
+            }
+
+            setLoading(true);
             try {
-                const result = await getFarmAnalytics({ batches });
+                const result = await getFarmAnalytics({ batches: activeBatches });
                 setAnalytics(result);
             } catch (error) {
                 console.error("Failed to fetch farm analytics", error);
@@ -80,7 +96,7 @@ export function DashboardStats({ batches, loading: batchesLoading }: { batches: 
         fetchAnalytics();
     }, [batches, batchesLoading]);
 
-    if (loading) {
+    if (loading || batchesLoading) {
         return <LoadingState />;
     }
 

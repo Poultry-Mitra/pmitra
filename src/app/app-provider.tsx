@@ -24,7 +24,7 @@ export function useAppUser() {
   return context;
 }
 
-const PUBLIC_PATHS = ['/login', '/signup', '/blog', '/privacy', '/terms', '/'];
+const PUBLIC_PATHS = ['/login', '/signup', '/blog', '/privacy', '/terms'];
 
 const getRedirectPath = (role?: UserRole | null) => {
   if (!role) return '/login';
@@ -35,11 +35,12 @@ const getRedirectPath = (role?: UserRole | null) => {
   }[role] || '/login';
 };
 
-const getRoleFromPath = (path: string): UserRole | 'public' | 'none' => {
+const getRoleFromPath = (path: string): UserRole | 'public' | 'root' | 'none' => {
+  if (path === '/') return 'root';
+  if (PUBLIC_PATHS.some(p => path.startsWith(p))) return 'public';
   if (path.startsWith('/admin')) return 'admin';
   if (path.startsWith('/dealer')) return 'dealer';
-  if (path === '/dashboard' || path.startsWith('/batches') || path.startsWith('/ledger') || path.startsWith('/inventory') || path.startsWith('/dealers') || path.startsWith('/chat') || path.startsWith('/monitoring') || path.startsWith('/analytics') || path.startsWith('/feed-recommendation') || path.startsWith('/daily-rates') || path.startsWith('/pricing') || path.startsWith('/profile')) return 'farmer';
-  if (PUBLIC_PATHS.some(p => path.startsWith(p) && p !== '/') || path === '/') return 'public';
+  if (path.startsWith('/dashboard') || path.startsWith('/batches') || path.startsWith('/ledger') || path.startsWith('/inventory') || path.startsWith('/dealers') || path.startsWith('/chat') || path.startsWith('/monitoring') || path.startsWith('/analytics') || path.startsWith('/feed-recommendation') || path.startsWith('/daily-rates') || path.startsWith('/pricing') || path.startsWith('/profile')) return 'farmer';
   return 'none'; // For layouts or other non-page routes
 };
 
@@ -65,7 +66,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
         if (docSnap.exists()) {
           setAppUser({ id: docSnap.id, ...docSnap.data() } as User);
         } else {
-          setAppUser(null);
+          // Special case for admin role that might not be in 'users'
+          const auth = getAuth();
+          if(auth.currentUser?.email === 'ipoultrymitra@gmail.com') {
+             setAppUser({ id: firebaseUser.uid, email: 'ipoultrymitra@gmail.com', role: 'admin', name: 'Admin' } as User);
+          } else {
+             setAppUser(null);
+          }
         }
         setProfileLoading(false);
       }, (error) => {
@@ -87,28 +94,30 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     const requiredRole = getRoleFromPath(pathname);
     
-    if (requiredRole === 'public' || requiredRole === 'none') {
-        // No redirection needed for public paths or layout files
+    // Allow access to public pages and the root landing page for everyone
+    if (requiredRole === 'public' || requiredRole === 'root' || requiredRole === 'none') {
         return;
     }
 
+    // If user is not logged in and tries to access a protected route
     if (!appUser) {
-        // Logged out user trying to access a protected route
         router.replace(`/login?redirect=${pathname}`);
         return;
     }
 
-    if (requiredRole !== 'public' && appUser.role !== requiredRole) {
-        // Logged in user with role mismatch
+    // If there's a role mismatch (e.g., a farmer trying to access /admin)
+    if (appUser.role !== requiredRole) {
         router.replace(getRedirectPath(appUser.role));
     }
 
   }, [appUser, isLoading, pathname, router]);
 
   const value = { user: appUser, loading: isLoading };
-
+  
   const requiredRole = getRoleFromPath(pathname);
-  if (isLoading && requiredRole !== 'public' && requiredRole !== 'none') {
+
+  // Show a global loader for protected routes while we're still authenticating
+  if (isLoading && requiredRole !== 'public' && requiredRole !== 'root' && requiredRole !== 'none') {
     return (
         <div className="flex h-screen w-full items-center justify-center">
             <Loader2 className="h-8 w-8 animate-spin" />

@@ -84,7 +84,7 @@ export function useUsersByIds(userIds: string[]) {
         }
 
         setLoading(true);
-        // Firestore 'in' queries are limited to 30 elements
+        // Firestore 'in' queries are limited to 30 elements. If you have more, you need to batch requests.
         const q = query(collection(firestore, 'users'), where('__name__', 'in', userIds.slice(0, 30)));
 
         const unsubscribe = onSnapshot(
@@ -110,10 +110,8 @@ export async function findUserByUniqueCode(firestore: Firestore, uniqueCode: str
     if (!firestore) throw new Error("Firestore not initialized");
 
     const usersCollection = collection(firestore, 'users');
-    const fieldToQuery = role === 'dealer' ? 'uniqueDealerCode' : 'id'; // Placeholder for farmer
+    const fieldToQuery = role === 'dealer' ? 'uniqueDealerCode' : 'id'; 
     
-    // This is inefficient for farmers, but works for dealers.
-    // A better approach for farmers would be a dedicated searchable field or a more direct lookup.
     const q = query(usersCollection, where(fieldToQuery, "==", uniqueCode), where("role", "==", role), limit(1));
     
     try {
@@ -178,15 +176,21 @@ export async function createUserProfile(firestore: Firestore, auth: Auth, newUse
     // A temporary, secure password for initial creation.
     const tempPassword = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8);
 
-    const userCredential = await createUserWithEmailAndPassword(auth, newUserProfile.email, tempPassword);
-    const user = userCredential.user;
+    try {
+        const userCredential = await createUserWithEmailAndPassword(auth, newUserProfile.email, tempPassword);
+        const user = userCredential.user;
 
-    // Create the user profile document in Firestore
-    const userDocRef = doc(firestore, "users", user.uid);
-    await setDoc(userDocRef, newUserProfile);
+        // Create the user profile document in Firestore
+        const userDocRef = doc(firestore, "users", user.uid);
+        await setDoc(userDocRef, newUserProfile);
 
-    // Send a password reset email so the user can set their own password
-    await sendPasswordResetEmail(auth, newUserProfile.email);
-    
-    return userDocRef;
+        // Send a password reset email so the user can set their own password
+        await sendPasswordResetEmail(auth, newUserProfile.email);
+        
+        return userDocRef;
+    } catch(e) {
+        // This can fail if the email is already in use.
+        console.error("Error creating auth user", e);
+        throw e;
+    }
 }

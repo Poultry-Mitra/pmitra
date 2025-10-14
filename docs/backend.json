@@ -65,6 +65,11 @@
             "items": {
                 "type": "string"
             }
+        },
+        "dateJoined": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The date and time the user joined."
         }
       },
       "required": [
@@ -73,7 +78,8 @@
         "fullName",
         "role",
         "state",
-        "district"
+        "district",
+        "dateJoined"
       ]
     },
     "Farm": {

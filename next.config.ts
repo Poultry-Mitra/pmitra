@@ -11,19 +11,6 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  // Explicitly disable the service worker generation
-  // This is a safeguard to ensure no PWA features are active.
-  webpack: (config, { isServer }) => {
-    if (!isServer) {
-      config.resolve.fallback = {
-        ...config.resolve.fallback,
-        'firebase/app': false,
-        'firebase/auth': false,
-        'firebase/firestore': false,
-      };
-    }
-    return config;
-  },
 };
 
 export default nextConfig;

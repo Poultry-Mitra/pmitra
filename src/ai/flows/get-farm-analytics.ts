@@ -14,7 +14,7 @@ import {z} from 'zod';
 import type { Batch } from '@/lib/types';
 
 const FarmAnalyticsInputSchema = z.object({
-  batches: z.array(z.any()).describe('An array of active batch objects for the farm.'),
+  batches: z.array(z.any()).describe('An array of batch objects for the farm.'),
 });
 export type FarmAnalyticsInput = z.infer<typeof FarmAnalyticsInputSchema>;
 

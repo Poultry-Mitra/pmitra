@@ -1,4 +1,3 @@
-
 // src/app/dealer/my-farmers/_components/connect-farmer-dialog.tsx
 "use client";
 
@@ -54,19 +53,19 @@ export function ConnectFarmerDialog({ open, onOpenChange }: { open: boolean; onO
         }
 
         try {
-            // Find the farmer by their PoultryMitra ID.
-            const farmerUIDprefix = values.farmerId.split('-').pop()?.toLowerCase();
-            if (!farmerUIDprefix) {
+            // The UID is embedded in the custom ID. We need to extract it.
+            const farmerUIDprefix = values.farmerId.split('-')[2].substring(0, 5).toLowerCase();
+             if (!farmerUIDprefix) {
                 throw new Error("Invalid Farmer ID format.");
             }
-            
-            const usersCollection = collection(firestore, 'users');
-            const q = query(usersCollection, where("role", "==", "farmer"), limit(500)); // Limit to prevent large reads
-            const querySnapshot = await getDocs(q);
 
+            const usersCollection = collection(firestore, 'users');
+            const q = query(usersCollection, where("role", "==", "farmer"));
+            const querySnapshot = await getDocs(q);
+            
             let foundFarmer: (User & { id: string }) | null = null;
             querySnapshot.forEach(doc => {
-                if (doc.id.toLowerCase().startsWith(farmerUIDprefix)) {
+                 if (doc.id.substring(0, 5).toLowerCase() === farmerUIDprefix) {
                     foundFarmer = { id: doc.id, ...doc.data() } as User & { id: string };
                 }
             });
