@@ -34,6 +34,7 @@ import { format } from 'date-fns';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useInventoryByCategory } from '@/hooks/use-inventory';
 import { useAppUser } from '@/app/app-provider';
+import { Textarea } from '@/components/ui/textarea';
 
 const formSchema = z.object({
     date: z.date(),
@@ -41,6 +42,7 @@ const formSchema = z.object({
     feedItemId: z.string().optional(),
     feedConsumed: z.coerce.number().min(0, "Feed consumption must be non-negative."),
     avgBodyWeight: z.coerce.number().min(0, "Weight must be non-negative."),
+    medicationGiven: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -58,6 +60,7 @@ export function AddDailyRecordDialog({ open, onOpenChange, batchId }: { open: bo
             mortality: 0,
             feedConsumed: 0,
             avgBodyWeight: 0,
+            medicationGiven: "",
         },
     });
 
@@ -74,7 +77,7 @@ export function AddDailyRecordDialog({ open, onOpenChange, batchId }: { open: bo
                 description: `Record for ${format(values.date, "PPP")} has been successfully added.`,
             });
             onOpenChange(false);
-            form.reset({ date: new Date(), mortality: 0, feedConsumed: 0, avgBodyWeight: 0, feedItemId: "" });
+            form.reset({ date: new Date(), mortality: 0, feedConsumed: 0, avgBodyWeight: 0, feedItemId: "", medicationGiven: "" });
         } catch (error: any) {
              toast({ title: "Error", description: error.message || "Failed to add daily record.", variant: "destructive" });
              console.error("Failed to add daily record", error);
@@ -83,7 +86,7 @@ export function AddDailyRecordDialog({ open, onOpenChange, batchId }: { open: bo
     
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent>
+            <DialogContent className="sm:max-w-2xl">
                 <DialogHeader>
                     <DialogTitle>Add Daily Record</DialogTitle>
                     <DialogDescription>Enter daily statistics. Feed consumption will automatically update your inventory.</DialogDescription>
@@ -183,6 +186,20 @@ export function AddDailyRecordDialog({ open, onOpenChange, batchId }: { open: bo
                                 )}
                             />
                         </div>
+
+                        <FormField
+                            control={form.control}
+                            name="medicationGiven"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Medication / Vaccine Given (Optional)</FormLabel>
+                                    <FormControl>
+                                        <Textarea placeholder="e.g., Lasota vaccine, B-complex vitamins" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
                         
                         <DialogFooter>
                             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>

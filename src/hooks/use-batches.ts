@@ -1,3 +1,4 @@
+
 // src/hooks/use-batches.ts
 'use client';
 
@@ -168,7 +169,14 @@ export async function addDailyRecord(
     firestore: Firestore, 
     farmerUID: string,
     batchId: string, 
-    data: { date: Date; mortality: number; feedItemId?: string; feedConsumed: number; avgBodyWeight: number; }
+    data: { 
+        date: Date; 
+        mortality: number; 
+        feedItemId?: string; 
+        feedConsumed: number; 
+        avgBodyWeight: number;
+        medicationGiven?: string;
+    }
 ) {
     if (!firestore) throw new Error("Firestore not initialized");
     
@@ -197,6 +205,7 @@ export async function addDailyRecord(
             feedConsumed: data.feedConsumed,
             avgBodyWeight: data.avgBodyWeight,
             feedItemId: data.feedItemId || null,
+            medicationGiven: data.medicationGiven || "",
             createdAt: serverTimestamp(),
         });
 

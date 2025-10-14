@@ -130,6 +130,7 @@ export default function BatchDetailPage() {
                             <TableHeader>
                                 <TableRow>
                                     <TableHead>Date</TableHead>
+                                    <TableHead>Medication/Vaccine</TableHead>
                                     <TableHead className="text-right">Mortality</TableHead>
                                     <TableHead className="text-right">Feed Consumed (kg)</TableHead>
                                     <TableHead className="text-right">Avg. Weight (g)</TableHead>
@@ -138,7 +139,7 @@ export default function BatchDetailPage() {
                             <TableBody>
                                 {recordsLoading && (
                                     <TableRow>
-                                        <TableCell colSpan={4} className="text-center">
+                                        <TableCell colSpan={5} className="text-center">
                                             <div className="flex justify-center items-center p-4">
                                                 <Loader2 className="animate-spin mr-2" /> Loading records...
                                             </div>
@@ -147,7 +148,7 @@ export default function BatchDetailPage() {
                                 )}
                                 {!recordsLoading && records.length === 0 && (
                                     <TableRow>
-                                        <TableCell colSpan={4} className="text-center p-8">
+                                        <TableCell colSpan={5} className="text-center p-8">
                                             No daily records found. Click "Add Daily Record" to get started.
                                         </TableCell>
                                     </TableRow>
@@ -155,6 +156,7 @@ export default function BatchDetailPage() {
                                 {!recordsLoading && records.map((record) => (
                                     <TableRow key={record.id}>
                                         <TableCell>{format(new Date(record.date), "PPP")}</TableCell>
+                                        <TableCell>{record.medicationGiven || '—'}</TableCell>
                                         <TableCell className="text-right">{record.mortality}</TableCell>
                                         <TableCell className="text-right">{record.feedConsumed.toFixed(2)}</TableCell>
                                         <TableCell className="text-right">{record.avgBodyWeight}</TableCell>

@@ -30,6 +30,7 @@ export type Batch = {
   farmerUID: string;
   batchName: string;
   batchType: "Broiler" | "Layer";
+  housingSystem?: "Deep-Litter" | "Battery Cage" | "Free-Range";
   breed?: "Cobb" | "Ross" | "Hubbard" | "Arbor Acres" | "Marshall" | "Other";
   totalChicks: number;
   batchStartDate: string;
@@ -50,6 +51,7 @@ export type DailyRecord = {
     avgBodyWeight: number; // grams
     notes?: string;
     feedItemId?: string;
+    medicationGiven?: string;
 };
 
 
@@ -194,4 +196,5 @@ export type Post = {
     createdAt: string;
     updatedAt: string;
 }
+
 
