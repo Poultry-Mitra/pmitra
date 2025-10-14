@@ -37,8 +37,8 @@ function toPost(doc: QueryDocumentSnapshot<DocumentData> | DocumentSnapshot<Docu
         featuredImageUrl: data.featuredImageUrl,
         tags: data.tags,
         isPublished: data.isPublished,
-        createdAt: data.createdAt,
-        updatedAt: data.updatedAt,
+        createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toISOString() : data.createdAt,
+        updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate().toISOString() : data.updatedAt,
     } as Post;
 }
 
@@ -144,8 +144,8 @@ export async function addPost(firestore: Firestore, data: Omit<Post, 'id' | 'cre
     
     const postData = {
         ...data,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
     };
 
     await addDoc(collectionRef, postData);
@@ -158,7 +158,7 @@ export async function updatePost(firestore: Firestore, postId: string, data: Par
     
     const postData = {
         ...data,
-        updatedAt: new Date().toISOString(),
+        updatedAt: serverTimestamp(),
     };
 
     await updateDoc(docRef, postData);

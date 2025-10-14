@@ -1,3 +1,4 @@
+
 // src/hooks/use-users.ts
 'use client';
 
@@ -190,7 +191,7 @@ export async function createUserProfile(firestore: Firestore, auth: Auth, newUse
 
         // Create the user profile document in Firestore
         const userDocRef = doc(firestore, "users", user.uid);
-        await setDoc(userDocRef, newUserProfile);
+        await setDoc(userDocRef, { ...newUserProfile, dateJoined: serverTimestamp() });
 
         // Send a password reset email so the user can set their own password
         await sendPasswordResetEmail(auth, newUserProfile.email);

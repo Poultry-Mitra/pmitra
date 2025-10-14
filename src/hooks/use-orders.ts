@@ -119,14 +119,14 @@ export async function createOrder(firestore: Firestore, data: Omit<Order, 'id' |
 
     const orderData = {
         ...data,
-        createdAt: new Date().toISOString(),
+        createdAt: serverTimestamp(),
     };
 
     const docRef = await addDoc(orderCollection, orderData);
     
     // If it's an offline sale, immediately run the approval transaction
     if (data.isOfflineSale) {
-        const newOrder = { id: docRef.id, ...orderData } as Order;
+        const newOrder = { id: docRef.id, ...orderData, createdAt: new Date().toISOString() } as Order;
         await updateOrderStatus(newOrder, 'Completed', firestore);
     }
     
