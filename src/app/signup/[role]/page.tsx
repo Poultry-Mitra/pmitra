@@ -56,6 +56,7 @@ export default function DetailedSignupPage() {
     const firestore = useFirestore();
 
     const [districts, setDistricts] = useState<string[]>([]);
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const [isGoogleLoading, setIsGoogleLoading] = useState(false);
     const [authProvider, setAuthProvider] = useState<'email' | 'google'>('email');
     const [googleUser, setGoogleUser] = useState<FirebaseAuthUser | null>(null);
@@ -108,16 +109,17 @@ export default function DetailedSignupPage() {
         }
     }, [selectedState, form]);
     
-    async function handleFinalUserCreation(userId: string, values: FormValues, isGoogleSignIn: boolean = false) {
-        if (!firestore || !auth) return;
+    async function handleFinalUserCreation(userId: string, values: FormValues) {
+        if (!firestore) {
+            throw new Error("Firestore not available.");
+        };
 
         const isAdminEmail = values.email.toLowerCase() === 'ipoultrymitra@gmail.com';
         const finalRole = invitation?.role || (isAdminEmail ? 'admin' : initialRole);
         const finalStatus = invitation ? 'Active' : (isAdminEmail ? 'Active' : 'Pending');
         const finalPlan = invitation?.planType || (isAdminEmail ? 'premium' : 'free');
 
-        // This object is sent to the secure backend flow
-        const userProfile = {
+        const profileResult = await createProfile({
             uid: userId,
             name: values.fullName,
             email: values.email,
@@ -128,44 +130,17 @@ export default function DetailedSignupPage() {
             state: values.state,
             district: values.district,
             pinCode: values.pinCode || "",
-        };
+        });
 
-        try {
-            // Call the secure backend flow to create the profile
-            await createProfile(userProfile);
-            
-            // If it was an invitation, delete it
-            if (invitation) {
-                await deleteDoc(doc(firestore, 'invitations', invitation.id));
-            }
-            
-            const successTitle = "Account Created!";
-            let successDescription = "";
-
-            if (isGoogleSignIn) {
-                successDescription = finalStatus === 'Active' 
-                    ? "Your account is active. Redirecting to login." 
-                    : "Your account is pending approval. You will be notified once active.";
-                 toast({ title: successTitle, description: successDescription });
-            } else {
-                successDescription = "A verification email has been sent. Please check your inbox to complete the setup.";
-                toast({ title: successTitle, description: successDescription, duration: 8000 });
-            }
-            
-            // We still sign out to force a clean login, which triggers the AppProvider's redirection logic correctly.
-            if (auth?.currentUser) await auth.signOut();
-            router.push(`/login/${finalRole}`);
-            
-        } catch (flowError) {
-            console.error("Profile creation flow failed:", flowError);
-            // If the profile creation fails, we should ideally delete the auth user to allow a retry.
-            // This requires Admin SDK, so for now, we'll just log the error and inform the user.
-            toast({
-                title: "Signup Failed",
-                description: "There was a problem creating your user profile. Please contact support.",
-                variant: "destructive",
-            });
+        if (!profileResult.success) {
+            throw new Error(profileResult.message || "Profile creation failed in backend flow.");
         }
+        
+        if (invitation) {
+            await deleteDoc(doc(firestore, 'invitations', invitation.id));
+        }
+
+        return { finalRole, finalStatus };
     }
 
     async function onSubmit(values: FormValues) {
@@ -173,19 +148,32 @@ export default function DetailedSignupPage() {
             toast({ title: "Error", description: "Firebase not initialized.", variant: "destructive" });
             return;
         }
-
+        setIsSubmitting(true);
+        let createdAuthUser: FirebaseAuthUser | null = null;
+        
         try {
             if (authProvider === 'google' && googleUser) {
-                await handleFinalUserCreation(googleUser.uid, values, true);
+                 createdAuthUser = googleUser;
+                 await handleFinalUserCreation(createdAuthUser.uid, values);
+                 toast({ title: "Account Finalized!", description: "Your account is ready. Redirecting to login." });
             } else {
                 if (!values.password) {
                     form.setError('password', { message: 'Password is required for email signup.' });
+                    setIsSubmitting(false);
                     return;
                 }
                 const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
-                await sendEmailVerification(userCredential.user);
-                await handleFinalUserCreation(userCredential.user.uid, values, false);
+                createdAuthUser = userCredential.user;
+                
+                await sendEmailVerification(createdAuthUser);
+                const { finalRole } = await handleFinalUserCreation(createdAuthUser.uid, values);
+                
+                toast({ title: "Account Created!", description: "A verification email has been sent. Please check your inbox.", duration: 8000 });
+                if (auth?.currentUser) await auth.signOut();
+                router.push(`/login/${finalRole}`);
             }
+            if (auth?.currentUser) await auth.signOut();
+            router.push(`/login/${initialRole}`);
         } catch (error: any) {
             console.error("Signup failed:", error);
             if (error.code === 'auth/email-already-in-use') {
@@ -193,6 +181,16 @@ export default function DetailedSignupPage() {
             } else {
                 toast({ title: "Signup Failed", description: error.message || "An unexpected error occurred.", variant: "destructive" });
             }
+             // Rollback Auth user if profile creation failed
+            if (createdAuthUser) {
+                try {
+                    await createdAuthUser.delete();
+                } catch (deleteError) {
+                    console.error("Failed to rollback auth user:", deleteError);
+                }
+            }
+        } finally {
+            setIsSubmitting(false);
         }
     }
     
@@ -234,7 +232,6 @@ export default function DetailedSignupPage() {
         }
     }
 
-    const isSubmitting = form.formState.isSubmitting || isGoogleLoading;
 
     return (
         <div className="flex min-h-screen w-full items-center justify-center bg-muted/30 p-4">
@@ -247,7 +244,7 @@ export default function DetailedSignupPage() {
                 <CardContent>
                     {!invitation && authProvider === 'email' && (
                         <>
-                            <Button variant="outline" className="w-full" onClick={handleGoogleSignUp} disabled={isSubmitting}>
+                            <Button variant="outline" className="w-full" onClick={handleGoogleSignUp} disabled={isSubmitting || isGoogleLoading}>
                                 {isGoogleLoading ? <Loader2 className="mr-2 animate-spin" /> : <GoogleIcon />}
                                 Continue with Google
                             </Button>
@@ -311,8 +308,8 @@ export default function DetailedSignupPage() {
                             </div>
 
                             <Button type="submit" className="w-full" disabled={isSubmitting}>
-                                {form.formState.isSubmitting && <Loader2 className="mr-2 animate-spin" />}
-                                {form.formState.isSubmitting ? 'Creating Account...' : 'Create Account'}
+                                {isSubmitting && <Loader2 className="mr-2 animate-spin" />}
+                                {isSubmitting ? 'Creating Account...' : 'Create Account'}
                             </Button>
 
                             <p className="text-center text-sm text-muted-foreground">
