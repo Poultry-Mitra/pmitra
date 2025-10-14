@@ -22,7 +22,6 @@ import {
 import { useFirestore, useUser } from '@/firebase/provider';
 import type { Order } from '@/lib/types';
 import { addLedgerEntryInTransaction } from '@/hooks/use-ledger';
-import { addDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
 // Helper to convert Firestore doc to Order type
 function toOrder(doc: QueryDocumentSnapshot<DocumentData>): Order {
@@ -123,16 +122,18 @@ export async function createOrder(firestore: Firestore, auth: Auth, data: Omit<O
         ...data,
         createdAt: serverTimestamp(),
     };
-
-    const docRef = await addDocumentNonBlocking(orderCollection, orderData, auth);
+    
+    // We don't need a custom non-blocking wrapper here because the UI expects to navigate
+    // or give feedback based on the result of this operation.
+    const docRef = await addDoc(orderCollection, orderData);
     
     // If it's an offline sale, immediately run the approval transaction
-    if (data.isOfflineSale && docRef) {
+    if (data.isOfflineSale) {
         const newOrder = { id: docRef.id, ...orderData, createdAt: new Date().toISOString() } as Order;
         await updateOrderStatus(newOrder, 'Completed', firestore, auth);
     }
     
-    return docRef?.id || '';
+    return docRef.id;
 }
 
 
@@ -143,7 +144,7 @@ export async function updateOrderStatus(order: Order, newStatus: 'Approved' | 'R
     
     // For simple rejection, just update the status
     if (newStatus === 'Rejected') {
-        updateDocumentNonBlocking(orderRef, { status: newStatus }, auth);
+        await updateDoc(orderRef, { status: newStatus });
         return;
     }
 
@@ -155,13 +156,10 @@ export async function updateOrderStatus(order: Order, newStatus: 'Approved' | 'R
         }
         
         const currentStatus = orderDoc.data().status;
-        // Prevent re-processing an already processed order
+        // Prevent re-processing an already processed order, unless it's an offline sale being marked as complete
         if (currentStatus !== 'Pending' && !order.isOfflineSale) {
             throw new Error("This order has already been processed.");
         }
-        
-        // Update the order status
-        transaction.update(orderRef, { status: newStatus });
         
         // --- Shared Logic for Approved/Completed Orders ---
         if (!order.productId) {
@@ -174,7 +172,7 @@ export async function updateOrderStatus(order: Order, newStatus: 'Approved' | 'R
 
         const currentQuantity = dealerInventoryDoc.data().quantity;
         if (currentQuantity < order.quantity) {
-            throw new Error("Not enough stock available to fulfill the order.");
+            throw new Error(`Not enough stock for ${order.productName}. Available: ${currentQuantity}, Ordered: ${order.quantity}.`);
         }
         
         // 1. Reduce dealer's inventory
@@ -199,5 +197,8 @@ export async function updateOrderStatus(order: Order, newStatus: 'Approved' | 'R
                date: new Date().toISOString(),
            }, 'Debit');
         }
+
+        // Update the order status at the end of the transaction
+        transaction.update(orderRef, { status: newStatus });
     });
 }
