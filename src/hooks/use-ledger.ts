@@ -33,14 +33,14 @@ function toLedgerEntry(doc: QueryDocumentSnapshot<DocumentData>): LedgerEntry {
 }
 
 export function useLedger(userId?: string) {
+  const { user: firebaseUser } = useUser();
   const firestore = useFirestore();
-  const { user: authUser } = useUser();
   const [entries, setEntries] = useState<LedgerEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // If firestore is not available, or if there's no specific userId and no authenticated user (for admin case), do nothing.
-    if (!firestore || (!userId && !authUser)) {
+    if (!firestore || (!userId && !firebaseUser)) {
         setEntries([]);
         setLoading(false);
         return;
@@ -71,7 +71,7 @@ export function useLedger(userId?: string) {
     );
 
     return () => unsubscribe();
-  }, [firestore, userId, authUser]);
+  }, [firestore, userId, firebaseUser]);
 
   return { entries, loading };
 }

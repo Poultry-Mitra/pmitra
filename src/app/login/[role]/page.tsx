@@ -9,7 +9,7 @@ import { useLanguage } from '@/components/language-provider';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { useUser, useAuth, useFirestore } from '@/firebase/provider';
+import { useAuth, useFirestore, useUser } from '@/firebase/provider';
 import { useEffect, useState } from 'react';
 import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import { doc, getDoc } from 'firebase/firestore';
@@ -20,7 +20,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { Separator } from '@/components/ui/separator';
+import { useAppUser } from '@/app/app-provider';
 
 const formSchema = z.object({
   email: z.string().email('Please enter a valid email address.'),
@@ -42,8 +42,9 @@ function GoogleIcon() {
 
 export default function RoleLoginPage() {
   const { t } = useLanguage();
-  const { user: firebaseUser, isUserLoading } = useUser();
-  const { auth, isLoading: isAuthLoading } = useAuth();
+  const { user: appUser, loading: isAppLoading } = useAppUser();
+  const { isUserLoading: isAuthLoading } = useUser();
+  const auth = useAuth();
   const firestore = useFirestore();
   const router = useRouter();
   const params = useParams();
@@ -72,31 +73,24 @@ export default function RoleLoginPage() {
 
   // Effect to redirect already logged-in users
   useEffect(() => {
-    if (isUserLoading) return; // Wait until user status is known
-
-    if (firebaseUser) {
-      const userDocRef = doc(firestore, 'users', firebaseUser.uid);
-      getDoc(userDocRef).then(docSnap => {
-        if (docSnap.exists()) {
-          const userData = docSnap.data() as AppUser;
-          router.replace(getRedirectPath(userData.role));
-        } else {
-           // This case can happen if a user is deleted from firestore but not auth
-           auth.signOut();
-        }
-      });
+    if (!isAppLoading && appUser) {
+      router.replace(getRedirectPath(appUser.role));
     }
-  }, [firebaseUser, isUserLoading, firestore, router, auth]);
+  }, [appUser, isAppLoading, router]);
 
-  async function handleLoginSuccess(user: FirebaseAuthUser) {
+  async function handleLoginSuccess(user: FirebaseAuthUser, provider: 'email' | 'google') {
+    if (!firestore || !auth) {
+        toast({ title: 'Login Failed', description: 'System not ready. Please try again.', variant: 'destructive' });
+        provider === 'email' ? setIsSubmitting(false) : setIsGoogleLoading(false);
+        return;
+    }
     const userDocRef = doc(firestore, 'users', user.uid);
     const docSnap = await getDoc(userDocRef);
 
     if (!docSnap.exists()) {
       await auth.signOut();
       toast({ title: 'Login Failed', description: 'User profile not found. Please sign up or contact support.', variant: 'destructive' });
-      setIsSubmitting(false);
-      setIsGoogleLoading(false);
+      provider === 'email' ? setIsSubmitting(false) : setIsGoogleLoading(false);
       return;
     }
 
@@ -111,20 +105,19 @@ export default function RoleLoginPage() {
       await auth.signOut();
       const message = userData.status === 'Pending' ? "Your account is pending approval." : "Your account has been suspended.";
       toast({ title: `Account Not Active`, description: message, variant: "destructive" });
-      setIsSubmitting(false);
-      setIsGoogleLoading(false);
+      provider === 'email' ? setIsSubmitting(false) : setIsGoogleLoading(false);
       return;
     }
     
-    // Success: Redirect to the correct dashboard
-    router.replace(getRedirectPath(role));
+    // Success: The AppProvider will handle redirection.
   }
 
   async function onSubmit(values: FormValues) {
+    if (!auth) return;
     setIsSubmitting(true);
     try {
       const userCredential = await signInWithEmailAndPassword(auth, values.email, values.password);
-      await handleLoginSuccess(userCredential.user);
+      await handleLoginSuccess(userCredential.user, 'email');
     } catch (error: any) {
         let message = 'An unknown error occurred.';
         if (['auth/user-not-found', 'auth/wrong-password', 'auth/invalid-credential'].includes(error.code)) {
@@ -136,11 +129,12 @@ export default function RoleLoginPage() {
   }
 
   const handleGoogleSignIn = async () => {
+    if (!auth) return;
     setIsGoogleLoading(true);
     const provider = new GoogleAuthProvider();
     try {
       const userCredential = await signInWithPopup(auth, provider);
-      await handleLoginSuccess(userCredential.user);
+      await handleLoginSuccess(userCredential.user, 'google');
     } catch (error: any) {
         if (error.code !== 'auth/popup-closed-by-user') {
           console.error("Google sign-in error:", error);
@@ -151,6 +145,7 @@ export default function RoleLoginPage() {
   };
 
   const handleForgotPassword = async () => {
+    if (!auth) return;
     const email = form.getValues('email');
     if (!email) {
       toast({ title: "Email Required", description: "Please enter your email to reset your password.", variant: "destructive" });
@@ -164,13 +159,12 @@ export default function RoleLoginPage() {
     }
   };
 
-  const isLoading = isSubmitting || isGoogleLoading || isAuthLoading || isUserLoading;
-
-  if (isUserLoading || firebaseUser) { // Show loader if checking user or if user exists (and is being redirected)
+  const isLoading = isSubmitting || isGoogleLoading || isAuthLoading;
+  
+  if (isAppLoading) {
     return (
       <div className="flex min-h-screen w-full flex-col items-center justify-center bg-muted/30 p-4 font-body">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />
-        <p className="mt-4 text-muted-foreground">{t('messages.authenticating')}</p>
       </div>
     );
   }
@@ -211,7 +205,7 @@ export default function RoleLoginPage() {
                 )}
               />
               <Button type="submit" className="w-full" disabled={isLoading}>
-                {(isSubmitting || isAuthLoading) && <Loader2 className="mr-2 animate-spin" />}
+                {isSubmitting && <Loader2 className="mr-2 animate-spin" />}
                 {isSubmitting ? 'Logging in...' : 'Login'}
               </Button>
             </form>

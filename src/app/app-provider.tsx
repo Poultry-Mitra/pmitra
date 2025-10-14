@@ -2,33 +2,32 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { useUser, useFirestore } from '@/firebase/provider';
+import { type User as FirebaseAuthUser } from 'firebase/auth';
 import { doc, onSnapshot } from 'firebase/firestore';
+import { useAuth, useFirestore, useUser } from '@/firebase/provider';
 import type { User, UserRole } from '@/lib/types';
 import { usePathname, useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 
-interface AppUserContextType {
+interface AppContextType {
   user: User | null;
   loading: boolean;
 }
 
-const AppUserContext = createContext<AppUserContextType | undefined>(undefined);
+const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export function useAppUser() {
-  const context = useContext(AppUserContext);
+  const context = useContext(AppContext);
   if (!context) {
     throw new Error('useAppUser must be used within an AppProvider');
   }
   return context;
 }
 
-interface AppProviderProps {
-  children: ReactNode;
-  allowedRoles?: UserRole[] | 'public';
-}
+const PUBLIC_PATHS = ['/login', '/signup', '/blog', '/privacy', '/terms', '/'];
 
-const getRedirectPath = (role: UserRole) => {
+const getRedirectPath = (role?: UserRole | null) => {
+  if (!role) return '/login';
   return {
     farmer: '/dashboard',
     dealer: '/dealer/dashboard',
@@ -36,80 +35,90 @@ const getRedirectPath = (role: UserRole) => {
   }[role] || '/login';
 };
 
-export function AppProvider({ children, allowedRoles = [] }: AppProviderProps) {
-  const { user: firebaseUser, isUserLoading } = useUser();
+const getRoleFromPath = (path: string): UserRole | 'public' | 'none' => {
+  if (path.startsWith('/admin')) return 'admin';
+  if (path.startsWith('/dealer')) return 'dealer';
+  if (path === '/dashboard' || path.startsWith('/batches') || path.startsWith('/ledger') || path.startsWith('/inventory') || path.startsWith('/dealers') || path.startsWith('/chat') || path.startsWith('/monitoring') || path.startsWith('/analytics') || path.startsWith('/feed-recommendation') || path.startsWith('/daily-rates') || path.startsWith('/pricing') || path.startsWith('/profile')) return 'farmer';
+  if (PUBLIC_PATHS.some(p => path.startsWith(p) && p !== '/') || path === '/') return 'public';
+  return 'none'; // For layouts or other non-page routes
+};
+
+
+export function AppProvider({ children }: { children: ReactNode }) {
+  const { user: firebaseUser, isUserLoading: isAuthLoading } = useUser();
   const firestore = useFirestore();
   const [appUser, setAppUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [isProfileLoading, setProfileLoading] = useState(true);
   const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
-    if (isUserLoading) {
-      setLoading(true);
-      return;
+    if (isAuthLoading) {
+        setProfileLoading(true);
+        return;
     }
-
-    if (!firebaseUser) {
-        if (allowedRoles === 'public') {
-            setLoading(false);
-            setAppUser(null);
+    
+    if (firebaseUser && firestore) {
+      setProfileLoading(true);
+      const userDocRef = doc(firestore, 'users', firebaseUser.uid);
+      const unsubscribeFirestore = onSnapshot(userDocRef, (docSnap) => {
+        if (docSnap.exists()) {
+          setAppUser({ id: docSnap.id, ...docSnap.data() } as User);
         } else {
-            router.replace(`/login?redirect=${pathname}`);
+          setAppUser(null);
         }
+        setProfileLoading(false);
+      }, (error) => {
+        console.error("Error fetching user profile:", error);
+        setAppUser(null);
+        setProfileLoading(false);
+      });
+      return () => unsubscribeFirestore();
+    } else {
+        setAppUser(null);
+        setProfileLoading(false);
+    }
+  }, [firebaseUser, firestore, isAuthLoading]);
+
+  const isLoading = isAuthLoading || isProfileLoading;
+
+  useEffect(() => {
+    if (isLoading) return;
+
+    const requiredRole = getRoleFromPath(pathname);
+    
+    if (requiredRole === 'public' || requiredRole === 'none') {
+        // No redirection needed for public paths or layout files
         return;
     }
 
-    const userDocRef = doc(firestore, 'users', firebaseUser.uid);
-    const unsubscribe = onSnapshot(userDocRef, (docSnap) => {
-      if (docSnap.exists()) {
-        const userData = { id: docSnap.id, ...docSnap.data() } as User;
-        setAppUser(userData);
+    if (!appUser) {
+        // Logged out user trying to access a protected route
+        router.replace(`/login?redirect=${pathname}`);
+        return;
+    }
 
-        if (allowedRoles !== 'public') {
-          if (allowedRoles.length > 0 && !allowedRoles.includes(userData.role)) {
-            router.replace(getRedirectPath(userData.role));
-          } else {
-            setLoading(false);
-          }
-        } else {
-            setLoading(false);
-        }
+    if (requiredRole !== 'public' && appUser.role !== requiredRole) {
+        // Logged in user with role mismatch
+        router.replace(getRedirectPath(appUser.role));
+    }
 
-      } else {
-        // User exists in Auth but not in Firestore, something is wrong.
-        console.error("User profile not found in Firestore for UID:", firebaseUser.uid);
-        setAppUser(null);
-        if (allowedRoles !== 'public') {
-            router.replace('/login');
-        } else {
-            setLoading(false);
-        }
-      }
-    }, (error) => {
-        console.error("Error fetching user profile:", error);
-        setLoading(false);
-        if (allowedRoles !== 'public') {
-            router.replace('/login');
-        }
-    });
+  }, [appUser, isLoading, pathname, router]);
 
-    return () => unsubscribe();
-  }, [isUserLoading, firebaseUser, firestore, router, pathname, allowedRoles]);
+  const value = { user: appUser, loading: isLoading };
 
-  const value = { user: appUser, loading };
-
-  if (loading && allowedRoles !== 'public') {
+  const requiredRole = getRoleFromPath(pathname);
+  if (isLoading && requiredRole !== 'public' && requiredRole !== 'none') {
     return (
-      <div className="flex h-screen w-full items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
+        <div className="flex h-screen w-full items-center justify-center">
+            <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
     );
   }
-  
+
   return (
-    <AppUserContext.Provider value={value}>
+    <AppContext.Provider value={value}>
       {children}
-    </AppUserContext.Provider>
+    </AppContext.Provider>
   );
 }

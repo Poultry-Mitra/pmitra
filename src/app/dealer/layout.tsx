@@ -4,11 +4,9 @@
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { DealerSidebar } from "./_components/sidebar";
 import { DealerHeader } from "./_components/header";
-import { AppProvider } from "@/app/app-provider";
 
 export default function DealerLayout({ children }: { children: React.ReactNode }) {
   return (
-    <AppProvider allowedRoles={['dealer']}>
       <SidebarProvider>
           <DealerSidebar />
           <SidebarInset>
@@ -18,6 +16,5 @@ export default function DealerLayout({ children }: { children: React.ReactNode }
             </main>
           </SidebarInset>
       </SidebarProvider>
-    </AppProvider>
   );
 }

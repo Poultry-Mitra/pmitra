@@ -34,13 +34,13 @@ function toOrder(doc: QueryDocumentSnapshot<DocumentData>): Order {
 }
 
 export function useOrders(dealerUID?: string) {
+  const { user: firebaseUser } = useUser();
   const firestore = useFirestore();
-  const { user: authUser } = useUser();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!firestore || !authUser) {
+    if (!firestore || !firebaseUser) {
         setOrders([]);
         setLoading(false);
         return;
@@ -67,7 +67,7 @@ export function useOrders(dealerUID?: string) {
     );
 
     return () => unsubscribe();
-  }, [firestore, dealerUID, authUser]);
+  }, [firestore, dealerUID, firebaseUser]);
 
   return { orders, loading };
 }
@@ -118,7 +118,7 @@ export async function createOrder(firestore: Firestore, data: Omit<Order, 'id' |
 
     const orderData = {
         ...data,
-        createdAt: serverTimestamp(),
+        createdAt: new Date().toISOString(),
     };
 
     await addDoc(orderCollection, orderData);

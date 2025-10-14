@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import Link from 'next/link';
@@ -27,27 +28,23 @@ import { ThemeToggle } from '@/components/theme-toggle';
 import { LanguageToggle } from '@/components/language-toggle';
 import { useLanguage } from '@/components/language-provider';
 import { RateTicker } from './_components/rate-ticker';
-import { useUser, useAuth, useFirestore } from '@/firebase/provider';
-import type { User as AppUserType } from '@/lib/types';
+import { useAuth } from '@/firebase/provider';
 import { Skeleton } from '@/components/ui/skeleton';
 import { signOut } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
-import { useState, useEffect } from 'react';
-import { doc, getDoc } from 'firebase/firestore';
-import { AppProvider, useAppUser } from '@/app/app-provider';
+import { useAppUser } from '@/app/app-provider';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 
 
-function LandingPageContent() {
+export default function LandingPage() {
   const { t } = useLanguage();
-  const { user: firebaseUser, isUserLoading } = useUser();
+  const { user: appUser, loading: isAppLoading } = useAppUser();
   const auth = useAuth();
   const router = useRouter();
-  const { user: appUser, loading: isAppUserLoading } = useAppUser();
   
   const getDashboardPath = () => {
-    if (isUserLoading || isAppUserLoading || !appUser) return "/login";
+    if (isAppLoading || !appUser) return "/login";
     switch (appUser.role) {
       case 'farmer':
         return '/dashboard';
@@ -62,11 +59,10 @@ function LandingPageContent() {
 
 
   const handleLogout = () => {
-    if (auth) {
+      if(!auth) return;
       signOut(auth).then(() => {
         router.push('/login');
       });
-    }
   };
 
   const features = [
@@ -162,8 +158,8 @@ function LandingPageContent() {
   ];
 
   const getStartedHref = () => {
-    if (isUserLoading || isAppUserLoading) return "/login"; // Default during load to prevent mismatch
-    if (firebaseUser && appUser) return getDashboardPath();
+    if (isAppLoading) return "/login"; // Default during load to prevent mismatch
+    if (appUser) return getDashboardPath();
     return "/signup";
   };
   
@@ -187,12 +183,12 @@ function LandingPageContent() {
           <div className="ml-auto flex items-center space-x-2">
             <LanguageToggle />
             <ThemeToggle />
-             {isUserLoading || isAppUserLoading ? (
+             {isAppLoading ? (
               <div className="flex items-center gap-2">
                 <Skeleton className="h-9 w-20" />
                 <Skeleton className="h-9 w-24" />
               </div>
-            ) : firebaseUser && appUser ? (
+            ) : appUser ? (
               <>
                 <Button asChild>
                   <Link href={getDashboardPath()}>Dashboard</Link>
@@ -460,13 +456,4 @@ function LandingPageContent() {
       </footer>
     </div>
   );
-}
-
-
-export default function LandingPage() {
-    return (
-        <AppProvider allowedRoles={['public']}>
-            <LandingPageContent />
-        </AppProvider>
-    )
 }

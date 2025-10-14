@@ -4,11 +4,9 @@
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AdminSidebar } from "./_components/sidebar";
 import { AdminHeader } from "./_components/header";
-import { AppProvider } from "@/app/app-provider";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
-    <AppProvider allowedRoles={['admin']}>
       <SidebarProvider>
           <AdminSidebar />
           <SidebarInset>
@@ -18,6 +16,5 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </main>
           </SidebarInset>
       </SidebarProvider>
-    </AppProvider>
   );
 }

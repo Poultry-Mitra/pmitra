@@ -19,7 +19,7 @@ import {
   addDoc,
   deleteDoc,
 } from 'firebase/firestore';
-import { useFirestore } from '@/firebase/provider';
+import { firestore } from '@/firebase/client';
 import type { Batch, DailyRecord } from '@/lib/types';
 
 // Helper to convert Firestore doc to Batch type
@@ -46,7 +46,6 @@ function toDailyRecord(doc: QueryDocumentSnapshot<DocumentData>): DailyRecord {
 
 
 export function useBatches(farmerUID: string | undefined) {
-  const firestore = useFirestore();
   const [batches, setBatches] = useState<Batch[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -80,7 +79,6 @@ export function useBatches(farmerUID: string | undefined) {
 }
 
 export function useBatch(batchId: string) {
-    const firestore = useFirestore();
     const [batch, setBatch] = useState<Batch | null>(null);
     const [loading, setLoading] = useState(true);
 
@@ -114,7 +112,6 @@ export function useBatch(batchId: string) {
 
 
 export function useDailyRecords(batchId: string) {
-    const firestore = useFirestore();
     const [records, setRecords] = useState<DailyRecord[]>([]);
     const [loading, setLoading] = useState(true);
 

@@ -4,11 +4,9 @@
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "./_components/sidebar";
 import { AppHeader } from "./_components/header";
-import { AppProvider } from "@/app/app-provider";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
-    <AppProvider allowedRoles={['farmer']}>
       <SidebarProvider>
         <AppSidebar />
         <SidebarInset>
@@ -18,6 +16,5 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             </main>
         </SidebarInset>
       </SidebarProvider>
-    </AppProvider>
   );
 }

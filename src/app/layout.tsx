@@ -6,8 +6,9 @@ import { ThemeProvider } from '@/components/theme-provider';
 import { LanguageProvider } from '@/components/language-provider';
 import { Inter, Noto_Sans, Hind } from 'next/font/google';
 import { cn } from '@/lib/utils';
-import { FirebaseProvider } from '@/firebase/provider';
+import { AppProvider } from '@/app/app-provider';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
+import { FirebaseProvider } from '@/firebase/provider';
 
 const fontInter = Inter({
   subsets: ['latin'],
@@ -54,20 +55,22 @@ export default function RootLayout({
         )}
         suppressHydrationWarning
       >
-        <FirebaseProvider>
-          <LanguageProvider>
-            <ThemeProvider
-              attribute="class"
-              defaultTheme="light"
-              enableSystem
-              disableTransitionOnChange
-            >
-              <FirebaseErrorListener />
-              {children}
-              <Toaster />
-            </ThemeProvider>
-          </LanguageProvider>
-        </FirebaseProvider>
+        <LanguageProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="light"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <FirebaseProvider>
+              <AppProvider>
+                <FirebaseErrorListener />
+                {children}
+                <Toaster />
+              </AppProvider>
+            </FirebaseProvider>
+          </ThemeProvider>
+        </LanguageProvider>
       </body>
     </html>
   );

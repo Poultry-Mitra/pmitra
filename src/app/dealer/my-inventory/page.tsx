@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import Link from 'next/link';
@@ -15,8 +16,8 @@ import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuIte
 import { EditStockDialog } from './_components/edit-stock-dialog';
 
 export default function MyInventoryPage() {
-    const user = useUser();
-    const { inventory, loading } = useDealerInventory(user.user?.uid);
+    const {user: firebaseUser} = useUser();
+    const { inventory, loading } = useDealerInventory(firebaseUser?.uid);
     const [selectedItem, setSelectedItem] = useState<DealerInventoryItem | null>(null);
     const [isEditDialogOpen, setEditDialogOpen] = useState(false);
 

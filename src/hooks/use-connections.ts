@@ -17,7 +17,7 @@ import {
   arrayUnion,
 } from 'firebase/firestore';
 import type { Connection } from '@/lib/types';
-import { useFirestore, useUser } from '@/firebase/provider';
+import { firestore } from '@/firebase/client';
 
 // Helper to convert Firestore doc to Connection type
 function toConnection(doc: QueryDocumentSnapshot<DocumentData>): Connection {
@@ -31,8 +31,6 @@ function toConnection(doc: QueryDocumentSnapshot<DocumentData>): Connection {
 }
 
 export function useConnections(userId: string | undefined, userRole: 'farmer' | 'dealer') {
-  const firestore = useFirestore();
-  const { user: authUser } = useUser();
   const [connections, setConnections] = useState<Connection[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -66,7 +64,7 @@ export function useConnections(userId: string | undefined, userRole: 'farmer' | 
     );
 
     return () => unsubscribe();
-  }, [firestore, userId, userRole, authUser]);
+  }, [firestore, userId, userRole]);
 
   return { connections, loading };
 }

@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useEffect, useMemo } from 'react';
@@ -23,8 +24,7 @@ export function RateTicker() {
     const isLoggedIn = !!firebaseUser && !!appUser;
 
     useEffect(() => {
-        // Only fetch from Firestore if the user is logged in
-        if (!firestore || !isLoggedIn) {
+        if (!firestore) {
             setLoading(false);
             return;
         }
@@ -45,7 +45,7 @@ export function RateTicker() {
             setAllRates([]);
         });
         return () => unsubscribe();
-    }, [firestore, isLoggedIn]);
+    }, [firestore]);
 
     const filteredRates = useMemo(() => {
         if (!isLoggedIn || allRates.length === 0 || !appUser) return [];
@@ -75,10 +75,10 @@ export function RateTicker() {
         }
     }, [ratesToDisplay]);
 
-    const isLoading = isAuthLoading || (isLoggedIn && loading);
+    const isLoading = isAuthLoading || isAppUserLoading || (isLoggedIn && loading);
     const currentItem = ratesToDisplay.length > 0 ? ratesToDisplay[currentIndex] : null;
 
-     if (!isLoggedIn) {
+     if (!isLoggedIn && !isLoading) {
         return (
             <div className="bg-secondary text-secondary-foreground relative">
                  <div className="container mx-auto px-4 h-10 flex items-center justify-center text-sm blur-sm pointer-events-none select-none">

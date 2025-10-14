@@ -21,7 +21,7 @@ import {
   setDoc,
   type Auth,
 } from 'firebase/firestore';
-import { useAuth, useFirestore } from '@/firebase/provider';
+import { firestore } from '@/firebase/client';
 import type { User, UserRole, UserStatus } from '@/lib/types';
 import { sendPasswordResetEmail, createUserWithEmailAndPassword } from 'firebase/auth';
 
@@ -37,7 +37,6 @@ function toUser(doc: QueryDocumentSnapshot<DocumentData> | DocumentSnapshot<Docu
 }
 
 export function useUsers(role?: 'farmer' | 'dealer' | 'admin') {
-  const firestore = useFirestore();
   const [allUsers, setAllUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -74,7 +73,6 @@ export function useUsers(role?: 'farmer' | 'dealer' | 'admin') {
 
 
 export function useUsersByIds(userIds: string[]) {
-    const firestore = useFirestore();
     const [users, setUsers] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
 
