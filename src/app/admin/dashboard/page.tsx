@@ -1,4 +1,3 @@
-
 // src/app/admin/dashboard/page.tsx
 "use client";
 
@@ -7,9 +6,8 @@ import { Users, IndianRupee, ShoppingBag, Loader2 } from "lucide-react";
 import { PageHeader } from "@/app/admin/_components/page-header";
 import { useUsers } from "@/hooks/use-users";
 import { useLanguage } from "@/components/language-provider";
-import { useLedger } from "@/hooks/use-ledger";
-import { useMemo } from "react";
 import { useOrders } from "@/hooks/use-orders";
+import { useMemo } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { RevenueChart } from "../_components/revenue-chart";
 import { RecentUsers } from "./_components/recent-users";

@@ -142,8 +142,3 @@ export async function addLedgerEntryInTransaction(
     // because runTransaction handles throwing the error.
     transaction.set(newEntryRef, newEntryData);
 }
-
-
-
-
-    

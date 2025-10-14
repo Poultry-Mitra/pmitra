@@ -1,4 +1,3 @@
-
 // src/app/admin/dashboard/_components/recent-transactions.tsx
 "use client";
 
