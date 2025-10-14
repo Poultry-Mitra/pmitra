@@ -179,13 +179,3 @@ export default function EditPostPage() {
         </>
     );
 }
-
-// Minimal slugify function, you might want a more robust library like 'slugify'
-function toSlug(str: string) {
-    return str
-        .toLowerCase()
-        .trim()
-        .replace(/[^\w\s-]/g, '')
-        .replace(/[\s_-]+/g, '-')
-        .replace(/^-+|-+$/g, '');
-}

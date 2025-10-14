@@ -2,10 +2,12 @@
 // src/app/blog/[slug]/page.tsx
 "use client";
 
-import { useParams, notFound, useRouter } from "next/navigation";
+import { useParams, notFound } from "next/navigation";
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { usePostBySlug } from "@/hooks/use-posts";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Loader2, Calendar, User, Share2, Link as LinkIcon, Twitter } from "lucide-react";
+import { Loader2, Calendar, Share2, Link as LinkIcon, Twitter } from "lucide-react";
 import { format } from "date-fns";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -41,14 +43,13 @@ const WhatsAppIcon = () => (
 
 export default function BlogPostPage() {
     const params = useParams();
-    const router = useRouter();
     const { toast } = useToast();
     const slug = params.slug as string;
     const { post, loading } = usePostBySlug(slug);
 
     if (loading) {
         return (
-            <div className="container max-w-3xl py-8">
+            <div className="container max-w-4xl py-8">
                 <Skeleton className="h-12 w-3/4" />
                 <div className="mt-4 flex items-center gap-4">
                     <Skeleton className="h-10 w-10 rounded-full" />
@@ -138,8 +139,11 @@ export default function BlogPostPage() {
                     <CardContent className="pt-6">
                         <div 
                             className="prose prose-lg dark:prose-invert max-w-none"
-                            dangerouslySetInnerHTML={{ __html: post.content.replace(/\n/g, '<br />') }}
-                        />
+                        >
+                           <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                             {post.content}
+                           </ReactMarkdown>
+                        </div>
                     </CardContent>
                 </Card>
             </article>

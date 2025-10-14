@@ -1,3 +1,4 @@
+
 // src/hooks/use-posts.ts
 'use client';
 
@@ -21,10 +22,6 @@ import {
 } from 'firebase/firestore';
 import { useFirestore } from '@/firebase/provider';
 import type { Post } from '@/lib/types';
-import slugify from "slugify";
-import { samplePosts } from '@/lib/blog-posts'; // Import sample posts
-
-const USE_LOCAL_DATA = false; // Set to true to use local data, false for Firestore
 
 // Helper to convert Firestore doc to Post type
 function toPost(doc: QueryDocumentSnapshot<DocumentData> | DocumentSnapshot<DocumentData>): Post {
@@ -51,12 +48,6 @@ export function usePosts() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (USE_LOCAL_DATA) {
-        setPosts(samplePosts);
-        setLoading(false);
-        return;
-    }
-
     if (!firestore) {
         setPosts([]);
         setLoading(false);
@@ -91,13 +82,6 @@ export function usePost(postId: string | null) {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        if (USE_LOCAL_DATA) {
-            const foundPost = samplePosts.find(p => p.id === postId);
-            setPost(foundPost || null);
-            setLoading(false);
-            return;
-        }
-
         if (!firestore || !postId) {
             setLoading(false);
             return;
@@ -127,13 +111,6 @@ export function usePostBySlug(slug: string) {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        if (USE_LOCAL_DATA) {
-            const foundPost = samplePosts.find(p => p.slug === slug);
-            setPost(foundPost || null);
-            setLoading(false);
-            return;
-        }
-
         if (!firestore || !slug) {
             setLoading(false);
             return;
@@ -161,10 +138,6 @@ export function usePostBySlug(slug: string) {
 
 
 export async function addPost(firestore: Firestore, data: Omit<Post, 'id' | 'createdAt' | 'updatedAt'>) {
-    if (USE_LOCAL_DATA) {
-        console.log("Local data mode: Pretending to add post", data);
-        return;
-    }
     if (!firestore) throw new Error("Firestore not initialized");
 
     const collectionRef = collection(firestore, 'posts');
@@ -179,10 +152,6 @@ export async function addPost(firestore: Firestore, data: Omit<Post, 'id' | 'cre
 }
 
 export async function updatePost(firestore: Firestore, postId: string, data: Partial<Omit<Post, 'id' | 'createdAt'>>) {
-    if (USE_LOCAL_DATA) {
-        console.log("Local data mode: Pretending to update post", postId, data);
-        return;
-    }
     if (!firestore) throw new Error("Firestore not initialized");
 
     const docRef = doc(firestore, 'posts', postId);
@@ -196,10 +165,6 @@ export async function updatePost(firestore: Firestore, postId: string, data: Par
 }
 
 export async function deletePost(firestore: Firestore, postId: string) {
-     if (USE_LOCAL_DATA) {
-        console.log("Local data mode: Pretending to delete post", postId);
-        return;
-    }
     if (!firestore) throw new Error("Firestore not initialized");
     const docRef = doc(firestore, 'posts', postId);
     await deleteDoc(docRef);
