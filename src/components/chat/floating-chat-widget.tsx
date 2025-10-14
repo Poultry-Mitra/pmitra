@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Send, WandSparkles } from 'lucide-react';
 import { AppIcon } from '@/app/icon-component';
-import { siteExpert } from '@/ai/flows/site-expert';
+import { aiQueryPoultry } from '@/ai/flows/ai-query-poultry'; // Changed from siteExpert
 import { ChatBubble } from './chat-bubble';
 import { useAppUser } from '@/app/app-provider';
 import { useLanguage } from '../language-provider';
@@ -62,11 +62,11 @@ export function FloatingChatWidget() {
     setLoading(true);
 
     try {
-      const result = await siteExpert({ query: currentQuery });
+      const result = await aiQueryPoultry({ query: currentQuery }); // Changed from siteExpert
       const aiMessage: Message = { id: (Date.now() + 1).toString(), text: result.answer, sender: 'ai' };
       setMessages((prev) => [...prev, aiMessage]);
     } catch (error) {
-      console.error('Site expert AI query failed:', error);
+      console.error('AI query failed:', error);
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         text: "I'm sorry, but I'm having trouble connecting. Please try again later.",
@@ -93,7 +93,7 @@ export function FloatingChatWidget() {
               <WandSparkles className="text-primary" />
               AI Poultry Expert
             </CardTitle>
-            <CardDescription>Ask me anything about broiler farming.</CardDescription>
+            <CardDescription>Ask me anything about poultry farming.</CardDescription>
           </CardHeader>
           <ScrollArea className="flex-1 p-4" ref={scrollAreaRef}>
             <div className="space-y-6">
@@ -105,7 +105,7 @@ export function FloatingChatWidget() {
                             </div>
                         </Avatar>
                         <div className="max-w-md rounded-lg px-4 py-3 text-sm bg-secondary space-y-3">
-                            <p className="whitespace-pre-wrap">Welcome! How can I help you with your broiler farm today?</p>
+                            <p className="whitespace-pre-wrap">Welcome! How can I help you today?</p>
                              <div className="flex flex-col items-start gap-2">
                                 {suggestedQuestions.map(q => (
                                     <Button

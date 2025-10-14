@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Bird, Droplet, Percent, Scale, Wheat, IndianRupee, Loader2, WandSparkles } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { getFarmAnalytics } from '@/ai/flows/get-farm-analytics';
@@ -61,14 +61,14 @@ export function DashboardStats({ batches, loading: batchesLoading }: { batches: 
     const [loading, setLoading] = useState(true);
     const { t } = useLanguage();
 
+    const activeBatches = useMemo(() => batches.filter(b => b.status === 'Active'), [batches]);
+
     useEffect(() => {
         async function fetchAnalytics() {
             if (batchesLoading) {
                 setLoading(true);
                 return;
             }
-            
-            const activeBatches = batches.filter(b => b.status === 'Active');
 
             if (activeBatches.length === 0) {
                  setAnalytics({
@@ -84,7 +84,12 @@ export function DashboardStats({ batches, loading: batchesLoading }: { batches: 
 
             setLoading(true);
             try {
-                const result = await getFarmAnalytics({ batches: activeBatches });
+                // Ensure batches are serializable before sending to the AI flow
+                const serializableBatches = activeBatches.map(batch => ({
+                    ...batch,
+                    createdAt: batch.createdAt ? new Date(batch.createdAt.seconds * 1000).toISOString() : new Date().toISOString(),
+                }));
+                const result = await getFarmAnalytics({ batches: serializableBatches });
                 setAnalytics(result);
             } catch (error) {
                 console.error("Failed to fetch farm analytics", error);
@@ -94,7 +99,7 @@ export function DashboardStats({ batches, loading: batchesLoading }: { batches: 
             }
         }
         fetchAnalytics();
-    }, [batches, batchesLoading]);
+    }, [activeBatches, batchesLoading]);
 
     if (loading || batchesLoading) {
         return <LoadingState />;
