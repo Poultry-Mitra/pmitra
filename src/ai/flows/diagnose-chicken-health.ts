@@ -48,7 +48,7 @@ Analyze the following data carefully:
 Based on this information, provide a diagnosis. Your response must be in a structured JSON format.
 
 1.  **possibleDiseases**: Identify 1 to 3 potential diseases. For each disease, provide its name, likelihood (High, Medium, or Low), and a brief reasoning connecting the symptoms to the diagnosis.
-2.  **recommendedActions**: List 2-3 critical, immediate actions the farmer must take to manage the situation and prevent further spread.
+2.  **recommendedActions**: List 2-3 critical, immediate, step-by-step actions the farmer must take to manage the situation and prevent further spread.
 3.  **preventativeMeasures**: Suggest 2-3 long-term measures to prevent similar issues in the future.
 
 Prioritize common diseases and consider the flock's age. For example, Gumboro is more common in young chicks. Coccidiosis is often linked to bloody diarrhea and wet litter. Consider the flock's vaccination history if available. An unvaccinated flock is more susceptible to diseases like Gumboro or Newcastle disease. Provide clear, concise, and practical advice.`;

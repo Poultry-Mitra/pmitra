@@ -64,8 +64,8 @@ export default function SignupPage() {
                         {t('signup.login_here')}
                     </Link>
                 </p>
-                <div className="flex items-center justify-center gap-6">
-                    <Link href="/" className="flex items-center gap-2 hover:text-primary">
+                 <div className="mt-2">
+                    <Link href="/" className="flex items-center justify-center gap-2 hover:text-primary">
                         <ArrowLeft className="size-4" /> {t('login.back_to_home')}
                     </Link>
                 </div>

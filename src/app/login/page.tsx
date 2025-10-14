@@ -65,10 +65,10 @@ export default function LoginPage() {
                     </Link>
                 </p>
                  <p className="mt-2">
-            <Link href="/login" className="font-semibold text-primary hover:underline">
-                Choose a different login type
-            </Link>
-        </p>
+                     <Link href="/" className="flex items-center justify-center gap-2 hover:text-primary">
+                        <ArrowLeft className="size-4" /> {t('login.back_to_home')}
+                    </Link>
+                </p>
             </div>
             <div className="mt-12 text-center">
                  <Link href="/login/admin" className="text-xs text-muted-foreground hover:text-primary">

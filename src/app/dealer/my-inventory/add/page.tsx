@@ -182,7 +182,7 @@ export default function AddStockPage() {
                     quantity: product.quantity,
                     unit: product.unit,
                     ratePerUnit: product.ratePerUnit, // This is the sale rate
-                    // We need to add purchaseRatePerUnit to the type and firestore
+                    purchaseRatePerUnit: product.purchaseRatePerUnit,
                     unitWeight: ['pcs', 'chick'].includes(product.unit) ? undefined : product.unitWeight,
                     lowStockThreshold: product.lowStockThreshold,
                 };
