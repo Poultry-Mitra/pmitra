@@ -1,138 +1,159 @@
-
 "use client";
 
-import { useState, useEffect, useMemo } from 'react';
-import { Bird, Droplet, Percent, Scale, Wheat, IndianRupee, Loader2, WandSparkles } from "lucide-react";
+import { useState, useMemo, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { getFarmAnalytics } from '@/ai/flows/get-farm-analytics';
-import type { Batch } from '@/lib/types';
-import { Skeleton } from '@/components/ui/skeleton';
-import type { FarmAnalyticsOutput } from '@/ai/flows/get-farm-analytics';
+import { Button } from "@/components/ui/button";
+import { Copy, Loader2, Link as LinkIcon, Download, CheckCircle, XCircle } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { useBatches } from "@/hooks/use-batches";
+import { DashboardStats } from "./_components/DashboardStats";
+import { useAppUser } from "@/app/app-provider";
+import { ConnectDealerDialog } from './_components/connect-dealer-dialog';
+import { PendingOrders } from './_components/pending-orders';
+import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/components/language-provider';
+import { useConnections, updateConnectionStatus } from '@/hooks/use-connections';
+import { useUsersByIds } from '@/hooks/use-users';
+import { useFirestore } from '@/firebase/provider';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
-function StatCard({ title, value, icon: Icon, unit, description }: { title: string, value: string | number, icon: React.ElementType, unit?: string, description?: string }) {
+
+function DealerConnectionRequests() {
+    const { user: appUser, loading: appUserLoading } = useAppUser();
+    const { connections, loading: connectionsLoading } = useConnections(appUser?.id, 'farmer');
+    const firestore = useFirestore();
+    const { toast } = useToast();
+
+    const pendingRequests = useMemo(() => 
+        connections.filter(c => c.status === 'Pending' && c.requestedBy === 'dealer'), 
+    [connections]);
+
+    const dealerIds = useMemo(() => pendingRequests.map(r => r.dealerUID), [pendingRequests]);
+    const { users: dealers, loading: dealersLoading } = useUsersByIds(dealerIds);
+    
+    const loading = appUserLoading || connectionsLoading || dealersLoading;
+    
+    if (loading || pendingRequests.length === 0) {
+        return null; // Don't show the card if there are no pending requests or still loading
+    }
+    
+    const getDealerName = (dealerId: string) => {
+        return dealers.find(d => d.id === dealerId)?.name || "Loading...";
+    }
+
+    const handleAction = async (connectionId: string, status: 'Approved' | 'Rejected') => {
+        if (!firestore) return;
+        try {
+            await updateConnectionStatus(firestore, connectionId, status);
+            toast({
+                title: `Request ${status}`,
+                description: "The connection has been updated."
+            })
+        } catch(e: any) {
+            toast({ title: "Error", description: e.message, variant: "destructive" });
+        }
+    }
+
+
     return (
         <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">{title}</CardTitle>
-                <Icon className="h-4 w-4 text-muted-foreground" />
+            <CardHeader>
+                <CardTitle>Dealer Connection Requests</CardTitle>
+                <CardDescription>Review and respond to connection requests from dealers.</CardDescription>
             </CardHeader>
             <CardContent>
-                <div className="text-2xl font-bold">
-                    {value}
-                    {unit && <span className="text-xs text-muted-foreground ml-1">{unit}</span>}
-                </div>
-                 {description && <p className="text-xs text-muted-foreground">{description}</p>}
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>Dealer Name</TableHead>
+                            <TableHead>Date</TableHead>
+                            <TableHead className="text-right">Actions</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {pendingRequests.map(req => (
+                            <TableRow key={req.id}>
+                                <TableCell className="font-medium">{getDealerName(req.dealerUID)}</TableCell>
+                                <TableCell>{new Date(req.createdAt).toLocaleDateString()}</TableCell>
+                                <TableCell className="text-right space-x-2">
+                                     <Button size="sm" variant="outline" className="text-green-600 hover:bg-green-50 hover:text-green-700" onClick={() => handleAction(req.id, 'Approved')}>
+                                        <CheckCircle className="mr-2" />
+                                        Approve
+                                    </Button>
+                                     <Button size="sm" variant="outline" className="text-red-600 hover:bg-red-50 hover:text-red-700" onClick={() => handleAction(req.id, 'Rejected')}>
+                                        <XCircle className="mr-2" />
+                                        Reject
+                                    </Button>
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
             </CardContent>
         </Card>
-    );
-}
-
-function LoadingState() {
-    return (
-        <>
-            {[...Array(4)].map((_, i) => (
-                 <Card key={i}>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <Skeleton className="h-4 w-2/3" />
-                        <Skeleton className="h-4 w-4" />
-                    </CardHeader>
-                    <CardContent>
-                        <Skeleton className="h-8 w-1/2 mt-4" />
-                        <Skeleton className="h-3 w-1/3 mt-1" />
-                    </CardContent>
-                </Card>
-            ))}
-             <Card className="lg:col-span-4">
-                <CardHeader>
-                    <Skeleton className="h-5 w-1/3" />
-                </CardHeader>
-                <CardContent>
-                     <Skeleton className="h-8 w-full" />
-                </CardContent>
-            </Card>
-        </>
-    );
+    )
 }
 
 
-export function DashboardStats({ batches, loading: batchesLoading }: { batches: Batch[], loading: boolean }) {
-    const [analytics, setAnalytics] = useState<FarmAnalyticsOutput | null>(null);
-    const [loading, setLoading] = useState(true);
-    const { t } = useLanguage();
+export default function DashboardPage() {
+  const { user, loading: userLoading } = useAppUser();
+  const [isConnectDealerOpen, setConnectDealerOpen] = useState(false);
+  const { toast } = useToast();
+  const { t } = useLanguage();
 
-    const activeBatches = useMemo(() => batches.filter(b => b.status === 'Active'), [batches]);
+  const { batches, loading: batchesLoading } = useBatches(user?.id);
+  
+  const loading = userLoading || !user;
 
-    useEffect(() => {
-        async function fetchAnalytics() {
-            if (batchesLoading) {
-                setLoading(true);
-                return;
-            }
+  const poultryMitraId = useMemo(() => 
+    user ? `PM-FARM-${user.id.substring(0, 5).toUpperCase()}` : '',
+  [user]);
 
-            if (activeBatches.length === 0) {
-                 setAnalytics({
-                    totalLiveBirds: 0,
-                    overallMortalityRate: 0,
-                    totalFeedConsumed: 0,
-                    averageFCR: 0,
-                    summary: "No active batches found. Add a batch to see your farm's analytics.",
-                });
-                setLoading(false);
-                return;
-            }
+  const activeBatches = useMemo(() => 
+    batches.filter(b => b.status === 'Active'),
+  [batches]);
 
-            setLoading(true);
-            try {
-                // Ensure batches are serializable before sending to the AI flow
-                const serializableBatches = activeBatches.map(batch => {
-                    const plainBatch = { ...batch };
-                    // Convert any non-serializable fields here if necessary
-                    if (plainBatch.createdAt && typeof plainBatch.createdAt !== 'string') {
-                       plainBatch.createdAt = new Date((plainBatch.createdAt as any).seconds * 1000).toISOString();
-                    }
-                    return plainBatch;
-                });
+  const handleCopyId = () => {
+    if (!poultryMitraId) return;
+    navigator.clipboard.writeText(poultryMitraId);
+    toast({ title: t('messages.copied_title'), description: t('messages.copied_desc') });
+  }
 
-                const result = await getFarmAnalytics({ batches: serializableBatches });
-                setAnalytics(result);
-            } catch (error) {
-                console.error("Failed to fetch farm analytics", error);
-                setAnalytics(null); // Or set an error state
-            } finally {
-                setLoading(false);
-            }
-        }
-        fetchAnalytics();
-    }, [activeBatches, batchesLoading]);
+  if (loading) return <div className="flex h-screen items-center justify-center"><Loader2 className="animate-spin size-8" /></div>;
 
-    if (loading || batchesLoading) {
-        return <LoadingState />;
-    }
+  return (
+    <>
+      <div className="flex flex-col gap-4">
+        <div>
+            <h1 className="font-headline text-3xl font-bold tracking-tight">{t('dashboard.welcome', { name: user.name.split(' ')[0] })} 👋</h1>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <span>{poultryMitraId}</span>
+                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={handleCopyId}>
+                    <Copy className="size-3" />
+                </Button>
+            </div>
+        </div>
 
-    if (!analytics) {
-        return <p>{t('messages.analytics_error')}</p>;
-    }
+        <div className="flex items-center gap-2 flex-wrap">
+            <Badge className="capitalize" variant={user.planType === 'premium' ? 'default' : 'secondary'}>{t(`plans.${user.planType}`)}</Badge>
+             {user.role === 'farmer' && (
+                <Button size="sm" variant="outline" className="border-primary text-primary hover:bg-primary/10 hover:text-primary" onClick={() => setConnectDealerOpen(true)}>
+                    <LinkIcon className="mr-2" />
+                    {t('dashboard.connect_dealer')}
+                </Button>
+             )}
+        </div>
+      </div>
+      
+      <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <DashboardStats batches={activeBatches} loading={batchesLoading} />
+      </div>
 
-    return (
-        <>
-            <StatCard title={t('dashboard.stats.live_birds')} value={analytics.totalLiveBirds.toLocaleString()} icon={Bird} description={t('dashboard.stats.live_birds_desc')} />
-            <StatCard title={t('dashboard.stats.mortality')} value={analytics.overallMortalityRate.toFixed(2)} unit="%" icon={Percent} description={t('dashboard.stats.mortality_desc')} />
-            <StatCard title={t('dashboard.stats.feed_consumed')} value={analytics.totalFeedConsumed.toLocaleString()} unit="kg" icon={Wheat} description={t('dashboard.stats.feed_consumed_desc')} />
-            <StatCard title={t('dashboard.stats.fcr')} value={analytics.averageFCR.toFixed(2)} icon={Droplet} description={t('dashboard.stats.fcr_desc')} />
-            <Card className="lg:col-span-4">
-                <CardHeader className="pb-4">
-                    <CardTitle className="text-base font-medium flex items-center gap-2">
-                        <WandSparkles className="text-primary" />
-                        {t('dashboard.stats.ai_summary')}
-                    </CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <p className="text-sm text-muted-foreground">
-                        {analytics.summary}
-                    </p>
-                </CardContent>
-            </Card>
-        </>
-    );
+      <div className="mt-8 grid grid-cols-1 gap-8">
+        <DealerConnectionRequests />
+        <PendingOrders />
+      </div>
+      <ConnectDealerDialog open={isConnectDealerOpen} onOpenChange={setConnectDealerOpen} />
+    </>
+  );
 }

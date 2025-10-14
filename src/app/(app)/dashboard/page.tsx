@@ -102,7 +102,7 @@ export default function DashboardPage() {
   const { toast } = useToast();
   const { t } = useLanguage();
 
-  const { batches, loading: batchesLoading } = useBatches(user?.id || "");
+  const { batches, loading: batchesLoading } = useBatches(user?.id);
   
   const loading = userLoading || !user;
 
