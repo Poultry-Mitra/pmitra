@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useForm, useFieldArray, useWatch } from "react-hook-form";
@@ -36,7 +37,7 @@ const productSchema = z.object({
 
 const formSchema = z.object({
   // Supplier
-  supplierName: z.string().optional(),
+  supplierName: z.string().min(1, "Supplier name is required"),
   supplierContact: z.string().optional(),
   
   // Products Array
@@ -177,6 +178,7 @@ export default function AddStockPage() {
             // 1. Add each product to the dealer's inventory
             for (const product of values.products) {
                 const newItem: Omit<DealerInventoryItem, 'id' | 'dealerUID' | 'updatedAt' | 'phaseApplicable'> = {
+                    supplierName: values.supplierName,
                     productName: product.productName,
                     category: product.category,
                     quantity: product.quantity,

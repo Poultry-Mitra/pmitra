@@ -1,3 +1,4 @@
+
 // src/hooks/use-dealer-inventory.ts
 'use client';
 
@@ -107,3 +108,4 @@ export async function updateDealerInventoryItem(firestore: Firestore, itemId: st
 
     await updateDoc(docRef, itemData);
 }
+

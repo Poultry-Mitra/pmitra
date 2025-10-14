@@ -75,6 +75,7 @@ export type InventoryItem = {
 export type DealerInventoryItem = {
     id: string;
     dealerUID: string;
+    supplierName?: string;
     category: "Feed" | "Medicine" | "Equipment" | "Chicks" | "Other";
     productName: string;
     quantity: number;

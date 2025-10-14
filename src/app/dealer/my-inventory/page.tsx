@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { PlusCircle, MoreHorizontal, Loader2, Edit } from 'lucide-react';
 import { useUser } from '@/firebase/provider';
 import { useDealerInventory, type DealerInventoryItem } from '@/hooks/use-dealer-inventory';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import { EditStockDialog } from './_components/edit-stock-dialog';
 
@@ -20,6 +20,18 @@ export default function MyInventoryPage() {
     const { inventory, loading } = useDealerInventory(firebaseUser?.uid);
     const [selectedItem, setSelectedItem] = useState<DealerInventoryItem | null>(null);
     const [isEditDialogOpen, setEditDialogOpen] = useState(false);
+
+    const inventoryBySupplier = useMemo(() => {
+        const grouped: { [key: string]: DealerInventoryItem[] } = {};
+        inventory.forEach(item => {
+            const supplierName = item.supplierName || 'No Supplier';
+            if (!grouped[supplierName]) {
+                grouped[supplierName] = [];
+            }
+            grouped[supplierName].push(item);
+        });
+        return grouped;
+    }, [inventory]);
 
     const handleEditClick = (item: DealerInventoryItem) => {
         setSelectedItem(item);
@@ -40,75 +52,81 @@ export default function MyInventoryPage() {
                 </Button>
             </PageHeader>
 
-            <div className="mt-8">
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Current Stock</CardTitle>
-                        <CardDescription>A list of all items currently in your inventory.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="overflow-x-auto">
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Product Name</TableHead>
-                                    <TableHead>Category</TableHead>
-                                    <TableHead>Stock</TableHead>
-                                    <TableHead className="text-right">Rate (per unit)</TableHead>
-                                    <TableHead><span className="sr-only">Actions</span></TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {loading && (
-                                     <TableRow>
-                                        <TableCell colSpan={5} className="h-24 text-center">
-                                            <Loader2 className="mx-auto animate-spin" />
-                                        </TableCell>
-                                    </TableRow>
-                                )}
-                                {!loading && inventory.length === 0 && (
+            <div className="mt-8 space-y-8">
+                 {loading && (
+                    <div className="flex justify-center items-center h-64">
+                         <Loader2 className="mx-auto animate-spin" />
+                    </div>
+                )}
+                {!loading && Object.keys(inventoryBySupplier).length === 0 && (
+                     <Card>
+                        <CardContent className="pt-6 text-center text-muted-foreground">
+                            No inventory items found. Click "Add Stock / Purchase" to get started.
+                        </CardContent>
+                    </Card>
+                )}
+                {!loading && Object.entries(inventoryBySupplier).map(([supplierName, items]) => {
+                    const totalValue = items.reduce((acc, item) => acc + (item.quantity * item.purchaseRatePerUnit), 0);
+                    return (
+                    <Card key={supplierName}>
+                        <CardHeader>
+                            <CardTitle>{supplierName}</CardTitle>
+                            <CardDescription>
+                                Total Stock Value from this supplier: <span className="font-bold text-primary">₹{totalValue.toLocaleString()}</span>
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="overflow-x-auto">
+                            <Table>
+                                <TableHeader>
                                     <TableRow>
-                                        <TableCell colSpan={5} className="h-24 text-center">
-                                            No products found. Add a product to get started.
-                                        </TableCell>
+                                        <TableHead>Product Name</TableHead>
+                                        <TableHead>Category</TableHead>
+                                        <TableHead>Stock</TableHead>
+                                        <TableHead className="text-right">Purchase Rate</TableHead>
+                                        <TableHead className="text-right">Sale Rate</TableHead>
+                                        <TableHead><span className="sr-only">Actions</span></TableHead>
                                     </TableRow>
-                                )}
-                                {!loading && inventory.map((item) => {
-                                    const isLowStock = item.quantity <= item.lowStockThreshold;
-                                    return (
-                                        <TableRow key={item.id}>
-                                            <TableCell className="font-medium">{item.productName}</TableCell>
-                                            <TableCell>
-                                                <Badge variant="outline">{item.category}</Badge>
-                                            </TableCell>
-                                            <TableCell>
-                                                 {isLowStock && <Badge variant="destructive" className="mr-2">Low Stock</Badge>}
-                                                {item.quantity.toLocaleString()} {item.unit}
-                                                {item.unitWeight && ` (${item.unitWeight}kg)`}
-                                            </TableCell>
-                                            <TableCell className="text-right">₹{item.ratePerUnit.toLocaleString()}</TableCell>
-                                            <TableCell className="text-right">
-                                                <DropdownMenu>
-                                                    <DropdownMenuTrigger asChild>
-                                                        <Button aria-haspopup="true" size="icon" variant="ghost">
-                                                            <MoreHorizontal className="h-4 w-4" />
-                                                            <span className="sr-only">Toggle menu</span>
-                                                        </Button>
-                                                    </DropdownMenuTrigger>
-                                                    <DropdownMenuContent align="end">
-                                                        <DropdownMenuItem onClick={() => handleEditClick(item)}>
-                                                            <Edit className="mr-2 h-4 w-4" />
-                                                            Edit Stock
-                                                        </DropdownMenuItem>
-                                                    </DropdownMenuContent>
-                                                </DropdownMenu>
-                                            </TableCell>
-                                        </TableRow>
-                                    )
-                                })}
-                            </TableBody>
-                        </Table>
-                    </CardContent>
-                </Card>
+                                </TableHeader>
+                                <TableBody>
+                                    {items.map((item) => {
+                                        const isLowStock = item.quantity <= item.lowStockThreshold;
+                                        return (
+                                            <TableRow key={item.id}>
+                                                <TableCell className="font-medium">{item.productName}</TableCell>
+                                                <TableCell>
+                                                    <Badge variant="outline">{item.category}</Badge>
+                                                </TableCell>
+                                                <TableCell>
+                                                    {isLowStock && <Badge variant="destructive" className="mr-2">Low Stock</Badge>}
+                                                    {item.quantity.toLocaleString()} {item.unit}
+                                                    {item.unitWeight && ` (${item.unitWeight}kg)`}
+                                                </TableCell>
+                                                <TableCell className="text-right">₹{item.purchaseRatePerUnit.toLocaleString()}</TableCell>
+                                                <TableCell className="text-right font-semibold text-green-600">₹{item.ratePerUnit.toLocaleString()}</TableCell>
+                                                <TableCell className="text-right">
+                                                    <DropdownMenu>
+                                                        <DropdownMenuTrigger asChild>
+                                                            <Button aria-haspopup="true" size="icon" variant="ghost">
+                                                                <MoreHorizontal className="h-4 w-4" />
+                                                                <span className="sr-only">Toggle menu</span>
+                                                            </Button>
+                                                        </DropdownMenuTrigger>
+                                                        <DropdownMenuContent align="end">
+                                                            <DropdownMenuItem onClick={() => handleEditClick(item)}>
+                                                                <Edit className="mr-2 h-4 w-4" />
+                                                                Edit Stock
+                                                            </DropdownMenuItem>
+                                                        </DropdownMenuContent>
+                                                    </DropdownMenu>
+                                                </TableCell>
+                                            </TableRow>
+                                        )
+                                    })}
+                                </TableBody>
+                            </Table>
+                        </CardContent>
+                    </Card>
+                )})}
             </div>
             {selectedItem && (
                  <EditStockDialog
