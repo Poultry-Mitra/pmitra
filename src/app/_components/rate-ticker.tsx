@@ -24,7 +24,8 @@ export function RateTicker() {
     const isLoggedIn = !!firebaseUser && !!appUser;
 
     useEffect(() => {
-        if (!firestore) {
+        if (!firestore || !isLoggedIn) {
+            setAllRates([]);
             setLoading(false);
             return;
         }
@@ -45,7 +46,7 @@ export function RateTicker() {
             setAllRates([]);
         });
         return () => unsubscribe();
-    }, [firestore]);
+    }, [firestore, isLoggedIn]);
 
     const filteredRates = useMemo(() => {
         if (!isLoggedIn || allRates.length === 0 || !appUser) return [];
