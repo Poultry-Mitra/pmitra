@@ -2,16 +2,26 @@
 'use server';
 
 /**
- * @fileOverview A flow to construct a user profile object.
- * This flow is designed to be called after user authentication to securely
- * prepare the data structure for a new user, which will then be saved
- * to Firestore by the client. It does not perform any database operations itself.
+ * @fileOverview A secure backend flow to create a user profile in Firestore.
+ * This flow uses the Firebase Admin SDK to bypass security rules, ensuring
+ * reliable profile creation immediately after authentication.
  */
 
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
+import * as admin from 'firebase-admin';
 
-export const CreateProfileInputSchema = z.object({
+// Initialize Firebase Admin SDK if not already initialized
+if (!admin.apps.length) {
+  admin.initializeApp({
+    // These credentials will be automatically sourced from the environment
+    // in a Firebase/Google Cloud environment.
+    credential: admin.credential.applicationDefault(),
+  });
+}
+const firestore = admin.firestore();
+
+const CreateProfileInputSchema = z.object({
   uid: z.string().describe("The user's Firebase Authentication UID."),
   name: z.string().describe("The user's full name."),
   email: z.string().email().describe("The user's email address."),
@@ -25,26 +35,11 @@ export const CreateProfileInputSchema = z.object({
 });
 export type CreateProfileInput = z.infer<typeof CreateProfileInputSchema>;
 
-// The output is essentially the data that needs to be saved to Firestore.
 const CreateProfileOutputSchema = z.object({
-    name: z.string(),
-    email: z.string().email(),
-    role: z.enum(['farmer', 'dealer', 'admin']),
-    status: z.enum(['Pending', 'Active', 'Suspended']),
-    planType: z.enum(['free', 'premium']),
-    mobileNumber: z.string().optional(),
-    state: z.string(),
-    district: z.string(),
-    pinCode: z.string().optional(),
-    aiQueriesCount: z.number(),
-    lastQueryDate: z.string(),
-    dateJoined: z.string(),
-    uniqueDealerCode: z.string().optional(),
-    connectedFarmers: z.array(z.string()).optional(),
-    connectedDealers: z.array(z.string()).optional(),
+  success: z.boolean(),
+  message: z.string(),
 });
 export type CreateProfileOutput = z.infer<typeof CreateProfileOutputSchema>;
-
 
 export async function createProfile(input: CreateProfileInput): Promise<CreateProfileOutput> {
   return createProfileFlow(input);
@@ -57,32 +52,44 @@ const createProfileFlow = ai.defineFlow(
     outputSchema: CreateProfileOutputSchema,
   },
   async (input) => {
-    
-    const userProfile: Omit<CreateProfileOutput, 'id'> = {
-      name: input.name,
-      email: input.email,
-      role: input.role,
-      status: input.status,
-      planType: input.planType,
-      mobileNumber: input.mobileNumber || undefined,
-      state: input.state,
-      district: input.district,
-      pinCode: input.pinCode || undefined,
-      aiQueriesCount: 0,
-      lastQueryDate: "",
-      dateJoined: new Date().toISOString(),
-    };
+    try {
+      const userDocRef = firestore.collection('users').doc(input.uid);
 
-    if (input.role === 'dealer') {
-      userProfile.uniqueDealerCode = `DL-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
-      userProfile.connectedFarmers = [];
-    }
-    if (input.role === 'farmer') {
-      userProfile.connectedDealers = [];
-    }
+      const userProfile: any = {
+        name: input.name,
+        email: input.email,
+        role: input.role,
+        status: input.status,
+        planType: input.planType,
+        mobileNumber: input.mobileNumber || undefined,
+        state: input.state,
+        district: input.district,
+        pinCode: input.pinCode || undefined,
+        aiQueriesCount: 0,
+        lastQueryDate: "",
+        dateJoined: new Date().toISOString(),
+      };
+
+      if (input.role === 'dealer') {
+        userProfile.uniqueDealerCode = `DL-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+        userProfile.connectedFarmers = [];
+      }
+      if (input.role === 'farmer') {
+        userProfile.connectedDealers = [];
+      }
       
-    // The flow now simply returns the structured object.
-    // The client is responsible for writing this to Firestore.
-    return userProfile as CreateProfileOutput;
+      await userDocRef.set(userProfile);
+
+      return {
+        success: true,
+        message: 'User profile created successfully.',
+      };
+    } catch (error: any) {
+      console.error('Error creating profile in flow:', error);
+      return {
+        success: false,
+        message: error.message || 'An unexpected error occurred while creating the profile.',
+      };
+    }
   }
 );
