@@ -5,6 +5,10 @@ import { Timestamp } from "firebase/firestore";
 export type UserRole = 'farmer' | 'dealer' | 'admin';
 export type UserStatus = 'Pending' | 'Active' | 'Suspended';
 
+export type BiosecurityMeasures = {
+    [key: string]: boolean | undefined;
+};
+
 export type User = {
   id: string;
   name: string;
@@ -23,6 +27,7 @@ export type User = {
   state?: string;
   district?: string;
   pinCode?: string;
+  biosecurityMeasures?: BiosecurityMeasures;
 };
 
 export type Batch = {
@@ -197,4 +202,11 @@ export type Post = {
     updatedAt: string;
 }
 
+export type BiosecurityChecklistItem = {
+    id: string;
+    text: string;
+    category: 'Isolation' | 'Traffic Control' | 'Sanitation';
+};
 
+
+    

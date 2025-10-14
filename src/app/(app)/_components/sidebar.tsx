@@ -67,7 +67,7 @@ const connectNavItems = [
 
 const aiNavItems = [
     { href: "/chat", icon: MessageSquare, label: "ai_chat.title" },
-    { href: "/monitoring", icon: ShieldCheck, label: "monitoring.title" },
+    { href: "/biosecurity", icon: ShieldCheck, label: "biosecurity.title" },
     { href: "/analytics", icon: TrendingUp, label: "analytics.title"},
     { href: "/feed-recommendation", icon: WandSparkles, label: "feed_ai.title"},
 ];
@@ -286,3 +286,5 @@ export function AppSidebar() {
     </>
   );
 }
+
+    

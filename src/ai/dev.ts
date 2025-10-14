@@ -9,5 +9,8 @@ import '@/ai/flows/forecast-potential-problems.ts';
 import '@/ai/flows/get-farm-analytics.ts';
 import '@/ai/flows/diagnose-chicken-health.ts';
 import '@/ai/flows/site-expert.ts';
+import '@/ai/flows/suggest-biosecurity-improvements.ts';
 
 
+
+    
