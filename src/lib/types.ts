@@ -33,7 +33,7 @@ export type Batch = {
   breed?: "Cobb" | "Ross" | "Hubbard" | "Arbor Acres" | "Marshall" | "Other";
   totalChicks: number;
   batchStartDate: string;
-  feedPhase: "Pre-Starter" | "Starter" | "Grower" | "Finisher";
+  feedPhase: "Pre-Starter" | "Starter" | "Finisher";
   mortalityCount: number;
   avgBodyWeight: number; // in grams
   feedConsumed: number; // in kg
