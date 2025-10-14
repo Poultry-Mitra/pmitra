@@ -1,9 +1,10 @@
+
 // src/app/app-provider.tsx
 'use client';
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { type User as FirebaseAuthUser } from 'firebase/auth';
-import { doc, onSnapshot } from 'firebase/firestore';
+import { doc, onSnapshot, getAuth } from 'firebase/firestore';
 import { useAuth, useFirestore, useUser } from '@/firebase/provider';
 import type { User, UserRole } from '@/lib/types';
 import { usePathname, useRouter } from 'next/navigation';
@@ -40,7 +41,10 @@ const getRoleFromPath = (path: string): UserRole | 'public' | 'root' | 'none' =>
   if (PUBLIC_PATHS.some(p => path.startsWith(p))) return 'public';
   if (path.startsWith('/admin')) return 'admin';
   if (path.startsWith('/dealer')) return 'dealer';
-  if (path.startsWith('/dashboard') || path.startsWith('/batches') || path.startsWith('/ledger') || path.startsWith('/inventory') || path.startsWith('/dealers') || path.startsWith('/chat') || path.startsWith('/monitoring') || path.startsWith('/analytics') || path.startsWith('/feed-recommendation') || path.startsWith('/daily-rates') || path.startsWith('/pricing') || path.startsWith('/profile')) return 'farmer';
+  // Check for specific farmer routes that are not nested under a common path
+  if (['/dashboard', '/batches', '/ledger', '/inventory', '/dealers', '/chat', '/monitoring', '/analytics', '/feed-recommendation', '/daily-rates', '/pricing', '/profile'].some(p => path.startsWith(p))) {
+    return 'farmer';
+  }
   return 'none'; // For layouts or other non-page routes
 };
 
@@ -66,10 +70,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
         if (docSnap.exists()) {
           setAppUser({ id: docSnap.id, ...docSnap.data() } as User);
         } else {
-          // Special case for admin role that might not be in 'users'
+          // Special case for admin role that might not be in 'users' collection.
+          // This check ensures the admin can log in even without a user document.
           const auth = getAuth();
           if(auth.currentUser?.email === 'ipoultrymitra@gmail.com') {
-             setAppUser({ id: firebaseUser.uid, email: 'ipoultrymitra@gmail.com', role: 'admin', name: 'Admin' } as User);
+             setAppUser({ id: firebaseUser.uid, email: 'ipoultrymitra@gmail.com', role: 'admin', name: 'Admin', status: 'Active', dateJoined: new Date().toISOString() } as User);
           } else {
              setAppUser(null);
           }
@@ -87,14 +92,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   }, [firebaseUser, firestore, isAuthLoading]);
 
+  // Combined loading state. True if either auth or profile is loading.
   const isLoading = isAuthLoading || isProfileLoading;
 
   useEffect(() => {
+    // Wait until loading is complete before running any redirection logic.
     if (isLoading) return;
 
     const requiredRole = getRoleFromPath(pathname);
     
-    // Allow access to public pages and the root landing page for everyone
+    // Allow access to public pages and the root landing page for everyone, regardless of login state.
     if (requiredRole === 'public' || requiredRole === 'root' || requiredRole === 'none') {
         return;
     }
@@ -117,6 +124,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const requiredRole = getRoleFromPath(pathname);
 
   // Show a global loader for protected routes while we're still authenticating
+  // This prevents a flicker of content before redirection.
   if (isLoading && requiredRole !== 'public' && requiredRole !== 'root' && requiredRole !== 'none') {
     return (
         <div className="flex h-screen w-full items-center justify-center">

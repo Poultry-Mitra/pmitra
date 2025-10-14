@@ -84,9 +84,15 @@ export default function RoleLoginPage() {
       throw new Error('System not ready. Please try again.');
     }
 
-    if (role === 'admin') {
-      router.replace(getRedirectPath(role));
+    // Special handling for admin role, no need to check 'users' collection
+    if (role === 'admin' && user.email === 'ipoultrymitra@gmail.com') {
+      router.replace(getRedirectPath('admin'));
       return;
+    }
+    
+    if (role === 'admin' && user.email !== 'ipoultrymitra@gmail.com') {
+        await auth.signOut();
+        throw new Error('This is not a valid admin account.');
     }
 
     const userDocRef = doc(firestore, 'users', user.uid);
@@ -109,10 +115,9 @@ export default function RoleLoginPage() {
     if (userData.status !== 'Active') {
         await auth.signOut();
         const message = userData.status === 'Pending' 
-            ? "Your account is pending approval. Please contact support if you have questions."
-            : "Your account has been suspended. Please contact support.";
-        toast({ title: `Account Not Active`, description: message, variant: "destructive" });
-        throw new Error(`Account not active: ${userData.status}`); // Prevent redirection
+            ? "Your account is pending approval. You will be notified once it is active."
+            : "Your account has been suspended. Please contact support for assistance.";
+        throw new Error(message);
     }
     
     router.replace(getRedirectPath(role));
@@ -125,11 +130,10 @@ export default function RoleLoginPage() {
       const userCredential = await signInWithEmailAndPassword(auth, values.email, values.password);
       await handleLoginSuccess(userCredential.user);
     } catch (error: any) {
-        let message = 'An unknown error occurred.';
+        let message = error.message || 'An unknown error occurred.';
+        // Don't show generic error for specific auth codes
         if (['auth/user-not-found', 'auth/wrong-password', 'auth/invalid-credential'].includes(error.code)) {
             message = 'Invalid email or password. Please try again.';
-        } else if (error.message.startsWith('User profile not found')) {
-            message = error.message;
         }
         toast({ title: 'Login Failed', description: message, variant: 'destructive' });
         setIsSubmitting(false);
@@ -144,13 +148,10 @@ export default function RoleLoginPage() {
       const userCredential = await signInWithPopup(auth, provider);
       await handleLoginSuccess(userCredential.user);
     } catch (error: any) {
-        let message = 'Could not sign in with Google. Please try again.';
+        let message = error.message || 'Could not sign in with Google. Please try again.';
         if (error.code === 'auth/popup-closed-by-user') {
-            // Don't show an error toast if the user closes the popup.
             setIsGoogleLoading(false);
             return;
-        } else if (error.message.startsWith('User profile not found')) {
-            message = error.message;
         }
         
         console.error("Google sign-in error:", error);
