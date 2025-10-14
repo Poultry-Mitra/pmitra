@@ -7,7 +7,7 @@ import { z } from "zod";
 import { PageHeader } from "../../_components/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
@@ -60,8 +60,8 @@ type FormValues = z.infer<typeof formSchema>;
 function SummaryCard({ control }: { control: any }) {
     const values = useWatch({ control });
     const products = values.products || [];
-    const subTotal = products.reduce((acc: number, product: any) => acc + (parseFloat(product.ratePerUnit) * parseFloat(product.quantity)), 0);
-    const totalDiscount = products.reduce((acc: number, product: any) => acc + parseFloat(product.discount), 0);
+    const subTotal = products.reduce((acc: number, product: any) => acc + (parseFloat(product.ratePerUnit || '0') * parseFloat(product.quantity || '0')), 0);
+    const totalDiscount = products.reduce((acc: number, product: any) => acc + parseFloat(product.discount || '0'), 0);
 
     const transportCost = parseFloat(values.transportCost || '0');
     const miscCost = parseFloat(values.miscCost || '0');
