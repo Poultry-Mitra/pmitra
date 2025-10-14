@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -78,11 +79,9 @@ export default function RoleLoginPage() {
     }
   }, [appUser, isAppLoading, router]);
 
-  async function handleLoginSuccess(user: FirebaseAuthUser, provider: 'email' | 'google') {
+  async function handleLoginSuccess(user: FirebaseAuthUser) {
     if (!firestore || !auth) {
-        toast({ title: 'Login Failed', description: 'System not ready. Please try again.', variant: 'destructive' });
-        provider === 'email' ? setIsSubmitting(false) : setIsGoogleLoading(false);
-        return;
+      throw new Error('System not ready. Please try again.');
     }
 
     if (role === 'admin') {
@@ -95,9 +94,8 @@ export default function RoleLoginPage() {
 
     if (!docSnap.exists()) {
       await auth.signOut();
-      toast({ title: 'Login Failed', description: 'User profile not found. Please sign up or contact support.', variant: 'destructive' });
-      provider === 'email' ? setIsSubmitting(false) : setIsGoogleLoading(false);
-      return;
+      // Throw a specific error to be caught by the caller.
+      throw new Error('User profile not found. Please sign up or contact support.');
     }
 
     const userData = docSnap.data() as AppUser;
@@ -114,8 +112,7 @@ export default function RoleLoginPage() {
             ? "Your account is pending approval. Please contact support if you have questions."
             : "Your account has been suspended. Please contact support.";
         toast({ title: `Account Not Active`, description: message, variant: "destructive" });
-        provider === 'email' ? setIsSubmitting(false) : setIsGoogleLoading(false);
-        return;
+        throw new Error(`Account not active: ${userData.status}`); // Prevent redirection
     }
     
     router.replace(getRedirectPath(role));
@@ -126,11 +123,13 @@ export default function RoleLoginPage() {
     setIsSubmitting(true);
     try {
       const userCredential = await signInWithEmailAndPassword(auth, values.email, values.password);
-      await handleLoginSuccess(userCredential.user, 'email');
+      await handleLoginSuccess(userCredential.user);
     } catch (error: any) {
         let message = 'An unknown error occurred.';
         if (['auth/user-not-found', 'auth/wrong-password', 'auth/invalid-credential'].includes(error.code)) {
             message = 'Invalid email or password. Please try again.';
+        } else if (error.message.startsWith('User profile not found')) {
+            message = error.message;
         }
         toast({ title: 'Login Failed', description: message, variant: 'destructive' });
         setIsSubmitting(false);
@@ -143,12 +142,19 @@ export default function RoleLoginPage() {
     const provider = new GoogleAuthProvider();
     try {
       const userCredential = await signInWithPopup(auth, provider);
-      await handleLoginSuccess(userCredential.user, 'google');
+      await handleLoginSuccess(userCredential.user);
     } catch (error: any) {
-        if (error.code !== 'auth/popup-closed-by-user') {
-          console.error("Google sign-in error:", error);
-          toast({ title: "Google Sign-In Failed", description: "Could not sign in with Google. Please try again.", variant: "destructive" });
+        let message = 'Could not sign in with Google. Please try again.';
+        if (error.code === 'auth/popup-closed-by-user') {
+            // Don't show an error toast if the user closes the popup.
+            setIsGoogleLoading(false);
+            return;
+        } else if (error.message.startsWith('User profile not found')) {
+            message = error.message;
         }
+        
+        console.error("Google sign-in error:", error);
+        toast({ title: "Google Sign-In Failed", description: message, variant: "destructive" });
         setIsGoogleLoading(false);
     }
   };
