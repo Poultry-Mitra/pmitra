@@ -20,7 +20,6 @@ import { addDealerInventoryItem, type DealerInventoryItem } from "@/hooks/use-de
 import { addLedgerEntry } from "@/hooks/use-ledger";
 import { cn } from "@/lib/utils";
 import { useEffect, useCallback } from "react";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 const productSchema = z.object({
   productName: z.string().min(2, "Product name is required."),
@@ -35,6 +34,7 @@ const productSchema = z.object({
   discountAmount: z.coerce.number().min(0).default(0),
   unitWeight: z.coerce.number().optional(),
   lowStockThreshold: z.coerce.number().min(0).default(10),
+  tprIncentive: z.coerce.number().optional(),
 });
 
 const formSchema = z.object({
@@ -136,7 +136,7 @@ export default function AddStockPage() {
                 unit: "bag", 
                 purchaseRatePerUnit: 0, 
                 ratePerUnit: 0, 
-                discountType: 'amount', 
+                discountType: "amount", 
                 discountValue: 0,
                 discountAmount: 0,
                 quantity: 1, 
@@ -188,15 +188,19 @@ export default function AddStockPage() {
     
     const recalculateDiscount = useCallback((index: number) => {
         const product = form.getValues(`products.${index}`);
-        const { discountType, discountValue, purchaseRatePerUnit, quantity } = product;
+        const { discountType, discountValue, purchaseRatePerUnit, quantity, pricingBasis, tprIncentive } = product;
         
         let calculatedAmount = 0;
         const total = (purchaseRatePerUnit || 0) * (quantity || 0);
-        if (discountType === 'percentage') {
-            calculatedAmount = total * ((discountValue || 0) / 100);
+
+        if (pricingBasis === 'TPR') {
+            calculatedAmount = (tprIncentive || 0) * (quantity || 0);
         } else {
-            // For amount, the discountAmount is the discountValue per item, so multiply by quantity
-            calculatedAmount = (discountValue || 0) * (quantity || 0);
+            if (discountType === 'percentage') {
+                calculatedAmount = total * ((discountValue || 0) / 100);
+            } else {
+                calculatedAmount = (discountValue || 0) * (quantity || 0);
+            }
         }
         form.setValue(`products.${index}.discountAmount`, calculatedAmount, { shouldValidate: true });
     }, [form]);
@@ -205,7 +209,14 @@ export default function AddStockPage() {
         const subscription = form.watch((value, { name, type }) => {
             if (name && type === 'change') {
                 const parts = name.split('.');
-                if (parts.length === 3 && (parts[2] === 'discountType' || parts[2] === 'discountValue' || parts[2] === 'purchaseRatePerUnit' || parts[2] === 'quantity')) {
+                if (parts.length === 3 && (
+                    parts[2] === 'discountType' || 
+                    parts[2] === 'discountValue' || 
+                    parts[2] === 'purchaseRatePerUnit' || 
+                    parts[2] === 'quantity' ||
+                    parts[2] === 'pricingBasis' ||
+                    parts[2] === 'tprIncentive'
+                )) {
                     recalculateDiscount(parseInt(parts[1], 10));
                 }
             }
@@ -305,7 +316,7 @@ export default function AddStockPage() {
                                         const currentUnit = watchedProducts && watchedProducts[index]?.unit;
                                         const showUnitWeight = !['pcs', 'chick'].includes(currentUnit || "");
                                         const currentCategory = watchedProducts && watchedProducts[index]?.category;
-                                        const discountType = watchedProducts && watchedProducts[index]?.discountType;
+                                        const pricingBasis = watchedProducts && watchedProducts[index]?.pricingBasis;
 
                                         return (
                                         <Card key={field.id} className="relative border-border">
@@ -426,33 +437,48 @@ export default function AddStockPage() {
                                                         </FormItem>
                                                     )} />
                                                     
-                                                     <FormField control={form.control} name={`products.${index}.discountValue`} render={({ field }) => (
-                                                        <FormItem>
-                                                            <FormLabel>Discount</FormLabel>
-                                                            <div className="flex">
-                                                                <Input 
-                                                                    type="number"
-                                                                    className="rounded-r-none focus:z-10"
-                                                                    placeholder={discountType === 'percentage' ? "e.g., 5" : "e.g., 100"}
-                                                                    {...field}
-                                                                />
-                                                                <FormField control={form.control} name={`products.${index}.discountType`} render={({ field: typeField }) => (
-                                                                    <Select onValueChange={typeField.onChange} defaultValue={typeField.value}>
-                                                                        <FormControl>
-                                                                            <SelectTrigger className="w-[80px] rounded-l-none border-l-0">
-                                                                                <SelectValue />
-                                                                            </SelectTrigger>
-                                                                        </FormControl>
-                                                                        <SelectContent>
-                                                                            <SelectItem value="percentage">%</SelectItem>
-                                                                            <SelectItem value="amount">₹</SelectItem>
-                                                                        </SelectContent>
-                                                                    </Select>
-                                                                )} />
-                                                            </div>
-                                                            <FormMessage />
-                                                        </FormItem>
-                                                     )} />
+                                                     {pricingBasis === 'TPR' ? (
+                                                        <FormField control={form.control} name={`products.${index}.tprIncentive`} render={({ field }) => (
+                                                            <FormItem>
+                                                                <FormLabel>TPR Incentive (₹ per Unit)</FormLabel>
+                                                                <FormControl>
+                                                                    <div className="relative">
+                                                                        <IndianRupee className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                                                        <Input type="number" className="pl-8" placeholder="e.g., 50" {...field} />
+                                                                    </div>
+                                                                </FormControl>
+                                                                <FormMessage />
+                                                            </FormItem>
+                                                        )} />
+                                                     ) : (
+                                                        <FormField control={form.control} name={`products.${index}.discountValue`} render={({ field }) => (
+                                                            <FormItem>
+                                                                <FormLabel>Discount</FormLabel>
+                                                                <div className="flex">
+                                                                    <Input 
+                                                                        type="number"
+                                                                        className="rounded-r-none focus:z-10"
+                                                                        placeholder={watchedProducts?.[index]?.discountType === 'percentage' ? "e.g., 5" : "e.g., 10"}
+                                                                        {...field}
+                                                                    />
+                                                                    <FormField control={form.control} name={`products.${index}.discountType`} render={({ field: typeField }) => (
+                                                                        <Select onValueChange={typeField.onChange} defaultValue={typeField.value}>
+                                                                            <FormControl>
+                                                                                <SelectTrigger className="w-[80px] rounded-l-none border-l-0">
+                                                                                    <SelectValue />
+                                                                                </SelectTrigger>
+                                                                            </FormControl>
+                                                                            <SelectContent>
+                                                                                <SelectItem value="percentage">%</SelectItem>
+                                                                                <SelectItem value="amount">₹</SelectItem>
+                                                                            </SelectContent>
+                                                                        </Select>
+                                                                    )} />
+                                                                </div>
+                                                                <FormMessage />
+                                                            </FormItem>
+                                                        )} />
+                                                     )}
 
                                                     <FormField control={form.control} name={`products.${index}.discountAmount`} render={({ field }) => (
                                                         <FormItem className="hidden">
