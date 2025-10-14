@@ -1,3 +1,4 @@
+
 // src/hooks/use-suppliers.ts
 'use client';
 
@@ -94,6 +95,6 @@ export function addSupplier(firestore: Firestore, auth: Auth, dealerUID: string,
             
             // Allow the original error to be caught by the component's try/catch block
             // to show a user-facing toast notification.
-            throw serverError;
+            throw permissionError;
         });
 }
