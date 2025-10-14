@@ -165,6 +165,11 @@ export default function AddStockPage() {
         };
         const newUnit = unitDefaults[category] || "pcs";
         form.setValue(`products.${index}.unit`, newUnit);
+
+        // If category is Chicks, set pricing to FOR and disable it
+        if (category === "Chicks") {
+            form.setValue(`products.${index}.pricingBasis`, 'FOR');
+        }
     };
 
 
@@ -308,7 +313,7 @@ export default function AddStockPage() {
                                                     <FormField control={form.control} name={`products.${index}.pricingBasis`} render={({ field }) => (
                                                         <FormItem>
                                                             <FormLabel>Pricing Basis</FormLabel>
-                                                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                            <Select onValueChange={field.onChange} value={field.value} disabled={currentCategory === 'Chicks'}>
                                                                 <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
                                                                 <SelectContent>
                                                                     <SelectItem value="TPR">TPR</SelectItem>
