@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
     Table,
     TableBody,
@@ -78,8 +78,29 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
     const firestore = useFirestore();
     const adminUser = useAuthUser();
     const { t } = useLanguage();
+    const [activeTab, setActiveTab] = useState<string>("pending");
+    
+    const { pendingUsers, activeUsers, suspendedUsers } = useMemo(() => {
+        const pending: User[] = [];
+        const active: User[] = [];
+        const suspended: User[] = [];
+        users.forEach(user => {
+            const status = user.status || 'Pending';
+            if (status === 'Pending') pending.push(user);
+            else if (status === 'Active') active.push(user);
+            else if (status === 'Suspended') suspended.push(user);
+        });
+        return { pendingUsers: pending, activeUsers: active, suspendedUsers: suspended };
+    }, [users]);
 
-    const filteredUsers = roleToShow ? users : users.slice(0, 5); // Show only 5 recent users on dashboard view
+    const usersByTab: { [key: string]: User[] } = {
+        all: users,
+        pending: pendingUsers,
+        active: activeUsers,
+        suspended: suspendedUsers,
+    };
+    
+    const filteredUsers = roleToShow ? usersByTab[activeTab] : users.slice(0, 5);
 
     const title = roleToShow ? t(`admin.users.title_${roleToShow}`) : t('admin.users.title_recent');
     const description = roleToShow ? t(`admin.users.description_${roleToShow}`) : t('admin.users.description_recent');
@@ -191,6 +212,19 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
                     )}
                 </CardHeader>
                 <CardContent className="overflow-x-auto">
+                    {roleToShow && (
+                        <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-4">
+                            <TabsList>
+                                <TabsTrigger value="pending">
+                                    Pending
+                                    {pendingUsers.length > 0 && <Badge className="ml-2">{pendingUsers.length}</Badge>}
+                                </TabsTrigger>
+                                <TabsTrigger value="active">Active</TabsTrigger>
+                                <TabsTrigger value="suspended">Suspended</TabsTrigger>
+                                <TabsTrigger value="all">All</TabsTrigger>
+                            </TabsList>
+                        </Tabs>
+                    )}
                     <Table>
                         <TableHeader>
                             <TableRow>
@@ -214,7 +248,7 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
                             {!loading && filteredUsers.length === 0 && (
                                 <TableRow>
                                     <TableCell colSpan={5} className="text-center p-8">
-                                        {t('messages.no_users_found')}
+                                        {`No ${activeTab} users found.`}
                                     </TableCell>
                                 </TableRow>
                             )}
