@@ -30,6 +30,7 @@ export type Batch = {
   farmerUID: string;
   batchName: string;
   batchType: "Broiler" | "Layer";
+  breed?: "Cobb" | "Ross" | "Hubbard" | "Arbor Acres" | "Marshall" | "Other";
   totalChicks: number;
   batchStartDate: string;
   feedPhase: "Pre-Starter" | "Starter" | "Finisher";

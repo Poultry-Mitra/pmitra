@@ -2,7 +2,7 @@
 "use client";
 
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Button } from "@/components/ui/button";
@@ -36,6 +36,7 @@ import { format } from 'date-fns';
 const formSchema = z.object({
     batchName: z.string().min(3, "Batch name must be at least 3 characters."),
     batchType: z.enum(["Broiler", "Layer"]),
+    breed: z.string().optional(),
     totalChicks: z.coerce.number().int().min(1, "Total chicks must be at least 1."),
     batchStartDate: z.date(),
 });
@@ -52,10 +53,13 @@ export function AddBatchDialog({ open, onOpenChange }: { open: boolean; onOpenCh
         defaultValues: {
             batchName: "",
             batchType: "Broiler",
+            breed: "Cobb",
             totalChicks: 500,
             batchStartDate: new Date(),
         },
     });
+
+    const batchType = useWatch({ control: form.control, name: 'batchType' });
 
     async function onSubmit(values: FormValues) {
         if (!firestore || !user) {
@@ -71,6 +75,7 @@ export function AddBatchDialog({ open, onOpenChange }: { open: boolean; onOpenCh
             avgBodyWeight: 40, // Starting weight for a chick
             feedConsumed: 0,
             status: "Active",
+            breed: values.batchType === 'Broiler' ? values.breed : undefined,
         };
 
         try {
@@ -129,11 +134,38 @@ export function AddBatchDialog({ open, onOpenChange }: { open: boolean; onOpenCh
                                     </FormItem>
                                 )}
                             />
+                            {batchType === 'Broiler' && (
+                                <FormField
+                                    control={form.control}
+                                    name="breed"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                        <FormLabel>Breed</FormLabel>
+                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                            <FormControl>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Select broiler breed" />
+                                            </SelectTrigger>
+                                            </FormControl>
+                                            <SelectContent>
+                                                <SelectItem value="Cobb">Cobb</SelectItem>
+                                                <SelectItem value="Ross">Ross</SelectItem>
+                                                <SelectItem value="Hubbard">Hubbard</SelectItem>
+                                                <SelectItem value="Arbor Acres">Arbor Acres</SelectItem>
+                                                <SelectItem value="Marshall">Marshall</SelectItem>
+                                                <SelectItem value="Other">Other</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                        <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            )}
                             <FormField
                                 control={form.control}
                                 name="totalChicks"
                                 render={({ field }) => (
-                                    <FormItem>
+                                    <FormItem className={cn(batchType !== 'Broiler' && 'col-span-2 md:col-span-1')}>
                                         <FormLabel>Total Chicks</FormLabel>
                                         <FormControl><Input type="number" {...field} /></FormControl>
                                         <FormMessage />

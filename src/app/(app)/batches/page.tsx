@@ -112,7 +112,7 @@ export default function BatchesPage() {
                     <TableHeader>
                         <TableRow>
                             <TableHead>Batch Name</TableHead>
-                            <TableHead>Breed</TableHead>
+                            <TableHead>Type</TableHead>
                             <TableHead>Status</TableHead>
                             <TableHead className="text-right">Quantity</TableHead>
                             <TableHead className="text-right">Age (days)</TableHead>
@@ -143,7 +143,7 @@ export default function BatchesPage() {
                           return(
                             <TableRow key={batch.id} onClick={() => handleRowClick(batch.id)} className="cursor-pointer">
                                 <TableCell className="font-medium">{batch.batchName}</TableCell>
-                                <TableCell>{batch.batchType}</TableCell>
+                                <TableCell>{batch.breed ? `${batch.batchType} (${batch.breed})` : batch.batchType}</TableCell>
                                 <TableCell>
                                     <Badge variant={statusVariant[batch.status]} className={cn("capitalize", statusColorScheme[batch.status])}>
                                         {batch.status}
