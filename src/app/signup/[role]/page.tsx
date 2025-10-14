@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -16,11 +16,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { useAuth, useFirestore } from "@/firebase/provider";
 import { GoogleAuthProvider, signInWithPopup, type User as FirebaseAuthUser, createUserWithEmailAndPassword } from "firebase/auth";
-import { doc, setDoc, getDoc } from "firebase/firestore";
+import { doc, setDoc, getDoc, collection, query, where, getDocs, limit, deleteDoc } from "firebase/firestore";
 import { AppIcon } from "@/app/icon-component";
 import { Loader2 } from "lucide-react";
 import indianStates from "@/lib/indian-states-districts.json";
 import { Separator } from "@/components/ui/separator";
+import type { Invitation } from "@/lib/types";
 
 const formSchema = z.object({
     fullName: z.string().min(3, { message: "Full name must be at least 3 characters." }),
@@ -48,15 +49,18 @@ function GoogleIcon() {
 export default function DetailedSignupPage() {
     const params = useParams();
     const router = useRouter();
+    const searchParams = useSearchParams();
     const { toast } = useToast();
     const auth = useAuth();
     const firestore = useFirestore();
 
-    const initialRole = (params.role as string) || "farmer";
     const [districts, setDistricts] = useState<string[]>([]);
     const [isGoogleLoading, setIsGoogleLoading] = useState(false);
     const [authProvider, setAuthProvider] = useState<'email' | 'google'>('email');
     const [googleUser, setGoogleUser] = useState<FirebaseAuthUser | null>(null);
+    const [invitation, setInvitation] = useState<(Invitation & { id: string }) | null>(null);
+
+    const initialRole = invitation?.role || (params.role as string) || "farmer";
 
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
@@ -70,6 +74,26 @@ export default function DetailedSignupPage() {
             pinCode: "",
         },
     });
+
+    // Check for invitation token
+    useEffect(() => {
+        const token = searchParams.get('token');
+        if (token && firestore) {
+            const invitationsRef = collection(firestore, "invitations");
+            const q = query(invitationsRef, where("token", "==", token), limit(1));
+            getDocs(q).then(snapshot => {
+                if (!snapshot.empty) {
+                    const invDoc = snapshot.docs[0];
+                    const invData = { id: invDoc.id, ...invDoc.data() } as Invitation & { id: string };
+                    setInvitation(invData);
+                    form.reset({
+                        fullName: invData.name,
+                        email: invData.email,
+                    });
+                }
+            });
+        }
+    }, [searchParams, firestore, form]);
 
     const selectedState = form.watch("state");
 
@@ -96,8 +120,8 @@ export default function DetailedSignupPage() {
         }
 
         const isAdminEmail = values.email.toLowerCase() === 'ipoultrymitra@gmail.com';
-        const finalRole = isAdminEmail ? 'admin' : initialRole;
-        const finalStatus = isAdminEmail ? 'Active' : 'Pending';
+        const finalRole = invitation?.role || (isAdminEmail ? 'admin' : initialRole);
+        const finalStatus = invitation ? 'Active' : (isAdminEmail ? 'Active' : 'Pending');
 
         const userProfile = {
             name: values.fullName,
@@ -108,7 +132,7 @@ export default function DetailedSignupPage() {
             state: values.state,
             district: values.district,
             pinCode: values.pinCode || "",
-            planType: isAdminEmail ? 'premium' : 'free',
+            planType: invitation?.planType || (isAdminEmail ? 'premium' : 'free'),
             aiQueriesCount: 0,
             lastQueryDate: "",
             dateJoined: new Date().toISOString(),
@@ -118,17 +142,15 @@ export default function DetailedSignupPage() {
 
         await setDoc(userDocRef, userProfile);
         
-        if (finalStatus === 'Active') {
-            toast({
-                title: "Account Created!",
-                description: "Your account is active. You will be redirected to the login page.",
-            });
-        } else {
-            toast({
-                title: "Account Created!",
-                description: "Your account is pending approval. You will be notified once active.",
-            });
+        // If it was an invitation, delete it
+        if (invitation) {
+            await deleteDoc(doc(firestore, 'invitations', invitation.id));
         }
+        
+        toast({
+            title: "Account Created!",
+            description: finalStatus === 'Active' ? "Your account is active. Redirecting to login." : "Your account is pending approval. You will be notified once active.",
+        });
         
         if (auth?.currentUser) await auth.signOut();
         router.push('/login');
@@ -142,10 +164,8 @@ export default function DetailedSignupPage() {
 
         try {
             if (authProvider === 'google' && googleUser) {
-                // User already authenticated with Google, just create the profile
                 await handleFinalUserCreation(googleUser.uid, values);
             } else {
-                // Create user with email and password
                 if (!values.password) {
                     form.setError('password', { message: 'Password is required for email signup.' });
                     return;
@@ -171,7 +191,6 @@ export default function DetailedSignupPage() {
             const result = await signInWithPopup(auth, provider);
             const user = result.user;
             
-            // Check if user already exists in Firestore
             if (firestore) {
                 const userDocRef = doc(firestore, "users", user.uid);
                 const docSnap = await getDoc(userDocRef);
@@ -183,24 +202,20 @@ export default function DetailedSignupPage() {
                 }
             }
             
-
-            // Pre-fill form instead of creating user immediately
             form.reset({
-                ...form.getValues(), // Keep other fields if user has started typing
+                ...form.getValues(),
                 fullName: user.displayName || "",
                 email: user.email || "",
-                password: "", // No password needed for Google sign-up
+                password: "",
             });
             setAuthProvider('google');
             setGoogleUser(user);
 
         } catch (error: any) {
-            if (error.code === 'auth/popup-closed-by-user') {
-                // User closed the popup, do nothing.
-                return;
+            if (error.code !== 'auth/popup-closed-by-user') {
+                console.error("Google sign up error:", error);
+                toast({ title: "Google Sign-Up Failed", description: "Could not sign up with Google.", variant: "destructive" });
             }
-            console.error("Google sign up error:", error);
-            toast({ title: "Google Sign-Up Failed", description: "Could not sign up with Google.", variant: "destructive" });
         } finally {
             setIsGoogleLoading(false);
         }
@@ -213,11 +228,11 @@ export default function DetailedSignupPage() {
             <Card className="w-full max-w-xl">
                 <CardHeader className="text-center">
                      <AppIcon className="mx-auto size-10 text-primary" />
-                    <CardTitle className="font-headline text-2xl">Create Your {initialRole === 'farmer' ? 'Farmer' : 'Dealer'} Account</CardTitle>
-                    <CardDescription>Fill in your details or use Google to get started.</CardDescription>
+                    <CardTitle className="font-headline text-2xl capitalize">Create Your {initialRole} Account</CardTitle>
+                    <CardDescription>{invitation ? `Accepting invitation for ${invitation.email}` : "Fill in your details or use Google to get started."}</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    {authProvider === 'email' && (
+                    {!invitation && authProvider === 'email' && (
                         <>
                             <Button variant="outline" className="w-full" onClick={handleGoogleSignUp} disabled={isSubmitting}>
                                 {isGoogleLoading ? <Loader2 className="mr-2 animate-spin" /> : <GoogleIcon />}
@@ -241,7 +256,7 @@ export default function DetailedSignupPage() {
                                     <FormItem><FormLabel>Full Name</FormLabel><FormControl><Input placeholder="Your full name" {...field} /></FormControl><FormMessage /></FormItem>
                                 )} />
                                 <FormField control={form.control} name="email" render={({ field }) => (
-                                    <FormItem><FormLabel>Email</FormLabel><FormControl><Input type="email" placeholder="your@email.com" {...field} disabled={authProvider === 'google'} /></FormControl><FormMessage /></FormItem>
+                                    <FormItem><FormLabel>Email</FormLabel><FormControl><Input type="email" placeholder="your@email.com" {...field} disabled={authProvider === 'google' || !!invitation} /></FormControl><FormMessage /></FormItem>
                                 )} />
                             </div>
 

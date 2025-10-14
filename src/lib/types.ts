@@ -29,6 +29,18 @@ export type User = {
   biosecurityMeasures?: BiosecurityMeasures;
 };
 
+export type Invitation = {
+    id: string;
+    email: string;
+    name: string;
+    role: UserRole;
+    planType: 'free' | 'premium';
+    status: 'pending' | 'accepted';
+    createdAt: string;
+    createdBy: string; // Admin UID
+    token: string; // Secure, unique token
+};
+
 export type Batch = {
   id: string;
   farmerUID: string;
@@ -207,4 +219,3 @@ export type BiosecurityChecklistItem = {
     text: string;
     category: 'Isolation' | 'Traffic Control' | 'Sanitation';
 };
-

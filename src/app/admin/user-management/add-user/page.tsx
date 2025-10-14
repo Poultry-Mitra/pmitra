@@ -1,3 +1,4 @@
+
 // src/app/admin/user-management/add-user/page.tsx
 "use client";
 
@@ -12,12 +13,10 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
-import { Save } from "lucide-react";
-import { useFirestore, useUser, useAuth } from "@/firebase/provider";
-import { createUserProfile } from "@/hooks/use-users";
+import { Save, Send } from "lucide-react";
+import { useFirestore, useUser } from "@/firebase/provider";
 import { addAuditLog } from "@/hooks/use-audit-logs";
-import { doc, setDoc } from 'firebase/firestore';
-import { sendPasswordResetEmail } from 'firebase/auth';
+import { collection, addDoc } from 'firebase/firestore';
 
 
 const formSchema = z.object({
@@ -33,7 +32,6 @@ export default function AddUserPage() {
     const { toast } = useToast();
     const router = useRouter();
     const firestore = useFirestore();
-    const auth = useAuth();
     const adminUser = useUser();
 
     const form = useForm<FormValues>({
@@ -47,7 +45,7 @@ export default function AddUserPage() {
     });
 
     async function onSubmit(values: FormValues) {
-        if (!firestore || !adminUser.user || !auth) {
+        if (!firestore || !adminUser.user) {
             toast({
                 title: "Error",
                 description: "You must be an admin to perform this action.",
@@ -57,77 +55,40 @@ export default function AddUserPage() {
         }
 
         try {
-            // We can't create an Auth user directly from the client without their password.
-            // The best practice is to create their profile and then send them an email
-            // to set their own password. This requires a backend function to create the user.
-            // For now, we'll just create the profile and send a password reset as a workaround.
+            // Create an invitation document instead of a user profile
+            const invitationRef = collection(firestore, "invitations");
             
-            // This is a placeholder for the actual user creation logic that should happen on a backend.
-            // We'll just create the profile document for now.
-            const newUserId = doc(collection(firestore, 'temp_users')).id; // Generate a temporary ID
-            const userDocRef = doc(firestore, "users", newUserId);
-
-            const newUserProfile = {
-                id: newUserId,
-                name: values.name,
+            await addDoc(invitationRef, {
                 email: values.email,
+                name: values.name,
                 role: values.role,
                 planType: values.planType,
-                status: 'Active',
-                dateJoined: new Date().toISOString(),
-                ...(values.role === 'dealer' && { 
-                    uniqueDealerCode: `DL-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
-                    connectedFarmers: [],
-                }),
-                ...(values.role === 'farmer' && {
-                    connectedDealers: [],
-                }),
-                aiQueriesCount: 0,
-                lastQueryDate: '',
-            };
-
-            // This will fail because client SDK cannot create arbitrary users.
-            // This is a conceptual bug in the original implementation.
-            // await createUserWithEmailAndPassword(auth, values.email, 'temporaryPassword');
-            
-            // Workaround: We can't create the auth user, but we can send a password reset.
-            // This assumes the user will create their account with this email.
-            // A better solution requires a backend function.
-             await sendPasswordResetEmail(auth, values.email);
-
-
-            await setDoc(userDocRef, newUserProfile);
+                status: 'pending',
+                createdAt: new Date().toISOString(),
+                createdBy: adminUser.user.uid,
+            });
 
             // Create an audit log for this action
             await addAuditLog(firestore, {
-                adminUID: adminUser.user!.uid,
-                action: 'CREATE_USER',
+                adminUID: adminUser.user.uid,
+                action: 'CREATE_USER', // We'll keep the action name for consistency
                 timestamp: new Date().toISOString(),
-                details: `Created new ${values.role} user profile: ${values.name} (${newUserId})`,
+                details: `Sent invitation to ${values.email} for role: ${values.role}.`,
             });
             
             toast({
-                title: "User Profile Created",
-                description: `A profile for ${values.name} has been created and an email has been sent for them to set their password.`,
+                title: "Invitation Created",
+                description: `An invitation has been created for ${values.email}. Please share the sign-up link with them.`,
             });
             
-            if (values.role === 'farmer') {
-                router.push('/admin/user-management/farmers');
-            } else if (values.role === 'dealer') {
-                 router.push('/admin/user-management/dealers');
-            } else {
-                 router.push('/admin/dashboard');
-            }
+            // Redirect based on role
+            const redirectPath = values.role === 'farmer' ? '/admin/user-management/farmers' : '/admin/user-management/dealers';
+            router.push(redirectPath);
+
         } catch (error: any) {
-             let errorMessage = "Could not create the user profile.";
-             if (error.code === 'auth/email-already-in-use') {
-                 errorMessage = "This email address is already in use. Try sending a password reset instead.";
-             } else if (error.code === 'auth/requires-recent-login') {
-                errorMessage = "This operation is sensitive and requires recent authentication. Log in again before retrying this request."
-             }
              toast({
-                title: "User Creation Failed",
-                description: errorMessage,
+                title: "Invitation Failed",
+                description: error.message || "Could not create the invitation.",
                 variant: "destructive",
             });
         }
@@ -135,12 +96,14 @@ export default function AddUserPage() {
 
     return (
         <>
-            <PageHeader title="Add New User" description="Create a new farmer or dealer account." />
+            <PageHeader title="Invite New User" description="Invite a new farmer or dealer to the platform." />
             <div className="mt-8 max-w-2xl">
                 <Card>
                     <CardHeader>
                         <CardTitle>User Details</CardTitle>
-                        <CardDescription>Fill in the form to create a new user. They will receive an email to set their password and log in.</CardDescription>
+                        <CardDescription>
+                            Fill in the user's details. An invitation will be generated for them to create their account. This does not create a user directly.
+                        </CardDescription>
                     </CardHeader>
                     <CardContent>
                         <Form {...form}>
@@ -213,8 +176,8 @@ export default function AddUserPage() {
                                     />
                                 </div>
                                 <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
-                                    <Save className="mr-2" />
-                                    {form.formState.isSubmitting ? "Creating Profile..." : "Create User Profile"}
+                                    <Send className="mr-2" />
+                                    {form.formState.isSubmitting ? "Creating Invitation..." : "Create Invitation"}
                                 </Button>
                             </form>
                         </Form>
