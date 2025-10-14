@@ -1,4 +1,5 @@
 
+
 // src/app/dealer/transactions/page.tsx
 "use client";
 
@@ -9,15 +10,17 @@ import { FileDown, Loader2 } from "lucide-react";
 import { useUser } from "@/firebase/provider";
 import { useLedger } from "@/hooks/use-ledger";
 import { LedgerTable } from "../_components/ledger-table";
+import { useLanguage } from "@/components/language-provider";
 
 export default function TransactionsPage() {
     const { user: firebaseUser, isUserLoading } = useUser();
     const { entries, loading: ledgerLoading } = useLedger(firebaseUser?.uid);
     const loading = isUserLoading || ledgerLoading;
+    const { t } = useLanguage();
 
     return (
         <>
-            <PageHeader title="My Ledger" description="A complete record of your financial activities.">
+            <PageHeader title={t('dealer.ledger')} description="A complete record of your financial activities.">
                 <Button variant="outline">
                     <FileDown className="mr-2" />
                     Export All

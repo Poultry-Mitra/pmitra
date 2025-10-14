@@ -1,4 +1,5 @@
 
+
 // src/app/dealer/suppliers/page.tsx
 "use client";
 
@@ -11,16 +12,18 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { useSuppliers } from '@/hooks/use-suppliers';
 import { useUser } from '@/firebase/provider';
 import { AddSupplierDialog } from './_components/add-supplier-dialog';
+import { useLanguage } from '@/components/language-provider';
 
 export default function SuppliersPage() {
     const { user } = useUser();
     const { suppliers, loading } = useSuppliers(user?.uid);
     const [isAddDialogOpen, setAddDialogOpen] = useState(false);
+    const { t } = useLanguage();
 
     return (
         <>
             <PageHeader
-                title="My Suppliers"
+                title={t('dealer.suppliers')}
                 description="Manage the list of suppliers you purchase from."
             >
                 <Button onClick={() => setAddDialogOpen(true)}>

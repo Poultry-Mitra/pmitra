@@ -1,4 +1,5 @@
 
+
 // src/app/dealer/my-farmers/page.tsx
 "use client";
 
@@ -42,12 +43,14 @@ import { useConnections, updateConnectionStatus } from '@/hooks/use-connections'
 import { useToast } from '@/hooks/use-toast';
 import { FarmerDetailsDialog } from './_components/farmer-details-dialog';
 import { useAppUser } from '@/app/app-provider';
+import { useLanguage } from '@/components/language-provider';
 
 export default function MyFarmersPage() {
     const { user: dealerUser } = useAppUser();
     const firestore = useFirestore();
     const auth = useAuth();
     const { toast } = useToast();
+    const { t } = useLanguage();
     
     const { connections: allConnections, loading: connectionsLoading } = useConnections(dealerUser?.id, 'dealer');
     
@@ -86,7 +89,7 @@ export default function MyFarmersPage() {
                 description: `The connection request has been ${status.toLowerCase()}.`
             });
         } catch (error: any) {
-            toast({ title: "Error", description: error.message, variant: "destructive" });
+            toast({ title: t('messages.error'), description: error.message, variant: "destructive" });
         }
     };
     
@@ -97,7 +100,7 @@ export default function MyFarmersPage() {
     return (
         <>
             <PageHeader
-                title="My Farmers"
+                title={t('dealer.my_farmers')}
                 description="Manage your network of connected farmers and pending requests."
             >
                 <Button onClick={handleConnectClick}>
@@ -122,7 +125,7 @@ export default function MyFarmersPage() {
                                     <TableHead>Farmer Name</TableHead>
                                     <TableHead>Email</TableHead>
                                     <TableHead>Requested On</TableHead>
-                                    <TableHead className="text-right">Actions</TableHead>
+                                    <TableHead className="text-right">{t('tables.actions')}</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -166,7 +169,7 @@ export default function MyFarmersPage() {
                                     <TableHead>Farmer Name</TableHead>
                                     <TableHead>Email</TableHead>
                                     <TableHead>Connected Since</TableHead>
-                                    <TableHead className='text-right'>Actions</TableHead>
+                                    <TableHead className='text-right'>{t('tables.actions')}</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -179,7 +182,7 @@ export default function MyFarmersPage() {
                                         <TableCell>{farmer.email}</TableCell>
                                         <TableCell>{connection ? new Date(connection.createdAt).toLocaleDateString() : 'N/A'}</TableCell>
                                         <TableCell className="text-right">
-                                             <Button variant="outline" size="sm" onClick={() => handleViewDetails(farmer)}>View Details</Button>
+                                             <Button variant="outline" size="sm" onClick={() => handleViewDetails(farmer)}>{t('actions.view_details')}</Button>
                                         </TableCell>
                                     </TableRow>
                                 )})}
@@ -204,9 +207,9 @@ export default function MyFarmersPage() {
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogCancel>{t('actions.cancel')}</AlertDialogCancel>
                         <AlertDialogAction asChild>
-                        <Link href="/pricing">Upgrade to Premium</Link>
+                        <Link href="/pricing">{t('pricing.upgrade_plan')}</Link>
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>

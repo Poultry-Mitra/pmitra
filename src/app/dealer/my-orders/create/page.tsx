@@ -1,4 +1,5 @@
 
+
 // src/app/dealer/my-orders/create/page.tsx
 "use client";
 
@@ -30,6 +31,7 @@ import { PageHeader } from "../../_components/page-header";
 import { useRouter } from "next/navigation";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from "@/components/ui/separator";
+import { useLanguage } from "@/components/language-provider";
 
 const formSchema = z.object({
     saleType: z.enum(["online", "offline"]),
@@ -62,6 +64,7 @@ export default function CreateOrderPage() {
     const auth = useAuth();
     const { user: dealerUser } = useUser();
     const [dealerInfo, setDealerInfo] = useState<User | null>(null);
+    const { t } = useLanguage();
 
     useEffect(() => {
         if(dealerUser && firestore) {
@@ -94,7 +97,7 @@ export default function CreateOrderPage() {
 
     async function onSubmit(values: FormValues) {
         if (!dealerUser || !selectedProduct || !firestore || !auth) {
-            toast({ title: "Error", description: "Could not create order.", variant: "destructive" });
+            toast({ title: t('messages.error'), description: "Could not create order.", variant: "destructive" });
             return;
         }
 
@@ -123,14 +126,14 @@ export default function CreateOrderPage() {
             });
             router.push('/dealer/my-orders');
         } catch (error: any) {
-            toast({ title: "Error", description: error.message || "Failed to create order.", variant: "destructive" });
+            toast({ title: t('messages.error'), description: error.message || "Failed to create order.", variant: "destructive" });
         }
     }
     
     return (
         <>
         <PageHeader 
-            title="Create New Order"
+            title={t('dealer.create_order')}
             description="Create an order for a connected farmer or record an offline sale."
         />
         <div className="mt-8 max-w-2xl">
@@ -250,7 +253,7 @@ export default function CreateOrderPage() {
                                 </FormItem>
                             </div>
                             <div className="flex justify-end gap-2">
-                                <Button type="button" variant="outline" onClick={() => router.back()}>Cancel</Button>
+                                <Button type="button" variant="outline" onClick={() => router.back()}>{t('actions.cancel')}</Button>
                                 <Button type="submit" disabled={form.formState.isSubmitting}>
                                     {form.formState.isSubmitting ? <Loader2 className="animate-spin" /> : <Send className="mr-2" />}
                                     {saleType === 'online' ? 'Send Order for Approval' : 'Record Offline Sale'}

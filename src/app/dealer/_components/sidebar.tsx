@@ -136,49 +136,49 @@ export function DealerSidebar() {
             <SidebarMenu>
                 <SidebarMenuItem>
                     <Link href="/dealer/dashboard">
-                        <SidebarMenuButton isActive={pathname === "/dealer/dashboard"} tooltip={"Dashboard"}>
+                        <SidebarMenuButton isActive={pathname === "/dealer/dashboard"} tooltip={t('dealer.dashboard')}>
                         <LayoutGrid />
-                        <span>{"Dashboard"}</span>
+                        <span>{t('dealer.dashboard')}</span>
                         </SidebarMenuButton>
                     </Link>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
                     <Link href="/dealer/suppliers">
-                        <SidebarMenuButton isActive={pathname.startsWith("/dealer/suppliers")} tooltip={"Suppliers"}>
+                        <SidebarMenuButton isActive={pathname.startsWith("/dealer/suppliers")} tooltip={t('dealer.suppliers')}>
                         <Truck />
-                        <span>{"Suppliers"}</span>
+                        <span>{t('dealer.suppliers')}</span>
                         </SidebarMenuButton>
                     </Link>
                 </SidebarMenuItem>
                  <SidebarMenuItem>
                     <Link href="/dealer/my-inventory" onClick={handleInventoryClick}>
-                        <SidebarMenuButton isActive={pathname.startsWith("/dealer/my-inventory")} tooltip={"My Inventory"}>
+                        <SidebarMenuButton isActive={pathname.startsWith("/dealer/my-inventory")} tooltip={t('dealer.my_inventory')}>
                         <Warehouse />
-                        <span>{"My Inventory"}</span>
+                        <span>{t('dealer.my_inventory')}</span>
                         </SidebarMenuButton>
                     </Link>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
                     <Link href="/dealer/my-farmers">
-                        <SidebarMenuButton isActive={pathname.startsWith("/dealer/my-farmers")} tooltip={"My Farmers"}>
+                        <SidebarMenuButton isActive={pathname.startsWith("/dealer/my-farmers")} tooltip={t('dealer.my_farmers')}>
                         <Users />
-                        <span>{"My Farmers"}</span>
+                        <span>{t('dealer.my_farmers')}</span>
                         </SidebarMenuButton>
                     </Link>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
                     <Link href="/dealer/my-orders">
-                        <SidebarMenuButton isActive={pathname.startsWith("/dealer/my-orders")} tooltip={"Farmer Orders"}>
+                        <SidebarMenuButton isActive={pathname.startsWith("/dealer/my-orders")} tooltip={t('dealer.farmer_orders')}>
                         <ShoppingBag />
-                        <span>{"Farmer Orders"}</span>
+                        <span>{t('dealer.farmer_orders')}</span>
                         </SidebarMenuButton>
                     </Link>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
                     <Link href="/dealer/transactions">
-                        <SidebarMenuButton isActive={pathname.startsWith("/dealer/transactions")} tooltip={"Ledger"}>
+                        <SidebarMenuButton isActive={pathname.startsWith("/dealer/transactions")} tooltip={t('dealer.ledger')}>
                         <CreditCard />
-                        <span>{"Ledger"}</span>
+                        <span>{t('dealer.ledger')}</span>
                         </SidebarMenuButton>
                     </Link>
                 </SidebarMenuItem>
@@ -189,27 +189,27 @@ export function DealerSidebar() {
             <SidebarMenu>
                  <SidebarMenuItem>
                     <Link href="/dealer/chat">
-                        <SidebarMenuButton isActive={pathname === "/dealer/chat"} tooltip={"AI Chat"}>
+                        <SidebarMenuButton isActive={pathname === "/dealer/chat"} tooltip={t('dealer.chat')}>
                         <MessageSquare />
-                        <span>{"AI Chat"}</span>
+                        <span>{t('dealer.chat')}</span>
                          {!isPremium && <Badge variant="secondary" className="ml-auto group-data-[state=collapsed]:hidden">PRO</Badge>}
                         </SidebarMenuButton>
                     </Link>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
                     <Link href="/dealer/analytics">
-                        <SidebarMenuButton isActive={pathname === "/dealer/analytics"} tooltip={"Analytics"}>
+                        <SidebarMenuButton isActive={pathname === "/dealer/analytics"} tooltip={t('dealer.analytics')}>
                         <LineChart />
-                        <span>{"Analytics"}</span>
+                        <span>{t('dealer.analytics')}</span>
                         {!isPremium && <Badge variant="secondary" className="ml-auto group-data-[state=collapsed]:hidden">PRO</Badge>}
                         </SidebarMenuButton>
                     </Link>
                 </SidebarMenuItem>
                  <SidebarMenuItem>
                     <Link href="/dealer/daily-rates">
-                        <SidebarMenuButton isActive={pathname === "/dealer/daily-rates"} tooltip={"Market Rates"}>
+                        <SidebarMenuButton isActive={pathname === "/dealer/daily-rates"} tooltip={t('dealer.market_rates')}>
                         <TrendingUp />
-                        <span>{"Market Rates"}</span>
+                        <span>{t('dealer.market_rates')}</span>
                         {!isPremium && <Badge variant="secondary" className="ml-auto group-data-[state=collapsed]:hidden">PRO</Badge>}
                         </SidebarMenuButton>
                     </Link>
@@ -222,18 +222,18 @@ export function DealerSidebar() {
             <SidebarMenu>
                 <SidebarMenuItem>
                     <Link href="/dealer/settings">
-                        <SidebarMenuButton isActive={pathname.startsWith("/dealer/settings")} tooltip="Profile">
+                        <SidebarMenuButton isActive={pathname.startsWith("/dealer/settings")} tooltip={t('dealer.profile')}>
                             <User/>
-                            <span>{"Profile"}</span>
+                            <span>{t('dealer.profile')}</span>
                         </SidebarMenuButton>
                     </Link>
                 </SidebarMenuItem>
                  {!isPremium && (
                     <SidebarMenuItem>
                         <Link href="/pricing">
-                            <SidebarMenuButton tooltip="Upgrade Plan">
+                            <SidebarMenuButton tooltip={t('pricing.upgrade_plan')}>
                                 <Rocket/>
-                                <span>{"Upgrade Plan"}</span>
+                                <span>{t('pricing.upgrade_plan')}</span>
                             </SidebarMenuButton>
                         </Link>
                     </SidebarMenuItem>

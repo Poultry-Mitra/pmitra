@@ -1,3 +1,4 @@
+
 // src/app/dealer/my-farmers/_components/connect-farmer-dialog.tsx
 "use client";
 
@@ -27,6 +28,7 @@ import { Send, Loader2 } from 'lucide-react';
 import { useFirestore, useUser } from '@/firebase/provider';
 import { addDoc, collection, serverTimestamp, query, where, getDocs, limit } from 'firebase/firestore';
 import type { User } from '@/lib/types';
+import { useLanguage } from '@/components/language-provider';
 
 const formSchema = z.object({
     farmerId: z.string().min(1, "Please enter a Farmer ID.").regex(/^PM-FARM-[A-Z0-9]{5}$/, "Invalid Farmer ID format. e.g., PM-FARM-ABC12"),
@@ -38,6 +40,7 @@ export function ConnectFarmerDialog({ open, onOpenChange }: { open: boolean; onO
     const { toast } = useToast();
     const firestore = useFirestore();
     const { user: dealerUser } = useUser();
+    const { t } = useLanguage();
 
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
@@ -48,7 +51,7 @@ export function ConnectFarmerDialog({ open, onOpenChange }: { open: boolean; onO
 
     async function onSubmit(values: FormValues) {
         if (!firestore || !dealerUser) {
-            toast({ title: "Error", description: "You must be logged in.", variant: "destructive" });
+            toast({ title: t('messages.error'), description: t('messages.must_be_logged_in'), variant: "destructive" });
             return;
         }
 
@@ -118,7 +121,7 @@ export function ConnectFarmerDialog({ open, onOpenChange }: { open: boolean; onO
                             )}
                         />
                         <DialogFooter>
-                            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+                            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>{t('actions.cancel')}</Button>
                             <Button type="submit" disabled={form.formState.isSubmitting}>
                                 {form.formState.isSubmitting ? <Loader2 className="mr-2 animate-spin" /> : <Send className="mr-2" />}
                                 {form.formState.isSubmitting ? 'Connecting...' : 'Send Request'}

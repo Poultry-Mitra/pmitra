@@ -1,3 +1,4 @@
+
 // src/app/dealer/suppliers/_components/add-supplier-dialog.tsx
 "use client";
 
@@ -27,6 +28,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Save, Loader2 } from 'lucide-react';
 import { useFirestore, useUser, useAuth } from '@/firebase/provider';
 import { addSupplier } from '@/hooks/use-suppliers';
+import { useLanguage } from '@/components/language-provider';
 
 const formSchema = z.object({
     name: z.string().min(2, "Supplier name is required."),
@@ -43,6 +45,7 @@ export function AddSupplierDialog({ open, onOpenChange }: { open: boolean; onOpe
     const firestore = useFirestore();
     const auth = useAuth();
     const { user: dealerUser } = useUser();
+    const { t } = useLanguage();
 
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
@@ -57,7 +60,7 @@ export function AddSupplierDialog({ open, onOpenChange }: { open: boolean; onOpe
 
     async function onSubmit(values: FormValues) {
         if (!firestore || !dealerUser || !auth) {
-            toast({ title: "Error", description: "You must be logged in.", variant: "destructive" });
+            toast({ title: t('messages.error'), description: t('messages.must_be_logged_in'), variant: "destructive" });
             return;
         }
 
@@ -126,10 +129,10 @@ export function AddSupplierDialog({ open, onOpenChange }: { open: boolean; onOpe
                             </FormItem>
                          )} />
                         <DialogFooter>
-                            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+                            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>{t('actions.cancel')}</Button>
                             <Button type="submit" disabled={form.formState.isSubmitting}>
                                 {form.formState.isSubmitting ? <Loader2 className="mr-2 animate-spin" /> : <Save className="mr-2" />}
-                                {form.formState.isSubmitting ? 'Saving...' : 'Save Supplier'}
+                                {form.formState.isSubmitting ? t('actions.saving') : t('actions.save_changes')}
                             </Button>
                         </DialogFooter>
                     </form>

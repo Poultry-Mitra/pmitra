@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import Link from "next/link";
@@ -122,17 +123,17 @@ export function AdminSidebar() {
             <SidebarMenu>
             <SidebarMenuItem>
                 <Link href="/admin/dashboard">
-                    <SidebarMenuButton isActive={pathname === "/admin/dashboard"} tooltip={"Dashboard"}>
+                    <SidebarMenuButton isActive={pathname === "/admin/dashboard"} tooltip={t('admin.dashboard.title')}>
                     <LayoutGrid />
-                    <span>{"Dashboard"}</span>
+                    <span>{t('admin.dashboard.title')}</span>
                     </SidebarMenuButton>
                 </Link>
             </SidebarMenuItem>
             <SidebarMenuItem>
                 <Link href="/admin/transactions">
-                    <SidebarMenuButton isActive={pathname.startsWith("/admin/transactions")} tooltip={"Transactions"}>
+                    <SidebarMenuButton isActive={pathname.startsWith("/admin/transactions")} tooltip={t('admin.transactions')}>
                     <CreditCard />
-                    <span>{"Transactions"}</span>
+                    <span>{t('admin.transactions')}</span>
                     </SidebarMenuButton>
                 </Link>
             </SidebarMenuItem>
@@ -145,10 +146,10 @@ export function AdminSidebar() {
                 <Collapsible open={managementOpen} onOpenChange={setManagementOpen}>
                     <SidebarMenuItem className="relative">
                         <CollapsibleTrigger asChild>
-                            <SidebarMenuButton tooltip="User Management" className="w-full justify-between pr-8" isActive={pathname.startsWith("/admin/user-management")}>
+                            <SidebarMenuButton tooltip={t('admin.users.title_farmer')} className="w-full justify-between pr-8" isActive={pathname.startsWith("/admin/user-management")}>
                                 <div className="flex items-center gap-3">
                                     <Users />
-                                    <span>User Management</span>
+                                    <span>{t('admin.users.title_farmer')}</span>
                                 </div>
                             </SidebarMenuButton>
                         </CollapsibleTrigger>
@@ -164,21 +165,21 @@ export function AdminSidebar() {
                             <SidebarMenuItem>
                                 <Link href="/admin/user-management/farmers">
                                     <SidebarMenuButton size="sm" isActive={pathname === "/admin/user-management/farmers"}>
-                                    Farmers List
+                                    {t('admin.farmers_page.title')}
                                     </SidebarMenuButton>
                                 </Link>
                             </SidebarMenuItem>
                             <SidebarMenuItem>
                                 <Link href="/admin/user-management/dealers">
                                     <SidebarMenuButton size="sm" isActive={pathname === "/admin/user-management/dealers"}>
-                                    Dealers List
+                                    {t('admin.dealers_page.title')}
                                     </SidebarMenuButton>
                                 </Link>
                             </SidebarMenuItem>
                             <SidebarMenuItem>
                                 <Link href="/admin/user-management/add-user">
                                     <SidebarMenuButton size="sm" isActive={pathname === "/admin/user-management/add-user"}>
-                                    Add New User
+                                    {t('admin.users.add_user_button')}
                                     </SidebarMenuButton>
                                 </Link>
                             </SidebarMenuItem>
@@ -192,33 +193,33 @@ export function AdminSidebar() {
             <SidebarMenu>
                 <SidebarMenuItem>
                 <Link href="/admin/daily-rates">
-                    <SidebarMenuButton isActive={pathname.startsWith("/admin/daily-rates")} tooltip={"Daily Rates"}>
+                    <SidebarMenuButton isActive={pathname.startsWith("/admin/daily-rates")} tooltip={t('daily_rates.title')}>
                     <TrendingUp />
-                    <span>{"Daily Rates"}</span>
+                    <span>{t('daily_rates.title')}</span>
                     </SidebarMenuButton>
                 </Link>
             </SidebarMenuItem>
              <SidebarMenuItem>
                 <Link href="/admin/blog">
-                    <SidebarMenuButton isActive={pathname.startsWith("/admin/blog")} tooltip={"Blog Management"}>
+                    <SidebarMenuButton isActive={pathname.startsWith("/admin/blog")} tooltip={t('admin.blog_management')}>
                     <Newspaper />
-                    <span>{"Blog Management"}</span>
+                    <span>{t('admin.blog_management')}</span>
                     </SidebarMenuButton>
                 </Link>
             </SidebarMenuItem>
             <SidebarMenuItem>
                 <Link href="/admin/chat-logs">
-                    <SidebarMenuButton isActive={pathname.startsWith("/admin/chat-logs")} tooltip={"AI Chat Logs"}>
+                    <SidebarMenuButton isActive={pathname.startsWith("/admin/chat-logs")} tooltip={t('admin.ai_chat_logs')}>
                     <Bot />
-                    <span>{"AI Chat Logs"}</span>
+                    <span>{t('admin.ai_chat_logs')}</span>
                     </SidebarMenuButton>
                 </Link>
             </SidebarMenuItem>
             <SidebarMenuItem>
                 <Link href="/admin/notifications">
-                    <SidebarMenuButton isActive={pathname.startsWith("/admin/notifications")} tooltip={"Notifications"}>
+                    <SidebarMenuButton isActive={pathname.startsWith("/admin/notifications")} tooltip={t('admin.notifications')}>
                     <Bell />
-                    <span>{"Notifications"}</span>
+                    <span>{t('admin.notifications')}</span>
                     </SidebarMenuButton>
                 </Link>
             </SidebarMenuItem>
@@ -229,10 +230,10 @@ export function AdminSidebar() {
                  <Collapsible open={settingsOpen} onOpenChange={setSettingsOpen}>
                     <SidebarMenuItem className="relative">
                         <CollapsibleTrigger asChild>
-                            <SidebarMenuButton tooltip="Settings" className="w-full justify-between pr-8" isActive={pathname.startsWith("/admin/settings")}>
+                            <SidebarMenuButton tooltip={t('admin.app_settings')} className="w-full justify-between pr-8" isActive={pathname.startsWith("/admin/settings")}>
                                 <div className="flex items-center gap-3">
                                     <Settings />
-                                    <span>Settings</span>
+                                    <span>{t('admin.app_settings')}</span>
                                 </div>
                             </SidebarMenuButton>
                         </CollapsibleTrigger>
@@ -248,28 +249,28 @@ export function AdminSidebar() {
                             <SidebarMenuItem>
                                 <Link href="/admin/settings">
                                     <SidebarMenuButton size="sm" isActive={pathname === "/admin/settings"}>
-                                    App Settings
+                                    {t('admin.app_settings')}
                                     </SidebarMenuButton>
                                 </Link>
                             </SidebarMenuItem>
                             <SidebarMenuItem>
                                 <Link href="/admin/settings/pricing">
                                     <SidebarMenuButton size="sm" isActive={pathname === "/admin/settings/pricing"}>
-                                    Pricing Plans
+                                    {t('admin.pricing_plans')}
                                     </SidebarMenuButton>
                                 </Link>
                             </SidebarMenuItem>
                             <SidebarMenuItem>
                                 <Link href="/admin/settings/payments">
                                     <SidebarMenuButton size="sm" isActive={pathname === "/admin/settings/payments"}>
-                                    Payment Gateways
+                                    {t('admin.payment_gateways')}
                                     </SidebarMenuButton>
                                 </Link>
                             </SidebarMenuItem>
                             <SidebarMenuItem>
                                 <Link href="/admin/settings/promo-codes">
                                     <SidebarMenuButton size="sm" isActive={pathname === "/admin/settings/promo-codes"}>
-                                    Promo Codes
+                                    {t('admin.promo_codes')}
                                     </SidebarMenuButton>
                                 </Link>
                             </SidebarMenuItem>

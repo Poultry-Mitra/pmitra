@@ -321,6 +321,14 @@ const translations = {
         title: "All Dealers",
         description: "A complete list of all dealers on the platform."
       },
+      transactions: "Transactions",
+      blog_management: "Blog Management",
+      ai_chat_logs: "AI Chat Logs",
+      notifications: "Notifications",
+      app_settings: "App Settings",
+      pricing_plans: "Pricing Plans",
+      payment_gateways: "Payment Gateways",
+      promo_codes: "Promo Codes",
     },
     roles: {
       admin: "Admin",
@@ -361,6 +369,22 @@ const translations = {
       reduce_mortality: "How to reduce mortality rate?",
       what_is_fcr: "What is FCR?",
       why_biosecurity: "Why is biosecurity important?",
+    },
+    dealer: {
+        dashboard: "Dashboard",
+        suppliers: "Suppliers",
+        my_inventory: "My Inventory",
+        my_farmers: "My Farmers",
+        farmer_orders: "Farmer Orders",
+        ledger: "Ledger",
+        chat: "AI Chat",
+        analytics: "Analytics",
+        market_rates: "Market Rates",
+        profile: "Profile",
+        settings: "Settings",
+        add_stock: "Add Stock / Purchase",
+        create_order: "Create Order",
+        view_all_orders: "View All Orders"
     }
   },
   hi: {
@@ -671,6 +695,14 @@ const translations = {
         title: "सभी डीलर",
         description: "मंच पर सभी डीलरों की पूरी सूची।"
       },
+      transactions: "लेन-देन",
+      blog_management: "ब्लॉग प्रबंधन",
+      ai_chat_logs: "एआई चैट लॉग",
+      notifications: "अधिसूचना",
+      app_settings: "ऐप सेटिंग्स",
+      pricing_plans: "मूल्य निर्धारण योजनाएं",
+      payment_gateways: "भुगतान गेटवे",
+      promo_codes: "प्रोमो कोड",
     },
     roles: {
       admin: "एडमिन",
@@ -711,6 +743,22 @@ const translations = {
       reduce_mortality: "मृत्यु दर कैसे कम करें?",
       what_is_fcr: "FCR क्या है?",
       why_biosecurity: "बायो-सिक्योरिटी क्यों महत्वपूर्ण है?",
+    },
+    dealer: {
+        dashboard: "डैशबोर्ड",
+        suppliers: "आपूर्तिकर्ता",
+        my_inventory: "मेरी इन्वेंटरी",
+        my_farmers: "मेरे किसान",
+        farmer_orders: "किसान के आदेश",
+        ledger: "लेजर",
+        chat: "एआई चैट",
+        analytics: "एनालिटिक्स",
+        market_rates: "बाजार दरें",
+        profile: "प्रोफाइल",
+        settings: "सेटिंग्स",
+        add_stock: "स्टॉक जोड़ें / खरीद",
+        create_order: "ऑर्डर बनाएं",
+        view_all_orders: "सभी ऑर्डर देखें"
     }
   }
 };

@@ -1,4 +1,5 @@
 
+
 // src/app/dealer/my-orders/page.tsx
 "use client";
 
@@ -29,6 +30,7 @@ import { useUsersByIds } from '@/hooks/use-users';
 import type { Order, User as AppUser } from '@/lib/types';
 import Link from 'next/link';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useLanguage } from '@/components/language-provider';
 
 
 const statusConfig = {
@@ -46,6 +48,7 @@ export default function MyOrdersPage() {
     const { orders, loading: ordersLoading } = useOrders(firebaseUser?.uid);
     const { toast } = useToast();
     const [activeTab, setActiveTab] = useState("pending");
+    const { t } = useLanguage();
 
     const farmerIds = useMemo(() => {
         if (ordersLoading) return [];
@@ -74,7 +77,7 @@ export default function MyOrdersPage() {
             });
         } catch (error: any) {
             toast({
-                title: "Error",
+                title: t('messages.error'),
                 description: error.message || "Failed to update order status.",
                 variant: "destructive"
             });
@@ -90,13 +93,13 @@ export default function MyOrdersPage() {
     return (
         <>
             <PageHeader
-                title="Farmer Orders"
+                title={t('dealer.farmer_orders')}
                 description="Review and manage incoming orders from your connected farmers."
             >
                 <Button asChild>
                     <Link href="/dealer/my-orders/create">
                         <PlusCircle className="mr-2" />
-                        Create Order
+                        {t('dealer.create_order')}
                     </Link>
                 </Button>
             </PageHeader>
@@ -123,9 +126,9 @@ export default function MyOrdersPage() {
                                     <TableHead>Product</TableHead>
                                     <TableHead>Quantity</TableHead>
                                     <TableHead>Total Amount</TableHead>
-                                    <TableHead>Status</TableHead>
+                                    <TableHead>{t('tables.status')}</TableHead>
                                     <TableHead>Date</TableHead>
-                                    <TableHead className="text-center">Actions</TableHead>
+                                    <TableHead className="text-center">{t('tables.actions')}</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
