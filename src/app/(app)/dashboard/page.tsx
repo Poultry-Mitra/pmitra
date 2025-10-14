@@ -20,27 +20,6 @@ export default function DashboardPage() {
   const [isConnectDealerOpen, setConnectDealerOpen] = useState(false);
   const { toast } = useToast();
   const { t } = useLanguage();
-  const [installEvent, setInstallEvent] = useState<Event | null>(null);
-  const [isAppInstalled, setIsAppInstalled] = useState(false);
-
-
-  useEffect(() => {
-    // Check if the app is already installed
-    if (typeof window !== 'undefined' && window.matchMedia('(display-mode: standalone)').matches) {
-      setIsAppInstalled(true);
-    }
-
-    const handleBeforeInstallPrompt = (e: Event) => {
-      e.preventDefault();
-      setInstallEvent(e);
-    };
-
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-
-    return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-    };
-  }, []);
 
   const { batches, loading: batchesLoading } = useBatches(user?.id || "");
   
@@ -59,22 +38,6 @@ export default function DashboardPage() {
     navigator.clipboard.writeText(poultryMitraId);
     toast({ title: t('messages.copied_title'), description: t('messages.copied_desc') });
   }
-
-  const handleInstallClick = () => {
-    if (installEvent) {
-      (installEvent as any).prompt();
-      (installEvent as any).userChoice.then((choiceResult: { outcome: 'accepted' | 'dismissed' }) => {
-        if (choiceResult.outcome === 'accepted') {
-          console.log('User accepted the install prompt');
-          setIsAppInstalled(true);
-        } else {
-          console.log('User dismissed the install prompt');
-        }
-        setInstallEvent(null);
-      });
-    }
-  };
-
 
   if (loading) return <div className="flex h-screen items-center justify-center"><Loader2 className="animate-spin size-8" /></div>;
 
@@ -98,12 +61,6 @@ export default function DashboardPage() {
                     <LinkIcon className="mr-2" />
                     {t('dashboard.connect_dealer')}
                 </Button>
-             )}
-             {installEvent && !isAppInstalled && (
-              <Button size="sm" onClick={handleInstallClick}>
-                <Download className="mr-2" />
-                Install App
-              </Button>
              )}
         </div>
       </div>
