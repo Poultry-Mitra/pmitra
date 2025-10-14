@@ -1,14 +1,14 @@
 
 'use client';
 
-import { useEffect } from 'react';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { ThemeProvider } from '@/components/theme-provider';
 import { LanguageProvider } from '@/components/language-provider';
 import { Inter, Noto_Sans, Hind } from 'next/font/google';
 import { cn } from '@/lib/utils';
-import { FirebaseClientProvider } from '@/firebase/client-provider';
+import { FirebaseProvider } from '@/firebase/provider';
+import { initializeFirebase } from '@/firebase/client';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
 
 const fontInter = Inter({
@@ -38,20 +38,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   
-  useEffect(() => {
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/service-worker.js').then(
-          (registration) => {
-            console.log('Service Worker registration successful with scope: ', registration.scope);
-          },
-          (err) => {
-            console.log('Service Worker registration failed: ', err);
-          }
-        );
-      });
-    }
-  }, []);
+  const { firebaseApp, auth, firestore } = initializeFirebase();
 
   return (
     <html lang="en" suppressHydrationWarning>
@@ -71,7 +58,7 @@ export default function RootLayout({
         )}
         suppressHydrationWarning
       >
-        <FirebaseClientProvider>
+        <FirebaseProvider firebaseApp={firebaseApp} auth={auth} firestore={firestore}>
           <LanguageProvider>
             <ThemeProvider
               attribute="class"
@@ -84,7 +71,7 @@ export default function RootLayout({
               <Toaster />
             </ThemeProvider>
           </LanguageProvider>
-        </FirebaseClientProvider>
+        </FirebaseProvider>
       </body>
     </html>
   );

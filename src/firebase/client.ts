@@ -39,11 +39,7 @@ export function initializeFirebase() {
   }
 
   // Initialize the Firebase app if it hasn't been already.
-  if (!getApps().length) {
-    firebaseApp = initializeApp(firebaseConfig);
-  } else {
-    firebaseApp = getApp();
-  }
+  firebaseApp = !getApps().length ? initializeApp(firebaseConfig) : getApp();
   
   auth = getAuth(firebaseApp);
   firestore = getFirestore(firebaseApp);
