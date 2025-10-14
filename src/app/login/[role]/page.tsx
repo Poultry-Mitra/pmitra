@@ -11,7 +11,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { useUser, useAuth, useFirestore } from '@/firebase/provider';
 import { useEffect, useState } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import { doc, getDoc } from 'firebase/firestore';
 import type { User as AppUser, UserRole } from '@/lib/types';
 import { sendPasswordResetEmail, GoogleAuthProvider, signInWithPopup, UserCredential, signInWithEmailAndPassword } from 'firebase/auth';
@@ -47,10 +47,10 @@ export default function RoleLoginPage() {
   const firestore = useFirestore();
   const router = useRouter();
   const params = useParams();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
   
   const role = params.role as UserRole;
-  const [isCheckingUser, setIsCheckingUser] = useState(true);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -60,6 +60,9 @@ export default function RoleLoginPage() {
   });
   
   const getRedirectPath = (userRole: UserRole) => {
+    const redirectParam = searchParams.get('redirect');
+    if (redirectParam) return redirectParam;
+
     return {
       farmer: '/dashboard',
       dealer: '/dealer/dashboard',
@@ -68,18 +71,27 @@ export default function RoleLoginPage() {
   }
 
   useEffect(() => {
-    if (isUserLoading || isAuthLoading) return;
+    // This effect handles redirection for already logged-in users.
+    if (isUserLoading || !firestore || !auth) return;
 
-    if (firebaseUser && firestore) {
-      handleLogin(firebaseUser);
-    } else {
-      setIsCheckingUser(false);
+    if (firebaseUser) {
+      const userDocRef = doc(firestore, 'users', firebaseUser.uid);
+      getDoc(userDocRef).then(docSnap => {
+        if (docSnap.exists()) {
+          const userData = docSnap.data() as AppUser;
+          // User is logged in and has a profile, redirect them.
+          router.replace(getRedirectPath(userData.role));
+        } else {
+          // Logged in but no profile, probably a broken state. Log them out.
+           auth.signOut();
+        }
+      });
     }
-  }, [firebaseUser, isUserLoading, isAuthLoading, firestore, router]);
+  }, [firebaseUser, isUserLoading, firestore, router, auth]);
 
-  async function handleLogin(user: AppUser | any) { // Accepts Firebase User or AppUser
+  async function handleLoginSuccess(user: FirebaseAuthUser) {
     if (!firestore || !auth) return;
-    setIsCheckingUser(true);
+
     const userDocRef = doc(firestore, 'users', user.uid);
     const docSnap = await getDoc(userDocRef);
 
@@ -88,31 +100,33 @@ export default function RoleLoginPage() {
       if (userData.role !== role) {
         await auth.signOut();
         toast({ title: "Role Mismatch", description: `This account is a ${userData.role}. Please use the correct login page.`, variant: "destructive" });
-        setIsCheckingUser(false);
         setIsSubmitting(false);
+        setIsGoogleLoading(false);
         router.replace(`/login/${userData.role}`);
         return;
       }
        if (userData.status === 'Pending') {
         await auth.signOut();
         toast({ title: "Account Pending", description: "Your account is pending approval by an administrator.", variant: "destructive" });
-        setIsCheckingUser(false);
         setIsSubmitting(false);
+        setIsGoogleLoading(false);
         return;
       }
       if (userData.status === 'Suspended') {
         await auth.signOut();
         toast({ title: "Account Suspended", description: "Your account has been suspended. Please contact support.", variant: "destructive" });
-        setIsCheckingUser(false);
         setIsSubmitting(false);
+        setIsGoogleLoading(false);
         return;
       }
+      // Success case
       router.replace(getRedirectPath(role));
     } else {
+      // This case should ideally not be hit in login, but as a safeguard:
       await auth.signOut();
       toast({ title: 'Login Failed', description: 'User profile not found. Please sign up or contact support.', variant: 'destructive' });
-      setIsCheckingUser(false);
       setIsSubmitting(false);
+      setIsGoogleLoading(false);
     }
   }
 
@@ -123,15 +137,14 @@ export default function RoleLoginPage() {
     }
     setIsSubmitting(true);
     try {
-      await signInWithEmailAndPassword(auth, values.email, values.password);
-      // The useEffect hook will now handle the successful login
+      const userCredential = await signInWithEmailAndPassword(auth, values.email, values.password);
+      await handleLoginSuccess(userCredential.user);
     } catch (error: any) {
         let message = 'An unknown error occurred.';
         if (['auth/user-not-found', 'auth/wrong-password', 'auth/invalid-credential'].includes(error.code)) {
             message = 'Invalid email or password. Please try again.';
         }
         toast({ title: 'Login Failed', description: message, variant: 'destructive' });
-    } finally {
         setIsSubmitting(false);
     }
   }
@@ -141,15 +154,15 @@ export default function RoleLoginPage() {
     setIsGoogleLoading(true);
     const provider = new GoogleAuthProvider();
     try {
-      await signInWithPopup(auth, provider);
-      // The useEffect will handle the successful login
+      const userCredential = await signInWithPopup(auth, provider);
+      await handleLoginSuccess(userCredential.user);
     } catch (error: any) {
         if (error.code === 'auth/popup-closed-by-user') {
+            setIsGoogleLoading(false);
             return;
         }
         console.error("Google sign-in error:", error);
         toast({ title: "Google Sign-In Failed", description: "Could not sign in with Google. Please try again.", variant: "destructive" });
-    } finally {
         setIsGoogleLoading(false);
     }
   };
@@ -181,7 +194,8 @@ export default function RoleLoginPage() {
     }
   };
 
-  const isLoading = isSubmitting || isCheckingUser || isGoogleLoading || isUserLoading || isAuthLoading;
+  // This loading state now correctly reflects if auth service is initializing OR a login process is active.
+  const isLoading = isSubmitting || isGoogleLoading || isAuthLoading;
   
   const title = {
       farmer: "Farmer Login",
@@ -190,7 +204,8 @@ export default function RoleLoginPage() {
   }[role] || "Login";
 
 
-  if (isLoading && (firebaseUser || isAuthLoading)) {
+  // While checking for an existing user session, show a full page loader.
+  if (isUserLoading) {
     return (
       <div className="flex min-h-screen w-full flex-col items-center justify-center bg-muted/30 p-4 font-body">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />
@@ -269,9 +284,9 @@ export default function RoleLoginPage() {
       </Card>
       <div className="mt-6 text-center text-sm text-muted-foreground">
         <p>
-          {t('login.no_account')}{' '}
+          Don&apos;t have an account?{' '}
           <Link href={`/signup/${role}`} className="font-semibold text-primary hover:underline">
-            {t('login.register_here')}
+            Register here
           </Link>
         </p>
          <p className="mt-2">
