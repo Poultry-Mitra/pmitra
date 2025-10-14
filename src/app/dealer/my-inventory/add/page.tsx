@@ -27,7 +27,8 @@ const productSchema = z.object({
   pricingBasis: z.enum(["TPR", "FOR", "Ex-Factory", "MRP"]),
   quantity: z.coerce.number().min(0, "Quantity must be non-negative."),
   unit: z.enum(["bag", "packet", "bottle", "pcs", "chick"]),
-  purchaseRatePerUnit: z.coerce.number().min(0, "Purchase rate is required."),
+  mrpPerUnit: z.coerce.number().min(0, "MRP is required.").optional(),
+  purchaseRatePerUnit: z.coerce.number().min(0, "Landing price is required."),
   ratePerUnit: z.coerce.number().min(0, "Sale rate is required."),
   discountType: z.enum(['percentage', 'amount']).default('amount'),
   discountValue: z.coerce.number().min(0).default(0),
@@ -134,6 +135,7 @@ export default function AddStockPage() {
                 productName: "", 
                 category: "Feed", 
                 unit: "bag", 
+                mrpPerUnit: 0,
                 purchaseRatePerUnit: 0, 
                 ratePerUnit: 0, 
                 discountType: "amount", 
@@ -188,35 +190,34 @@ export default function AddStockPage() {
     
     const recalculateDiscount = useCallback((index: number) => {
         const product = form.getValues(`products.${index}`);
-        const { discountType, discountValue, purchaseRatePerUnit, quantity, pricingBasis, tprIncentive } = product;
+        const { discountType, discountValue, purchaseRatePerUnit, quantity, pricingBasis, tprIncentive, mrpPerUnit } = product;
         
         let calculatedAmount = 0;
-        const total = (purchaseRatePerUnit || 0) * (quantity || 0);
-
+        
         if (pricingBasis === 'TPR') {
             calculatedAmount = (tprIncentive || 0) * (quantity || 0);
         } else {
+            const basePriceForDiscount = pricingBasis === 'MRP' ? (mrpPerUnit || 0) : (purchaseRatePerUnit || 0);
+            const totalBase = basePriceForDiscount * (quantity || 0);
+
             if (discountType === 'percentage') {
-                calculatedAmount = total * ((discountValue || 0) / 100);
-            } else {
+                calculatedAmount = totalBase * ((discountValue || 0) / 100);
+            } else { // 'amount' per unit
                 calculatedAmount = (discountValue || 0) * (quantity || 0);
             }
         }
         form.setValue(`products.${index}.discountAmount`, calculatedAmount, { shouldValidate: true });
     }, [form]);
 
+
     useEffect(() => {
         const subscription = form.watch((value, { name, type }) => {
             if (name && type === 'change') {
                 const parts = name.split('.');
-                if (parts.length === 3 && (
-                    parts[2] === 'discountType' || 
-                    parts[2] === 'discountValue' || 
-                    parts[2] === 'purchaseRatePerUnit' || 
-                    parts[2] === 'quantity' ||
-                    parts[2] === 'pricingBasis' ||
-                    parts[2] === 'tprIncentive'
-                )) {
+                if (parts.length === 3 && [
+                    'discountType', 'discountValue', 'purchaseRatePerUnit', 
+                    'quantity', 'pricingBasis', 'tprIncentive', 'mrpPerUnit'
+                ].includes(parts[2])) {
                     recalculateDiscount(parseInt(parts[1], 10));
                 }
             }
@@ -361,10 +362,17 @@ export default function AddStockPage() {
                                                     )} />
                                                 </div>
                                                 
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
+                                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
+                                                    <FormField control={form.control} name={`products.${index}.mrpPerUnit`} render={({ field }) => (
+                                                        <FormItem>
+                                                            <FormLabel>MRP/Unit (₹)</FormLabel>
+                                                            <FormControl><Input type="number" {...field} /></FormControl>
+                                                            <FormMessage />
+                                                        </FormItem>
+                                                    )} />
                                                     <FormField control={form.control} name={`products.${index}.purchaseRatePerUnit`} render={({ field }) => (
                                                         <FormItem>
-                                                            <FormLabel>Purchase Rate/Unit (₹)</FormLabel>
+                                                            <FormLabel>Landing Price/Unit (₹)</FormLabel>
                                                             <FormControl><Input type="number" {...field} /></FormControl>
                                                             <FormMessage />
                                                         </FormItem>
