@@ -7,26 +7,12 @@ import { getAuth, onAuthStateChanged, type Auth, type User } from 'firebase/auth
 import { getFirestore, type Firestore } from 'firebase/firestore';
 import { firebaseConfig } from './config';
 
-// --- Initialization ---
-
-let firebaseApp: FirebaseApp;
-if (typeof window !== 'undefined') {
-  if (!getApps().length) {
-    firebaseApp = initializeApp(firebaseConfig);
-  } else {
-    firebaseApp = getApp();
-  }
-}
-
-const auth = typeof window !== 'undefined' ? getAuth(firebaseApp!) : ({} as Auth);
-const firestore = typeof window !== 'undefined' ? getFirestore(firebaseApp!) : ({} as Firestore);
-
 // --- Context Definitions ---
 
 interface FirebaseContextType {
-  app: FirebaseApp | null;
-  auth: Auth | null;
-  firestore: Firestore | null;
+  app: FirebaseApp;
+  auth: Auth;
+  firestore: Firestore;
 }
 
 interface AuthContextType {
@@ -34,49 +20,38 @@ interface AuthContextType {
   isUserLoading: boolean;
 }
 
-const FirebaseContext = createContext<FirebaseContextType>({
-  app: null,
-  auth: null,
-  firestore: null,
-});
-
-const AuthContext = createContext<AuthContextType>({
-  user: null,
-  isUserLoading: true,
-});
+const FirebaseContext = createContext<FirebaseContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // --- Provider Component ---
 
 export function FirebaseProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [isUserLoading, setUserLoading] = useState(true);
+  // Initialize Firebase app and services within the provider
+  const [firebaseContext, setFirebaseContext] = useState<FirebaseContextType | null>(null);
+  const [authContext, setAuthContext] = useState<AuthContextType>({ user: null, isUserLoading: true });
 
   useEffect(() => {
-    if (!auth) {
-        setUserLoading(false);
-        return;
-    }
+    const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+    const auth = getAuth(app);
+    const firestore = getFirestore(app);
+
+    setFirebaseContext({ app, auth, firestore });
+
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
-      setUserLoading(false);
+      setAuthContext({ user, isUserLoading: false });
     });
+
     return () => unsubscribe();
   }, []);
 
-  const firebaseContextValue: FirebaseContextType = {
-    app: firebaseApp || null,
-    auth: auth || null,
-    firestore: firestore || null,
-  };
-  
-  const authContextValue: AuthContextType = {
-    user,
-    isUserLoading,
-  };
+  if (!firebaseContext) {
+    // You can render a global loader here if you want
+    return null;
+  }
 
   return (
-    <FirebaseContext.Provider value={firebaseContextValue}>
-      <AuthContext.Provider value={authContextValue}>
+    <FirebaseContext.Provider value={firebaseContext}>
+      <AuthContext.Provider value={authContext}>
         {children}
       </AuthContext.Provider>
     </FirebaseContext.Provider>
@@ -86,8 +61,22 @@ export function FirebaseProvider({ children }: { children: ReactNode }) {
 
 // --- Hooks ---
 
-export const useFirebase = () => useContext(FirebaseContext);
-export const useFirebaseApp = () => useContext(FirebaseContext).app;
-export const useAuth = () => useContext(FirebaseContext).auth;
-export const useFirestore = () => useContext(FirebaseContext).firestore;
-export const useUser = () => useContext(AuthContext);
+export const useFirebase = (): FirebaseContextType => {
+  const context = useContext(FirebaseContext);
+  if (context === undefined) {
+    throw new Error('useFirebase must be used within a FirebaseProvider');
+  }
+  return context;
+};
+
+export const useFirebaseApp = (): FirebaseApp => useFirebase().app;
+export const useAuth = (): Auth => useFirebase().auth;
+export const useFirestore = (): Firestore => useFirebase().firestore;
+
+export const useUser = (): AuthContextType => {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useUser must be used within a FirebaseProvider');
+  }
+  return context;
+};

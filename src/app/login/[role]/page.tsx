@@ -159,9 +159,9 @@ export default function RoleLoginPage() {
     }
   };
 
-  const isLoading = isSubmitting || isGoogleLoading || isAuthLoading;
+  const isLoading = isSubmitting || isGoogleLoading || isAuthLoading || isAppLoading;
   
-  if (isAppLoading) {
+  if (isAuthLoading || isAppLoading) {
     return (
       <div className="flex min-h-screen w-full flex-col items-center justify-center bg-muted/30 p-4 font-body">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />
