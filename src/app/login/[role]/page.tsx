@@ -1,4 +1,3 @@
-
 'use client';
 
 import Link from 'next/link';
@@ -43,7 +42,6 @@ function GoogleIcon() {
 export default function RoleLoginPage() {
   const { t } = useLanguage();
   const { user: appUser, loading: isAppLoading } = useAppUser();
-  const { isUserLoading: isAuthLoading } = useUser();
   const auth = useAuth();
   const firestore = useFirestore();
   const router = useRouter();
@@ -159,9 +157,9 @@ export default function RoleLoginPage() {
     }
   };
 
-  const isLoading = isSubmitting || isGoogleLoading || isAuthLoading || isAppLoading;
+  const isLoading = isSubmitting || isGoogleLoading || isAppLoading;
   
-  if (isAuthLoading || isAppLoading) {
+  if (isAppLoading) {
     return (
       <div className="flex min-h-screen w-full flex-col items-center justify-center bg-muted/30 p-4 font-body">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />
