@@ -1,4 +1,3 @@
-
 'use client';
 
 import './globals.css';
@@ -38,7 +37,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   
-  const { firebaseApp, auth, firestore } = initializeFirebase();
+  // initializeFirebase() returns null on the server and initialized services on the client.
+  // The provider is designed to handle this.
+  const services = initializeFirebase();
 
   return (
     <html lang="en" suppressHydrationWarning>
@@ -58,7 +59,11 @@ export default function RootLayout({
         )}
         suppressHydrationWarning
       >
-        <FirebaseProvider firebaseApp={firebaseApp} auth={auth} firestore={firestore}>
+        <FirebaseProvider 
+            firebaseApp={services?.firebaseApp || null} 
+            auth={services?.auth || null} 
+            firestore={services?.firestore || null}
+        >
           <LanguageProvider>
             <ThemeProvider
               attribute="class"

@@ -5,23 +5,31 @@ import { getAuth, type Auth } from 'firebase/auth';
 import { getFirestore, type Firestore } from 'firebase/firestore';
 import { firebaseConfig } from './config';
 
-// Module-level variables to act as a singleton.
-let firebaseApp: FirebaseApp | null = null;
-let auth: Auth | null = null;
-let firestore: Firestore | null = null;
+type FirebaseServices = {
+  firebaseApp: FirebaseApp;
+  auth: Auth;
+  firestore: Firestore;
+};
+
+let services: FirebaseServices | null = null;
 
 /**
  * Initializes and/or returns the Firebase services singleton.
- * This function is safe to call multiple times and will only initialize once.
- * It is designed to be called ONLY on the client-side.
+ * This function is safe to call multiple times and on both server and client.
+ * On the server, it will return null. On the client, it initializes Firebase once.
  */
-export function initializeFirebase() {
-  // On the server, return null services.
+export function initializeFirebase(): FirebaseServices | null {
+  // Return null on the server
   if (typeof window === 'undefined') {
-    return { firebaseApp: null, auth: null, firestore: null };
+    return null;
   }
-  
-  // Initialize the Firebase app if it hasn't been already.
+
+  // If services are already initialized, return them.
+  if (services) {
+    return services;
+  }
+
+  // Check if Firebase app is already initialized by other means
   if (!getApps().length) {
     // Final check: Ensure all necessary config values are strings and present.
     if (
@@ -30,15 +38,16 @@ export function initializeFirebase() {
       !firebaseConfig.projectId
     ) {
       console.error("Firebase config is missing or incomplete. Firebase will not be initialized.");
-      return { firebaseApp: null, auth: null, firestore: null };
+      return null;
     }
-    firebaseApp = initializeApp(firebaseConfig);
-  } else {
-    firebaseApp = getApp();
+    initializeApp(firebaseConfig);
   }
-
-  auth = getAuth(firebaseApp);
-  firestore = getFirestore(firebaseApp);
   
-  return { firebaseApp, auth, firestore };
+  const firebaseApp = getApp();
+  const auth = getAuth(firebaseApp);
+  const firestore = getFirestore(firebaseApp);
+
+  services = { firebaseApp, auth, firestore };
+
+  return services;
 }
