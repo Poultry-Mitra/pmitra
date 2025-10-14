@@ -124,7 +124,7 @@ export default function RoleLoginPage() {
     
     if (userData.role !== role) {
       await auth.signOut();
-      toast({ title: "Role Mismatch", description: `This account is a ${userData.role}. Please use the correct login page.`, variant: "destructive" });
+      toast({ title: "Role Mismatch", description: `This account is a ${userData.role || 'undefined'}. Please use the correct login page.`, variant: "destructive" });
       router.replace(`/login/${userData.role}`);
       return;
     }
@@ -286,3 +286,5 @@ export default function RoleLoginPage() {
     </div>
   );
 }
+
+    
