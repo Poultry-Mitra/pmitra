@@ -118,10 +118,18 @@ export default function DetailedSignupPage() {
 
         await setDoc(userDocRef, userProfile);
         
-        toast({
-            title: "Account Created!",
-            description: "Your account is pending approval. You will be redirected to the login page.",
-        });
+        if (finalStatus === 'Active') {
+            toast({
+                title: "Account Created!",
+                description: "Your account is active. You will be redirected to the login page.",
+            });
+        } else {
+            toast({
+                title: "Account Created!",
+                description: "Your account is pending approval. You will be notified once active.",
+            });
+        }
+        
         if (auth?.currentUser) await auth.signOut();
         router.push('/login');
     }

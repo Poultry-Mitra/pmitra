@@ -40,7 +40,7 @@ export function useOrders(dealerUID?: string) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!firestore || !firebaseUser) {
+    if (!firestore) {
         setOrders([]);
         setLoading(false);
         return;
@@ -67,7 +67,7 @@ export function useOrders(dealerUID?: string) {
     );
 
     return () => unsubscribe();
-  }, [firestore, dealerUID, firebaseUser]);
+  }, [firestore, dealerUID]);
 
   return { orders, loading };
 }

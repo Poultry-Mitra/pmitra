@@ -54,8 +54,8 @@ export function ConnectFarmerDialog({ open, onOpenChange }: { open: boolean; onO
 
         try {
             // The UID is embedded in the custom ID. We need to extract it.
-            const farmerUIDprefix = values.farmerId.split('-')[2].substring(0, 5).toLowerCase();
-             if (!farmerUIDprefix) {
+            const farmerIdPrefix = values.farmerId.split('-')[2];
+             if (!farmerIdPrefix) {
                 throw new Error("Invalid Farmer ID format.");
             }
 
@@ -65,7 +65,7 @@ export function ConnectFarmerDialog({ open, onOpenChange }: { open: boolean; onO
             
             let foundFarmer: (User & { id: string }) | null = null;
             querySnapshot.forEach(doc => {
-                 if (doc.id.substring(0, 5).toLowerCase() === farmerUIDprefix) {
+                 if (doc.id.substring(0, 5).toUpperCase() === farmerIdPrefix) {
                     foundFarmer = { id: doc.id, ...doc.data() } as User & { id: string };
                 }
             });

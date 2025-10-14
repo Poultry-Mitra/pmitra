@@ -17,7 +17,7 @@ import {
   arrayUnion,
 } from 'firebase/firestore';
 import type { Connection } from '@/lib/types';
-import { firestore } from '@/firebase/client';
+import { useFirestore } from '@/firebase/provider';
 
 // Helper to convert Firestore doc to Connection type
 function toConnection(doc: QueryDocumentSnapshot<DocumentData>): Connection {
@@ -31,6 +31,7 @@ function toConnection(doc: QueryDocumentSnapshot<DocumentData>): Connection {
 }
 
 export function useConnections(userId: string | undefined, userRole: 'farmer' | 'dealer') {
+  const firestore = useFirestore();
   const [connections, setConnections] = useState<Connection[]>([]);
   const [loading, setLoading] = useState(true);
 

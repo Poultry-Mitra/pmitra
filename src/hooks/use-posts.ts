@@ -1,4 +1,3 @@
-
 // src/hooks/use-posts.ts
 'use client';
 
@@ -25,7 +24,7 @@ import type { Post } from '@/lib/types';
 import slugify from "slugify";
 import { samplePosts } from '@/lib/blog-posts'; // Import sample posts
 
-const USE_LOCAL_DATA = true; // Set to true to use local data, false for Firestore
+const USE_LOCAL_DATA = false; // Set to true to use local data, false for Firestore
 
 // Helper to convert Firestore doc to Post type
 function toPost(doc: QueryDocumentSnapshot<DocumentData> | DocumentSnapshot<DocumentData>): Post {

@@ -14,7 +14,7 @@ import {
   doc,
   addDoc,
 } from 'firebase/firestore';
-import { firestore } from '@/firebase/client';
+import { useFirestore } from '@/firebase/provider';
 import type { InventoryItem } from '@/lib/types';
 
 // Helper to convert Firestore doc to InventoryItem type
@@ -28,6 +28,7 @@ function toInventoryItem(doc: QueryDocumentSnapshot<DocumentData>): InventoryIte
 }
 
 export function useInventory(farmerUID: string | undefined) {
+  const firestore = useFirestore();
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -63,6 +64,7 @@ export function useInventory(farmerUID: string | undefined) {
 }
 
 export function useInventoryByCategory(farmerUID: string, category: InventoryItem['category']) {
+  const firestore = useFirestore();
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [loading, setLoading] = useState(true);
 
