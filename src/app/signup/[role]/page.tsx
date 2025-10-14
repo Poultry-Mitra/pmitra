@@ -21,7 +21,7 @@ import { AppIcon } from "@/app/icon-component";
 import { Loader2 } from "lucide-react";
 import indianStates from "@/lib/indian-states-districts.json";
 import { Separator } from "@/components/ui/separator";
-import type { Invitation } from "@/lib/types";
+import type { Invitation, UserRole } from "@/lib/types";
 
 const formSchema = z.object({
     fullName: z.string().min(3, { message: "Full name must be at least 3 characters." }),
@@ -60,7 +60,7 @@ export default function DetailedSignupPage() {
     const [googleUser, setGoogleUser] = useState<FirebaseAuthUser | null>(null);
     const [invitation, setInvitation] = useState<(Invitation & { id: string }) | null>(null);
 
-    const initialRole = invitation?.role || (params.role as string) || "farmer";
+    const initialRole = invitation?.role || (params.role as UserRole) || "farmer";
 
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
@@ -154,17 +154,15 @@ export default function DetailedSignupPage() {
             successDescription = finalStatus === 'Active' 
                 ? "Your account is active. Redirecting to login." 
                 : "Your account is pending approval. You will be notified once active.";
+             toast({ title: successTitle, description: successDescription });
         } else {
-            successDescription = "A verification email has been sent. Please check your inbox.";
+            successDescription = "A verification email has been sent. Please check your inbox to complete the setup.";
+            toast({ title: successTitle, description: successDescription, duration: 8000 });
         }
         
-        toast({
-            title: successTitle,
-            description: successDescription,
-        });
         
         if (auth?.currentUser) await auth.signOut();
-        router.push('/login');
+        router.push(`/login/${finalRole}`);
     }
 
     async function onSubmit(values: FormValues) {

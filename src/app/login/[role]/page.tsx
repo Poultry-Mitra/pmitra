@@ -9,7 +9,7 @@ import { useLanguage } from '@/components/language-provider';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { useAuth, useFirestore, useUser } from '@/firebase/provider';
+import { useAuth, useFirestore } from '@/firebase/provider';
 import { useEffect, useState } from 'react';
 import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
@@ -96,6 +96,8 @@ export default function RoleLoginPage() {
     }
 
     const isEmailPasswordSignIn = user.providerData.some(p => p.providerId === 'password');
+    // We need to reload the user to get the latest emailVerified status
+    await user.reload();
     const isEmailVerified = user.emailVerified;
     
     // Special handling for admin role, no need to check 'users' collection
