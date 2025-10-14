@@ -451,14 +451,14 @@ export default function AddStockPage() {
                                                             </FormItem>
                                                         )} />
                                                      ) : (
-                                                        <FormField control={form.control} name={`products.${index}.discountValue`} render={({ field }) => (
+                                                         <FormField control={form.control} name={`products.${index}.discountValue`} render={({ field }) => (
                                                             <FormItem>
                                                                 <FormLabel>Discount</FormLabel>
                                                                 <div className="flex">
-                                                                    <Input 
+                                                                    <Input
                                                                         type="number"
                                                                         className="rounded-r-none focus:z-10"
-                                                                        placeholder={watchedProducts?.[index]?.discountType === 'percentage' ? "e.g., 5" : "e.g., 10"}
+                                                                        placeholder={watchedProducts?.[index]?.discountType === 'percentage' ? "e.g., 5" : "e.g., 100"}
                                                                         {...field}
                                                                     />
                                                                     <FormField control={form.control} name={`products.${index}.discountType`} render={({ field: typeField }) => (
@@ -522,13 +522,14 @@ export default function AddStockPage() {
                                         <Separator/>
 
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            <FormField name="transportCost" control={form.control} render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>Transport Cost</FormLabel>
-                                                    <FormControl><Input type="number" {...field} disabled={isTransportDisabled} /></FormControl>
-                                                    {isTransportDisabled && <FormDescription className="text-xs">Disabled because a product is 'FOR'.</FormDescription>}
-                                                </FormItem>
-                                            )} />
+                                            {!isTransportDisabled && (
+                                                <FormField name="transportCost" control={form.control} render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel>Transport Cost</FormLabel>
+                                                        <FormControl><Input type="number" {...field} /></FormControl>
+                                                    </FormItem>
+                                                )} />
+                                            )}
                                             <FormField name="miscCost" control={form.control} render={({ field }) => (
                                                 <FormItem>
                                                     <FormLabel>Other Costs</FormLabel>
