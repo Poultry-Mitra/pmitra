@@ -1,9 +1,10 @@
+
 // src/app/app-provider.tsx
 'use client';
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { type User as FirebaseAuthUser } from 'firebase/auth';
-import { doc, onSnapshot, getAuth } from 'firebase/firestore';
+import { type User as FirebaseAuthUser, getAuth } from 'firebase/auth';
+import { doc, onSnapshot } from 'firebase/firestore';
 import { useAuth, useFirestore, useUser } from '@/firebase/provider';
 import type { User, UserRole } from '@/lib/types';
 import { usePathname, useRouter } from 'next/navigation';
@@ -30,7 +31,7 @@ const getRedirectPath = (role?: UserRole | null) => {
   if (!role) return '/login';
   return {
     farmer: '/dashboard',
-    dealer: '/dealer/dashboard', // Corrected path
+    dealer: '/dealer/dashboard',
     admin: '/admin/dashboard',
   }[role] || '/login';
 };
