@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -82,6 +83,14 @@ export default function RoleLoginPage() {
         provider === 'email' ? setIsSubmitting(false) : setIsGoogleLoading(false);
         return;
     }
+
+    // Admins have a special role document, not a standard user profile.
+    // Skip the profile check for them and let the AppProvider handle redirection based on role.
+    if (role === 'admin') {
+        // Successful login for admin, AppProvider will handle role check and redirect
+        return;
+    }
+
     const userDocRef = doc(firestore, 'users', user.uid);
     const docSnap = await getDoc(userDocRef);
 
@@ -107,7 +116,7 @@ export default function RoleLoginPage() {
       return;
     }
     
-    // Success: The AppProvider will handle redirection.
+    // Success: The AppProvider will handle redirection for non-admin roles.
   }
 
   async function onSubmit(values: FormValues) {
