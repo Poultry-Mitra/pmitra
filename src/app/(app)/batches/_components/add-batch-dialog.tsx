@@ -37,6 +37,7 @@ import { format } from 'date-fns';
 const formSchema = z.object({
     batchName: z.string().min(3, "Batch name must be at least 3 characters."),
     batchType: z.enum(["Broiler", "Layer"]),
+    housingSystem: z.enum(["Deep-Litter", "Battery Cage", "Free-Range"]).optional(),
     breed: z.string().optional(),
     totalChicks: z.coerce.number().int().min(1, "Total chicks must be at least 1."),
     batchStartDate: z.date(),
@@ -54,6 +55,7 @@ export function AddBatchDialog({ open, onOpenChange }: { open: boolean; onOpenCh
         defaultValues: {
             batchName: "",
             batchType: "Broiler",
+            housingSystem: "Deep-Litter",
             breed: "Cobb",
             totalChicks: 500,
             batchStartDate: new Date(),
@@ -135,6 +137,31 @@ export function AddBatchDialog({ open, onOpenChange }: { open: boolean; onOpenCh
                                     </FormItem>
                                 )}
                             />
+                             <FormField
+                                control={form.control}
+                                name="housingSystem"
+                                render={({ field }) => (
+                                    <FormItem>
+                                    <FormLabel>Housing System</FormLabel>
+                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                        <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select housing system" />
+                                        </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                            <SelectItem value="Deep-Litter">Deep-Litter</SelectItem>
+                                            <SelectItem value="Battery Cage">Battery Cage</SelectItem>
+                                            <SelectItem value="Free-Range">Free-Range</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
+
+                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {batchType === 'Broiler' && (
                                 <FormField
                                     control={form.control}
