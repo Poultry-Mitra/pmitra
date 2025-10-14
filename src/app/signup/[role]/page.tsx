@@ -16,13 +16,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { useAuth, useFirestore } from "@/firebase/provider";
 import { GoogleAuthProvider, signInWithPopup, type User as FirebaseAuthUser, createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth";
-import { doc, setDoc, getDoc, collection, query, where, getDocs, limit, deleteDoc } from "firebase/firestore";
+import { doc, getDoc, collection, query, where, getDocs, limit, deleteDoc } from "firebase/firestore";
 import { AppIcon } from "@/app/icon-component";
 import { Loader2 } from "lucide-react";
 import indianStates from "@/lib/indian-states-districts.json";
-import { Separator } from "@/components/ui/separator";
 import type { Invitation, UserRole } from "@/lib/types";
-import { setDocumentNonBlocking } from "@/firebase/non-blocking-updates";
+import { createProfile } from "@/ai/flows/create-profile";
+
 
 const formSchema = z.object({
     fullName: z.string().min(3, { message: "Full name must be at least 3 characters." }),
@@ -110,54 +110,62 @@ export default function DetailedSignupPage() {
     
     async function handleFinalUserCreation(userId: string, values: FormValues, isGoogleSignIn: boolean = false) {
         if (!firestore || !auth) return;
-        
-        const userDocRef = doc(firestore, "users", userId);
-        
+
         const isAdminEmail = values.email.toLowerCase() === 'ipoultrymitra@gmail.com';
         const finalRole = invitation?.role || (isAdminEmail ? 'admin' : initialRole);
         const finalStatus = invitation ? 'Active' : (isAdminEmail ? 'Active' : 'Pending');
+        const finalPlan = invitation?.planType || (isAdminEmail ? 'premium' : 'free');
 
+        // This object is sent to the secure backend flow
         const userProfile = {
+            uid: userId,
             name: values.fullName,
             email: values.email,
             role: finalRole,
             status: finalStatus,
+            planType: finalPlan,
             mobileNumber: values.mobileNumber || "",
             state: values.state,
             district: values.district,
             pinCode: values.pinCode || "",
-            planType: invitation?.planType || (isAdminEmail ? 'premium' : 'free'),
-            aiQueriesCount: 0,
-            lastQueryDate: "",
-            dateJoined: new Date().toISOString(),
-            ...(finalRole === 'dealer' && { uniqueDealerCode: `DL-${Math.random().toString(36).substring(2, 8).toUpperCase()}`, connectedFarmers: [] }),
-            ...(finalRole === 'farmer' && { connectedDealers: [] }),
         };
 
-        // Use the non-blocking write function
-        setDocumentNonBlocking(userDocRef, userProfile, { merge: false }, auth);
-        
-        // If it was an invitation, delete it
-        if (invitation) {
-            await deleteDoc(doc(firestore, 'invitations', invitation.id));
-        }
-        
-        const successTitle = "Account Created!";
-        let successDescription = "";
+        try {
+            // Call the secure backend flow to create the profile
+            await createProfile(userProfile);
+            
+            // If it was an invitation, delete it
+            if (invitation) {
+                await deleteDoc(doc(firestore, 'invitations', invitation.id));
+            }
+            
+            const successTitle = "Account Created!";
+            let successDescription = "";
 
-        if (isGoogleSignIn) {
-            successDescription = finalStatus === 'Active' 
-                ? "Your account is active. Redirecting to login." 
-                : "Your account is pending approval. You will be notified once active.";
-             toast({ title: successTitle, description: successDescription });
-        } else {
-            successDescription = "A verification email has been sent. Please check your inbox to complete the setup.";
-            toast({ title: successTitle, description: successDescription, duration: 8000 });
+            if (isGoogleSignIn) {
+                successDescription = finalStatus === 'Active' 
+                    ? "Your account is active. Redirecting to login." 
+                    : "Your account is pending approval. You will be notified once active.";
+                 toast({ title: successTitle, description: successDescription });
+            } else {
+                successDescription = "A verification email has been sent. Please check your inbox to complete the setup.";
+                toast({ title: successTitle, description: successDescription, duration: 8000 });
+            }
+            
+            // We still sign out to force a clean login, which triggers the AppProvider's redirection logic correctly.
+            if (auth?.currentUser) await auth.signOut();
+            router.push(`/login/${finalRole}`);
+            
+        } catch (flowError) {
+            console.error("Profile creation flow failed:", flowError);
+            // If the profile creation fails, we should ideally delete the auth user to allow a retry.
+            // This requires Admin SDK, so for now, we'll just log the error and inform the user.
+            toast({
+                title: "Signup Failed",
+                description: "There was a problem creating your user profile. Please contact support.",
+                variant: "destructive",
+            });
         }
-        
-        // We still sign out to force a clean login, which triggers the AppProvider's redirection logic correctly.
-        if (auth?.currentUser) await auth.signOut();
-        router.push(`/login/${finalRole}`);
     }
 
     async function onSubmit(values: FormValues) {

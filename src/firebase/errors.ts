@@ -1,3 +1,4 @@
+
 'use client';
 import { type User, type Auth } from 'firebase/auth';
 
@@ -79,6 +80,9 @@ function buildRequestObject(context: SecurityRuleContext, auth: Auth | null): Se
   
   if (auth && auth.currentUser) {
       authObject = buildAuthObject(auth.currentUser);
+  } else if (!auth) {
+      // If auth is null, we can't get the user. `request.auth` will be null.
+      authObject = null;
   }
 
   return {
