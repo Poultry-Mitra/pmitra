@@ -14,7 +14,7 @@ import { useEffect, useState } from 'react';
 import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import { doc, getDoc } from 'firebase/firestore';
 import type { User as AppUser, UserRole } from '@/lib/types';
-import { sendPasswordResetEmail, GoogleAuthProvider, signInWithPopup, UserCredential, signInWithEmailAndPassword } from 'firebase/auth';
+import { sendPasswordResetEmail, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, type User as FirebaseAuthUser } from 'firebase/auth';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -51,8 +51,8 @@ export default function RoleLoginPage() {
   const { toast } = useToast();
   
   const role = params.role as UserRole;
-  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -70,19 +70,18 @@ export default function RoleLoginPage() {
     }[userRole] || '/';
   }
 
+  // Effect to redirect already logged-in users
   useEffect(() => {
-    // This effect handles redirection for already logged-in users.
-    if (isUserLoading || !firestore || !auth) return;
+    if (isUserLoading) return; // Wait until user status is known
 
     if (firebaseUser) {
       const userDocRef = doc(firestore, 'users', firebaseUser.uid);
       getDoc(userDocRef).then(docSnap => {
         if (docSnap.exists()) {
           const userData = docSnap.data() as AppUser;
-          // User is logged in and has a profile, redirect them.
           router.replace(getRedirectPath(userData.role));
         } else {
-          // Logged in but no profile, probably a broken state. Log them out.
+           // This case can happen if a user is deleted from firestore but not auth
            auth.signOut();
         }
       });
@@ -90,51 +89,38 @@ export default function RoleLoginPage() {
   }, [firebaseUser, isUserLoading, firestore, router, auth]);
 
   async function handleLoginSuccess(user: FirebaseAuthUser) {
-    if (!firestore || !auth) return;
-
     const userDocRef = doc(firestore, 'users', user.uid);
     const docSnap = await getDoc(userDocRef);
 
-    if (docSnap.exists()) {
-      const userData = docSnap.data() as AppUser;
-      if (userData.role !== role) {
-        await auth.signOut();
-        toast({ title: "Role Mismatch", description: `This account is a ${userData.role}. Please use the correct login page.`, variant: "destructive" });
-        setIsSubmitting(false);
-        setIsGoogleLoading(false);
-        router.replace(`/login/${userData.role}`);
-        return;
-      }
-       if (userData.status === 'Pending') {
-        await auth.signOut();
-        toast({ title: "Account Pending", description: "Your account is pending approval by an administrator.", variant: "destructive" });
-        setIsSubmitting(false);
-        setIsGoogleLoading(false);
-        return;
-      }
-      if (userData.status === 'Suspended') {
-        await auth.signOut();
-        toast({ title: "Account Suspended", description: "Your account has been suspended. Please contact support.", variant: "destructive" });
-        setIsSubmitting(false);
-        setIsGoogleLoading(false);
-        return;
-      }
-      // Success case
-      router.replace(getRedirectPath(role));
-    } else {
-      // This case should ideally not be hit in login, but as a safeguard:
+    if (!docSnap.exists()) {
       await auth.signOut();
       toast({ title: 'Login Failed', description: 'User profile not found. Please sign up or contact support.', variant: 'destructive' });
       setIsSubmitting(false);
       setIsGoogleLoading(false);
+      return;
     }
+
+    const userData = docSnap.data() as AppUser;
+    if (userData.role !== role) {
+      await auth.signOut();
+      toast({ title: "Role Mismatch", description: `This account is a ${userData.role}. Please use the correct login page.`, variant: "destructive" });
+      router.replace(`/login/${userData.role}`);
+      return;
+    }
+    if (userData.status !== 'Active') {
+      await auth.signOut();
+      const message = userData.status === 'Pending' ? "Your account is pending approval." : "Your account has been suspended.";
+      toast({ title: `Account Not Active`, description: message, variant: "destructive" });
+      setIsSubmitting(false);
+      setIsGoogleLoading(false);
+      return;
+    }
+    
+    // Success: Redirect to the correct dashboard
+    router.replace(getRedirectPath(role));
   }
 
   async function onSubmit(values: FormValues) {
-    if (!auth) {
-      toast({ title: 'Error', description: 'Authentication service not available.', variant: 'destructive' });
-      return;
-    }
     setIsSubmitting(true);
     try {
       const userCredential = await signInWithEmailAndPassword(auth, values.email, values.password);
@@ -150,19 +136,16 @@ export default function RoleLoginPage() {
   }
 
   const handleGoogleSignIn = async () => {
-    if (!auth) return;
     setIsGoogleLoading(true);
     const provider = new GoogleAuthProvider();
     try {
       const userCredential = await signInWithPopup(auth, provider);
       await handleLoginSuccess(userCredential.user);
     } catch (error: any) {
-        if (error.code === 'auth/popup-closed-by-user') {
-            setIsGoogleLoading(false);
-            return;
+        if (error.code !== 'auth/popup-closed-by-user') {
+          console.error("Google sign-in error:", error);
+          toast({ title: "Google Sign-In Failed", description: "Could not sign in with Google. Please try again.", variant: "destructive" });
         }
-        console.error("Google sign-in error:", error);
-        toast({ title: "Google Sign-In Failed", description: "Could not sign in with Google. Please try again.", variant: "destructive" });
         setIsGoogleLoading(false);
     }
   };
@@ -170,42 +153,20 @@ export default function RoleLoginPage() {
   const handleForgotPassword = async () => {
     const email = form.getValues('email');
     if (!email) {
-      toast({
-        title: "Email Required",
-        description: "Please enter your email address to reset your password.",
-        variant: "destructive"
-      });
+      toast({ title: "Email Required", description: "Please enter your email to reset your password.", variant: "destructive" });
       return;
     }
-    if (!auth) return;
-
     try {
       await sendPasswordResetEmail(auth, email);
-      toast({
-        title: "Password Reset Email Sent",
-        description: "Please check your inbox for instructions to reset your password.",
-      });
+      toast({ title: "Password Reset Email Sent", description: "Check your inbox for reset instructions." });
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to send password reset email. Please check the email address.",
-        variant: "destructive"
-      });
+      toast({ title: "Error", description: "Failed to send password reset email.", variant: "destructive" });
     }
   };
 
-  // This loading state now correctly reflects if auth service is initializing OR a login process is active.
-  const isLoading = isSubmitting || isGoogleLoading || isAuthLoading;
-  
-  const title = {
-      farmer: "Farmer Login",
-      dealer: "Dealer Login",
-      admin: "Admin Login"
-  }[role] || "Login";
+  const isLoading = isSubmitting || isGoogleLoading || isAuthLoading || isUserLoading;
 
-
-  // While checking for an existing user session, show a full page loader.
-  if (isUserLoading) {
+  if (isUserLoading || firebaseUser) { // Show loader if checking user or if user exists (and is being redirected)
     return (
       <div className="flex min-h-screen w-full flex-col items-center justify-center bg-muted/30 p-4 font-body">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />
@@ -222,29 +183,21 @@ export default function RoleLoginPage() {
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
           <AppIcon className="mx-auto size-10 text-primary" />
-          <CardTitle className="font-headline text-2xl">{title}</CardTitle>
+          <CardTitle className="font-headline text-2xl capitalize">{role} Login</CardTitle>
           <CardDescription>Enter your credentials to access your dashboard.</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
+              <FormField control={form.control} name="email" render={({ field }) => (
                   <FormItem>
                     <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <Input type="email" placeholder="you@example.com" {...field} />
-                    </FormControl>
+                    <FormControl><Input type="email" placeholder="you@example.com" {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
+              <FormField control={form.control} name="password" render={({ field }) => (
                   <FormItem>
                     <div className="flex items-center justify-between">
                       <FormLabel>Password</FormLabel>
@@ -252,48 +205,34 @@ export default function RoleLoginPage() {
                           Forgot Password?
                        </Button>
                     </div>
-                    <FormControl>
-                      <Input type="password" placeholder="••••••••" {...field} />
-                    </FormControl>
+                    <FormControl><Input type="password" placeholder="••••••••" {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
               <Button type="submit" className="w-full" disabled={isLoading}>
-                {isSubmitting && <Loader2 className="mr-2 animate-spin" />}
-                {isSubmitting ? t('messages.loading') : 'Login'}
+                {(isSubmitting || isAuthLoading) && <Loader2 className="mr-2 animate-spin" />}
+                {isSubmitting ? 'Logging in...' : 'Login'}
               </Button>
             </form>
           </Form>
 
             <div className="relative my-6">
-                <div className="absolute inset-0 flex items-center">
-                    <span className="w-full border-t" />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
-                </div>
+                <div className="absolute inset-0 flex items-center"><span className="w-full border-t" /></div>
+                <div className="relative flex justify-center text-xs uppercase"><span className="bg-background px-2 text-muted-foreground">Or continue with</span></div>
             </div>
 
             <Button variant="outline" className="w-full" onClick={handleGoogleSignIn} disabled={isLoading}>
-                {isGoogleLoading ? <Loader2 className="mr-2 animate-spin" /> : <GoogleIcon />}
+                {isGoogleLoading && <Loader2 className="mr-2 animate-spin" />}
+                {!isGoogleLoading && <GoogleIcon />}
                 Continue with Google
             </Button>
 
         </CardContent>
       </Card>
       <div className="mt-6 text-center text-sm text-muted-foreground">
-        <p>
-          Don&apos;t have an account?{' '}
-          <Link href={`/signup/${role}`} className="font-semibold text-primary hover:underline">
-            Register here
-          </Link>
-        </p>
-         <p className="mt-2">
-            <Link href="/login" className="font-semibold text-primary hover:underline">
-                Choose a different login type
-            </Link>
-        </p>
+        <p>Don't have an account? <Link href={`/signup/${role}`} className="font-semibold text-primary hover:underline">Register here</Link></p>
+        <p className="mt-2"><Link href="/login" className="font-semibold text-primary hover:underline">Choose a different login type</Link></p>
       </div>
     </div>
   );

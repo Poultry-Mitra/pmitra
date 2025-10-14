@@ -4,20 +4,80 @@
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "./_components/sidebar";
 import { AppHeader } from "./_components/header";
-import { AppProvider } from "../app-provider";
+import { useUser, useFirestore } from '@/firebase/provider';
+import { useRouter, usePathname } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import type { User as AppUser, UserRole } from '@/lib/types';
+import { doc, getDoc } from 'firebase/firestore';
+import { Loader2 } from "lucide-react";
+
+
+const getRedirectPath = (role: UserRole) => {
+  return {
+    farmer: '/dashboard',
+    dealer: '/dealer/dashboard',
+    admin: '/admin/dashboard',
+  }[role] || '/login';
+};
+
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
+  const { user: firebaseUser, isUserLoading } = useUser();
+  const firestore = useFirestore();
+  const router = useRouter();
+  const pathname = usePathname();
+  const [isAuthorized, setIsAuthorized] = useState(false);
+
+  const allowedRoles: UserRole[] = ['farmer'];
+
+  useEffect(() => {
+    if (isUserLoading) {
+      return; // Wait until firebase user is loaded
+    }
+
+    if (!firebaseUser) {
+      // Not logged in, redirect to login page
+      router.replace(`/login?redirect=${pathname}`);
+      return;
+    }
+
+    // User is logged in, check their role from Firestore
+    const userDocRef = doc(firestore, 'users', firebaseUser.uid);
+    getDoc(userDocRef).then(docSnap => {
+      if (docSnap.exists()) {
+        const userData = docSnap.data() as AppUser;
+        if (allowedRoles.includes(userData.role)) {
+          setIsAuthorized(true);
+        } else {
+          // Role not allowed, redirect to their default dashboard
+          router.replace(getRedirectPath(userData.role));
+        }
+      } else {
+        // Firestore document doesn't exist, something is wrong
+        console.error("User profile not found in Firestore for UID:", firebaseUser.uid);
+        router.replace('/login');
+      }
+    });
+
+  }, [isUserLoading, firebaseUser, firestore, router, pathname]);
+
+  if (!isAuthorized) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
+
   return (
-    <AppProvider allowedRoles={['farmer']}>
-        <SidebarProvider>
-        <AppSidebar />
-        <SidebarInset>
-            <AppHeader />
-            <main className="p-4 sm:px-6 sm:py-8">
-            {children}
-            </main>
-        </SidebarInset>
-        </SidebarProvider>
-    </AppProvider>
+    <SidebarProvider>
+    <AppSidebar />
+    <SidebarInset>
+        <AppHeader />
+        <main className="p-4 sm:px-6 sm:py-8">
+        {children}
+        </main>
+    </SidebarInset>
+    </SidebarProvider>
   );
 }
