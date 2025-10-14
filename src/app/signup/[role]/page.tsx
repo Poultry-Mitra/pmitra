@@ -154,8 +154,10 @@ export default function DetailedSignupPage() {
         try {
             if (authProvider === 'google' && googleUser) {
                  createdAuthUser = googleUser;
-                 await handleFinalUserCreation(createdAuthUser.uid, values);
+                 const { finalRole } = await handleFinalUserCreation(createdAuthUser.uid, values);
                  toast({ title: "Account Finalized!", description: "Your account is ready. Redirecting to login." });
+                 if (auth?.currentUser) await auth.signOut();
+                 router.push(`/login/${finalRole}`);
             } else {
                 if (!values.password) {
                     form.setError('password', { message: 'Password is required for email signup.' });
@@ -172,8 +174,6 @@ export default function DetailedSignupPage() {
                 if (auth?.currentUser) await auth.signOut();
                 router.push(`/login/${finalRole}`);
             }
-            if (auth?.currentUser) await auth.signOut();
-            router.push(`/login/${initialRole}`);
         } catch (error: any) {
             console.error("Signup failed:", error);
             if (error.code === 'auth/email-already-in-use') {
