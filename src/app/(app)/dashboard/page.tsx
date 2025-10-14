@@ -4,7 +4,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Copy, Loader2, Link as LinkIcon, Download } from "lucide-react";
+import { Copy, Loader2, Link as LinkIcon, Download, CheckCircle, XCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useBatches } from "@/hooks/use-batches";
 import { DashboardStats } from "./_components/DashboardStats";
@@ -13,6 +13,87 @@ import { ConnectDealerDialog } from './_components/connect-dealer-dialog';
 import { PendingOrders } from './_components/pending-orders';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/components/language-provider';
+import { useConnections, updateConnectionStatus } from '@/hooks/use-connections';
+import { useUsersByIds } from '@/hooks/use-users';
+import { useFirestore } from '@/firebase/provider';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+
+
+function DealerConnectionRequests() {
+    const { user: appUser, loading: appUserLoading } = useAppUser();
+    const { connections, loading: connectionsLoading } = useConnections(appUser?.id, 'farmer');
+    const firestore = useFirestore();
+    const { toast } = useToast();
+
+    const pendingRequests = useMemo(() => 
+        connections.filter(c => c.status === 'Pending' && c.requestedBy === 'dealer'), 
+    [connections]);
+
+    const dealerIds = useMemo(() => pendingRequests.map(r => r.dealerUID), [pendingRequests]);
+    const { users: dealers, loading: dealersLoading } = useUsersByIds(dealerIds);
+    
+    const loading = appUserLoading || connectionsLoading || dealersLoading;
+    
+    if (loading || pendingRequests.length === 0) {
+        return null; // Don't show the card if there are no pending requests or still loading
+    }
+    
+    const getDealerName = (dealerId: string) => {
+        return dealers.find(d => d.id === dealerId)?.name || "Loading...";
+    }
+
+    const handleAction = async (connectionId: string, status: 'Approved' | 'Rejected') => {
+        if (!firestore) return;
+        try {
+            await updateConnectionStatus(firestore, connectionId, status);
+            toast({
+                title: `Request ${status}`,
+                description: "The connection has been updated."
+            })
+        } catch(e: any) {
+            toast({ title: "Error", description: e.message, variant: "destructive" });
+        }
+    }
+
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Dealer Connection Requests</CardTitle>
+                <CardDescription>Review and respond to connection requests from dealers.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>Dealer Name</TableHead>
+                            <TableHead>Date</TableHead>
+                            <TableHead className="text-right">Actions</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {pendingRequests.map(req => (
+                            <TableRow key={req.id}>
+                                <TableCell className="font-medium">{getDealerName(req.dealerUID)}</TableCell>
+                                <TableCell>{new Date(req.createdAt).toLocaleDateString()}</TableCell>
+                                <TableCell className="text-right space-x-2">
+                                     <Button size="sm" variant="outline" className="text-green-600 hover:bg-green-50 hover:text-green-700" onClick={() => handleAction(req.id, 'Approved')}>
+                                        <CheckCircle className="mr-2" />
+                                        Approve
+                                    </Button>
+                                     <Button size="sm" variant="outline" className="text-red-600 hover:bg-red-50 hover:text-red-700" onClick={() => handleAction(req.id, 'Rejected')}>
+                                        <XCircle className="mr-2" />
+                                        Reject
+                                    </Button>
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </CardContent>
+        </Card>
+    )
+}
 
 
 export default function DashboardPage() {
@@ -70,6 +151,7 @@ export default function DashboardPage() {
       </div>
 
       <div className="mt-8 grid grid-cols-1 gap-8">
+        <DealerConnectionRequests />
         <PendingOrders />
       </div>
       <ConnectDealerDialog open={isConnectDealerOpen} onOpenChange={setConnectDealerOpen} />

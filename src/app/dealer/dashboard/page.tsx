@@ -1,5 +1,4 @@
 
-
 // src/app/dealer/dashboard/page.tsx
 "use client";
 
@@ -23,6 +22,7 @@ import {
   Area,
   ResponsiveContainer,
 } from 'recharts';
+import { Skeleton } from "@/components/ui/skeleton";
 
 
 const statusVariant = {
@@ -90,7 +90,7 @@ export default function DealerDashboardPage() {
     const kpiData = useMemo(() => {
         if (loading || !user) return null;
         
-        const successfulOrders = orders.filter(o => o.status === 'Approved');
+        const successfulOrders = orders.filter(o => o.status === 'Approved' || o.status === 'Completed');
         const monthlyRevenue = successfulOrders.reduce((acc, order) => acc + order.totalAmount, 0);
 
         return {
@@ -102,7 +102,7 @@ export default function DealerDashboardPage() {
     }, [loading, orders, user]);
 
 
-    if (loading || !user) {
+    if (appUserLoading || !user) {
         return (
              <div className="flex h-screen items-center justify-center">
                 <Loader2 className="animate-spin size-8" />
@@ -135,7 +135,20 @@ export default function DealerDashboardPage() {
               </div>
           </PageHeader>
            <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-               {kpiData && (
+               {loading || !kpiData ? (
+                   [...Array(4)].map((_, i) => (
+                        <Card key={i}>
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <Skeleton className="h-4 w-2/3" />
+                                <Skeleton className="h-4 w-4" />
+                            </CardHeader>
+                            <CardContent>
+                                <Skeleton className="h-8 w-1/2 mt-4" />
+                                <Skeleton className="h-3 w-1/3 mt-1" />
+                            </CardContent>
+                        </Card>
+                   ))
+               ) : (
                    <>
                         <KpiCard 
                             title="Total Farmers" 
@@ -183,7 +196,7 @@ export default function DealerDashboardPage() {
                          <p className="text-sm text-muted-foreground">Cumulative revenue from successful orders in the last 30 days.</p>
                     </CardHeader>
                     <CardContent>
-                        <RevenueChart orders={orders.filter(o => o.status === 'Approved')} />
+                         {loading ? <div className="flex h-[300px] w-full items-center justify-center"><Loader2 className="animate-spin" /></div> : <RevenueChart orders={orders.filter(o => o.status === 'Approved' || o.status === 'Completed')} />}
                     </CardContent>
                 </Card>
                  <Card className="lg:col-span-2">
