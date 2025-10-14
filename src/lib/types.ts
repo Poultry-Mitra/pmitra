@@ -166,7 +166,7 @@ export type Order = {
 export type AuditLog = {
     id?: string;
     adminUID: string;
-    action: 'CREATE_USER' | 'DELETE_USER' | 'UPDATE_DAILY_RATES' | 'SUSPEND_USER' | 'UNSUSPEND_USER' | 'UPDATE_USER_STATUS';
+    action: 'CREATE_USER' | 'DELETE_USER' | 'UPDATE_DAILY_RATES' | 'SUSPEND_USER' | 'UNSUSPEND_USER' | 'UPDATE_USER_STATUS' | 'UPDATE_USER_PLAN';
     timestamp: string;
     details: string;
 }

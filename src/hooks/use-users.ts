@@ -169,6 +169,12 @@ export async function updateUserStatus(firestore: Firestore, userId: string, sta
     await updateDoc(docRef, { status });
 }
 
+export async function updateUserPlan(firestore: Firestore, userId: string, planType: 'free' | 'premium') {
+    if (!firestore) throw new Error("Firestore not initialized");
+    const docRef = doc(firestore, 'users', userId);
+    await updateDoc(docRef, { planType });
+}
+
 
 export async function createUserProfile(firestore: Firestore, auth: Auth, newUserProfile: Omit<User, 'id'>) {
     if (!firestore || !auth) {

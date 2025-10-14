@@ -39,7 +39,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { MoreHorizontal, PlusCircle, Loader2, CheckCircle } from "lucide-react";
+import { MoreHorizontal, PlusCircle, Loader2, CheckCircle, CreditCard } from "lucide-react";
 import Link from "next/link";
 import type { User, UserStatus } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
@@ -48,7 +48,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { useUsers, deleteUser, updateUserStatus } from "@/hooks/use-users";
+import { useUsers, deleteUser, updateUserStatus, updateUserPlan } from "@/hooks/use-users";
 import { useFirestore, useUser as useAuthUser } from "@/firebase/provider";
 import { addAuditLog } from "@/hooks/use-audit-logs";
 import { useLanguage } from "@/components/language-provider";
@@ -71,6 +71,7 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
     const { users: allUsers, loading } = useUsers();
     
     const [dialogState, setDialogState] = useState<{ action: 'delete' | 'suspend' | 'approve' | null, user: User | null }>({ action: null, user: null });
+    const [planChangeState, setPlanChangeState] = useState<{ user: User | null, newPlan: 'free' | 'premium' | '', reason: string }>({ user: null, newPlan: '', reason: '' });
     const [reason, setReason] = useState("");
     const [otherReason, setOtherReason] = useState("");
     const [detailsUser, setDetailsUser] = useState<User | null>(null);
@@ -189,8 +190,39 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
         setOtherReason("");
     };
 
+    const handlePlanChange = async () => {
+        if (!planChangeState.user || !firestore || !adminUser.user || !planChangeState.newPlan) return;
+        
+        if (!planChangeState.reason) {
+             toast({ title: "Reason Required", description: "Please provide a reason for this plan change.", variant: "destructive" });
+             return;
+        }
+
+        try {
+            await updateUserPlan(firestore, planChangeState.user.id, planChangeState.newPlan);
+            await addAuditLog(firestore, {
+                adminUID: adminUser.user.uid,
+                action: 'UPDATE_USER_PLAN',
+                timestamp: new Date().toISOString(),
+                details: `Changed plan for ${planChangeState.user.name} to ${planChangeState.newPlan}. Reason: ${planChangeState.reason}`,
+            });
+
+            toast({
+                title: `Plan Updated`,
+                description: `${planChangeState.user.name}'s plan has been changed to ${planChangeState.newPlan}.`,
+            });
+            setPlanChangeState({ user: null, newPlan: '', reason: '' });
+        } catch (error: any) {
+             toast({ title: "Update Failed", description: error.message || "Could not update user plan.", variant: "destructive" });
+        }
+    };
+
     const openDialog = (user: User, action: 'delete' | 'suspend' | 'approve') => {
         setDialogState({ user, action });
+    };
+
+    const openPlanChangeDialog = (user: User) => {
+        setPlanChangeState({ user, newPlan: '', reason: '' });
     };
 
     const openDetailsDialog = (user: User) => {
@@ -295,6 +327,7 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
                                                 <DropdownMenuItem onClick={() => openDetailsDialog(user)}>{t('actions.view_details')}</DropdownMenuItem>
                                                 {user.role !== 'admin' && (
                                                     <>
+                                                        <DropdownMenuItem onClick={() => openPlanChangeDialog(user)}><CreditCard className="mr-2" />Change Plan</DropdownMenuItem>
                                                         <DropdownMenuSeparator />
                                                         {userStatus === 'Pending' && <DropdownMenuItem className="text-green-600 focus:text-green-700" onClick={() => openDialog(user, 'approve')}><CheckCircle className="mr-2" />Approve User</DropdownMenuItem>}
                                                         {userStatus === 'Active' && <DropdownMenuItem onClick={() => openDialog(user, 'suspend')}>{t('actions.suspend')}</DropdownMenuItem>}
@@ -435,6 +468,50 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
+
+            <Dialog open={!!planChangeState.user} onOpenChange={() => setPlanChangeState({ user: null, newPlan: '', reason: '' })}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Change User Plan</DialogTitle>
+                        <DialogDescription>
+                            Manually upgrade or downgrade the subscription plan for {planChangeState.user?.name}.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="py-4 space-y-4">
+                        <div className="space-y-2">
+                            <Label>Current Plan</Label>
+                            <Input disabled value={planChangeState.user?.planType?.toUpperCase()} />
+                        </div>
+                         <div className="space-y-2">
+                            <Label htmlFor="new-plan">New Plan</Label>
+                            <Select
+                                onValueChange={(value: 'free' | 'premium') => setPlanChangeState(prev => ({ ...prev, newPlan: value }))}
+                            >
+                                <SelectTrigger id="new-plan">
+                                    <SelectValue placeholder="Select new plan" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="free">Free</SelectItem>
+                                    <SelectItem value="premium">Premium</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="plan-change-reason">Reason for Change</Label>
+                            <Textarea 
+                                id="plan-change-reason"
+                                placeholder="e.g., Promotional offer, correcting signup error, etc."
+                                value={planChangeState.reason}
+                                onChange={(e) => setPlanChangeState(prev => ({ ...prev, reason: e.target.value }))}
+                            />
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setPlanChangeState({ user: null, newPlan: '', reason: '' })}>Cancel</Button>
+                        <Button onClick={handlePlanChange}>Confirm Change</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </>
     )
 }
