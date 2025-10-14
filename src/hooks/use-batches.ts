@@ -176,6 +176,7 @@ export async function addDailyRecord(
         feedConsumed: number; 
         avgBodyWeight: number;
         medicationGiven?: string;
+        notes?: string;
     }
 ) {
     if (!firestore) throw new Error("Firestore not initialized");
@@ -206,6 +207,7 @@ export async function addDailyRecord(
             avgBodyWeight: data.avgBodyWeight,
             feedItemId: data.feedItemId || null,
             medicationGiven: data.medicationGiven || "",
+            notes: data.notes || "",
             createdAt: serverTimestamp(),
         });
 

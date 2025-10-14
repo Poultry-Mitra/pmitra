@@ -43,6 +43,7 @@ const formSchema = z.object({
     feedConsumed: z.coerce.number().min(0, "Feed consumption must be non-negative."),
     avgBodyWeight: z.coerce.number().min(0, "Weight must be non-negative."),
     medicationGiven: z.string().optional(),
+    notes: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -61,6 +62,7 @@ export function AddDailyRecordDialog({ open, onOpenChange, batchId }: { open: bo
             feedConsumed: 0,
             avgBodyWeight: 0,
             medicationGiven: "",
+            notes: "",
         },
     });
 
@@ -77,7 +79,7 @@ export function AddDailyRecordDialog({ open, onOpenChange, batchId }: { open: bo
                 description: `Record for ${format(values.date, "PPP")} has been successfully added.`,
             });
             onOpenChange(false);
-            form.reset({ date: new Date(), mortality: 0, feedConsumed: 0, avgBodyWeight: 0, feedItemId: "", medicationGiven: "" });
+            form.reset({ date: new Date(), mortality: 0, feedConsumed: 0, avgBodyWeight: 0, feedItemId: "", medicationGiven: "", notes: "" });
         } catch (error: any) {
              toast({ title: "Error", description: error.message || "Failed to add daily record.", variant: "destructive" });
              console.error("Failed to add daily record", error);
@@ -195,6 +197,20 @@ export function AddDailyRecordDialog({ open, onOpenChange, batchId }: { open: bo
                                     <FormLabel>Medication / Vaccine Given (Optional)</FormLabel>
                                     <FormControl>
                                         <Textarea placeholder="e.g., Lasota vaccine, B-complex vitamins" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+
+                         <FormField
+                            control={form.control}
+                            name="notes"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Notes / Observations (Optional)</FormLabel>
+                                    <FormControl>
+                                        <Textarea placeholder="e.g., Litter is damp, birds seem lethargic, ammonia smell is high" {...field} />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
