@@ -1,4 +1,3 @@
-
 // This file is no longer used by the dashboard and can be removed or kept for the dedicated user management pages.
 // No changes are necessary here for the dashboard fix.
 
@@ -6,7 +5,7 @@
 
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useContext } from "react";
 import {
     Table,
     TableBody,
@@ -55,7 +54,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useUsers, deleteUser, updateUserStatus, updateUserPlan } from "@/hooks/use-users";
-import { useFirestore, useUser as useAuthUser } from "@/firebase/provider";
+import { useFirestore, AuthContext } from "@/firebase/provider";
 import { addAuditLog } from "@/hooks/use-audit-logs";
 import { useLanguage } from "@/components/language-provider";
 
@@ -83,7 +82,7 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
     const [detailsUser, setDetailsUser] = useState<User | null>(null);
     const { toast } = useToast();
     const firestore = useFirestore();
-    const adminUser = useAuthUser();
+    const adminUser = useContext(AuthContext)!;
     const auth = adminUser.isUserLoading ? null : adminUser;
     const { t } = useLanguage();
     const [activeTab, setActiveTab] = useState<string>("pending");
@@ -133,7 +132,7 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
 
         try {
             updateUserStatus(firestore, auth as any, dialogState.user.id, newStatus);
-            await addAuditLog(firestore, auth as any, {
+            await addAuditLog(firestore, {
                 adminUID: adminUser.user.uid,
                 action: 'UPDATE_USER_STATUS',
                 details: `Changed status of ${dialogState.user.name} to ${newStatus}. ${finalReason ? `Reason: ${finalReason}` : ''}`,
@@ -173,7 +172,7 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
             deleteUser(firestore, auth as any, dialogState.user.id);
             handleUserDeletion(dialogState.user.id); // Immediately remove from UI
             
-            await addAuditLog(firestore, auth as any, {
+            await addAuditLog(firestore, {
                 adminUID: adminUser.user.uid,
                 action: 'DELETE_USER',
                 details: `Deleted user: ${dialogState.user.name} (${dialogState.user.id}). Reason: ${finalReason}`,
@@ -207,7 +206,7 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
 
         try {
             updateUserPlan(firestore, auth as any, planChangeState.user.id, planChangeState.newPlan);
-            await addAuditLog(firestore, auth as any, {
+            await addAuditLog(firestore, {
                 adminUID: adminUser.user.uid,
                 action: 'UPDATE_USER_PLAN',
                 details: `Changed plan for ${planChangeState.user.name} to ${planChangeState.newPlan}. Reason: ${planChangeState.reason}`,
