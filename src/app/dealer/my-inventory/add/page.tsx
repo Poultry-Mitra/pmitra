@@ -154,6 +154,18 @@ export default function AddStockPage() {
         }
     }, [isTransportDisabled, form]);
 
+    const handleCategoryChange = (category: string, index: number) => {
+        const unitDefaults = {
+            "Feed": "bag",
+            "Chicks": "chick",
+            "Equipment": "pcs",
+            "Medicine": "bottle",
+            "Other": "pcs",
+        };
+        const newUnit = unitDefaults[category as keyof typeof unitDefaults] || "pcs";
+        form.setValue(`products.${index}.unit`, newUnit as any);
+    };
+
 
     async function onSubmit(values: FormValues) {
         if (!firestore || !user) {
@@ -281,7 +293,7 @@ export default function AddStockPage() {
                                                       <FormField control={form.control} name={`products.${index}.category`} render={({ field }) => (
                                                         <FormItem>
                                                             <FormLabel>Category</FormLabel>
-                                                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                            <Select onValueChange={(value) => { field.onChange(value); handleCategoryChange(value, index); }} defaultValue={field.value}>
                                                                 <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
                                                                 <SelectContent>
                                                                     <SelectItem value="Feed">Feed</SelectItem>
@@ -426,7 +438,7 @@ export default function AddStockPage() {
                                     )})}
                                 </div>
 
-                                <Button type="button" variant="outline" onClick={() => append({ productName: "", category: "Feed", unit: "bag", ratePerUnit: 0, discount: 0, quantity: 1, unitWeight: 50, lowStockThreshold: 10, pricingBasis: 'TPR' })}>
+                                <Button type="button" variant="outline" onClick={() => append({ productName: "", category: "Feed", unit: "bag", ratePerUnit: 0, discount: 0, quantity: 1, unitWeight: 50, lowStockThreshold: 10, pricingBasis: 'TPR', phaseApplicable: [] })}>
                                     <PlusCircle className="mr-2" />
                                     Add Another Product
                                 </Button>
@@ -461,6 +473,7 @@ export default function AddStockPage() {
                                                     <FormLabel>Transport Cost</FormLabel>
                                                     <FormControl><Input type="number" {...field} disabled={isTransportDisabled} /></FormControl>
                                                     {isTransportDisabled && <FormDescription className="text-xs">Disabled because a product is 'FOR'.</FormDescription>}
+                                                    <FormMessage />
                                                 </FormItem>
                                             )} />
                                             <FormField name="miscCost" control={form.control} render={({ field }) => (
@@ -492,6 +505,7 @@ export default function AddStockPage() {
                                                         <Input type="number" className="pl-8" {...field} />
                                                     </div>
                                                 </FormControl>
+                                                <FormMessage />
                                             </FormItem>
                                          )} />
                                          {paymentMethod === 'bank_transfer' && (
@@ -516,3 +530,6 @@ export default function AddStockPage() {
         </>
     );
 }
+
+
+    
