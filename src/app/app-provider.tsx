@@ -41,7 +41,7 @@ const getRoleFromPath = (path: string): UserRole | 'public' | 'root' | 'none' =>
   if (PUBLIC_PATHS.some(p => path.startsWith(p))) return 'public';
   if (path.startsWith('/admin')) return 'admin';
   if (path.startsWith('/dealer')) return 'dealer';
-  if (['/dashboard', '/batches', '/ledger', '/inventory', '/dealers', '/chat', '/monitoring', '/analytics', '/feed-recommendation', '/daily-rates', '/pricing', '/profile'].some(p => path.startsWith(p))) {
+  if (['/dashboard', '/batches', '/ledger', '/inventory', '/dealers', '/chat', '/monitoring', '/analytics', '/feed-recommendation', '/daily-rates', '/pricing', '/profile', '/biosecurity'].some(p => path.startsWith(p))) {
     return 'farmer';
   }
   return 'none';

@@ -86,10 +86,13 @@ export function DashboardStats({ batches, loading: batchesLoading }: { batches: 
             try {
                 // Ensure batches are serializable before sending to the AI flow
                 const serializableBatches = activeBatches.map(batch => {
-                    const plainBatch = { ...batch };
+                    const plainBatch: { [key: string]: any } = { ...batch };
                     // Convert any non-serializable fields here if necessary
                     if (plainBatch.createdAt && typeof plainBatch.createdAt !== 'string') {
-                       plainBatch.createdAt = new Date((plainBatch.createdAt as any).seconds * 1000).toISOString();
+                       // Firestore Timestamps need to be converted
+                       if ((plainBatch.createdAt as any).seconds) {
+                           plainBatch.createdAt = new Date((plainBatch.createdAt as any).seconds * 1000).toISOString();
+                       }
                     }
                     return plainBatch;
                 });

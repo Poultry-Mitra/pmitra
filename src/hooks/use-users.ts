@@ -68,7 +68,6 @@ export function useUsers(role?: 'farmer' | 'dealer' | 'admin') {
     return () => unsubscribe();
   }, [firestore]);
 
-  // Client-side filtering and user deletion handler
   const users = role ? allUsers.filter(user => user.role === role) : allUsers;
   
   const handleUserDeletion = (userId: string) => {
@@ -136,31 +135,38 @@ export async function findUserByUniqueCode(firestore: Firestore, uniqueCode: str
 }
 
 
-export async function requestDealerConnection(firestore: Firestore, auth: Auth, farmerUID: string, dealerCode: string): Promise<User> {
+export function requestDealerConnection(firestore: Firestore, auth: Auth, farmerUID: string, dealerCode: string): Promise<User> {
     if (!firestore || !auth) throw new Error("Firestore or Auth not initialized");
 
-    const dealerUser = await findUserByUniqueCode(firestore, dealerCode, 'dealer');
-    if (!dealerUser) {
-        throw new Error("Dealer not found with that code.");
-    }
-    
-    const dealerIsPremium = dealerUser.planType === 'premium';
-    const farmerLimit = 2;
-    if (!dealerIsPremium && (dealerUser.connectedFarmers || []).length >= farmerLimit) {
-        throw new Error("This dealer has reached the maximum number of connected farmers on their current plan.");
-    }
+    return new Promise(async (resolve, reject) => {
+        try {
+            const dealerUser = await findUserByUniqueCode(firestore, dealerCode, 'dealer');
+            if (!dealerUser) {
+                return reject(new Error("Dealer not found with that code."));
+            }
+            
+            const dealerIsPremium = dealerUser.planType === 'premium';
+            const farmerLimit = 2;
+            if (!dealerIsPremium && (dealerUser.connectedFarmers || []).length >= farmerLimit) {
+                return reject(new Error("This dealer has reached the maximum number of connected farmers on their current plan."));
+            }
 
-    const connectionsCollection = collection(firestore, 'connections');
-    addDocumentNonBlocking(connectionsCollection, {
-        farmerUID,
-        dealerUID: dealerUser.id,
-        status: 'Pending',
-        requestedBy: 'farmer',
-        createdAt: serverTimestamp(),
-    }, auth);
-    
-    return dealerUser;
+            const connectionsCollection = collection(firestore, 'connections');
+            addDocumentNonBlocking(connectionsCollection, {
+                farmerUID,
+                dealerUID: dealerUser.id,
+                status: 'Pending',
+                requestedBy: 'farmer',
+                createdAt: serverTimestamp(),
+            }, auth);
+            
+            resolve(dealerUser);
+        } catch (error) {
+            reject(error);
+        }
+    });
 }
+
 
 export function deleteUser(firestore: Firestore, auth: Auth, userId: string) {
     if (!firestore || !auth) throw new Error("Firestore or Auth not initialized");
