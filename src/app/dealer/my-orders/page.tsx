@@ -26,9 +26,9 @@ import { useToast } from '@/hooks/use-toast';
 import { useUser, useFirestore } from '@/firebase/provider';
 import { useOrders, updateOrderStatus } from '@/hooks/use-orders';
 import { useUsersByIds } from '@/hooks/use-users';
-import { CreateOrderDialog } from './_components/create-order-dialog';
 import type { Order, User as AppUser, Connection } from '@/lib/types';
 import { useConnections } from '@/hooks/use-connections';
+import Link from 'next/link';
 
 const statusConfig = {
     Pending: { variant: "outline" as const, color: "text-blue-500 border-blue-500/50 bg-blue-500/10" },
@@ -42,7 +42,6 @@ export default function MyOrdersPage() {
     const firestore = useFirestore();
     const { orders, loading: ordersLoading } = useOrders(firebaseUser?.uid);
     const { toast } = useToast();
-    const [isCreateOrderOpen, setCreateOrderOpen] = useState(false);
 
     // Fetch this dealer's connections to get farmer IDs
     const { connections, loading: connectionsLoading } = useConnections(firebaseUser?.uid, 'dealer');
@@ -92,9 +91,11 @@ export default function MyOrdersPage() {
                 title="Farmer Orders"
                 description="Review and manage incoming orders from your connected farmers."
             >
-                <Button onClick={() => setCreateOrderOpen(true)}>
-                    <PlusCircle className="mr-2" />
-                    Create Order for Farmer
+                <Button asChild>
+                    <Link href="/dealer/my-orders/create">
+                        <PlusCircle className="mr-2" />
+                        Create Order for Farmer
+                    </Link>
                 </Button>
             </PageHeader>
 
@@ -165,7 +166,6 @@ export default function MyOrdersPage() {
                     </CardContent>
                 </Card>
             </div>
-            { firebaseUser && <CreateOrderDialog open={isCreateOrderOpen} onOpenChange={setCreateOrderOpen} />}
         </>
     );
 }

@@ -1,198 +1,170 @@
-// src/app/dealer/my-orders/_components/create-order-dialog.tsx
+// src/app/dealer/my-orders/page.tsx
 "use client";
 
-import { useForm, useWatch } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import { useState, useMemo, useEffect } from 'react';
+import { PageHeader } from "../_components/page-header";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useToast } from "@/hooks/use-toast";
-import { useUser, useFirestore } from "@/firebase/provider";
-import { useUsersByIds } from "@/hooks/use-users";
-import { useDealerInventory } from "@/hooks/use-dealer-inventory";
-import { createOrder } from "@/hooks/use-orders";
-import { Send, Loader2 } from "lucide-react";
-import { useMemo, useEffect, useState } from "react";
-import type { User } from "@/lib/types";
-import { doc, onSnapshot } from "firebase/firestore";
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Loader2, PlusCircle, CheckCircle, XCircle } from "lucide-react";
+import { useToast } from '@/hooks/use-toast';
+import { useUser, useFirestore } from '@/firebase/provider';
+import { useOrders, updateOrderStatus } from '@/hooks/use-orders';
+import { useUsersByIds } from '@/hooks/use-users';
+import type { Order, User as AppUser, Connection } from '@/lib/types';
+import { useConnections } from '@/hooks/use-connections';
+import Link from 'next/link';
 
-const formSchema = z.object({
-    farmerUID: z.string().min(1, "Please select a farmer."),
-    productId: z.string().min(1, "Please select a product."),
-    quantity: z.coerce.number().min(1, "Quantity must be at least 1."),
-});
+const statusConfig = {
+    Pending: { variant: "outline" as const, color: "text-blue-500 border-blue-500/50 bg-blue-500/10" },
+    Approved: { variant: "default" as const, color: "text-green-500 border-green-500/50 bg-green-500/10" },
+    Rejected: { variant: "destructive" as const, color: "text-red-500 border-red-500/50 bg-red-500/10" },
+};
 
-type FormValues = z.infer<typeof formSchema>;
 
-export function CreateOrderDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
-    const { toast } = useToast();
+export default function MyOrdersPage() {
+    const { user: firebaseUser } = useUser();
     const firestore = useFirestore();
-    const { user: dealerUser } = useUser();
-    const [dealerInfo, setDealerInfo] = useState<User | null>(null);
+    const { orders, loading: ordersLoading } = useOrders(firebaseUser?.uid);
+    const { toast } = useToast();
 
-    useEffect(() => {
-        if(dealerUser && firestore) {
-            const unsub = onSnapshot(doc(firestore, 'users', dealerUser.uid), (doc) => {
-                if(doc.exists()) {
-                    setDealerInfo(doc.data() as User);
-                }
-            });
-            return () => unsub();
-        }
-    }, [dealerUser, firestore]);
+    // Fetch this dealer's connections to get farmer IDs
+    const { connections, loading: connectionsLoading } = useConnections(firebaseUser?.uid, 'dealer');
 
-    const farmerIds = useMemo(() => dealerInfo?.connectedFarmers || [], [dealerInfo]);
-    const { users: farmers, loading: farmersLoading } = useUsersByIds(farmerIds);
-    const { inventory: products, loading: productsLoading } = useDealerInventory(dealerUser?.uid || '');
+    // Get the IDs of all connected farmers
+    const connectedFarmerIds = useMemo(() => {
+        return connections
+            .map(c => c.farmerUID);
+    }, [connections]);
+    
+    // Fetch user details for all potentially connected farmers
+    const { users: farmers, loading: farmersLoading } = useUsersByIds(connectedFarmerIds);
 
-    const form = useForm<FormValues>({
-        resolver: zodResolver(formSchema),
-        defaultValues: {
-            farmerUID: "",
-            productId: "",
-            quantity: 1,
-        },
-    });
-
-    const selectedProductId = useWatch({ control: form.control, name: 'productId' });
-    const selectedProduct = products.find(p => p.id === selectedProductId);
-
-    async function onSubmit(values: FormValues) {
-        if (!dealerUser || !selectedProduct || !firestore) {
-            toast({ title: "Error", description: "Could not create order.", variant: "destructive" });
-            return;
-        }
-        
-        const selectedFarmer = farmers.find(f => f.id === values.farmerUID);
-        if (!selectedFarmer) {
-            toast({ title: "Error", description: "Selected farmer not found.", variant: "destructive" });
-            return;
-        }
-
-        try {
-            await createOrder(firestore, {
-                farmerUID: values.farmerUID,
-                dealerUID: dealerUser.uid,
-                productId: values.productId,
-                productName: selectedProduct.productName,
-                quantity: values.quantity,
-                ratePerUnit: selectedProduct.ratePerUnit,
-                totalAmount: selectedProduct.ratePerUnit * values.quantity,
-                status: 'Pending', // Order is pending until farmer approves
-            });
-            toast({
-                title: "Order Created",
-                description: `An order for ${selectedFarmer.name} has been created and is pending their approval.`,
-            });
-            onOpenChange(false);
-            form.reset();
-        } catch (error) {
-            toast({ title: "Error", description: "Failed to create order.", variant: "destructive" });
-        }
+    const getFarmerName = (farmerUID: string) => {
+        return farmers.find(f => f.id === farmerUID)?.name || "Unknown Farmer";
     }
     
+    const loading = ordersLoading || farmersLoading || connectionsLoading || !firebaseUser;
+
+    const handleUpdateStatus = async (order: Order, newStatus: 'Approved' | 'Rejected') => {
+        if (!firestore) return;
+        try {
+            await updateOrderStatus(order, newStatus, firestore);
+            toast({
+                title: `Order ${newStatus}`,
+                description: `The order has been successfully ${newStatus.toLowerCase()}.`
+            });
+        } catch (error: any) {
+            toast({
+                title: "Error",
+                description: error.message || "Failed to update order status.",
+                variant: "destructive"
+            });
+        }
+    };
+
+    // Filter orders to show only those from connected farmers
+    const visibleOrders = useMemo(() => {
+        if (loading) return [];
+        return orders.filter(order => connectedFarmerIds.includes(order.farmerUID));
+    }, [orders, connectedFarmerIds, loading]);
+
+
     return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent>
-                <DialogHeader>
-                    <DialogTitle>Create New Order for Farmer</DialogTitle>
-                    <DialogDescription>Select a farmer and product to create a new order. The farmer will need to approve it.</DialogDescription>
-                </DialogHeader>
-                <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
-                        <FormField
-                            control={form.control}
-                            name="farmerUID"
-                            render={({ field }) => (
-                                <FormItem>
-                                <FormLabel>Select Farmer</FormLabel>
-                                <Select onValueChange={field.onChange} defaultValue={field.value} disabled={farmersLoading}>
-                                    <FormControl>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder={farmersLoading ? "Loading farmers..." : "Select a connected farmer"} />
-                                    </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                        {farmers.map(farmer => (
-                                            <SelectItem key={farmer.id} value={farmer.id}>{farmer.name}</SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                                <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        <FormField
-                            control={form.control}
-                            name="productId"
-                            render={({ field }) => (
-                                <FormItem>
-                                <FormLabel>Select Product</FormLabel>
-                                <Select onValueChange={field.onChange} defaultValue={field.value} disabled={productsLoading}>
-                                    <FormControl>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder={productsLoading ? "Loading products..." : "Select from your inventory"} />
-                                    </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                        {products.map(product => (
-                                            <SelectItem key={product.id} value={product.id}>
-                                                {product.productName} (Stock: {product.quantity})
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                                <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        <div className="grid grid-cols-2 gap-4">
-                            <FormField
-                                control={form.control}
-                                name="quantity"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Quantity</FormLabel>
-                                        <FormControl><Input type="number" {...field} /></FormControl>
-                                        <FormMessage />
-                                    </FormItem>
+        <>
+            <PageHeader
+                title="Farmer Orders"
+                description="Review and manage incoming orders from your connected farmers."
+            >
+                <Button asChild>
+                    <Link href="/dealer/my-orders/create">
+                        <PlusCircle className="mr-2" />
+                        Create Order for Farmer
+                    </Link>
+                </Button>
+            </PageHeader>
+
+            <div className="mt-8">
+                <Card>
+                    <CardHeader>
+                        <CardTitle>All Orders</CardTitle>
+                        <CardDescription>
+                            A list of all pending, approved, and rejected orders from your farmers.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent className="overflow-x-auto">
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Farmer</TableHead>
+                                    <TableHead>Product</TableHead>
+                                    <TableHead>Quantity</TableHead>
+                                    <TableHead>Total Amount</TableHead>
+                                    <TableHead>Status</TableHead>
+                                    <TableHead>Date</TableHead>
+                                    <TableHead className="text-center">Actions</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {loading && (
+                                    <TableRow>
+                                        <TableCell colSpan={7} className="h-24 text-center">
+                                             <Loader2 className="mx-auto animate-spin" />
+                                        </TableCell>
+                                    </TableRow>
                                 )}
-                            />
-                             <FormItem>
-                                <FormLabel>Total Amount</FormLabel>
-                                <Input 
-                                    readOnly 
-                                    value={`₹${((selectedProduct?.ratePerUnit || 0) * form.watch('quantity')).toLocaleString()}`}
-                                />
-                            </FormItem>
-                        </div>
-                        <DialogFooter>
-                            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-                            <Button type="submit" disabled={form.formState.isSubmitting}>
-                                {form.formState.isSubmitting ? <Loader2 className="animate-spin" /> : <Send className="mr-2" />}
-                                Create Order
-                            </Button>
-                        </DialogFooter>
-                    </form>
-                </Form>
-            </DialogContent>
-        </Dialog>
-    )
+                                {!loading && visibleOrders.length === 0 && (
+                                    <TableRow>
+                                        <TableCell colSpan={7} className="h-24 text-center">
+                                            No orders found from your connected farmers.
+                                        </TableCell>
+                                    </TableRow>
+                                )}
+                                {!loading && visibleOrders.map((order) => (
+                                    <TableRow key={order.id}>
+                                        <TableCell className="font-medium">{getFarmerName(order.farmerUID)}</TableCell>
+                                        <TableCell>{order.productName}</TableCell>
+                                        <TableCell>{order.quantity}</TableCell>
+                                        <TableCell>₹{order.totalAmount.toLocaleString()}</TableCell>
+                                        <TableCell>
+                                            <Badge variant={statusConfig[order.status].variant} className={statusConfig[order.status].color}>
+                                                {order.status}
+                                            </Badge>
+                                        </TableCell>
+                                        <TableCell>{new Date(order.createdAt).toLocaleDateString()}</TableCell>
+                                        <TableCell className="text-center">
+                                            {order.status === 'Pending' && (
+                                                <div className="flex gap-2 justify-center">
+                                                    <Button size="sm" variant="outline" className="text-green-600 hover:text-green-700" onClick={() => handleUpdateStatus(order, 'Approved')}>
+                                                        <CheckCircle className="mr-2 h-4 w-4" /> Approve
+                                                    </Button>
+                                                    <Button size="sm" variant="outline" className="text-red-600 hover:text-red-700" onClick={() => handleUpdateStatus(order, 'Rejected')}>
+                                                        <XCircle className="mr-2 h-4 w-4" /> Reject
+                                                    </Button>
+                                                </div>
+                                            )}
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </CardContent>
+                </Card>
+            </div>
+        </>
+    );
 }
