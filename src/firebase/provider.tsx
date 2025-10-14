@@ -145,3 +145,5 @@ export const useUser = (): UserAuthState => {
   const { user, isUserLoading, userError } = useFirebase();
   return { user, isUserLoading, userError };
 };
+
+    
