@@ -26,6 +26,10 @@ import {
   ShoppingBag,
   Loader2,
   AlertTriangle,
+  MessageSquare,
+  TrendingUp,
+  LineChart,
+  Rocket,
 } from "lucide-react";
 import { useLanguage } from "@/components/language-provider";
 import type { User as UserType } from "@/lib/types";
@@ -44,6 +48,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { signOut } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
+import { Badge } from "@/components/ui/badge";
 
 
 export function DealerSidebar() {
@@ -81,6 +86,8 @@ export function DealerSidebar() {
     }
     setShowLogoutAlert(false);
   };
+  
+  const isPremium = currentUser?.planType === 'premium';
 
   if (!currentUser) {
       return (
@@ -154,6 +161,40 @@ export function DealerSidebar() {
                     </Link>
                 </SidebarMenuItem>
             </SidebarMenu>
+
+             <SidebarSeparator />
+            <SidebarGroupLabel>AI & Analytics</SidebarGroupLabel>
+            <SidebarMenu>
+                 <SidebarMenuItem>
+                    <Link href="/dealer/chat">
+                        <SidebarMenuButton isActive={pathname === "/dealer/chat"} tooltip={"AI Chat"}>
+                        <MessageSquare />
+                        <span>{"AI Chat"}</span>
+                         {!isPremium && <Badge variant="secondary" className="ml-auto group-data-[state=collapsed]:hidden">PRO</Badge>}
+                        </SidebarMenuButton>
+                    </Link>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                    <Link href="/dealer/analytics">
+                        <SidebarMenuButton isActive={pathname === "/dealer/analytics"} tooltip={"Analytics"}>
+                        <LineChart />
+                        <span>{"Analytics"}</span>
+                        {!isPremium && <Badge variant="secondary" className="ml-auto group-data-[state=collapsed]:hidden">PRO</Badge>}
+                        </SidebarMenuButton>
+                    </Link>
+                </SidebarMenuItem>
+                 <SidebarMenuItem>
+                    <Link href="/dealer/daily-rates">
+                        <SidebarMenuButton isActive={pathname === "/dealer/daily-rates"} tooltip={"Market Rates"}>
+                        <TrendingUp />
+                        <span>{"Market Rates"}</span>
+                        {!isPremium && <Badge variant="secondary" className="ml-auto group-data-[state=collapsed]:hidden">PRO</Badge>}
+                        </SidebarMenuButton>
+                    </Link>
+                </SidebarMenuItem>
+            </SidebarMenu>
+
+
         </SidebarContent>
         <SidebarFooter>
             <SidebarMenu>
@@ -165,6 +206,16 @@ export function DealerSidebar() {
                         </SidebarMenuButton>
                     </Link>
                 </SidebarMenuItem>
+                 {!isPremium && (
+                    <SidebarMenuItem>
+                        <Link href="/pricing">
+                            <SidebarMenuButton tooltip="Upgrade Plan">
+                                <Rocket/>
+                                <span>{"Upgrade Plan"}</span>
+                            </SidebarMenuButton>
+                        </Link>
+                    </SidebarMenuItem>
+                )}
                 <SidebarMenuItem>
                     <SidebarMenuButton tooltip={t('actions.logout')} onClick={() => setShowLogoutAlert(true)}>
                         <LogOut />
