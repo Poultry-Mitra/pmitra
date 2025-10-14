@@ -92,7 +92,6 @@ export function useUsersByIds(userIds: string[]) {
         }
 
         setLoading(true);
-        // Firestore 'in' queries are limited to 30 elements. If you have more, you need to batch requests.
         const q = query(collection(firestore, 'users'), where('__name__', 'in', userIds.slice(0, 30)));
 
         const unsubscribe = onSnapshot(
@@ -108,7 +107,7 @@ export function useUsersByIds(userIds: string[]) {
         );
 
         return () => unsubscribe();
-    }, [firestore, JSON.stringify(userIds)]); // stringify to prevent re-renders on array reference change
+    }, [firestore, JSON.stringify(userIds)]);
 
     return { users, loading };
 }
