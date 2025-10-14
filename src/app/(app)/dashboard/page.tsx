@@ -1,4 +1,5 @@
 
+// src/app/(app)/dashboard/page.tsx
 "use client";
 
 import { useState, useMemo, useEffect } from 'react';
@@ -15,7 +16,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/components/language-provider';
 import { useConnections, updateConnectionStatus } from '@/hooks/use-connections';
 import { useUsersByIds } from '@/hooks/use-users';
-import { useFirestore } from '@/firebase/provider';
+import { useFirestore, useAuth } from '@/firebase/provider';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 
@@ -23,6 +24,7 @@ function DealerConnectionRequests() {
     const { user: appUser, loading: appUserLoading } = useAppUser();
     const { connections, loading: connectionsLoading } = useConnections(appUser?.id, 'farmer');
     const firestore = useFirestore();
+    const auth = useAuth();
     const { toast } = useToast();
 
     const pendingRequests = useMemo(() => 
@@ -43,9 +45,9 @@ function DealerConnectionRequests() {
     }
 
     const handleAction = async (connectionId: string, status: 'Approved' | 'Rejected') => {
-        if (!firestore) return;
+        if (!firestore || !auth) return;
         try {
-            await updateConnectionStatus(firestore, connectionId, status);
+            await updateConnectionStatus(firestore, auth, connectionId, status);
             toast({
                 title: `Request ${status}`,
                 description: "The connection has been updated."
