@@ -4,6 +4,7 @@ import React, { DependencyList, createContext, useContext, ReactNode, useMemo, u
 import { FirebaseApp } from 'firebase/app';
 import { Firestore } from 'firebase/firestore';
 import { Auth, User, onAuthStateChanged } from 'firebase/auth';
+import { initializeFirebase } from './client'; // Import the initializer
 
 // Internal state for user authentication
 interface UserAuthState {
@@ -29,20 +30,22 @@ export const FirebaseContext = createContext<FirebaseContextState | undefined>(u
 
 interface FirebaseProviderProps {
   children: ReactNode;
-  firebaseApp: FirebaseApp | null;
-  firestore: Firestore | null;
-  auth: Auth | null;
 }
 
 /**
  * FirebaseProvider manages and provides Firebase services and user authentication state.
+ * It now initializes Firebase services internally, making it self-contained.
  */
 export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
   children,
-  firebaseApp,
-  firestore,
-  auth,
 }) => {
+  // Initialize Firebase services internally.
+  // This will be null on the server and an object with services on the client.
+  const services = initializeFirebase();
+  const auth = services?.auth || null;
+  const firestore = services?.firestore || null;
+  const firebaseApp = services?.firebaseApp || null;
+
   const [userAuthState, setUserAuthState] = useState<UserAuthState>({
     user: auth?.currentUser || null,
     isUserLoading: true, // Start loading until first auth event

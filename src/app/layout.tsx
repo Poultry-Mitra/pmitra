@@ -7,7 +7,6 @@ import { LanguageProvider } from '@/components/language-provider';
 import { Inter, Noto_Sans, Hind } from 'next/font/google';
 import { cn } from '@/lib/utils';
 import { FirebaseProvider } from '@/firebase/provider';
-import { initializeFirebase } from '@/firebase/client';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
 
 const fontInter = Inter({
@@ -36,10 +35,6 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  
-  // initializeFirebase() returns null on the server and initialized services on the client.
-  // The provider is designed to handle this.
-  const services = initializeFirebase();
 
   return (
     <html lang="en" suppressHydrationWarning>
@@ -59,11 +54,7 @@ export default function RootLayout({
         )}
         suppressHydrationWarning
       >
-        <FirebaseProvider 
-            firebaseApp={services?.firebaseApp || null} 
-            auth={services?.auth || null} 
-            firestore={services?.firestore || null}
-        >
+        <FirebaseProvider>
           <LanguageProvider>
             <ThemeProvider
               attribute="class"
