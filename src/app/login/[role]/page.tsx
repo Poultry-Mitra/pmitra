@@ -12,9 +12,9 @@ import { Input } from '@/components/ui/input';
 import { useAuth, useFirestore, useUser } from '@/firebase/provider';
 import { useEffect, useState } from 'react';
 import { useRouter, useParams, useSearchParams } from 'next/navigation';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import type { User as AppUser, UserRole } from '@/lib/types';
-import { sendPasswordResetEmail, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, type User as FirebaseAuthUser } from 'firebase/auth';
+import { sendPasswordResetEmail, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, type User as FirebaseAuthUser, sendEmailVerification } from 'firebase/auth';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -95,23 +95,9 @@ export default function RoleLoginPage() {
       throw new Error('System not ready. Please try again.');
     }
 
-    // Handle email verification check for non-Google sign-ins
-    const isEmailPasswordSignIn = user.providerData.some(
-      (provider) => provider.providerId === 'password'
-    );
-    if (isEmailPasswordSignIn && !user.emailVerified) {
-        await auth.signOut();
-        toast({
-            title: "Email Not Verified",
-            description: "Please verify your email address before logging in. Check your inbox for a verification link.",
-            variant: "destructive",
-            action: <Button variant="secondary" size="sm" onClick={resendVerificationEmail}>Resend Email</Button>,
-            duration: 10000,
-        });
-        // We throw an error to stop the login process in the calling function.
-        throw new Error("Email not verified");
-    }
-
+    const isEmailPasswordSignIn = user.providerData.some(p => p.providerId === 'password');
+    const isEmailVerified = user.emailVerified;
+    
     // Special handling for admin role, no need to check 'users' collection
     if (role === 'admin' && user.email === 'ipoultrymitra@gmail.com') {
       router.replace(getRedirectPath('admin'));
@@ -133,11 +119,28 @@ export default function RoleLoginPage() {
     }
 
     const userData = docSnap.data() as AppUser;
+    
     if (userData.role !== role) {
       await auth.signOut();
       toast({ title: "Role Mismatch", description: `This account is a ${userData.role}. Please use the correct login page.`, variant: "destructive" });
       router.replace(`/login/${userData.role}`);
       return;
+    }
+
+    // Auto-activate user if they are pending and have verified their email
+    if (userData.status === 'Pending' && isEmailVerified) {
+        await updateDoc(userDocRef, { status: 'Active' });
+        userData.status = 'Active'; // Update local object to continue login flow
+    } else if (isEmailPasswordSignIn && !isEmailVerified) {
+        await auth.signOut();
+        toast({
+            title: "Email Not Verified",
+            description: "Please verify your email address before logging in. Check your inbox for a verification link.",
+            variant: "destructive",
+            action: <Button variant="secondary" size="sm" onClick={resendVerificationEmail}>Resend Email</Button>,
+            duration: 10000,
+        });
+        throw new Error("Email not verified");
     }
     
     if (userData.status !== 'Active') {
