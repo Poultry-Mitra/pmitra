@@ -313,49 +313,49 @@ export default function AddStockPage() {
                                                       control={form.control}
                                                       name={`products.${index}.phaseApplicable`}
                                                       render={() => (
-                                                        <FormItem>
-                                                          <div className="mb-4">
-                                                            <FormLabel className="text-base">Phase Applicable</FormLabel>
-                                                            <FormDescription>
-                                                              Select which flock phases this feed applies to.
-                                                            </FormDescription>
-                                                          </div>
-                                                          <div className="flex items-center space-x-4">
-                                                          {feedPhases.map((item) => (
-                                                            <FormField
-                                                              key={item.id}
-                                                              control={form.control}
-                                                              name={`products.${index}.phaseApplicable`}
-                                                              render={({ field }) => {
-                                                                return (
-                                                                  <FormItem
-                                                                    key={item.id}
-                                                                    className="flex flex-row items-start space-x-3 space-y-0"
-                                                                  >
-                                                                    <FormControl>
-                                                                      <Checkbox
-                                                                        checked={field.value?.includes(item.id)}
-                                                                        onCheckedChange={(checked) => {
-                                                                          return checked
-                                                                            ? field.onChange([...(field.value || []), item.id])
-                                                                            : field.onChange(
-                                                                                field.value?.filter(
-                                                                                  (value) => value !== item.id
+                                                        <FormItem className="space-y-3 rounded-md border p-4">
+                                                            <div>
+                                                                <FormLabel className="text-base font-medium">Phase Applicable</FormLabel>
+                                                                <FormDescription className="text-sm">
+                                                                Select which flock phases this feed applies to.
+                                                                </FormDescription>
+                                                            </div>
+                                                            <div className="flex items-center space-x-4">
+                                                            {feedPhases.map((item) => (
+                                                                <FormField
+                                                                key={item.id}
+                                                                control={form.control}
+                                                                name={`products.${index}.phaseApplicable`}
+                                                                render={({ field }) => {
+                                                                    return (
+                                                                    <FormItem
+                                                                        key={item.id}
+                                                                        className="flex flex-row items-start space-x-3 space-y-0"
+                                                                    >
+                                                                        <FormControl>
+                                                                        <Checkbox
+                                                                            checked={field.value?.includes(item.id)}
+                                                                            onCheckedChange={(checked) => {
+                                                                            return checked
+                                                                                ? field.onChange([...(field.value || []), item.id])
+                                                                                : field.onChange(
+                                                                                    field.value?.filter(
+                                                                                    (value) => value !== item.id
+                                                                                    )
                                                                                 )
-                                                                              )
-                                                                        }}
-                                                                      />
-                                                                    </FormControl>
-                                                                    <FormLabel className="font-normal">
-                                                                      {item.label}
-                                                                    </FormLabel>
-                                                                  </FormItem>
-                                                                )
-                                                              }}
-                                                            />
-                                                          ))}
-                                                          </div>
-                                                          <FormMessage />
+                                                                            }}
+                                                                        />
+                                                                        </FormControl>
+                                                                        <FormLabel className="font-normal">
+                                                                        {item.label}
+                                                                        </FormLabel>
+                                                                    </FormItem>
+                                                                    )
+                                                                }}
+                                                                />
+                                                            ))}
+                                                            </div>
+                                                            <FormMessage />
                                                         </FormItem>
                                                       )}
                                                     />
