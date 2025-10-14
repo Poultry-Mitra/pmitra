@@ -264,26 +264,6 @@ export function AdminSidebar() {
            {/* Footer is now empty, logout is in the header dropdown */}
         </SidebarFooter>
         </Sidebar>
-
-        <AlertDialog open={showLogoutAlert} onOpenChange={setShowLogoutAlert}>
-            <AlertDialogContent>
-            <AlertDialogHeader>
-                <AlertDialogTitle className="flex items-center gap-2">
-                    <AlertTriangle className="text-destructive"/>
-                    {t('dialog.logout_title')}
-                </AlertDialogTitle>
-                <AlertDialogDescription>
-                    {t('dialog.logout_desc')}
-                </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-                <AlertDialogCancel>{t('actions.cancel')}</AlertDialogCancel>
-                <AlertDialogAction onClick={handleLogout}>
-                     {t('actions.logout')}
-                </AlertDialogAction>
-            </AlertDialogFooter>
-            </AlertDialogContent>
-        </AlertDialog>
     </>
   );
 }

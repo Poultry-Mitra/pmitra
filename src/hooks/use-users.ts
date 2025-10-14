@@ -1,3 +1,4 @@
+
 // src/hooks/use-users.ts
 'use client';
 
@@ -83,8 +84,9 @@ export function useUsersByIds(userIds: string[]) {
 
     const usersByIdsQuery = useMemoFirebase(() => {
       if (!firestore || !userIds || userIds.length === 0) return null;
+      // Firestore 'in' queries are limited to 30 elements.
       return query(collection(firestore, 'users'), where('__name__', 'in', userIds.slice(0, 30)));
-    }, [firestore, JSON.stringify(userIds)]);
+    }, [firestore, userIds]);
 
 
     useEffect(() => {

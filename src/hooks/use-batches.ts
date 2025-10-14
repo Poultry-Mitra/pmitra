@@ -2,7 +2,7 @@
 // src/hooks/use-batches.ts
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import {
   collection,
   onSnapshot,
@@ -21,7 +21,7 @@ import {
   deleteDoc,
   type Auth,
 } from 'firebase/firestore';
-import { useAuth, useFirestore } from '@/firebase/provider';
+import { useAuth, useFirestore, AuthContext } from '@/firebase/provider';
 import type { Batch, DailyRecord } from '@/lib/types';
 import { addDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 

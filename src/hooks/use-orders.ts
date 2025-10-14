@@ -1,3 +1,4 @@
+// src/hooks/use-orders.ts
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -35,17 +36,15 @@ function toOrder(doc: QueryDocumentSnapshot<DocumentData>): Order {
 }
 
 
-export function useOrders(dealerUID?: string) {
+export function useOrdersByDealer(dealerUID?: string) {
   const firestore = useFirestore();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   
   const ordersQuery = useMemoFirebase(() => {
-    if (!firestore) return null;
+    if (!firestore || !dealerUID) return null;
     const ordersCollection = collection(firestore, 'orders');
-    return dealerUID 
-      ? query(ordersCollection, where("dealerUID", "==", dealerUID), orderBy("createdAt", "desc"))
-      : query(ordersCollection, orderBy("createdAt", "desc"));
+    return query(ordersCollection, where("dealerUID", "==", dealerUID), orderBy("createdAt", "desc"));
   }, [firestore, dealerUID]);
 
   useEffect(() => {

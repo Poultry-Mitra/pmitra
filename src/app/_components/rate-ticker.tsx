@@ -2,11 +2,11 @@
 
 "use client";
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useContext } from 'react';
 import Link from 'next/link';
 import { TrendingUp, Bird, IndianRupee, Loader2, EyeOff } from 'lucide-react';
 import type { DailyRates } from '@/lib/types';
-import { useFirestore, useUser, useMemoFirebase } from '@/firebase/provider';
+import { useFirestore, useMemoFirebase, AuthContext } from '@/firebase/provider';
 import { collection, onSnapshot, query, orderBy, limit } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -15,7 +15,7 @@ import { mockDailyRates } from '@/lib/data';
 
 export function RateTicker() {
     const firestore = useFirestore();
-    const { user: firebaseUser, isUserLoading: isAuthLoading } = useUser();
+    const { user: firebaseUser, isUserLoading: isAuthLoading } = useContext(AuthContext)!;
     const { user: appUser, loading: isAppUserLoading } = useAppUser();
     const [allRates, setAllRates] = useState<DailyRates[]>([]);
     const [loading, setLoading] = useState(true);

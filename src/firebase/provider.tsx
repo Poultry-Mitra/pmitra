@@ -1,3 +1,4 @@
+
 // src/firebase/provider.tsx
 'use client';
 
@@ -15,13 +16,13 @@ interface FirebaseContextType {
   firestore: Firestore;
 }
 
-interface AuthContextType {
+export interface AuthContextType {
   user: User | null;
   isUserLoading: boolean;
 }
 
 const FirebaseContext = createContext<FirebaseContextType | undefined>(undefined);
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // --- Provider Component ---
 

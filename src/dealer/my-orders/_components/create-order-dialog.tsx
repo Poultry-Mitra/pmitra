@@ -25,12 +25,12 @@ import {
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { useUser, useFirestore, useAuth } from "@/firebase/provider";
+import { useFirestore, useAuth, AuthContext } from '@/firebase/provider';
 import { useUsersByIds } from "@/hooks/use-users";
 import { useDealerInventory } from "@/hooks/use-dealer-inventory";
 import { createOrder } from "@/hooks/use-orders";
 import { Send, Loader2 } from "lucide-react";
-import { useMemo, useEffect, useState } from "react";
+import { useMemo, useEffect, useState, useContext } from "react";
 import type { User } from "@/lib/types";
 import { doc, onSnapshot } from "firebase/firestore";
 
@@ -46,7 +46,7 @@ export function CreateOrderDialog({ open, onOpenChange }: { open: boolean; onOpe
     const { toast } = useToast();
     const firestore = useFirestore();
     const auth = useAuth();
-    const { user: dealerUser } = useUser();
+    const { user: dealerUser } = useContext(AuthContext)!;
     const [dealerInfo, setDealerInfo] = useState<User | null>(null);
 
     useEffect(() => {

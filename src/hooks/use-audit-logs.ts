@@ -18,7 +18,7 @@ export function addAuditLog(firestore: Firestore, data: Omit<AuditLog, 'id' | 't
     
     const docData = {
         ...data,
-        timestamp: serverTimestamp(),
+        timestamp: new Date().toISOString(),
     };
 
     // Auth is passed as null because this is an admin-only action,

@@ -14,9 +14,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { Save, Send } from "lucide-react";
-import { useFirestore, useUser } from "@/firebase/provider";
+import { useFirestore, AuthContext } from "@/firebase/provider";
 import { addAuditLog } from "@/hooks/use-audit-logs";
 import { collection, addDoc } from 'firebase/firestore';
+import { useContext } from "react";
 
 
 const formSchema = z.object({
@@ -32,7 +33,7 @@ export default function AddUserPage() {
     const { toast } = useToast();
     const router = useRouter();
     const firestore = useFirestore();
-    const adminUser = useUser();
+    const { user: adminUser } = useContext(AuthContext)!;
 
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
@@ -45,7 +46,7 @@ export default function AddUserPage() {
     });
 
     async function onSubmit(values: FormValues) {
-        if (!firestore || !adminUser.user) {
+        if (!firestore || !adminUser) {
             toast({
                 title: "Error",
                 description: "You must be an admin to perform this action.",
@@ -65,14 +66,13 @@ export default function AddUserPage() {
                 planType: values.planType,
                 status: 'pending',
                 createdAt: new Date().toISOString(),
-                createdBy: adminUser.user.uid,
+                createdBy: adminUser.uid,
             });
 
             // Create an audit log for this action
             await addAuditLog(firestore, {
-                adminUID: adminUser.user.uid,
+                adminUID: adminUser.uid,
                 action: 'CREATE_USER', // We'll keep the action name for consistency
-                timestamp: new Date().toISOString(),
                 details: `Sent invitation to ${values.email} for role: ${values.role}.`,
             });
             

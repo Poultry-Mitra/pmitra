@@ -5,7 +5,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { type User as FirebaseAuthUser, getAuth } from 'firebase/auth';
 import { doc, onSnapshot } from 'firebase/firestore';
-import { useAuth, useFirestore, useUser } from '@/firebase/provider';
+import { useAuth, useFirestore, AuthContext } from '@/firebase/provider';
 import type { User, UserRole } from '@/lib/types';
 import { usePathname, useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
@@ -49,7 +49,7 @@ const getRoleFromPath = (path: string): UserRole | 'public' | 'root' | 'none' =>
 
 
 export function AppProvider({ children }: { children: ReactNode }) {
-  const { user: firebaseUser, isUserLoading: isAuthLoading } = useUser();
+  const { user: firebaseUser, isUserLoading: isAuthLoading } = useContext(AuthContext)!;
   const firestore = useFirestore();
   const [appUser, setAppUser] = useState<User | null>(null);
   const [isProfileLoading, setProfileLoading] = useState(true);

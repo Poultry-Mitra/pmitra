@@ -1,7 +1,7 @@
 // src/app/admin/daily-rates/page.tsx
 "use client";
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useContext } from 'react';
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { IndianRupee, Loader2, Calendar as CalendarIcon, Save } from "lucide-react";
-import { useUser, useFirestore, useMemoFirebase } from '@/firebase/provider';
+import { useFirestore, useMemoFirebase, AuthContext } from '@/firebase/provider';
 import { doc, setDoc, onSnapshot, collection, query, orderBy, limit } from 'firebase/firestore';
 import { format } from 'date-fns';
 import { addAuditLog } from '@/hooks/use-audit-logs';
@@ -101,7 +101,7 @@ export default function DailyRateManagementPage() {
     const { toast } = useToast();
     const [loading, setLoading] = useState(true);
     const firestore = useFirestore();
-    const adminUser = useUser();
+    const { user: adminUser } = useContext(AuthContext)!;
     const [districts, setDistricts] = useState<string[]>([]);
 
 
@@ -176,7 +176,7 @@ export default function DailyRateManagementPage() {
 
 
     async function onSubmit(values: FormValues) {
-        if (!firestore || !adminUser.user) {
+        if (!firestore || !adminUser) {
             toast({ title: "Error", description: "You must be an admin to perform this action.", variant: "destructive" });
             return;
         }
@@ -205,9 +205,8 @@ export default function DailyRateManagementPage() {
             await setDoc(ratesDocRef, dailyRateData, { merge: true });
             
             await addAuditLog(firestore, {
-                adminUID: adminUser.user.uid,
+                adminUID: adminUser.uid,
                 action: 'UPDATE_DAILY_RATES',
-                timestamp: new Date().toISOString(),
                 details: `Updated daily rates for ${dateString} in ${values.district}, ${values.state}.`,
             });
             

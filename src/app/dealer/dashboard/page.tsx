@@ -1,4 +1,3 @@
-
 // src/app/dealer/dashboard/page.tsx
 "use client";
 
@@ -11,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import type { User as AppUser, Order } from "@/lib/types";
 import { useState, useMemo } from "react";
-import { useOrders } from "@/hooks/use-orders";
+import { useOrdersByDealer } from "@/hooks/use-orders";
 import { useUsersByIds } from "@/hooks/use-users";
 import { useAppUser } from "@/app/app-provider";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -161,7 +160,7 @@ function RecentTransactions({ orders, farmers }: { orders: Order[], farmers: App
 
 export default function DealerDashboardPage() {
     const { user, loading: appUserLoading } = useAppUser();
-    const { orders, loading: ordersLoading } = useOrders(user?.id);
+    const { orders, loading: ordersLoading } = useOrdersByDealer(user?.id);
     
     const farmerIds = useMemo(() => {
         if (!user || !user.connectedFarmers) return [];
