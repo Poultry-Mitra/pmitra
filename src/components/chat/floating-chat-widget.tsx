@@ -14,18 +14,13 @@ import { AppIcon } from '@/app/icon-component';
 import { siteExpert } from '@/ai/flows/site-expert';
 import { ChatBubble } from './chat-bubble';
 import { useAppUser } from '@/app/app-provider';
+import { useLanguage } from '../language-provider';
 
 type Message = {
   id: string;
   text: string;
   sender: 'user' | 'ai';
 };
-
-const suggestedQuestions = [
-    "What is Broiler chicken?",
-    "What is FCR?",
-    "Tell me about Biosecurity",
-];
 
 export function FloatingChatWidget() {
   const { isOpen } = useChat();
@@ -34,8 +29,16 @@ export function FloatingChatWidget() {
   const [loading, setLoading] = useState(false);
   const { user } = useAppUser();
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const { t } = useLanguage();
   
   const userName = user?.name || 'User';
+
+  const suggestedQuestions = [
+    t('chat_suggestions.what_is_broiler'),
+    t('chat_suggestions.reduce_mortality'),
+    t('chat_suggestions.what_is_fcr'),
+    t('chat_suggestions.why_biosecurity'),
+  ];
 
    useEffect(() => {
     const viewport = scrollAreaRef.current?.querySelector('div[data-radix-scroll-area-viewport]');
@@ -109,7 +112,7 @@ export function FloatingChatWidget() {
                                         key={q}
                                         variant="outline"
                                         size="sm"
-                                        className="bg-background"
+                                        className="bg-background h-auto text-wrap text-left"
                                         onClick={(e) => handleSubmit(e, q)}
                                     >
                                         {q}
