@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useForm, useFieldArray, useWatch } from "react-hook-form";
@@ -285,7 +284,7 @@ export default function AddStockPage() {
             <div className="mt-8">
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
                             <div className="lg:col-span-2 space-y-8">
                                 <Card>
                                     <CardHeader>
@@ -336,6 +335,7 @@ export default function AddStockPage() {
                                                  )}
                                             </CardHeader>
                                             <CardContent className="space-y-6">
+                                                {/* Section 1: Product Details */}
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                                      <FormField control={form.control} name={`products.${index}.productName`} render={({ field }) => (
                                                         <FormItem>
@@ -362,137 +362,146 @@ export default function AddStockPage() {
                                                     )} />
                                                 </div>
                                                 
-                                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
-                                                    <FormField control={form.control} name={`products.${index}.mrpPerUnit`} render={({ field }) => (
-                                                        <FormItem>
-                                                            <FormLabel>MRP/Unit (₹)</FormLabel>
-                                                            <FormControl><Input type="number" {...field} /></FormControl>
-                                                            <FormMessage />
-                                                        </FormItem>
-                                                    )} />
-                                                    <FormField control={form.control} name={`products.${index}.purchaseRatePerUnit`} render={({ field }) => (
-                                                        <FormItem>
-                                                            <FormLabel>Landing Price/Unit (₹)</FormLabel>
-                                                            <FormControl><Input type="number" {...field} /></FormControl>
-                                                            <FormMessage />
-                                                        </FormItem>
-                                                    )} />
-                                                    <FormField control={form.control} name={`products.${index}.ratePerUnit`} render={({ field }) => (
-                                                        <FormItem>
-                                                            <FormLabel>Sale Rate/Unit (₹)</FormLabel>
-                                                            <FormControl><Input type="number" {...field} /></FormControl>
-                                                            <FormMessage />
-                                                        </FormItem>
-                                                    )} />
-                                                </div>
-
-                                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                                    <FormField control={form.control} name={`products.${index}.quantity`} render={({ field }) => (
-                                                        <FormItem>
-                                                            <FormLabel>Quantity</FormLabel>
-                                                            <FormControl><Input type="number" {...field} /></FormControl>
-                                                            <FormMessage />
-                                                        </FormItem>
-                                                    )} />
-                                                    <FormField control={form.control} name={`products.${index}.unit`} render={({ field }) => (
-                                                        <FormItem>
-                                                            <FormLabel>Unit</FormLabel>
-                                                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                                                <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
-                                                                <SelectContent>
-                                                                    <SelectItem value="bag">Bag</SelectItem>
-                                                                    <SelectItem value="packet">Packet</SelectItem>
-                                                                    <SelectItem value="bottle">Bottle</SelectItem>
-                                                                    <SelectItem value="pcs">Pieces</SelectItem>
-                                                                    <SelectItem value="chick">Chick</SelectItem>
-                                                                </SelectContent>
-                                                            </Select>
-                                                            <FormMessage />
-                                                        </FormItem>
-                                                    )} />
-                                                    {showUnitWeight && <FormField control={form.control} name={`products.${index}.unitWeight`} render={({ field }) => (
-                                                        <FormItem>
-                                                            <FormLabel>Unit Wt. (kg)</FormLabel>
-                                                            <FormControl><Input type="number" placeholder="Optional" {...field} /></FormControl>
-                                                            <FormMessage />
-                                                        </FormItem>
-                                                    )} />}
-                                                    <FormField control={form.control} name={`products.${index}.lowStockThreshold`} render={({ field }) => (
-                                                        <FormItem>
-                                                            <FormLabel>Low Stock At</FormLabel>
-                                                            <FormControl><Input type="number" {...field} /></FormControl>
-                                                            <FormMessage />
-                                                        </FormItem>
-                                                    )} />
-                                                </div>
-                                                
                                                 <Separator />
 
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
-                                                    <FormField control={form.control} name={`products.${index}.pricingBasis`} render={({ field }) => (
-                                                        <FormItem>
-                                                            <FormLabel>Pricing Basis</FormLabel>
-                                                            <Select onValueChange={field.onChange} value={field.value} disabled={currentCategory === 'Chicks'}>
-                                                                <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
-                                                                <SelectContent>
-                                                                    <SelectItem value="TPR">TPR</SelectItem>
-                                                                    <SelectItem value="FOR">FOR (Free on Road)</SelectItem>
-                                                                    <SelectItem value="Ex-Factory">Ex-Factory</SelectItem>
-                                                                    <SelectItem value="MRP">MRP</SelectItem>
-                                                                </SelectContent>
-                                                            </Select>
-                                                            <FormMessage />
-                                                        </FormItem>
-                                                    )} />
-                                                    
-                                                     {pricingBasis === 'TPR' ? (
-                                                        <FormField control={form.control} name={`products.${index}.tprIncentive`} render={({ field }) => (
+                                                {/* Section 2: Pricing & Discount */}
+                                                <div>
+                                                    <h4 className="text-sm font-medium mb-4">Pricing & Discount</h4>
+                                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                                        <FormField control={form.control} name={`products.${index}.mrpPerUnit`} render={({ field }) => (
                                                             <FormItem>
-                                                                <FormLabel>TPR Incentive (₹ per Unit)</FormLabel>
-                                                                <FormControl>
-                                                                    <div className="relative">
-                                                                        <IndianRupee className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                                                        <Input type="number" className="pl-8" placeholder="e.g., 50" {...field} />
+                                                                <FormLabel>MRP/Unit (₹)</FormLabel>
+                                                                <FormControl><Input type="number" {...field} /></FormControl>
+                                                                <FormMessage />
+                                                            </FormItem>
+                                                        )} />
+                                                        <FormField control={form.control} name={`products.${index}.purchaseRatePerUnit`} render={({ field }) => (
+                                                            <FormItem>
+                                                                <FormLabel>Landing Price/Unit (₹)</FormLabel>
+                                                                <FormControl><Input type="number" {...field} /></FormControl>
+                                                                <FormMessage />
+                                                            </FormItem>
+                                                        )} />
+                                                        <FormField control={form.control} name={`products.${index}.ratePerUnit`} render={({ field }) => (
+                                                            <FormItem>
+                                                                <FormLabel>Sale Rate/Unit (₹)</FormLabel>
+                                                                <FormControl><Input type="number" {...field} /></FormControl>
+                                                                <FormMessage />
+                                                            </FormItem>
+                                                        )} />
+                                                    </div>
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 mt-6">
+                                                        <FormField control={form.control} name={`products.${index}.pricingBasis`} render={({ field }) => (
+                                                            <FormItem>
+                                                                <FormLabel>Pricing Basis</FormLabel>
+                                                                <Select onValueChange={field.onChange} value={field.value} disabled={currentCategory === 'Chicks'}>
+                                                                    <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
+                                                                    <SelectContent>
+                                                                        <SelectItem value="TPR">TPR</SelectItem>
+                                                                        <SelectItem value="FOR">FOR (Free on Road)</SelectItem>
+                                                                        <SelectItem value="Ex-Factory">Ex-Factory</SelectItem>
+                                                                        <SelectItem value="MRP">MRP</SelectItem>
+                                                                    </SelectContent>
+                                                                </Select>
+                                                                <FormMessage />
+                                                            </FormItem>
+                                                        )} />
+                                                        
+                                                        {pricingBasis === 'TPR' ? (
+                                                            <FormField control={form.control} name={`products.${index}.tprIncentive`} render={({ field }) => (
+                                                                <FormItem>
+                                                                    <FormLabel>TPR Incentive (₹ per Unit)</FormLabel>
+                                                                    <FormControl>
+                                                                        <div className="relative">
+                                                                            <IndianRupee className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                                                            <Input type="number" className="pl-8" placeholder="e.g., 50" {...field} />
+                                                                        </div>
+                                                                    </FormControl>
+                                                                    <FormMessage />
+                                                                </FormItem>
+                                                            )} />
+                                                        ) : (
+                                                            <FormField control={form.control} name={`products.${index}.discountValue`} render={({ field }) => (
+                                                                <FormItem>
+                                                                    <FormLabel>Discount</FormLabel>
+                                                                    <div className="flex">
+                                                                        <Input
+                                                                            type="number"
+                                                                            className="rounded-r-none focus:z-10"
+                                                                            placeholder={watchedProducts?.[index]?.discountType === 'percentage' ? "e.g., 5" : "e.g., 100"}
+                                                                            {...field}
+                                                                        />
+                                                                        <FormField control={form.control} name={`products.${index}.discountType`} render={({ field: typeField }) => (
+                                                                            <Select onValueChange={typeField.onChange} defaultValue={typeField.value}>
+                                                                                <FormControl>
+                                                                                    <SelectTrigger className="w-[80px] rounded-l-none border-l-0">
+                                                                                        <SelectValue />
+                                                                                    </SelectTrigger>
+                                                                                </FormControl>
+                                                                                <SelectContent>
+                                                                                    <SelectItem value="percentage">%</SelectItem>
+                                                                                    <SelectItem value="amount">₹</SelectItem>
+                                                                                </SelectContent>
+                                                                            </Select>
+                                                                        )} />
                                                                     </div>
-                                                                </FormControl>
-                                                                <FormMessage />
-                                                            </FormItem>
-                                                        )} />
-                                                     ) : (
-                                                         <FormField control={form.control} name={`products.${index}.discountValue`} render={({ field }) => (
-                                                            <FormItem>
-                                                                <FormLabel>Discount</FormLabel>
-                                                                <div className="flex">
-                                                                    <Input
-                                                                        type="number"
-                                                                        className="rounded-r-none focus:z-10"
-                                                                        placeholder={watchedProducts?.[index]?.discountType === 'percentage' ? "e.g., 5" : "e.g., 100"}
-                                                                        {...field}
-                                                                    />
-                                                                    <FormField control={form.control} name={`products.${index}.discountType`} render={({ field: typeField }) => (
-                                                                        <Select onValueChange={typeField.onChange} defaultValue={typeField.value}>
-                                                                            <FormControl>
-                                                                                <SelectTrigger className="w-[80px] rounded-l-none border-l-0">
-                                                                                    <SelectValue />
-                                                                                </SelectTrigger>
-                                                                            </FormControl>
-                                                                            <SelectContent>
-                                                                                <SelectItem value="percentage">%</SelectItem>
-                                                                                <SelectItem value="amount">₹</SelectItem>
-                                                                            </SelectContent>
-                                                                        </Select>
-                                                                    )} />
-                                                                </div>
-                                                                <FormMessage />
-                                                            </FormItem>
-                                                        )} />
-                                                     )}
+                                                                    <FormMessage />
+                                                                </FormItem>
+                                                            )} />
+                                                        )}
 
-                                                    <FormField control={form.control} name={`products.${index}.discountAmount`} render={({ field }) => (
-                                                        <FormItem className="hidden">
-                                                            <FormControl><Input type="number" readOnly {...field} /></FormControl>
-                                                        </FormItem>
-                                                    )} />
+                                                        <FormField control={form.control} name={`products.${index}.discountAmount`} render={({ field }) => (
+                                                            <FormItem className="hidden">
+                                                                <FormControl><Input type="number" readOnly {...field} /></FormControl>
+                                                            </FormItem>
+                                                        )} />
+                                                    </div>
+                                                </div>
+                                                
+                                                <Separator/>
+
+                                                {/* Section 3: Stock & Quantity */}
+                                                 <div>
+                                                    <h4 className="text-sm font-medium mb-4">Stock & Quantity</h4>
+                                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                                        <FormField control={form.control} name={`products.${index}.quantity`} render={({ field }) => (
+                                                            <FormItem>
+                                                                <FormLabel>Quantity</FormLabel>
+                                                                <FormControl><Input type="number" {...field} /></FormControl>
+                                                                <FormMessage />
+                                                            </FormItem>
+                                                        )} />
+                                                        <FormField control={form.control} name={`products.${index}.unit`} render={({ field }) => (
+                                                            <FormItem>
+                                                                <FormLabel>Unit</FormLabel>
+                                                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                                    <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
+                                                                    <SelectContent>
+                                                                        <SelectItem value="bag">Bag</SelectItem>
+                                                                        <SelectItem value="packet">Packet</SelectItem>
+                                                                        <SelectItem value="bottle">Bottle</SelectItem>
+                                                                        <SelectItem value="pcs">Pieces</SelectItem>
+                                                                        <SelectItem value="chick">Chick</SelectItem>
+                                                                    </SelectContent>
+                                                                </Select>
+                                                                <FormMessage />
+                                                            </FormItem>
+                                                        )} />
+                                                        {showUnitWeight && <FormField control={form.control} name={`products.${index}.unitWeight`} render={({ field }) => (
+                                                            <FormItem>
+                                                                <FormLabel>Unit Wt. (kg)</FormLabel>
+                                                                <FormControl><Input type="number" placeholder="Optional" {...field} /></FormControl>
+                                                                <FormMessage />
+                                                            </FormItem>
+                                                        )} />}
+                                                        <FormField control={form.control} name={`products.${index}.lowStockThreshold`} render={({ field }) => (
+                                                            <FormItem>
+                                                                <FormLabel>Low Stock At</FormLabel>
+                                                                <FormControl><Input type="number" {...field} /></FormControl>
+                                                                <FormMessage />
+                                                            </FormItem>
+                                                        )} />
+                                                    </div>
                                                 </div>
 
                                             </CardContent>
@@ -506,7 +515,7 @@ export default function AddStockPage() {
                                 </Button>
                             </div>
 
-                            <div className="lg:col-span-1 space-y-8">
+                            <div className="lg:col-span-1 space-y-8 lg:sticky lg:top-24">
                                 <SummaryCard control={form.control} />
                                 <Card>
                                     <CardHeader>
@@ -592,4 +601,3 @@ export default function AddStockPage() {
         </>
     );
 }
-
