@@ -28,12 +28,30 @@ import type { User } from "@/lib/types";
 import { doc, onSnapshot } from "firebase/firestore";
 import { PageHeader } from "../../_components/page-header";
 import { useRouter } from "next/navigation";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Separator } from "@/components/ui/separator";
 
 const formSchema = z.object({
-    farmerUID: z.string().min(1, "Please select a farmer."),
+    saleType: z.enum(["online", "offline"]),
+    farmerUID: z.string().optional(),
+    offlineCustomerName: z.string().optional(),
+    offlineCustomerContact: z.string().optional(),
     productId: z.string().min(1, "Please select a product."),
     quantity: z.coerce.number().min(1, "Quantity must be at least 1."),
+}).refine(data => {
+    if (data.saleType === 'online' && !data.farmerUID) return false;
+    return true;
+}, {
+    message: "Please select a connected farmer for an online sale.",
+    path: ["farmerUID"],
+}).refine(data => {
+    if (data.saleType === 'offline' && !data.offlineCustomerName) return false;
+    return true;
+}, {
+    message: "Customer name is required for an offline sale.",
+    path: ["offlineCustomerName"],
 });
+
 
 type FormValues = z.infer<typeof formSchema>;
 
@@ -62,12 +80,12 @@ export default function CreateOrderPage() {
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            farmerUID: "",
-            productId: "",
+            saleType: "online",
             quantity: 1,
         },
     });
 
+    const saleType = useWatch({ control: form.control, name: 'saleType' });
     const selectedProductId = useWatch({ control: form.control, name: 'productId' });
     const quantity = useWatch({ control: form.control, name: 'quantity' });
     const selectedProduct = products.find(p => p.id === selectedProductId);
@@ -78,39 +96,41 @@ export default function CreateOrderPage() {
             toast({ title: "Error", description: "Could not create order.", variant: "destructive" });
             return;
         }
-        
-        const selectedFarmer = farmers.find(f => f.id === values.farmerUID);
-        if (!selectedFarmer) {
-            toast({ title: "Error", description: "Selected farmer not found.", variant: "destructive" });
-            return;
-        }
+
+        const isOfflineSale = values.saleType === 'offline';
 
         try {
             await createOrder(firestore, {
-                farmerUID: values.farmerUID,
                 dealerUID: dealerUser.uid,
+                isOfflineSale,
+                farmerUID: isOfflineSale ? undefined : values.farmerUID,
+                offlineCustomerName: isOfflineSale ? values.offlineCustomerName : undefined,
+                offlineCustomerContact: isOfflineSale ? values.offlineCustomerContact : undefined,
                 productId: values.productId,
                 productName: selectedProduct.productName,
                 quantity: values.quantity,
                 ratePerUnit: selectedProduct.ratePerUnit,
-                totalAmount: selectedProduct.ratePerUnit * values.quantity,
-                status: 'Pending', // Order is pending until farmer approves
+                totalAmount: totalAmount,
+                status: isOfflineSale ? 'Completed' : 'Pending',
             });
+
             toast({
-                title: "Order Created",
-                description: `An order for ${selectedFarmer.name} has been created and is pending their approval.`,
+                title: `Order ${isOfflineSale ? 'Recorded' : 'Sent'}`,
+                description: isOfflineSale 
+                    ? `The offline sale to ${values.offlineCustomerName} has been recorded.`
+                    : `An order has been sent to the selected farmer for approval.`,
             });
             router.push('/dealer/my-orders');
-        } catch (error) {
-            toast({ title: "Error", description: "Failed to create order.", variant: "destructive" });
+        } catch (error: any) {
+            toast({ title: "Error", description: error.message || "Failed to create order.", variant: "destructive" });
         }
     }
     
     return (
         <>
         <PageHeader 
-            title="Create New Order for Farmer"
-            description="Select a farmer and product to create a new order. The farmer will need to approve it."
+            title="Create New Order"
+            description="Create an order for a connected farmer or record an offline sale."
         />
         <div className="mt-8 max-w-2xl">
             <Card>
@@ -122,47 +142,88 @@ export default function CreateOrderPage() {
                         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                             <FormField
                                 control={form.control}
-                                name="farmerUID"
+                                name="saleType"
                                 render={({ field }) => (
-                                    <FormItem>
-                                    <FormLabel>Select Farmer</FormLabel>
-                                    <Select onValueChange={field.onChange} defaultValue={field.value} disabled={farmersLoading}>
+                                    <FormItem className="space-y-3">
+                                        <FormLabel>Order Type</FormLabel>
                                         <FormControl>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder={farmersLoading ? "Loading farmers..." : "Select a connected farmer"} />
-                                        </SelectTrigger>
+                                            <RadioGroup
+                                            onValueChange={field.onChange}
+                                            defaultValue={field.value}
+                                            className="flex flex-col space-y-1"
+                                            >
+                                            <FormItem className="flex items-center space-x-3 space-y-0">
+                                                <FormControl><RadioGroupItem value="online" /></FormControl>
+                                                <FormLabel className="font-normal">Online (for a connected farmer)</FormLabel>
+                                            </FormItem>
+                                            <FormItem className="flex items-center space-x-3 space-y-0">
+                                                <FormControl><RadioGroupItem value="offline" /></FormControl>
+                                                <FormLabel className="font-normal">Offline (for a walk-in customer)</FormLabel>
+                                            </FormItem>
+                                            </RadioGroup>
                                         </FormControl>
-                                        <SelectContent>
-                                            {farmers.map(farmer => (
-                                                <SelectItem key={farmer.id} value={farmer.id}>{farmer.name}</SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                    <FormMessage />
+                                        <FormMessage />
                                     </FormItem>
                                 )}
                             />
-                            <FormField
+
+                            <Separator />
+
+                            {saleType === 'online' ? (
+                                <FormField
+                                    control={form.control}
+                                    name="farmerUID"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Select Connected Farmer</FormLabel>
+                                            <Select onValueChange={field.onChange} defaultValue={field.value} disabled={farmersLoading}>
+                                                <FormControl><SelectTrigger><SelectValue placeholder={farmersLoading ? "Loading..." : "Select a farmer"} /></SelectTrigger></FormControl>
+                                                <SelectContent>
+                                                    {farmers.map(farmer => <SelectItem key={farmer.id} value={farmer.id}>{farmer.name}</SelectItem>)}
+                                                </SelectContent>
+                                            </Select>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            ) : (
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                     <FormField
+                                        control={form.control}
+                                        name="offlineCustomerName"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Customer Name</FormLabel>
+                                                <FormControl><Input placeholder="e.g., Ramesh Kumar" {...field} /></FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <FormField
+                                        control={form.control}
+                                        name="offlineCustomerContact"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Customer Contact (Optional)</FormLabel>
+                                                <FormControl><Input placeholder="e.g., 9876543210" {...field} /></FormControl>
+                                            </FormItem>
+                                        )}
+                                    />
+                                </div>
+                            )}
+                             <FormField
                                 control={form.control}
                                 name="productId"
                                 render={({ field }) => (
                                     <FormItem>
-                                    <FormLabel>Select Product</FormLabel>
-                                    <Select onValueChange={field.onChange} defaultValue={field.value} disabled={productsLoading}>
-                                        <FormControl>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder={productsLoading ? "Loading products..." : "Select from your inventory"} />
-                                        </SelectTrigger>
-                                        </FormControl>
-                                        <SelectContent>
-                                            {products.map(product => (
-                                                <SelectItem key={product.id} value={product.id} disabled={product.quantity <= 0}>
-                                                    {product.productName} (Stock: {product.quantity})
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                    <FormMessage />
+                                        <FormLabel>Product</FormLabel>
+                                        <Select onValueChange={field.onChange} defaultValue={field.value} disabled={productsLoading}>
+                                            <FormControl><SelectTrigger><SelectValue placeholder={productsLoading ? "Loading products..." : "Select from inventory"} /></SelectTrigger></FormControl>
+                                            <SelectContent>
+                                                {products.map(p => <SelectItem key={p.id} value={p.id} disabled={p.quantity <= 0}>{p.productName} (Stock: {p.quantity})</SelectItem>)}
+                                            </SelectContent>
+                                        </Select>
+                                        <FormMessage />
                                     </FormItem>
                                 )}
                             />
@@ -191,7 +252,7 @@ export default function CreateOrderPage() {
                                 <Button type="button" variant="outline" onClick={() => router.back()}>Cancel</Button>
                                 <Button type="submit" disabled={form.formState.isSubmitting}>
                                     {form.formState.isSubmitting ? <Loader2 className="animate-spin" /> : <Send className="mr-2" />}
-                                    Create Order
+                                    {saleType === 'online' ? 'Send Order for Approval' : 'Record Offline Sale'}
                                 </Button>
                             </div>
                         </form>

@@ -26,13 +26,15 @@ import { useToast } from '@/hooks/use-toast';
 import { useUser, useFirestore } from '@/firebase/provider';
 import { useOrders, updateOrderStatus } from '@/hooks/use-orders';
 import { useUsersByIds } from '@/hooks/use-users';
-import type { Order, User as AppUser, Connection } from '@/lib/types';
-import { useConnections } from '@/hooks/use-connections';
+import type { Order, User as AppUser } from '@/lib/types';
 import Link from 'next/link';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+
 
 const statusConfig = {
     Pending: { variant: "outline" as const, color: "text-blue-500 border-blue-500/50 bg-blue-500/10" },
     Approved: { variant: "default" as const, color: "text-green-500 border-green-500/50 bg-green-500/10" },
+    Completed: { variant: "default" as const, color: "text-green-500 border-green-500/50 bg-green-500/10" },
     Rejected: { variant: "destructive" as const, color: "text-red-500 border-red-500/50 bg-red-500/10" },
 };
 
@@ -42,24 +44,24 @@ export default function MyOrdersPage() {
     const firestore = useFirestore();
     const { orders, loading: ordersLoading } = useOrders(firebaseUser?.uid);
     const { toast } = useToast();
+    const [activeTab, setActiveTab] = useState("pending");
 
-    // Fetch this dealer's connections to get farmer IDs
-    const { connections, loading: connectionsLoading } = useConnections(firebaseUser?.uid, 'dealer');
-
-    // Get the IDs of all connected farmers
-    const connectedFarmerIds = useMemo(() => {
-        return connections
-            .map(c => c.farmerUID);
-    }, [connections]);
+    const farmerIds = useMemo(() => {
+        if (ordersLoading) return [];
+        // Extract all unique farmerUIDs from orders, filtering out undefined ones
+        return [...new Set(orders.map(o => o.farmerUID).filter((id): id is string => !!id))];
+    }, [orders, ordersLoading]);
     
-    // Fetch user details for all potentially connected farmers
-    const { users: farmers, loading: farmersLoading } = useUsersByIds(connectedFarmerIds);
+    const { users: farmers, loading: farmersLoading } = useUsersByIds(farmerIds);
 
-    const getFarmerName = (farmerUID: string) => {
-        return farmers.find(f => f.id === farmerUID)?.name || "Unknown Farmer";
+    const getFarmerName = (order: Order) => {
+        if (order.isOfflineSale) {
+            return order.offlineCustomerName || "Offline Sale";
+        }
+        return farmers.find(f => f.id === order.farmerUID)?.name || "Loading...";
     }
     
-    const loading = ordersLoading || farmersLoading || connectionsLoading || !firebaseUser;
+    const loading = ordersLoading || (farmerIds.length > 0 && farmersLoading);
 
     const handleUpdateStatus = async (order: Order, newStatus: 'Approved' | 'Rejected') => {
         if (!firestore) return;
@@ -77,12 +79,11 @@ export default function MyOrdersPage() {
             });
         }
     };
-
-    // Filter orders to show only those from connected farmers
-    const visibleOrders = useMemo(() => {
-        if (loading) return [];
-        return orders.filter(order => connectedFarmerIds.includes(order.farmerUID));
-    }, [orders, connectedFarmerIds, loading]);
+    
+    const filteredOrders = useMemo(() => {
+        if (activeTab === 'all') return orders;
+        return orders.filter(o => o.status.toLowerCase() === activeTab);
+    }, [orders, activeTab]);
 
 
     return (
@@ -94,7 +95,7 @@ export default function MyOrdersPage() {
                 <Button asChild>
                     <Link href="/dealer/my-orders/create">
                         <PlusCircle className="mr-2" />
-                        Create Order for Farmer
+                        Create Order
                     </Link>
                 </Button>
             </PageHeader>
@@ -103,15 +104,21 @@ export default function MyOrdersPage() {
                 <Card>
                     <CardHeader>
                         <CardTitle>All Orders</CardTitle>
-                        <CardDescription>
-                            A list of all pending, approved, and rejected orders from your farmers.
-                        </CardDescription>
+                         <Tabs value={activeTab} onValueChange={setActiveTab}>
+                            <TabsList>
+                                <TabsTrigger value="pending">Pending</TabsTrigger>
+                                <TabsTrigger value="approved">Approved</TabsTrigger>
+                                <TabsTrigger value="completed">Completed (Offline)</TabsTrigger>
+                                <TabsTrigger value="rejected">Rejected</TabsTrigger>
+                                <TabsTrigger value="all">All</TabsTrigger>
+                            </TabsList>
+                        </Tabs>
                     </CardHeader>
                     <CardContent className="overflow-x-auto">
                         <Table>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead>Farmer</TableHead>
+                                    <TableHead>Customer</TableHead>
                                     <TableHead>Product</TableHead>
                                     <TableHead>Quantity</TableHead>
                                     <TableHead>Total Amount</TableHead>
@@ -128,16 +135,19 @@ export default function MyOrdersPage() {
                                         </TableCell>
                                     </TableRow>
                                 )}
-                                {!loading && visibleOrders.length === 0 && (
+                                {!loading && filteredOrders.length === 0 && (
                                     <TableRow>
                                         <TableCell colSpan={7} className="h-24 text-center">
-                                            No orders found from your connected farmers.
+                                            No orders in this category.
                                         </TableCell>
                                     </TableRow>
                                 )}
-                                {!loading && visibleOrders.map((order) => (
+                                {!loading && filteredOrders.map((order) => (
                                     <TableRow key={order.id}>
-                                        <TableCell className="font-medium">{getFarmerName(order.farmerUID)}</TableCell>
+                                        <TableCell className="font-medium">
+                                            {getFarmerName(order)}
+                                            {order.isOfflineSale && <Badge variant="secondary" className="ml-2">Offline</Badge>}
+                                        </TableCell>
                                         <TableCell>{order.productName}</TableCell>
                                         <TableCell>{order.quantity}</TableCell>
                                         <TableCell>₹{order.totalAmount.toLocaleString()}</TableCell>

@@ -1,5 +1,4 @@
 
-
 import { Timestamp } from "firebase/firestore";
 
 export type UserRole = 'farmer' | 'dealer' | 'admin';
@@ -158,17 +157,17 @@ export type PricingPlan = {
 
 export type Order = {
     id: string;
-    farmerUID: string;
     dealerUID: string;
-    batchId?: string;
+    farmerUID?: string; // Optional for offline sales
+    isOfflineSale: boolean;
+    offlineCustomerName?: string;
+    offlineCustomerContact?: string;
     productId: string;
     productName: string;
     quantity: number;
     ratePerUnit: number;
-    transportCost?: number;
-    labourCost?: number;
     totalAmount: number;
-    status: "Pending" | "Approved" | "Rejected";
+    status: "Pending" | "Approved" | "Rejected" | "Completed"; // Completed for offline
     createdAt: string; // ISO 8601
 }
 
@@ -209,5 +208,3 @@ export type BiosecurityChecklistItem = {
     category: 'Isolation' | 'Traffic Control' | 'Sanitation';
 };
 
-
-    

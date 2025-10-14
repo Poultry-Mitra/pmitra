@@ -29,9 +29,10 @@ function toOrder(doc: QueryDocumentSnapshot<DocumentData>): Order {
     return {
         id: doc.id,
         ...data,
-        createdAt: data.createdAt?.toDate().toISOString() || new Date().toISOString(),
+        createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toISOString() : new Date(data.createdAt).toISOString(),
     } as Order;
 }
+
 
 export function useOrders(dealerUID?: string) {
   const { user: firebaseUser } = useUser();
@@ -111,7 +112,7 @@ export function useOrdersByFarmer(farmerUID?: string) {
 }
 
 
-export async function createOrder(firestore: Firestore, data: Omit<Order, 'id' | 'createdAt'>) {
+export async function createOrder(firestore: Firestore, data: Omit<Order, 'id' | 'createdAt'>): Promise<string> {
     if (!firestore) throw new Error("Firestore not initialized");
 
     const orderCollection = collection(firestore, 'orders');
@@ -121,70 +122,80 @@ export async function createOrder(firestore: Firestore, data: Omit<Order, 'id' |
         createdAt: new Date().toISOString(),
     };
 
-    await addDoc(orderCollection, orderData);
+    const docRef = await addDoc(orderCollection, orderData);
+    
+    // If it's an offline sale, immediately run the approval transaction
+    if (data.isOfflineSale) {
+        const newOrder = { id: docRef.id, ...orderData } as Order;
+        await updateOrderStatus(newOrder, 'Completed', firestore);
+    }
+    
+    return docRef.id;
 }
 
-export async function updateOrderStatus(order: Order, newStatus: 'Approved' | 'Rejected', firestore: Firestore | null) {
+
+export async function updateOrderStatus(order: Order, newStatus: 'Approved' | 'Rejected' | 'Completed', firestore: Firestore | null) {
     if (!firestore) throw new Error("Firestore not initialized");
 
     const orderRef = doc(firestore, 'orders', order.id);
     
+    // For simple rejection, just update the status
     if (newStatus === 'Rejected') {
         await updateDoc(orderRef, { status: newStatus });
         return;
     }
 
-    // Use a transaction to ensure atomicity
+    // Use a transaction for Approved/Completed status to ensure atomicity
     await runTransaction(firestore, async (transaction) => {
         const orderDoc = await transaction.get(orderRef);
-        if (!orderDoc.exists() || orderDoc.data().status !== 'Pending') {
-            throw new Error("Order not found or has already been processed.");
+        if (!orderDoc.exists()) {
+            throw new Error("Order not found.");
+        }
+        
+        const currentStatus = orderDoc.data().status;
+        // Prevent re-processing an already processed order
+        if (currentStatus !== 'Pending' && !order.isOfflineSale) {
+            throw new Error("This order has already been processed.");
         }
         
         // Update the order status
         transaction.update(orderRef, { status: newStatus });
+        
+        // --- Shared Logic for Approved/Completed Orders ---
+        if (!order.productId) {
+            throw new Error("Order is missing a product ID.");
+        }
+        const dealerInventoryRef = doc(firestore, 'dealerInventory', order.productId);
+        const dealerInventoryDoc = await transaction.get(dealerInventoryRef);
 
-        // If the order is approved, deduct inventory and create ledger entries
-        if (newStatus === 'Approved') {
-            if (!order.productId) {
-                throw new Error("Order is missing a product ID.");
-            }
-            const dealerInventoryRef = doc(firestore, 'dealerInventory', order.productId);
-            
-            const farmerDocSnap = await transaction.get(doc(firestore, 'users', order.farmerUID));
-            const dealerInventoryDoc = await transaction.get(dealerInventoryRef);
-            const dealerDocSnap = await transaction.get(doc(firestore, 'users', order.dealerUID));
+        if (!dealerInventoryDoc.exists()) throw new Error("Product not found in dealer's inventory.");
 
+        const currentQuantity = dealerInventoryDoc.data().quantity;
+        if (currentQuantity < order.quantity) {
+            throw new Error("Not enough stock available to fulfill the order.");
+        }
+        
+        // 1. Reduce dealer's inventory
+        transaction.update(dealerInventoryRef, {
+            quantity: increment(-order.quantity)
+        });
 
-            if (!dealerInventoryDoc.exists()) throw new Error("Product not found in dealer's inventory.");
-            if (!farmerDocSnap.exists()) throw new Error("Farmer not found.");
-            if (!dealerDocSnap.exists()) throw new Error("Dealer not found.");
-
-            const farmerName = farmerDocSnap.data().name;
-            const dealerName = dealerDocSnap.data().name;
-            const currentQuantity = dealerInventoryDoc.data().quantity;
-            if (currentQuantity < order.quantity) {
-                throw new Error("Not enough stock available to fulfill the order.");
-            }
-
-            // 1. Reduce dealer's inventory
-            transaction.update(dealerInventoryRef, {
-                quantity: increment(-order.quantity)
-            });
-            
-            // 2. Add credit entry to dealer's ledger
-            await addLedgerEntryInTransaction(transaction, firestore, order.dealerUID, {
-                description: `Sale to ${farmerName} (Order: ${order.id.substring(0, 5)})`,
-                amount: order.totalAmount,
-                date: new Date().toISOString(),
-            }, 'Credit');
-
-            // 3. Add debit entry to farmer's ledger
-             await addLedgerEntryInTransaction(transaction, firestore, order.farmerUID, {
-                description: `Purchase from ${dealerName} (Order: ${order.id.substring(0, 5)})`,
-                amount: order.totalAmount,
-                date: new Date().toISOString(),
-            }, 'Debit');
+        // 2. Add credit entry to dealer's ledger
+        const customerName = order.isOfflineSale ? order.offlineCustomerName : (await transaction.get(doc(firestore, 'users', order.farmerUID!))).data()?.name;
+        await addLedgerEntryInTransaction(transaction, firestore, order.dealerUID, {
+            description: `Sale to ${customerName || 'Unknown'} (Order: ${order.id.substring(0, 5)})`,
+            amount: order.totalAmount,
+            date: new Date().toISOString(),
+        }, 'Credit');
+        
+        // 3. If it's an online sale, add debit entry to farmer's ledger
+        if (!order.isOfflineSale && order.farmerUID) {
+            const dealerName = (await transaction.get(doc(firestore, 'users', order.dealerUID))).data()?.name;
+            await addLedgerEntryInTransaction(transaction, firestore, order.farmerUID, {
+               description: `Purchase from ${dealerName || 'Unknown Dealer'} (Order: ${order.id.substring(0, 5)})`,
+               amount: order.totalAmount,
+               date: new Date().toISOString(),
+           }, 'Debit');
         }
     });
 }
