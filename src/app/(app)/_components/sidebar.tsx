@@ -37,6 +37,7 @@ import {
   User as UserIcon,
   AreaChart,
   HeartPulse,
+  Signal,
 } from "lucide-react";
 import { useLanguage } from "@/components/language-provider";
 import { Badge } from "@/components/ui/badge";
@@ -68,6 +69,7 @@ const connectNavItems = [
 ];
 
 const aiNavItems = [
+    { href: "/monitoring", icon: Signal, label: "monitoring.title" },
     { href: "/biosecurity", icon: ShieldCheck, label: "biosecurity.title" },
     { href: "/analytics", icon: AreaChart, label: "analytics.title"},
     { href: "/feed-recommendation", icon: WandSparkles, label: "feed_ai.title"},

@@ -192,6 +192,9 @@ const translations = {
     ai_chat: {
       title: "AI Chat",
     },
+    monitoring: {
+      title: "Monitoring"
+    },
     biosecurity: {
       title: "Biosecurity",
     },
@@ -538,6 +541,9 @@ const translations = {
     },
     ai_chat: {
       title: "एआई चैट",
+    },
+    monitoring: {
+      title: "निगरानी"
     },
     biosecurity: {
       title: "जैव सुरक्षा",
