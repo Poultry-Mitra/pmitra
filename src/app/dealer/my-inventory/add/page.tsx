@@ -27,7 +27,8 @@ const productSchema = z.object({
   pricingBasis: z.enum(["TPR", "FOR", "Ex-Factory", "MRP"]),
   quantity: z.coerce.number().min(0, "Quantity must be non-negative."),
   unit: z.enum(["bag", "packet", "bottle", "pcs", "chick"]),
-  ratePerUnit: z.coerce.number().min(0),
+  purchaseRatePerUnit: z.coerce.number().min(0, "Purchase rate is required."),
+  ratePerUnit: z.coerce.number().min(0, "Sale rate is required."), // This is now Sale Rate
   discount: z.coerce.number().min(0).default(0),
   unitWeight: z.coerce.number().optional(),
   lowStockThreshold: z.coerce.number().min(0).default(10),
@@ -61,7 +62,7 @@ type FormValues = z.infer<typeof formSchema>;
 function SummaryCard({ control }: { control: any }) {
     const values = useWatch({ control });
     const products = values.products || [];
-    const subTotal = products.reduce((acc: number, product: any) => acc + (parseFloat(product.ratePerUnit || '0') * parseFloat(product.quantity || '0')), 0);
+    const subTotal = products.reduce((acc: number, product: any) => acc + (parseFloat(product.purchaseRatePerUnit || '0') * parseFloat(product.quantity || '0')), 0);
     const totalDiscount = products.reduce((acc: number, product: any) => acc + parseFloat(product.discount || '0'), 0);
 
     const transportCost = parseFloat(values.transportCost || '0');
@@ -127,7 +128,7 @@ export default function AddStockPage() {
         defaultValues: {
             supplierName: "",
             supplierContact: "",
-            products: [{ productName: "", category: "Feed", unit: "bag", ratePerUnit: 0, discount: 0, quantity: 1, unitWeight: 50, lowStockThreshold: 10, pricingBasis: 'TPR', phaseApplicable: [] }],
+            products: [{ productName: "", category: "Feed", unit: "bag", purchaseRatePerUnit: 0, ratePerUnit: 0, discount: 0, quantity: 1, unitWeight: 50, lowStockThreshold: 10, pricingBasis: 'TPR', phaseApplicable: [] }],
             transportCost: 0,
             miscCost: 0,
             paymentMethod: "cash",
@@ -155,15 +156,15 @@ export default function AddStockPage() {
     }, [isTransportDisabled, form]);
 
     const handleCategoryChange = (category: string, index: number) => {
-        const unitDefaults = {
+        const unitDefaults: { [key: string]: "bag" | "packet" | "bottle" | "pcs" | "chick" } = {
             "Feed": "bag",
             "Chicks": "chick",
             "Equipment": "pcs",
             "Medicine": "bottle",
             "Other": "pcs",
         };
-        const newUnit = unitDefaults[category as keyof typeof unitDefaults] || "pcs";
-        form.setValue(`products.${index}.unit`, newUnit as any);
+        const newUnit = unitDefaults[category] || "pcs";
+        form.setValue(`products.${index}.unit`, newUnit);
     };
 
 
@@ -181,7 +182,8 @@ export default function AddStockPage() {
                     category: product.category,
                     quantity: product.quantity,
                     unit: product.unit,
-                    ratePerUnit: product.ratePerUnit,
+                    ratePerUnit: product.ratePerUnit, // This is the sale rate
+                    // We need to add purchaseRatePerUnit to the type and firestore
                     unitWeight: ['pcs', 'chick'].includes(product.unit) ? undefined : product.unitWeight,
                     lowStockThreshold: product.lowStockThreshold,
                     phaseApplicable: product.category === 'Feed' ? product.phaseApplicable : [],
@@ -190,7 +192,7 @@ export default function AddStockPage() {
             }
             
             // 2. Add a single debit entry to the ledger for the total purchase amount
-            const netPayable = values.products.reduce((acc, p) => acc + (p.ratePerUnit * p.quantity), 0) 
+            const netPayable = values.products.reduce((acc, p) => acc + (p.purchaseRatePerUnit * p.quantity), 0) 
                              - values.products.reduce((acc, p) => acc + p.discount, 0)
                              + values.transportCost + values.miscCost;
 
@@ -314,55 +316,55 @@ export default function AddStockPage() {
                                                       name={`products.${index}.phaseApplicable`}
                                                       render={() => (
                                                         <FormItem className="space-y-3 rounded-md border p-4">
-                                                            <div>
-                                                                <FormLabel className="text-base font-medium">Phase Applicable</FormLabel>
-                                                                <FormDescription className="text-sm">
-                                                                Select which flock phases this feed applies to.
-                                                                </FormDescription>
-                                                            </div>
-                                                            <div className="flex items-center space-x-4">
+                                                          <div>
+                                                            <FormLabel className="text-base font-medium">Phase Applicable</FormLabel>
+                                                            <FormDescription className="text-sm">
+                                                              Select which flock phases this feed applies to.
+                                                            </FormDescription>
+                                                          </div>
+                                                          <div className="flex items-center space-x-4">
                                                             {feedPhases.map((item) => (
-                                                                <FormField
+                                                              <FormField
                                                                 key={item.id}
                                                                 control={form.control}
                                                                 name={`products.${index}.phaseApplicable`}
                                                                 render={({ field }) => {
-                                                                    return (
+                                                                  return (
                                                                     <FormItem
-                                                                        key={item.id}
-                                                                        className="flex flex-row items-start space-x-3 space-y-0"
+                                                                      key={item.id}
+                                                                      className="flex flex-row items-start space-x-3 space-y-0"
                                                                     >
-                                                                        <FormControl>
+                                                                      <FormControl>
                                                                         <Checkbox
-                                                                            checked={field.value?.includes(item.id)}
-                                                                            onCheckedChange={(checked) => {
+                                                                          checked={field.value?.includes(item.id)}
+                                                                          onCheckedChange={(checked) => {
                                                                             return checked
-                                                                                ? field.onChange([...(field.value || []), item.id])
-                                                                                : field.onChange(
-                                                                                    field.value?.filter(
-                                                                                    (value) => value !== item.id
-                                                                                    )
+                                                                              ? field.onChange([...(field.value || []), item.id])
+                                                                              : field.onChange(
+                                                                                field.value?.filter(
+                                                                                  (value) => value !== item.id
                                                                                 )
-                                                                            }}
+                                                                              )
+                                                                          }}
                                                                         />
-                                                                        </FormControl>
-                                                                        <FormLabel className="font-normal">
+                                                                      </FormControl>
+                                                                      <FormLabel className="font-normal">
                                                                         {item.label}
-                                                                        </FormLabel>
+                                                                      </FormLabel>
                                                                     </FormItem>
-                                                                    )
+                                                                  )
                                                                 }}
-                                                                />
+                                                              />
                                                             ))}
-                                                            </div>
-                                                            <FormMessage />
+                                                          </div>
+                                                          <FormMessage />
                                                         </FormItem>
                                                       )}
                                                     />
                                                 )}
 
                                                 
-                                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
                                                     <FormField control={form.control} name={`products.${index}.pricingBasis`} render={({ field }) => (
                                                         <FormItem>
                                                             <FormLabel>Pricing Basis</FormLabel>
@@ -378,16 +380,25 @@ export default function AddStockPage() {
                                                             <FormMessage />
                                                         </FormItem>
                                                     )} />
-                                                    <FormField control={form.control} name={`products.${index}.ratePerUnit`} render={({ field }) => (
+                                                     <FormField control={form.control} name={`products.${index}.discount`} render={({ field }) => (
                                                         <FormItem>
-                                                            <FormLabel>Rate/Unit (₹)</FormLabel>
+                                                            <FormLabel>Discount (₹)</FormLabel>
                                                             <FormControl><Input type="number" {...field} /></FormControl>
                                                             <FormMessage />
                                                         </FormItem>
                                                     )} />
-                                                    <FormField control={form.control} name={`products.${index}.discount`} render={({ field }) => (
+                                                </div>
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
+                                                    <FormField control={form.control} name={`products.${index}.purchaseRatePerUnit`} render={({ field }) => (
                                                         <FormItem>
-                                                            <FormLabel>Discount (₹)</FormLabel>
+                                                            <FormLabel>Purchase Rate/Unit (₹)</FormLabel>
+                                                            <FormControl><Input type="number" {...field} /></FormControl>
+                                                            <FormMessage />
+                                                        </FormItem>
+                                                    )} />
+                                                    <FormField control={form.control} name={`products.${index}.ratePerUnit`} render={({ field }) => (
+                                                        <FormItem>
+                                                            <FormLabel>Sale Rate/Unit (₹)</FormLabel>
                                                             <FormControl><Input type="number" {...field} /></FormControl>
                                                             <FormMessage />
                                                         </FormItem>
@@ -438,7 +449,7 @@ export default function AddStockPage() {
                                     )})}
                                 </div>
 
-                                <Button type="button" variant="outline" onClick={() => append({ productName: "", category: "Feed", unit: "bag", ratePerUnit: 0, discount: 0, quantity: 1, unitWeight: 50, lowStockThreshold: 10, pricingBasis: 'TPR', phaseApplicable: [] })}>
+                                <Button type="button" variant="outline" onClick={() => append({ productName: "", category: "Feed", unit: "bag", purchaseRatePerUnit: 0, ratePerUnit: 0, discount: 0, quantity: 1, unitWeight: 50, lowStockThreshold: 10, pricingBasis: 'TPR', phaseApplicable: [] })}>
                                     <PlusCircle className="mr-2" />
                                     Add Another Product
                                 </Button>
@@ -497,7 +508,7 @@ export default function AddStockPage() {
                                             </FormItem>
                                         )} />
                                          <FormField name="amountPaid" control={form.control} render={({ field }) => (
-                                            <FormItem>
+                                             <FormItem>
                                                 <FormLabel>Amount Paid</FormLabel>
                                                 <FormControl>
                                                     <div className="relative">
@@ -506,7 +517,7 @@ export default function AddStockPage() {
                                                     </div>
                                                 </FormControl>
                                                 <FormMessage />
-                                            </FormItem>
+                                             </FormItem>
                                          )} />
                                          {paymentMethod === 'bank_transfer' && (
                                             <FormField name="utrNumber" control={form.control} render={({ field }) => (
@@ -530,6 +541,3 @@ export default function AddStockPage() {
         </>
     );
 }
-
-
-    
