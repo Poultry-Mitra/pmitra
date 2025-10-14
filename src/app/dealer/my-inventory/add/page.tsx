@@ -189,10 +189,10 @@ export default function AddStockPage() {
                             <div className="lg:col-span-2 space-y-8">
                                 <Card>
                                     <CardHeader>
-                                        <CardTitle>Supplier & Product Details</CardTitle>
+                                        <CardTitle>Supplier Details</CardTitle>
                                     </CardHeader>
-                                    <CardContent className="space-y-6">
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <CardContent>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                             <FormField name="supplierName" control={form.control} render={({ field }) => (
                                                 <FormItem>
                                                     <FormLabel>Supplier Name</FormLabel>
@@ -202,183 +202,127 @@ export default function AddStockPage() {
                                             )} />
                                             <FormField name="supplierContact" control={form.control} render={({ field }) => (
                                                 <FormItem>
-                                                    <FormLabel>Supplier Contact</FormLabel>
+                                                    <FormLabel>Supplier Contact (Optional)</FormLabel>
                                                     <FormControl><Input placeholder="e.g., 9876543210" {...field} /></FormControl>
                                                     <FormMessage />
                                                 </FormItem>
                                             )} />
                                         </div>
-                                        <Separator />
-                                        
-                                        <div className="space-y-4">
-                                            <Label>Products</Label>
-                                            {fields.map((field, index) => (
-                                                <div key={field.id} className="grid grid-cols-12 gap-x-4 gap-y-2 p-4 border rounded-md relative">
-                                                    <div className="col-span-12 md:col-span-6">
-                                                        <FormField name={`products.${index}.productName`} control={form.control} render={({ field }) => (
-                                                            <FormItem>
-                                                                <FormLabel className="text-xs">Product Name</FormLabel>
-                                                                <FormControl><Input placeholder="e.g., Broiler Starter" {...field} /></FormControl>
-                                                                <FormMessage />
-                                                            </FormItem>
-                                                        )} />
-                                                    </div>
-                                                     <div className="col-span-12 md:col-span-6">
-                                                         <FormField name={`products.${index}.category`} control={form.control} render={({ field }) => (
-                                                            <FormItem>
-                                                                <FormLabel className="text-xs">Category</FormLabel>
-                                                                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                                                    <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
-                                                                    <SelectContent>
-                                                                        <SelectItem value="Feed">Feed</SelectItem>
-                                                                        <SelectItem value="Medicine">Medicine</SelectItem>
-                                                                        <SelectItem value="Equipment">Equipment</SelectItem>
-                                                                        <SelectItem value="Chicks">Chicks</SelectItem>
-                                                                        <SelectItem value="Other">Other</SelectItem>
-                                                                    </SelectContent>
-                                                                </Select>
-                                                            </FormItem>
-                                                        )} />
-                                                    </div>
-                                                    <div className="col-span-6 sm:col-span-4 md:col-span-2">
-                                                         <FormField name={`products.${index}.quantity`} control={form.control} render={({ field }) => (
-                                                            <FormItem>
-                                                                <FormLabel className="text-xs">Quantity</FormLabel>
-                                                                <FormControl><Input type="number" {...field} /></FormControl>
-                                                            </FormItem>
-                                                        )} />
-                                                    </div>
-                                                    <div className="col-span-6 sm:col-span-4 md:col-span-2">
-                                                        <FormField name={`products.${index}.unit`} control={form.control} render={({ field }) => (
-                                                            <FormItem>
-                                                                <FormLabel className="text-xs">Unit</FormLabel>
-                                                                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                                                    <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
-                                                                    <SelectContent>
-                                                                         <SelectItem value="bag">Bag</SelectItem>
-                                                                        <SelectItem value="packet">Packet</SelectItem>
-                                                                        <SelectItem value="bottle">Bottle</SelectItem>
-                                                                        <SelectItem value="pcs">Pieces</SelectItem>
-                                                                        <SelectItem value="chick">Chick</SelectItem>
-                                                                    </SelectContent>
-                                                                </Select>
-                                                            </FormItem>
-                                                        )} />
-                                                    </div>
-                                                    <div className="col-span-6 sm:col-span-4 md:col-span-2">
-                                                        <FormField name={`products.${index}.ratePerUnit`} control={form.control} render={({ field }) => (
-                                                            <FormItem>
-                                                                <FormLabel className="text-xs">Rate/Unit (₹)</FormLabel>
-                                                                <FormControl><Input type="number" {...field} /></FormControl>
-                                                            </FormItem>
-                                                        )} />
-                                                    </div>
-                                                     <div className="col-span-6 sm:col-span-4 md:col-span-2">
-                                                        <FormField name={`products.${index}.discount`} control={form.control} render={({ field }) => (
-                                                            <FormItem>
-                                                                <FormLabel className="text-xs">Discount (₹)</FormLabel>
-                                                                <FormControl><Input type="number" {...field} /></FormControl>
-                                                            </FormItem>
-                                                        )} />
-                                                    </div>
-                                                    <div className="col-span-6 sm:col-span-4 md:col-span-2">
-                                                         <FormField name={`products.${index}.unitWeight`} control={form.control} render={({ field }) => (
-                                                            <FormItem>
-                                                                <FormLabel className="text-xs">Unit Wt. (kg)</FormLabel>
-                                                                <FormControl><Input type="number" placeholder="Optional" {...field} /></FormControl>
-                                                            </FormItem>
-                                                        )} />
-                                                    </div>
-                                                     <div className="col-span-6 sm:col-span-4 md:col-span-2">
-                                                         <FormField name={`products.${index}.lowStockThreshold`} control={form.control} render={({ field }) => (
-                                                            <FormItem>
-                                                                <FormLabel className="text-xs">Low Stock At</FormLabel>
-                                                                <FormControl><Input type="number" {...field} /></FormControl>
-                                                            </FormItem>
-                                                        )} />
-                                                    </div>
-                                                    {fields.length > 1 && (
-                                                        <div className="col-span-12 text-right -mb-2">
-                                                            <Button type="button" variant="ghost" size="icon" className="text-destructive hover:bg-destructive/10 h-7 w-7" onClick={() => remove(index)}>
-                                                                <Trash2 className="size-4" />
-                                                            </Button>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            ))}
-                                        </div>
-
-                                        <Button type="button" variant="outline" onClick={() => append({ productName: "", category: "Feed", unit: "bag", ratePerUnit: 0, discount: 0, quantity: 1, unitWeight: 50, lowStockThreshold: 10 })}>
-                                            <PlusCircle className="mr-2" />
-                                            Add Another Product
-                                        </Button>
                                     </CardContent>
                                 </Card>
-                                 <Card>
-                                    <CardHeader>
-                                        <CardTitle>Payment & Costs</CardTitle>
-                                    </CardHeader>
-                                     <CardContent className="space-y-4">
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            <FormField name="transportCost" control={form.control} render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>Transport Cost (Optional)</FormLabel>
-                                                    <FormControl><Input type="number" placeholder="e.g., 1500" {...field} /></FormControl>
-                                                </FormItem>
-                                            )} />
-                                            <FormField name="miscCost" control={form.control} render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>Other Costs (Optional)</FormLabel>
-                                                    <FormControl><Input type="number" placeholder="e.g., Labour" {...field} /></FormControl>
-                                                </FormItem>
-                                            )} />
-                                        </div>
-                                        <Separator />
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                             <FormField name="paymentMethod" control={form.control} render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>Payment Method</FormLabel>
-                                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                                        <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
-                                                        <SelectContent>
-                                                            <SelectItem value="cash">Cash</SelectItem>
-                                                            <SelectItem value="credit">Credit</SelectItem>
-                                                            <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
-                                                        </SelectContent>
-                                                    </Select>
-                                                </FormItem>
-                                            )} />
-                                             <FormField name="amountPaid" control={form.control} render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>Amount Paid</FormLabel>
-                                                    <FormControl>
-                                                        <div className="relative">
-                                                            <IndianRupee className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                                            <Input type="number" className="pl-8" {...field} />
-                                                        </div>
-                                                    </FormControl>
-                                                </FormItem>
-                                            )} />
-                                        </div>
-                                         {paymentMethod === 'bank_transfer' && (
-                                            <FormField name="utrNumber" control={form.control} render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>UTR / Transaction ID</FormLabel>
-                                                    <FormControl><Input placeholder="Enter bank transaction reference" {...field} /></FormControl>
-                                                </FormItem>
-                                            )} />
-                                        )}
-                                     </CardContent>
-                                 </Card>
+                                
+                                <div className="space-y-4">
+                                    <Label className="text-xl font-bold">Products</Label>
+                                    {fields.map((field, index) => (
+                                        <Card key={field.id} className="relative">
+                                            <CardHeader>
+                                                 <CardTitle className="text-lg">Product #{index + 1}</CardTitle>
+                                                 {fields.length > 1 && (
+                                                    <Button
+                                                        type="button"
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="absolute top-4 right-4 text-destructive hover:bg-destructive/10 h-8 w-8"
+                                                        onClick={() => remove(index)}
+                                                    >
+                                                        <Trash2 className="size-4" />
+                                                    </Button>
+                                                 )}
+                                            </CardHeader>
+                                            <CardContent className="space-y-4">
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                    <FormField name={`products.${index}.productName`} control={form.control} render={({ field }) => (
+                                                        <FormItem>
+                                                            <FormLabel>Product Name</FormLabel>
+                                                            <FormControl><Input placeholder="e.g., Broiler Starter" {...field} /></FormControl>
+                                                            <FormMessage />
+                                                        </FormItem>
+                                                    )} />
+                                                    <FormField name={`products.${index}.category`} control={form.control} render={({ field }) => (
+                                                        <FormItem>
+                                                            <FormLabel>Category</FormLabel>
+                                                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                                <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
+                                                                <SelectContent>
+                                                                    <SelectItem value="Feed">Feed</SelectItem>
+                                                                    <SelectItem value="Medicine">Medicine</SelectItem>
+                                                                    <SelectItem value="Equipment">Equipment</SelectItem>
+                                                                    <SelectItem value="Chicks">Chicks</SelectItem>
+                                                                    <SelectItem value="Other">Other</SelectItem>
+                                                                </SelectContent>
+                                                            </Select>
+                                                        </FormItem>
+                                                    )} />
+                                                </div>
+
+                                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                                    <FormField name={`products.${index}.quantity`} control={form.control} render={({ field }) => (
+                                                        <FormItem>
+                                                            <FormLabel>Quantity</FormLabel>
+                                                            <FormControl><Input type="number" {...field} /></FormControl>
+                                                        </FormItem>
+                                                    )} />
+                                                    <FormField name={`products.${index}.unit`} control={form.control} render={({ field }) => (
+                                                        <FormItem>
+                                                            <FormLabel>Unit</FormLabel>
+                                                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                                <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
+                                                                <SelectContent>
+                                                                    <SelectItem value="bag">Bag</SelectItem>
+                                                                    <SelectItem value="packet">Packet</SelectItem>
+                                                                    <SelectItem value="bottle">Bottle</SelectItem>
+                                                                    <SelectItem value="pcs">Pieces</SelectItem>
+                                                                    <SelectItem value="chick">Chick</SelectItem>
+                                                                </SelectContent>
+                                                            </Select>
+                                                        </FormItem>
+                                                    )} />
+                                                    <FormField name={`products.${index}.ratePerUnit`} control={form.control} render={({ field }) => (
+                                                        <FormItem>
+                                                            <FormLabel>Rate/Unit (₹)</FormLabel>
+                                                            <FormControl><Input type="number" {...field} /></FormControl>
+                                                        </FormItem>
+                                                    )} />
+                                                    <FormField name={`products.${index}.discount`} control={form.control} render={({ field }) => (
+                                                        <FormItem>
+                                                            <FormLabel>Discount (₹)</FormLabel>
+                                                            <FormControl><Input type="number" {...field} /></FormControl>
+                                                        </FormItem>
+                                                    )} />
+                                                </div>
+                                                
+                                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                                    <FormField name={`products.${index}.unitWeight`} control={form.control} render={({ field }) => (
+                                                        <FormItem>
+                                                            <FormLabel>Unit Wt. (kg)</FormLabel>
+                                                            <FormControl><Input type="number" placeholder="Optional" {...field} /></FormControl>
+                                                        </FormItem>
+                                                    )} />
+                                                    <FormField name={`products.${index}.lowStockThreshold`} control={form.control} render={({ field }) => (
+                                                        <FormItem>
+                                                            <FormLabel>Low Stock At</FormLabel>
+                                                            <FormControl><Input type="number" {...field} /></FormControl>
+                                                        </FormItem>
+                                                    )} />
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+                                    ))}
+                                </div>
+
+                                <Button type="button" variant="outline" onClick={() => append({ productName: "", category: "Feed", unit: "bag", ratePerUnit: 0, discount: 0, quantity: 1, unitWeight: 50, lowStockThreshold: 10 })}>
+                                    <PlusCircle className="mr-2" />
+                                    Add Another Product
+                                </Button>
                             </div>
 
                             <div className="lg:col-span-1 space-y-8">
                                 <SummaryCard control={form.control} />
                                 <Card>
                                     <CardHeader>
-                                        <CardTitle>Invoice Details</CardTitle>
+                                        <CardTitle>Invoice & Payment</CardTitle>
                                     </CardHeader>
-                                    <CardContent className="space-y-4">
+                                     <CardContent className="space-y-6">
                                         <FormField name="invoiceDate" control={form.control} render={({ field }) => (
                                             <FormItem>
                                                 <FormLabel>Invoice/Bill Date</FormLabel>
@@ -392,7 +336,56 @@ export default function AddStockPage() {
                                                 <FormControl><Input placeholder="e.g., INV-2024-001" {...field} /></FormControl>
                                             </FormItem>
                                         )} />
-                                    </CardContent>
+                                        
+                                        <Separator/>
+
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <FormField name="transportCost" control={form.control} render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Transport Cost</FormLabel>
+                                                    <FormControl><Input type="number" {...field} /></FormControl>
+                                                </FormItem>
+                                            )} />
+                                            <FormField name="miscCost" control={form.control} render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Other Costs</FormLabel>
+                                                    <FormControl><Input type="number" {...field} /></FormControl>
+                                                </FormItem>
+                                            )} />
+                                        </div>
+                                         <FormField name="paymentMethod" control={form.control} render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Payment Method</FormLabel>
+                                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                    <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
+                                                    <SelectContent>
+                                                        <SelectItem value="cash">Cash</SelectItem>
+                                                        <SelectItem value="credit">Credit</SelectItem>
+                                                        <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                            </FormItem>
+                                        )} />
+                                         <FormField name="amountPaid" control={form.control} render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Amount Paid</FormLabel>
+                                                <FormControl>
+                                                    <div className="relative">
+                                                        <IndianRupee className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                                        <Input type="number" className="pl-8" {...field} />
+                                                    </div>
+                                                </FormControl>
+                                            </FormItem>
+                                        )} />
+                                         {paymentMethod === 'bank_transfer' && (
+                                            <FormField name="utrNumber" control={form.control} render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>UTR / Transaction ID</FormLabel>
+                                                    <FormControl><Input placeholder="Enter bank transaction reference" {...field} /></FormControl>
+                                                </FormItem>
+                                            )} />
+                                        )}
+                                     </CardContent>
                                 </Card>
                                  <Button type="submit" size="lg" className="w-full" disabled={form.formState.isSubmitting}>
                                     {form.formState.isSubmitting ? <Loader2 className="mr-2 animate-spin" /> : <Save className="mr-2" />}
