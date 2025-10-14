@@ -1,4 +1,3 @@
-
 // src/app/dealer/suppliers/_components/add-supplier-dialog.tsx
 "use client";
 
@@ -26,7 +25,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from "@/hooks/use-toast";
 import { Save, Loader2 } from 'lucide-react';
-import { useFirestore, useUser } from '@/firebase/provider';
+import { useFirestore, useUser, useAuth } from '@/firebase/provider';
 import { addSupplier } from '@/hooks/use-suppliers';
 
 const formSchema = z.object({
@@ -42,6 +41,7 @@ type FormValues = z.infer<typeof formSchema>;
 export function AddSupplierDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
     const { toast } = useToast();
     const firestore = useFirestore();
+    const auth = useAuth();
     const { user: dealerUser } = useUser();
 
     const form = useForm<FormValues>({
@@ -56,13 +56,15 @@ export function AddSupplierDialog({ open, onOpenChange }: { open: boolean; onOpe
     });
 
     async function onSubmit(values: FormValues) {
-        if (!firestore || !dealerUser) {
+        if (!firestore || !dealerUser || !auth) {
             toast({ title: "Error", description: "You must be logged in.", variant: "destructive" });
             return;
         }
 
         try {
-            await addSupplier(firestore, dealerUser.uid, values);
+            // The addSupplier function is now non-blocking, so we don't await it.
+            addSupplier(firestore, auth, dealerUser.uid, values);
+            
             toast({
                 title: "Supplier Added!",
                 description: `${values.name} has been added to your list of suppliers.`,
@@ -71,6 +73,7 @@ export function AddSupplierDialog({ open, onOpenChange }: { open: boolean; onOpe
             form.reset();
 
         } catch (error: any) {
+            // This will catch the re-thrown error from the hook's catch block
             console.error("Error adding supplier:", error);
             toast({ title: "Failed to Add Supplier", description: error.message || "Could not add the supplier.", variant: "destructive" });
         }
