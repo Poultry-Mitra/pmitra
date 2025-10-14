@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { useBatches, deleteBatch } from "@/hooks/use-batches";
-import type { Batch, User } from "@/lib/types";
+import type { Batch } from "@/lib/types";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -33,7 +33,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { useUser, useFirestore } from '@/firebase/provider';
 import { AddBatchDialog } from "./_components/add-batch-dialog";
-import { doc, getDoc } from 'firebase/firestore';
+import { useAppUser } from "@/app/app-provider";
 
 
 const statusVariant: { [key in 'Active' | 'Completed' | 'Planned']: "default" | "secondary" | "outline" } = {
@@ -50,26 +50,18 @@ const statusColorScheme = {
 
 export default function BatchesPage() {
   const firestore = useFirestore();
-  const { user: firebaseUser } = useUser();
-  const [user, setUser] = useState<User | null>(null);
+  const { user: appUser, loading: appUserLoading } = useAppUser();
 
-  const { batches, loading } = useBatches(firebaseUser?.uid || '');
+  const { batches, loading: batchesLoading } = useBatches(appUser?.id || '');
   const [isAddBatchOpen, setAddBatchOpen] = useState(false);
   const [showUpgradeAlert, setShowUpgradeAlert] = useState(false);
   const [showDeleteAlert, setShowDeleteAlert] = useState<Batch | null>(null);
   const { toast } = useToast();
   const router = useRouter();
-  
-  useEffect(() => {
-    if (!firestore || !firebaseUser?.uid) return;
-    getDoc(doc(firestore, 'users', firebaseUser.uid)).then((doc) => {
-        if (doc.exists()) {
-            setUser(doc.data() as User);
-        }
-    });
-  }, [firestore, firebaseUser?.uid]);
 
-  const isPremiumUser = user?.planType === 'premium';
+  const loading = appUserLoading || batchesLoading;
+  
+  const isPremiumUser = appUser?.planType === 'premium';
   const activeBatchesCount = batches.filter(b => b.status === 'Active').length;
 
   const handleAddNewBatchClick = () => {
@@ -81,7 +73,7 @@ export default function BatchesPage() {
   };
 
   const handleDeleteBatch = () => {
-    if(showDeleteAlert && firestore && firebaseUser) {
+    if(showDeleteAlert && firestore && appUser) {
       deleteBatch(firestore, showDeleteAlert.id);
       toast({
         title: "Batch Deleted",
@@ -96,7 +88,7 @@ export default function BatchesPage() {
     router.push(`/batches/${batchId}`);
   };
   
-  if (!firebaseUser || !user) return <div className="flex justify-center items-center h-64"><Loader2 className="animate-spin" /></div>
+  if (loading) return <div className="flex justify-center items-center h-64"><Loader2 className="animate-spin" /></div>
 
   return (
     <>
