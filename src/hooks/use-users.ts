@@ -68,10 +68,15 @@ export function useUsers(role?: 'farmer' | 'dealer' | 'admin') {
     return () => unsubscribe();
   }, [firestore]);
 
-  // Perform filtering on the client side
+  // Client-side filtering and user deletion handler
   const users = role ? allUsers.filter(user => user.role === role) : allUsers;
+  
+  const handleUserDeletion = (userId: string) => {
+      setAllUsers(prevUsers => prevUsers.filter(u => u.id !== userId));
+  };
 
-  return { users, loading };
+
+  return { users, loading, handleUserDeletion };
 }
 
 
