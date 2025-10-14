@@ -428,20 +428,7 @@ export default function LandingPage() {
             </div>
 
             <div className="sm:col-span-2 lg:col-span-1">
-                <h3 className="font-semibold">Get the App</h3>
-                <div className="mt-4 flex flex-col space-y-3">
-                    <Button variant="outline" asChild>
-                        <a href="https://apps.apple.com" target="_blank" rel="noopener noreferrer">
-                            <Store className="mr-2" /> App Store
-                        </a>
-                    </Button>
-                    <Button variant="outline" asChild>
-                         <a href="https://play.google.com" target="_blank" rel="noopener noreferrer">
-                            <Store className="mr-2" /> Google Play
-                        </a>
-                    </Button>
-                </div>
-                 <h3 className="font-semibold mt-6">Stay Updated</h3>
+                <h3 className="font-semibold">Stay Updated</h3>
               <p className="text-muted-foreground text-sm mt-2">Subscribe to our newsletter for the latest updates and tips.</p>
               <div className="mt-4 flex w-full max-w-sm items-center space-x-2">
                   <Input type="email" placeholder="Email" />
