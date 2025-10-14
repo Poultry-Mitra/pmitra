@@ -32,13 +32,13 @@ function LoadingState() {
     return (
         <>
             {[...Array(4)].map((_, i) => (
-                <Card key={i}>
+                 <Card key={i}>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <Skeleton className="h-4 w-2/3" />
                         <Skeleton className="h-4 w-4" />
                     </CardHeader>
                     <CardContent>
-                        <Skeleton className="h-8 w-1/2" />
+                        <Skeleton className="h-8 w-1/2 mt-4" />
                         <Skeleton className="h-3 w-1/3 mt-1" />
                     </CardContent>
                 </Card>

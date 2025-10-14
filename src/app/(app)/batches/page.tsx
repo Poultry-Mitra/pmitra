@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { PageHeader } from "../_components/page-header";
 import { Button } from "@/components/ui/button";
 import { MoreHorizontal, PlusCircle, AlertTriangle, Loader2 } from "lucide-react";
@@ -31,7 +31,7 @@ import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
-import { useUser, useFirestore, useAuth } from '@/firebase/provider';
+import { useFirestore, useAuth } from '@/firebase/provider';
 import { AddBatchDialog } from "./_components/add-batch-dialog";
 import { useAppUser } from "@/app/app-provider";
 

@@ -31,9 +31,17 @@ function StatCard({ title, value, icon: Icon, unit }: { title: string, value: st
 
 function LoadingState() {
     return (
-        <>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             {[...Array(4)].map((_, i) => (
-                 <Skeleton key={i} className="h-24 w-full" />
+                <Card key={i}>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <Skeleton className="h-4 w-2/3" />
+                        <Skeleton className="h-4 w-4" />
+                    </CardHeader>
+                    <CardContent>
+                        <Skeleton className="h-8 w-1/2" />
+                    </CardContent>
+                </Card>
             ))}
             <Card className="md:col-span-2 lg:col-span-4">
                 <CardHeader>
@@ -47,7 +55,7 @@ function LoadingState() {
                     </div>
                 </CardContent>
             </Card>
-        </>
+        </div>
     );
 }
 
@@ -99,9 +107,7 @@ export default function AnalyticsPage() {
       />
       <div className="mt-8">
         {loading ? (
-             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                <LoadingState />
-            </div>
+             <LoadingState />
         ) : analytics ? (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <StatCard title="Total Live Birds" value={analytics.totalLiveBirds.toLocaleString()} icon={Bird} />
