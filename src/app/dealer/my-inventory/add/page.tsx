@@ -191,11 +191,12 @@ export default function AddStockPage() {
         const { discountType, discountValue, purchaseRatePerUnit, quantity } = product;
         
         let calculatedAmount = 0;
+        const total = (purchaseRatePerUnit || 0) * (quantity || 0);
         if (discountType === 'percentage') {
-            const total = (purchaseRatePerUnit || 0) * (quantity || 0);
             calculatedAmount = total * ((discountValue || 0) / 100);
         } else {
-            calculatedAmount = discountValue || 0;
+            // For amount, the discountAmount is the discountValue per item, so multiply by quantity
+            calculatedAmount = (discountValue || 0) * (quantity || 0);
         }
         form.setValue(`products.${index}.discountAmount`, calculatedAmount, { shouldValidate: true });
     }, [form]);
@@ -304,6 +305,7 @@ export default function AddStockPage() {
                                         const currentUnit = watchedProducts && watchedProducts[index]?.unit;
                                         const showUnitWeight = !['pcs', 'chick'].includes(currentUnit || "");
                                         const currentCategory = watchedProducts && watchedProducts[index]?.category;
+                                        const discountType = watchedProducts && watchedProducts[index]?.discountType;
 
                                         return (
                                         <Card key={field.id} className="relative border-border">
@@ -423,40 +425,40 @@ export default function AddStockPage() {
                                                             <FormMessage />
                                                         </FormItem>
                                                     )} />
-                                                    <div className="space-y-2">
-                                                        <FormField control={form.control} name={`products.${index}.discountType`} render={({ field }) => (
-                                                            <FormItem className="space-y-3">
-                                                                <FormLabel>Discount Type</FormLabel>
-                                                                <FormControl>
-                                                                    <RadioGroup
-                                                                        onValueChange={field.onChange}
-                                                                        defaultValue={field.value}
-                                                                        className="flex items-center space-x-4"
-                                                                    >
-                                                                        <FormItem className="flex items-center space-x-2 space-y-0">
-                                                                            <FormControl><RadioGroupItem value="percentage" /></FormControl>
-                                                                            <FormLabel className="font-normal">%</FormLabel>
-                                                                        </FormItem>
-                                                                        <FormItem className="flex items-center space-x-2 space-y-0">
-                                                                            <FormControl><RadioGroupItem value="amount" /></FormControl>
-                                                                            <FormLabel className="font-normal">₹</FormLabel>
-                                                                        </FormItem>
-                                                                    </RadioGroup>
-                                                                </FormControl>
-                                                            </FormItem>
-                                                        )} />
-                                                         <FormField control={form.control} name={`products.${index}.discountValue`} render={({ field }) => (
-                                                            <FormItem>
-                                                                <FormControl><Input type="number" placeholder="Discount Value" {...field} /></FormControl>
-                                                                <FormMessage />
-                                                            </FormItem>
-                                                         )} />
-                                                        <FormField control={form.control} name={`products.${index}.discountAmount`} render={({ field }) => (
-                                                            <FormItem className="hidden">
-                                                                <FormControl><Input type="number" readOnly {...field} /></FormControl>
-                                                            </FormItem>
-                                                        )} />
-                                                    </div>
+                                                    
+                                                     <FormField control={form.control} name={`products.${index}.discountValue`} render={({ field }) => (
+                                                        <FormItem>
+                                                            <FormLabel>Discount</FormLabel>
+                                                            <div className="flex">
+                                                                <Input 
+                                                                    type="number"
+                                                                    className="rounded-r-none focus:z-10"
+                                                                    placeholder={discountType === 'percentage' ? "e.g., 5" : "e.g., 100"}
+                                                                    {...field}
+                                                                />
+                                                                <FormField control={form.control} name={`products.${index}.discountType`} render={({ field: typeField }) => (
+                                                                    <Select onValueChange={typeField.onChange} defaultValue={typeField.value}>
+                                                                        <FormControl>
+                                                                            <SelectTrigger className="w-[80px] rounded-l-none border-l-0">
+                                                                                <SelectValue />
+                                                                            </SelectTrigger>
+                                                                        </FormControl>
+                                                                        <SelectContent>
+                                                                            <SelectItem value="percentage">%</SelectItem>
+                                                                            <SelectItem value="amount">₹</SelectItem>
+                                                                        </SelectContent>
+                                                                    </Select>
+                                                                )} />
+                                                            </div>
+                                                            <FormMessage />
+                                                        </FormItem>
+                                                     )} />
+
+                                                    <FormField control={form.control} name={`products.${index}.discountAmount`} render={({ field }) => (
+                                                        <FormItem className="hidden">
+                                                            <FormControl><Input type="number" readOnly {...field} /></FormControl>
+                                                        </FormItem>
+                                                    )} />
                                                 </div>
 
                                             </CardContent>

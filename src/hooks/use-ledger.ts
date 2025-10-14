@@ -143,3 +143,4 @@ export async function addLedgerEntryInTransaction(
     transaction.set(newEntryRef, newEntryData);
 }
 
+
