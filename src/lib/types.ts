@@ -33,7 +33,7 @@ export type Batch = {
   breed?: "Cobb" | "Ross" | "Hubbard" | "Arbor Acres" | "Marshall" | "Other";
   totalChicks: number;
   batchStartDate: string;
-  feedPhase: "Pre-Starter" | "Starter" | "Finisher";
+  feedPhase: "Pre-Starter" | "Starter" | "Grower" | "Finisher";
   mortalityCount: number;
   avgBodyWeight: number; // in grams
   feedConsumed: number; // in kg
@@ -73,9 +73,9 @@ export type DealerInventoryItem = {
     quantity: number;
     unit: "bag" | "packet" | "bottle" | "pcs" | "chick";
     unitWeight?: number; // For feed, e.g., 50kg
+    purchaseRatePerUnit: number;
     ratePerUnit: number;
     lowStockThreshold: number;
-    phaseApplicable?: ("Pre-Starter" | "Starter" | "Finisher")[];
     updatedAt: Timestamp;
 };
 
@@ -194,3 +194,4 @@ export type Post = {
     createdAt: string;
     updatedAt: string;
 }
+

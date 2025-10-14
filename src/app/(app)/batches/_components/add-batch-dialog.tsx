@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState } from 'react';
@@ -70,7 +71,7 @@ export function AddBatchDialog({ open, onOpenChange }: { open: boolean; onOpenCh
         const newBatch: Omit<Batch, 'id' | 'createdAt' | 'farmerUID'> = {
             ...values,
             batchStartDate: values.batchStartDate.toISOString(),
-            feedPhase: "Starter",
+            feedPhase: "Pre-Starter",
             mortalityCount: 0,
             avgBodyWeight: 40, // Starting weight for a chick
             feedConsumed: 0,
