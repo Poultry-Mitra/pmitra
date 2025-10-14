@@ -24,10 +24,10 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Loader2, PlusCircle, CheckCircle, XCircle } from "lucide-react";
 import { useToast } from '@/hooks/use-toast';
-import { useUser, useFirestore, useAuth } from '@/firebase/provider';
+import { useAuth, useFirestore } from '@/firebase/provider';
 import { useOrders, updateOrderStatus } from '@/hooks/use-orders';
 import { useUsersByIds } from '@/hooks/use-users';
-import type { Order, User as AppUser } from '@/lib/types';
+import type { Order } from '@/lib/types';
 import Link from 'next/link';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useLanguage } from '@/components/language-provider';
@@ -42,10 +42,9 @@ const statusConfig = {
 
 
 export default function MyOrdersPage() {
-    const { user: firebaseUser } = useUser();
     const firestore = useFirestore();
     const auth = useAuth();
-    const { orders, loading: ordersLoading } = useOrders(firebaseUser?.uid);
+    const { orders, loading: ordersLoading } = useOrders(auth?.currentUser?.uid);
     const { toast } = useToast();
     const [activeTab, setActiveTab] = useState("pending");
     const { t } = useLanguage();

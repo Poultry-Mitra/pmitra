@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useOrdersByFarmer, updateOrderStatus } from "@/hooks/use-orders";
-import { useFirestore } from "@/firebase/provider";
+import { useFirestore, useAuth } from "@/firebase/provider";
 import { Loader2, CheckCircle, XCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import type { Order } from "@/lib/types";
@@ -15,6 +15,7 @@ import { useAppUser } from "@/app/app-provider";
 export function PendingOrders() {
     const { user, loading: appUserLoading } = useAppUser();
     const firestore = useFirestore();
+    const auth = useAuth();
     const { orders, loading: ordersLoading } = useOrdersByFarmer(user?.id);
     const { toast } = useToast();
     const loading = appUserLoading || ordersLoading;
@@ -23,7 +24,7 @@ export function PendingOrders() {
 
     const handleUpdateStatus = async (order: Order, status: 'Approved' | 'Rejected') => {
         try {
-            await updateOrderStatus(order, status, firestore);
+            await updateOrderStatus(order, status, firestore, auth);
             toast({
                 title: `Order ${status}`,
                 description: `The order for ${order.productName} has been successfully ${status.toLowerCase()}.`

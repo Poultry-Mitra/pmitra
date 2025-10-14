@@ -1,0 +1,162 @@
+
+"use client";
+
+import { usePathname, useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { SidebarTrigger } from "@/components/ui/sidebar";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Bell, Search, Loader2, AlertTriangle } from 'lucide-react';
+import { LanguageToggle } from '@/components/language-toggle';
+import { ThemeToggle } from '@/components/theme-toggle';
+import { Input } from '@/components/ui/input';
+import { useAuth } from '@/firebase/provider';
+import { useState } from 'react';
+import { signOut } from 'firebase/auth';
+import { useAppUser } from '@/app/app-provider';
+
+
+function Breadcrumbs() {
+    const pathname = usePathname();
+    const segments = pathname.split('/').filter(Boolean);
+
+    if (segments.length === 0 || segments[0] !== 'admin') return null;
+
+    return (
+        <nav aria-label="breadcrumb">
+            <ol className="flex items-center space-x-2 text-sm">
+                <li>
+                    <Link href="/admin/dashboard" className="text-muted-foreground hover:text-foreground">
+                        Dashboard
+                    </Link>
+                </li>
+                {segments.slice(1).map((segment, index) => {
+                    const href = '/' + segments.slice(0, index + 2).join('/');
+                    const isLast = index === segments.length - 2;
+                    return (
+                        <li key={href} className="flex items-center space-x-2">
+                            <span className="text-muted-foreground">/</span>
+                            {isLast ? (
+                                <span className="font-medium text-foreground capitalize">
+                                    {segment.replace(/-/g, ' ')}
+                                </span>
+                            ) : (
+                                <Link href={href} className="text-muted-foreground hover:text-foreground capitalize">
+                                    {segment.replace(/-/g, ' ')}
+                                </Link>
+                            )}
+                        </li>
+                    );
+                })}
+            </ol>
+        </nav>
+    );
+}
+
+
+export function AdminHeader() {
+  const { user, loading } = useAppUser();
+  const auth = useAuth();
+  const router = useRouter();
+  const [showLogoutAlert, setShowLogoutAlert] = useState(false);
+  
+  const handleLogout = async () => {
+    if (auth) {
+      await signOut(auth);
+      router.push('/login');
+    }
+    setShowLogoutAlert(false);
+  };
+
+  // Render a placeholder or nothing if user isn't loaded or not an admin
+  if (loading || !user) {
+    return (
+         <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background/80 px-4 backdrop-blur-sm sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
+             <SidebarTrigger className="md:hidden" />
+              <div className="ml-auto flex items-center gap-2">
+                <Loader2 className="animate-spin" />
+              </div>
+         </header>
+    );
+  }
+
+  return (
+    <>
+        <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background/80 px-4 backdrop-blur-sm sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
+        <SidebarTrigger className="md:hidden" />
+        <div className="hidden md:block">
+            <Breadcrumbs />
+        </div>
+        <div className="ml-auto flex items-center gap-2">
+            <div className="relative">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input placeholder="Search..." className="w-full rounded-full bg-background/50 pl-8 md:w-[200px] lg:w-[320px]" />
+            </div>
+            <LanguageToggle />
+            <ThemeToggle />
+            <Button variant="ghost" size="icon" className="rounded-full">
+            <Bell className="size-5" />
+            <span className="sr-only">Notifications</span>
+            </Button>
+            <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                <Avatar className="h-9 w-9">
+                    <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                </Avatar>
+                </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+                <DropdownMenuLabel>{user.name}</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                    <Link href="/admin/settings">Profile</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                    <Link href="/admin/settings">Settings</Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onSelect={() => setShowLogoutAlert(true)}>Logout</DropdownMenuItem>
+            </DropdownMenuContent>
+            </DropdownMenu>
+        </div>
+        </header>
+
+        <AlertDialog open={showLogoutAlert} onOpenChange={setShowLogoutAlert}>
+            <AlertDialogContent>
+            <AlertDialogHeader>
+                <AlertDialogTitle className="flex items-center gap-2">
+                    <AlertTriangle className="text-destructive"/>
+                    Logout
+                </AlertDialogTitle>
+                <AlertDialogDescription>
+                Are you sure you want to logout?
+                </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={handleLogout}>Logout</AlertDialogAction>
+            </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
+    </>
+  );
+}
