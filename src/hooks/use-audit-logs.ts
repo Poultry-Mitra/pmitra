@@ -13,7 +13,7 @@ import { FirestorePermissionError } from '@/firebase/errors';
 export async function addAuditLog(firestore: Firestore, data: Omit<AuditLog, 'id' | 'timestamp'> & { timestamp?: string }) {
     if (!firestore) throw new Error("Firestore not initialized");
 
-    const collectionRef = collection(firestore, 'audit_logs');
+    const collectionRef = collection(firestore, 'auditLogs');
     
     const docData = {
         ...data,
@@ -27,7 +27,7 @@ export async function addAuditLog(firestore: Firestore, data: Omit<AuditLog, 'id
         // We don't want to show permission errors for audit log creation failures to the admin
         // but we should log them internally.
         const permissionError = new FirestorePermissionError({
-            path: 'audit_logs',
+            path: 'auditLogs',
             operation: 'create',
             requestResourceData: docData,
         });

@@ -242,7 +242,7 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
                     {roleToShow && (
                         <Button asChild>
                             <Link href="/admin/user-management/add-user">
-                                <PlusCircle />
+                                <PlusCircle className="mr-2 h-4 w-4" />
                                 {t('admin.users.add_user_button')}
                             </Link>
                         </Button>
