@@ -14,15 +14,15 @@ import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { Save, Trash2, PlusCircle, IndianRupee, Loader2 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
-import { useFirestore, useUser, useAuth } from "@/firebase/provider";
-import { addDealerInventoryItem, type DealerInventoryItem } from "@/hooks/use-dealer-inventory";
+import { useAuth, useFirestore } from "@/firebase/provider";
+import { addDealerInventoryItem } from "@/hooks/use-dealer-inventory";
 import { addLedgerEntry } from "@/hooks/use-ledger";
 import { cn } from "@/lib/utils";
-import { useEffect, useCallback, useState } from "react";
+import { useEffect, useCallback } from "react";
 import Link from 'next/link';
 import { useSuppliers } from "@/hooks/use-suppliers";
-import { addDocumentNonBlocking } from "@/firebase/non-blocking-updates";
-import { collection, runTransaction } from "firebase/firestore";
+import { runTransaction } from "firebase/firestore";
+import { useAppUser } from "@/app/app-provider";
 
 const productSchema = z.object({
   productName: z.string().min(2, "Product name is required."),
@@ -127,8 +127,8 @@ export default function AddStockPage() {
     const router = useRouter();
     const firestore = useFirestore();
     const auth = useAuth();
-    const { user } = useUser();
-    const { suppliers, loading: suppliersLoading } = useSuppliers(user?.uid);
+    const { user } = useAppUser();
+    const { suppliers, loading: suppliersLoading } = useSuppliers(user?.id);
 
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
@@ -239,7 +239,7 @@ export default function AddStockPage() {
              await runTransaction(firestore, async (transaction) => {
                 // 1. Add inventory items
                 for (const product of values.products) {
-                    addDealerInventoryItem(firestore, auth, user.uid, {
+                    addDealerInventoryItem(firestore, auth, user.id, {
                         supplierName: values.supplierName,
                         productName: product.productName,
                         category: product.category,
@@ -260,7 +260,7 @@ export default function AddStockPage() {
                 const ledgerDescription = `Purchase from ${supplier?.name || 'Unknown Supplier'}` + (values.invoiceNumber ? ` (Bill: ${values.invoiceNumber})` : '');
                 
                 if (netPayable > 0) {
-                     await addLedgerEntry(firestore, user.uid, {
+                     await addLedgerEntry(firestore, user.id, {
                         description: ledgerDescription,
                         amount: netPayable,
                         date: new Date(values.invoiceDate).toISOString(),
@@ -269,7 +269,7 @@ export default function AddStockPage() {
 
                 // 3. Add a credit entry if payment was made
                 if (values.amountPaid > 0) {
-                     await addLedgerEntry(firestore, user.uid, {
+                     await addLedgerEntry(firestore, user.id, {
                         description: `Payment to ${supplier?.name || 'Unknown Supplier'} via ${values.paymentMethod}`,
                         amount: values.amountPaid,
                         date: new Date(values.invoiceDate).toISOString(),

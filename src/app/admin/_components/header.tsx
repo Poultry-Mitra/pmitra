@@ -28,11 +28,10 @@ import { Bell, Search, Loader2, AlertTriangle } from 'lucide-react';
 import { LanguageToggle } from '@/components/language-toggle';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Input } from '@/components/ui/input';
-import type { User as AppUser } from '@/lib/types';
-import { useUser, useFirestore, useAuth } from '@/firebase/provider';
-import { doc, onSnapshot } from 'firebase/firestore';
-import { useState, useEffect } from 'react';
+import { useAuth } from '@/firebase/provider';
+import { useState } from 'react';
 import { signOut } from 'firebase/auth';
+import { useAppUser } from '@/app/app-provider';
 
 
 function Breadcrumbs() {
@@ -74,33 +73,10 @@ function Breadcrumbs() {
 
 
 export function AdminHeader() {
-  const { user: firebaseUser } = useUser();
-  const firestore = useFirestore();
+  const { user, loading } = useAppUser();
   const auth = useAuth();
   const router = useRouter();
-  const [user, setUser] = useState<AppUser | null>(null);
   const [showLogoutAlert, setShowLogoutAlert] = useState(false);
-
-  useEffect(() => {
-    if (firebaseUser && firestore) {
-      const userDocRef = doc(firestore, "users", firebaseUser.uid);
-      const unsubscribe = onSnapshot(userDocRef, (docSnap) => {
-        if (docSnap.exists()) {
-          const userData = docSnap.data() as AppUser;
-           if (userData.role === 'admin') {
-               setUser({ ...userData, id: docSnap.id });
-           } else {
-            setUser(null); // Not an admin
-           }
-        } else {
-            setUser(null);
-        }
-      });
-      return () => unsubscribe();
-    } else {
-        setUser(null);
-    }
-  }, [firebaseUser, firestore]);
   
   const handleLogout = async () => {
     if (auth) {
@@ -111,7 +87,7 @@ export function AdminHeader() {
   };
 
   // Render a placeholder or nothing if user isn't loaded or not an admin
-  if (!user) {
+  if (loading || !user) {
     return (
          <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background/80 px-4 backdrop-blur-sm sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
              <SidebarTrigger className="md:hidden" />

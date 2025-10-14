@@ -18,19 +18,18 @@ import {
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { useUser, useFirestore, useAuth } from "@/firebase/provider";
+import { useAuth } from "@/firebase/provider";
 import { useUsersByIds } from "@/hooks/use-users";
 import { useDealerInventory } from "@/hooks/use-dealer-inventory";
 import { createOrder } from "@/hooks/use-orders";
 import { Send, Loader2 } from "lucide-react";
-import { useMemo, useEffect, useState } from "react";
-import type { User } from "@/lib/types";
-import { doc, onSnapshot } from "firebase/firestore";
+import { useMemo } from "react";
 import { PageHeader } from "../../_components/page-header";
 import { useRouter } from "next/navigation";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from "@/components/ui/separator";
 import { useLanguage } from "@/components/language-provider";
+import { useAppUser } from "@/app/app-provider";
 
 const formSchema = z.object({
     saleType: z.enum(["online", "offline"]),
@@ -59,26 +58,13 @@ type FormValues = z.infer<typeof formSchema>;
 export default function CreateOrderPage() {
     const { toast } = useToast();
     const router = useRouter();
-    const firestore = useFirestore();
     const auth = useAuth();
-    const { user: dealerUser } = useUser();
-    const [dealerInfo, setDealerInfo] = useState<User | null>(null);
+    const { user: dealerUser } = useAppUser();
     const { t } = useLanguage();
 
-    useEffect(() => {
-        if(dealerUser && firestore) {
-            const unsub = onSnapshot(doc(firestore, 'users', dealerUser.uid), (doc) => {
-                if(doc.exists()) {
-                    setDealerInfo(doc.data() as User);
-                }
-            });
-            return () => unsub();
-        }
-    }, [dealerUser, firestore]);
-
-    const farmerIds = useMemo(() => dealerInfo?.connectedFarmers || [], [dealerInfo]);
+    const farmerIds = useMemo(() => dealerUser?.connectedFarmers || [], [dealerUser]);
     const { users: farmers, loading: farmersLoading } = useUsersByIds(farmerIds);
-    const { inventory: products, loading: productsLoading } = useDealerInventory(dealerUser?.uid || '');
+    const { inventory: products, loading: productsLoading } = useDealerInventory(dealerUser?.id || '');
 
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
@@ -95,7 +81,7 @@ export default function CreateOrderPage() {
     const totalAmount = (selectedProduct?.ratePerUnit || 0) * (quantity || 0);
 
     async function onSubmit(values: FormValues) {
-        if (!dealerUser || !selectedProduct || !firestore || !auth) {
+        if (!dealerUser || !selectedProduct || !auth) {
             toast({ title: t('messages.error'), description: "Could not create order.", variant: "destructive" });
             return;
         }
@@ -103,8 +89,8 @@ export default function CreateOrderPage() {
         const isOfflineSale = values.saleType === 'offline';
 
         try {
-            await createOrder(firestore, auth, {
-                dealerUID: dealerUser.uid,
+            await createOrder(auth.firestore, auth, {
+                dealerUID: dealerUser.id,
                 isOfflineSale,
                 farmerUID: isOfflineSale ? undefined : values.farmerUID,
                 offlineCustomerName: isOfflineSale ? values.offlineCustomerName : undefined,

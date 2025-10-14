@@ -45,56 +45,13 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useState } from "react";
 import { useAppUser } from "@/app/app-provider";
-import { useAuth } from "@/firebase/provider";
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { signOut } from 'firebase/auth';
-import { useRouter } from 'next/navigation';
-
-const mainNavItems = [
-  { href: "/dashboard", icon: LayoutDashboard, label: "dashboard.title" },
-  { href: "/batches", icon: FileText, label: "batches.title" },
-  { href: "/ledger", icon: BookText, label: "ledger.title" },
-];
-
-const connectNavItems = [
-  { href: "/dealers", icon: Users, label: "dealers.title" },
-];
-
-const aiNavItems = [
-    { href: "/monitoring", icon: Signal, label: "monitoring.title" },
-    { href: "/biosecurity", icon: ShieldCheck, label: "biosecurity.title" },
-    { href: "/analytics", icon: AreaChart, label: "analytics.title"},
-    { href: "/feed-recommendation", icon: WandSparkles, label: "feed_ai.title"},
-    { href: "/diagnose-health", icon: HeartPulse, label: "diagnose_health.title" },
-];
 
 export function AppSidebar() {
   const pathname = usePathname();
   const { t } = useLanguage();
   const { state } = useSidebar();
   const { user, loading } = useAppUser();
-  const auth = useAuth();
-  const router = useRouter();
-  const [showLogoutAlert, setShowLogoutAlert] = useState(false);
-  
   const [inventoryOpen, setInventoryOpen] = useState(pathname.startsWith('/inventory'));
-
-  const handleLogout = async () => {
-    if (auth) {
-      await signOut(auth);
-      router.push('/login');
-    }
-    setShowLogoutAlert(false);
-  };
 
   if (loading || !user) {
     return (
@@ -259,35 +216,28 @@ export function AppSidebar() {
                         </SidebarMenuButton>
                     </Link>
                 </SidebarMenuItem>
-                <SidebarMenuItem>
-                    <SidebarMenuButton tooltip={t('actions.logout')} onClick={() => setShowLogoutAlert(true)}>
-                        <LogOut />
-                        <span>{t('sidebar_logout')}</span>
-                    </SidebarMenuButton>
-                </SidebarMenuItem>
+                {/* Logout button is now handled in the header */}
             </SidebarMenu>
         </SidebarFooter>
         </Sidebar>
-
-        <AlertDialog open={showLogoutAlert} onOpenChange={setShowLogoutAlert}>
-            <AlertDialogContent>
-                <AlertDialogHeader>
-                    <AlertDialogTitle className="flex items-center gap-2">
-                        <AlertTriangle className="text-destructive"/>
-                        {t('dialog.logout_title')}
-                    </AlertDialogTitle>
-                    <AlertDialogDescription>
-                        {t('dialog.logout_desc')}
-                    </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                    <AlertDialogCancel>{t('actions.cancel')}</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleLogout}>
-                        {t('actions.logout')}
-                    </AlertDialogAction>
-                </AlertDialogFooter>
-            </AlertDialogContent>
-        </AlertDialog>
     </>
   );
 }
+
+const mainNavItems = [
+  { href: "/dashboard", icon: LayoutDashboard, label: "dashboard.title" },
+  { href: "/batches", icon: FileText, label: "batches.title" },
+  { href: "/ledger", icon: BookText, label: "ledger.title" },
+];
+
+const connectNavItems = [
+  { href: "/dealers", icon: Users, label: "dealers.title" },
+];
+
+const aiNavItems = [
+    { href: "/monitoring", icon: Signal, label: "monitoring.title" },
+    { href: "/biosecurity", icon: ShieldCheck, label: "biosecurity.title" },
+    { href: "/analytics", icon: AreaChart, label: "analytics.title"},
+    { href: "/feed-recommendation", icon: WandSparkles, label: "feed_ai.title"},
+    { href: "/diagnose-health", icon: HeartPulse, label: "diagnose_health.title" },
+];

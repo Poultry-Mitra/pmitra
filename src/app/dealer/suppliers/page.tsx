@@ -10,13 +10,13 @@ import { PlusCircle, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useSuppliers } from '@/hooks/use-suppliers';
-import { useUser } from '@/firebase/provider';
 import { AddSupplierDialog } from './_components/add-supplier-dialog';
 import { useLanguage } from '@/components/language-provider';
+import { useAppUser } from '@/app/app-provider';
 
 export default function SuppliersPage() {
-    const { user } = useUser();
-    const { suppliers, loading } = useSuppliers(user?.uid);
+    const { user } = useAppUser();
+    const { suppliers, loading } = useSuppliers(user?.id);
     const [isAddDialogOpen, setAddDialogOpen] = useState(false);
     const { t } = useLanguage();
 

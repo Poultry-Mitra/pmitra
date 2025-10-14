@@ -1,7 +1,7 @@
 // src/firebase/provider.tsx
 'use client';
 
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, ReactNode, useMemo } from 'react';
 import { initializeApp, getApps, getApp, type FirebaseApp } from 'firebase/app';
 import { getAuth, onAuthStateChanged, type Auth, type User } from 'firebase/auth';
 import { getFirestore, type Firestore } from 'firebase/firestore';
@@ -26,32 +26,28 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 // --- Provider Component ---
 
 export function FirebaseProvider({ children }: { children: ReactNode }) {
-  // Initialize Firebase app and services within the provider
-  const [firebaseContext, setFirebaseContext] = useState<FirebaseContextType | null>(null);
-  const [authContext, setAuthContext] = useState<AuthContextType>({ user: null, isUserLoading: true });
-
-  useEffect(() => {
+  const firebaseContextValue = useMemo(() => {
     const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
     const auth = getAuth(app);
     const firestore = getFirestore(app);
-
-    setFirebaseContext({ app, auth, firestore });
-
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setAuthContext({ user, isUserLoading: false });
-    });
-
-    return () => unsubscribe();
+    return { app, auth, firestore };
   }, []);
 
-  if (!firebaseContext) {
-    // You can render a global loader here if you want
-    return null;
-  }
+  const [authContextValue, setAuthContextValue] = useState<AuthContextType>({
+    user: null,
+    isUserLoading: true,
+  });
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(firebaseContextValue.auth, (user) => {
+      setAuthContextValue({ user, isUserLoading: false });
+    });
+    return () => unsubscribe();
+  }, [firebaseContextValue.auth]);
 
   return (
-    <FirebaseContext.Provider value={firebaseContext}>
-      <AuthContext.Provider value={authContext}>
+    <FirebaseContext.Provider value={firebaseContextValue}>
+      <AuthContext.Provider value={authContextValue}>
         {children}
       </AuthContext.Provider>
     </FirebaseContext.Provider>
@@ -73,6 +69,9 @@ export const useFirebaseApp = (): FirebaseApp => useFirebase().app;
 export const useAuth = (): Auth => useFirebase().auth;
 export const useFirestore = (): Firestore => useFirebase().firestore;
 
+// DEPRECATED: useAppUser from AppProvider is now the standard.
+// This hook remains for any legacy internal components that might still reference it,
+// but all new development and refactoring should use useAppUser.
 export const useUser = (): AuthContextType => {
   const context = useContext(AuthContext);
   if (context === undefined) {

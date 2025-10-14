@@ -18,10 +18,7 @@ import {
   limit,
   Transaction,
 } from 'firebase/firestore';
-import { useFirestore, useUser } from '@/firebase/provider';
 import type { LedgerEntry } from '@/lib/types';
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
 
 // Helper to convert Firestore doc to LedgerEntry type
 function toLedgerEntry(doc: QueryDocumentSnapshot<DocumentData>): LedgerEntry {
@@ -34,29 +31,30 @@ function toLedgerEntry(doc: QueryDocumentSnapshot<DocumentData>): LedgerEntry {
 }
 
 export function useLedger(userId?: string) {
-  const { user: firebaseUser } = useUser();
-  const firestore = useFirestore();
+  const [firestore, setFirestore] = useState<Firestore | null>(null);
   const [entries, setEntries] = useState<LedgerEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Dynamically import firestore to avoid server-side issues
   useEffect(() => {
-    // If firestore is not available, or if there's no specific userId and no authenticated user (for admin case), do nothing.
-    if (!firestore || (!userId && !firebaseUser)) {
+    import('firebase/firestore').then(module => {
+      const { getFirestore } = module;
+      setFirestore(getFirestore());
+    });
+  }, []);
+
+  useEffect(() => {
+    // If firestore is not available, do nothing.
+    if (!firestore || !userId) {
         setEntries([]);
         setLoading(false);
         return;
-    }
-
-    if (userId === undefined) { 
-      console.warn("useLedger called without a userId. Fetching all entries, which may have performance implications.");
     }
     
     setLoading(true);
     const ledgerCollection = collection(firestore, 'ledger');
     
-    const q = userId 
-        ? query(ledgerCollection, where("userId", "==", userId), orderBy("date", "desc"))
-        : query(ledgerCollection, orderBy("date", "desc")); // This query is for admin
+    const q = query(ledgerCollection, where("userId", "==", userId), orderBy("date", "desc"));
 
     const unsubscribe = onSnapshot(
       q,
@@ -72,7 +70,7 @@ export function useLedger(userId?: string) {
     );
 
     return () => unsubscribe();
-  }, [firestore, userId, firebaseUser]);
+  }, [firestore, userId]);
 
   return { entries, loading };
 }

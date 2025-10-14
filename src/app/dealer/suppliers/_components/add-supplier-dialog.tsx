@@ -26,9 +26,10 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from "@/hooks/use-toast";
 import { Save, Loader2 } from 'lucide-react';
-import { useFirestore, useUser, useAuth } from '@/firebase/provider';
+import { useAuth, useFirestore } from '@/firebase/provider';
 import { addSupplier } from '@/hooks/use-suppliers';
 import { useLanguage } from '@/components/language-provider';
+import { useAppUser } from '@/app/app-provider';
 
 const formSchema = z.object({
     name: z.string().min(2, "Supplier name is required."),
@@ -44,7 +45,7 @@ export function AddSupplierDialog({ open, onOpenChange }: { open: boolean; onOpe
     const { toast } = useToast();
     const firestore = useFirestore();
     const auth = useAuth();
-    const { user: dealerUser } = useUser();
+    const { user: dealerUser } = useAppUser();
     const { t } = useLanguage();
 
     const form = useForm<FormValues>({
@@ -66,7 +67,7 @@ export function AddSupplierDialog({ open, onOpenChange }: { open: boolean; onOpe
 
         try {
             // The addSupplier function is now non-blocking, so we don't await it.
-            addSupplier(firestore, auth, dealerUser.uid, values);
+            addSupplier(firestore, auth, dealerUser.id, values);
             
             toast({
                 title: "Supplier Added!",

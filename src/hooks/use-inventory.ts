@@ -12,9 +12,6 @@ import {
   QueryDocumentSnapshot,
   query,
   where,
-  doc,
-  addDoc,
-  Auth,
 } from 'firebase/firestore';
 import { useFirestore } from '@/firebase/provider';
 import type { InventoryItem } from '@/lib/types';

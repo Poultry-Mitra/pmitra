@@ -25,10 +25,11 @@ import {
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Send, Loader2 } from 'lucide-react';
-import { useFirestore, useUser } from '@/firebase/provider';
+import { useFirestore } from '@/firebase/provider';
 import { addDoc, collection, serverTimestamp, query, where, getDocs, limit } from 'firebase/firestore';
 import type { User } from '@/lib/types';
 import { useLanguage } from '@/components/language-provider';
+import { useAppUser } from '@/app/app-provider';
 
 const formSchema = z.object({
     farmerId: z.string().min(1, "Please enter a Farmer ID.").regex(/^PM-FARM-[A-Z0-9]{5}$/, "Invalid Farmer ID format. e.g., PM-FARM-ABC12"),
@@ -39,7 +40,7 @@ type FormValues = z.infer<typeof formSchema>;
 export function ConnectFarmerDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
     const { toast } = useToast();
     const firestore = useFirestore();
-    const { user: dealerUser } = useUser();
+    const { user: dealerUser } = useAppUser();
     const { t } = useLanguage();
 
     const form = useForm<FormValues>({
@@ -79,7 +80,7 @@ export function ConnectFarmerDialog({ open, onOpenChange }: { open: boolean; onO
 
             const connectionsCollection = collection(firestore, 'connections');
              await addDoc(connectionsCollection, {
-                dealerUID: dealerUser.uid,
+                dealerUID: dealerUser.id,
                 farmerUID: foundFarmer.id, 
                 status: 'Pending',
                 requestedBy: 'dealer',

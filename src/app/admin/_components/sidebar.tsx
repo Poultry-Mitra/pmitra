@@ -3,7 +3,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   Sidebar,
   SidebarHeader,
@@ -36,61 +36,19 @@ import {
 import { useLanguage } from "@/components/language-provider";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import { useState, useEffect } from "react";
-import type { User as UserType } from "@/lib/types";
-import { useUser, useFirestore, useAuth } from "@/firebase/provider";
-import { doc, getDoc } from "firebase/firestore";
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { signOut } from 'firebase/auth';
-import { useRouter } from 'next/navigation';
-
+import { useAppUser } from "@/app/app-provider";
 
 export function AdminSidebar() {
   const pathname = usePathname();
   const { t } = useLanguage();
   const { state } = useSidebar();
-  const router = useRouter();
-  const auth = useAuth();
   const [managementOpen, setManagementOpen] = useState(pathname.startsWith("/admin/user-management"));
   const [settingsOpen, setSettingsOpen] = useState(pathname.startsWith("/admin/settings"));
-  const [showLogoutAlert, setShowLogoutAlert] = useState(false);
 
-  const { user: firebaseUser } = useUser();
-  const firestore = useFirestore();
-  const [currentUser, setCurrentUser] = useState<UserType | null>(null);
+  const { user: currentUser, loading } = useAppUser();
 
-   useEffect(() => {
-    if (firebaseUser && firestore) {
-      const userDocRef = doc(firestore, "users", firebaseUser.uid);
-      getDoc(userDocRef).then((docSnap) => {
-        if (docSnap.exists() && docSnap.data().role === 'admin') {
-          setCurrentUser({ id: docSnap.id, ...docSnap.data() } as UserType);
-        } else {
-          setCurrentUser(null);
-        }
-      });
-    } else {
-      setCurrentUser(null);
-    }
-  }, [firebaseUser, firestore]);
-  
-  const handleLogout = async () => {
-    if (auth) {
-      await signOut(auth);
-      router.push('/login');
-    }
-    setShowLogoutAlert(false);
-  };
 
-  if (!currentUser) {
+  if (loading || !currentUser) {
       return (
           <Sidebar>
               <SidebarHeader>
@@ -284,26 +242,6 @@ export function AdminSidebar() {
            {/* Footer is now empty, logout is in the header dropdown */}
         </SidebarFooter>
         </Sidebar>
-
-        <AlertDialog open={showLogoutAlert} onOpenChange={setShowLogoutAlert}>
-            <AlertDialogContent>
-            <AlertDialogHeader>
-                <AlertDialogTitle className="flex items-center gap-2">
-                    <AlertTriangle className="text-destructive"/>
-                    {t('dialog.logout_title')}
-                </AlertDialogTitle>
-                <AlertDialogDescription>
-                    {t('dialog.logout_desc')}
-                </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-                <AlertDialogCancel>{t('actions.cancel')}</AlertDialogCancel>
-                <AlertDialogAction onClick={handleLogout}>
-                     {t('actions.logout')}
-                </AlertDialogAction>
-            </AlertDialogFooter>
-            </AlertDialogContent>
-        </AlertDialog>
     </>
   );
 }

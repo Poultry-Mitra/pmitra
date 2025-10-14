@@ -35,10 +35,7 @@ import {
   Truck,
 } from "lucide-react";
 import { useLanguage } from "@/components/language-provider";
-import type { User as UserType } from "@/lib/types";
-import { useUser, useFirestore, useAuth } from "@/firebase/provider";
-import { doc, onSnapshot } from "firebase/firestore";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -49,50 +46,19 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { signOut } from 'firebase/auth';
-import { useRouter } from 'next/navigation';
 import { Badge } from "@/components/ui/badge";
 import { useDealerInventory } from "@/hooks/use-dealer-inventory";
+import { useAppUser } from "@/app/app-provider";
 
 
 export function DealerSidebar() {
   const pathname = usePathname();
   const { t } = useLanguage();
   const { state } = useSidebar();
-  const { user: firebaseUser } = useUser();
-  const auth = useAuth();
-  const router = useRouter();
-  const firestore = useFirestore();
-  const [currentUser, setCurrentUser] = useState<UserType | null>(null);
-  const [showLogoutAlert, setShowLogoutAlert] = useState(false);
+  const { user: currentUser, loading: userLoading } = useAppUser();
   const [showInventoryGuide, setShowInventoryGuide] = useState(false);
 
-  const { inventory, loading: inventoryLoading } = useDealerInventory(firebaseUser?.uid);
-
-  useEffect(() => {
-    if (firebaseUser && firestore) {
-      const userDocRef = doc(firestore, "users", firebaseUser.uid);
-      const unsubscribe = onSnapshot(userDocRef, (docSnap) => {
-        if (docSnap.exists() && docSnap.data().role === 'dealer') {
-          setCurrentUser({ id: docSnap.id, ...docSnap.data() } as UserType);
-        } else {
-          setCurrentUser(null);
-        }
-      });
-      return () => unsubscribe();
-    } else {
-        setCurrentUser(null);
-    }
-  }, [firebaseUser, firestore]);
-  
-  const handleLogout = () => {
-    if (auth) {
-      signOut(auth).then(() => {
-        router.push('/login');
-      });
-    }
-    setShowLogoutAlert(false);
-  };
+  const { inventory, loading: inventoryLoading } = useDealerInventory(currentUser?.id);
 
   const handleInventoryClick = (e: React.MouseEvent) => {
     if (!inventoryLoading && (!inventory || inventory.length === 0)) {
@@ -102,8 +68,9 @@ export function DealerSidebar() {
   };
   
   const isPremium = currentUser?.planType === 'premium';
+  const loading = userLoading || !currentUser;
 
-  if (!currentUser) {
+  if (loading) {
       return (
         <Sidebar>
             <SidebarHeader>
@@ -238,35 +205,10 @@ export function DealerSidebar() {
                         </Link>
                     </SidebarMenuItem>
                 )}
-                <SidebarMenuItem>
-                    <SidebarMenuButton tooltip={t('actions.logout')} onClick={() => setShowLogoutAlert(true)}>
-                        <LogOut />
-                        <span>{t('sidebar_logout')}</span>
-                    </SidebarMenuButton>
-                </SidebarMenuItem>
+                {/* The logout button is in the header dropdown now */}
             </SidebarMenu>
         </SidebarFooter>
         </Sidebar>
-
-        <AlertDialog open={showLogoutAlert} onOpenChange={setShowLogoutAlert}>
-            <AlertDialogContent>
-            <AlertDialogHeader>
-                <AlertDialogTitle className="flex items-center gap-2">
-                    <AlertTriangle className="text-destructive"/>
-                    {t('dialog.logout_title')}
-                </AlertDialogTitle>
-                <AlertDialogDescription>
-                    {t('dialog.logout_desc')}
-                </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-                <AlertDialogCancel>{t('actions.cancel')}</AlertDialogCancel>
-                <AlertDialogAction onClick={handleLogout}>
-                     {t('actions.logout')}
-                </AlertDialogAction>
-            </AlertDialogFooter>
-            </AlertDialogContent>
-        </AlertDialog>
 
         <AlertDialog open={showInventoryGuide} onOpenChange={setShowInventoryGuide}>
             <AlertDialogContent>

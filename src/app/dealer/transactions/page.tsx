@@ -7,14 +7,14 @@ import { PageHeader } from "@/app/dealer/_components/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { FileDown, Loader2 } from "lucide-react";
-import { useUser } from "@/firebase/provider";
 import { useLedger } from "@/hooks/use-ledger";
 import { LedgerTable } from "../_components/ledger-table";
 import { useLanguage } from "@/components/language-provider";
+import { useAppUser } from "@/app/app-provider";
 
 export default function TransactionsPage() {
-    const { user: firebaseUser, isUserLoading } = useUser();
-    const { entries, loading: ledgerLoading } = useLedger(firebaseUser?.uid);
+    const { user: firebaseUser, loading: isUserLoading } = useAppUser();
+    const { entries, loading: ledgerLoading } = useLedger(firebaseUser?.id);
     const loading = isUserLoading || ledgerLoading;
     const { t } = useLanguage();
 

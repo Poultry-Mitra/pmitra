@@ -19,7 +19,6 @@ import {
   updateDoc,
   Auth,
 } from 'firebase/firestore';
-import { useFirestore, useUser } from '@/firebase/provider';
 import type { Order } from '@/lib/types';
 import { addLedgerEntryInTransaction } from '@/hooks/use-ledger';
 
@@ -36,10 +35,16 @@ function toOrder(doc: QueryDocumentSnapshot<DocumentData>): Order {
 
 
 export function useOrders(dealerUID?: string) {
-  const { user: firebaseUser } = useUser();
-  const firestore = useFirestore();
+  const [firestore, setFirestore] = useState<Firestore | null>(null);
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  useEffect(() => {
+    import('firebase/firestore').then(module => {
+      const { getFirestore } = module;
+      setFirestore(getFirestore());
+    });
+  }, []);
 
   useEffect(() => {
     if (!firestore) {
@@ -75,9 +80,16 @@ export function useOrders(dealerUID?: string) {
 }
 
 export function useOrdersByFarmer(farmerUID?: string) {
-  const firestore = useFirestore();
+  const [firestore, setFirestore] = useState<Firestore | null>(null);
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    import('firebase/firestore').then(module => {
+      const { getFirestore } = module;
+      setFirestore(getFirestore());
+    });
+  }, []);
 
   useEffect(() => {
     if (!firestore || !farmerUID) {
