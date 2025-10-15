@@ -62,7 +62,7 @@ export default function DetailedSignupPage() {
     const [googleUser, setGoogleUser] = useState<FirebaseAuthUser | null>(null);
     const [invitation, setInvitation] = useState<(Invitation & { id: string }) | null>(null);
 
-    const initialRole = invitation?.role || (params.role as UserRole) || "farmer";
+    const initialRole = params.role as UserRole || 'farmer';
 
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
@@ -119,8 +119,7 @@ export default function DetailedSignupPage() {
         const finalStatus = invitation ? 'Active' : (isAdminEmail ? 'Active' : 'Pending');
         const finalPlan = invitation?.planType || (isAdminEmail ? 'premium' : 'free');
 
-        // This flow now only constructs the object, it doesn't write to DB.
-        const profileData = await createProfile({
+        const profileResponse = await createProfile({
             uid: user.uid,
             name: values.fullName,
             email: values.email,
@@ -133,9 +132,9 @@ export default function DetailedSignupPage() {
             pinCode: values.pinCode || "",
         });
 
-        // The client (this component) is now responsible for writing to Firestore.
-        const userDocRef = doc(firestore, 'users', user.uid);
-        await setDoc(userDocRef, profileData);
+        if (!profileResponse.success) {
+            throw new Error(profileResponse.message);
+        }
         
         if (invitation) {
             await deleteDoc(doc(firestore, 'invitations', invitation.id));
@@ -326,6 +325,5 @@ export default function DetailedSignupPage() {
             </Card>
         </div>
     );
-}
 
     
