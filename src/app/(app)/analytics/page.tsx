@@ -5,8 +5,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { PageHeader } from "../_components/page-header";
 import { useBatches } from '@/hooks/use-batches';
-import { getFarmAnalytics } from '@/ai/flows/get-farm-analytics';
-import type { FarmAnalyticsOutput } from '@/ai/flows/get-farm-analytics';
+import { getFarmAnalytics, type FarmAnalyticsOutput } from '@/ai/flows/get-farm-analytics';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Bird, Droplet, Percent, Wheat, WandSparkles, Loader2 } from "lucide-react";
 import { Skeleton } from '@/components/ui/skeleton';

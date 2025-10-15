@@ -7,13 +7,14 @@
  * - getFarmAnalytics - A function that returns farm analytics.
  */
 
-import {ai} from '@/ai/genkit';
-import {z} from 'zod';
+import {ai, z} from '@/ai/genkit';
 import type { Batch } from '@/lib/types';
 
 const FarmAnalyticsInputSchema = z.object({
   batches: z.array(z.any()).describe('An array of batch objects for the farm.'),
 });
+export type FarmAnalyticsInput = z.infer<typeof FarmAnalyticsInputSchema>;
+
 
 const FarmAnalyticsOutputSchema = z.object({
   totalLiveBirds: z.number().describe('The total number of live birds across all active batches.'),
@@ -22,6 +23,8 @@ const FarmAnalyticsOutputSchema = z.object({
   averageFCR: z.number().describe('The weighted average Feed Conversion Ratio (FCR) across all active batches.'),
   summary: z.string().describe('A brief, insightful summary of the overall farm status, highlighting any areas of concern or positive trends.'),
 });
+export type FarmAnalyticsOutput = z.infer<typeof FarmAnalyticsOutputSchema>;
+
 
 const prompt = ai.definePrompt({
   name: 'getFarmAnalyticsPrompt',
@@ -44,8 +47,8 @@ const prompt = ai.definePrompt({
 });
 
 export async function getFarmAnalytics(
-  input: z.infer<typeof FarmAnalyticsInputSchema>
-): Promise<z.infer<typeof FarmAnalyticsOutputSchema>> {
+  input: FarmAnalyticsInput
+): Promise<FarmAnalyticsOutput> {
   return getFarmAnalyticsFlow(input);
 }
 

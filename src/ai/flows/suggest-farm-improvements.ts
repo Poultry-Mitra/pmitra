@@ -7,8 +7,7 @@
  * - suggestFarmImprovements - A function that provides farm improvement suggestions.
  */
 
-import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import {ai, z} from '@/ai/genkit';
 
 const SuggestFarmImprovementsInputSchema = z.object({
   productionRate: z.number().describe('Current egg production rate (eggs per hen per day).'),
@@ -18,12 +17,16 @@ const SuggestFarmImprovementsInputSchema = z.object({
     .describe('Current feed consumption (grams per hen per day).'),
   farmSize: z.number().describe('The number of chickens on the farm.'),
 });
+export type SuggestFarmImprovementsInput = z.infer<typeof SuggestFarmImprovementsInputSchema>;
+
 
 const SuggestFarmImprovementsOutputSchema = z.object({
   suggestions: z
     .string()
     .describe('AI-driven suggestions for improving farm efficiency and productivity.'),
 });
+export type SuggestFarmImprovementsOutput = z.infer<typeof SuggestFarmImprovementsOutputSchema>;
+
 
 const prompt = ai.definePrompt({
   name: 'suggestFarmImprovementsPrompt',
@@ -49,8 +52,8 @@ const prompt = ai.definePrompt({
 });
 
 export async function suggestFarmImprovements(
-  input: z.infer<typeof SuggestFarmImprovementsInputSchema>
-): Promise<z.infer<typeof SuggestFarmImprovementsOutputSchema>> {
+  input: SuggestFarmImprovementsInput
+): Promise<SuggestFarmImprovementsOutput> {
   return suggestFarmImprovementsFlow(input);
 }
 

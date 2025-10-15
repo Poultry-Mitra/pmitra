@@ -7,14 +7,15 @@
  * - diagnoseChickenHealth - A function that handles the diagnosis process.
  */
 
-import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import {ai, z} from '@/ai/genkit';
 
 const DiagnoseChickenHealthInputSchema = z.object({
   symptoms: z.string().describe('A detailed description of the symptoms observed in the chicken(s), such as bloody diarrhea, ruffled feathers, paralysis, coughing, sneezing, etc.'),
   flockAgeWeeks: z.number().int().describe('The age of the flock in weeks.'),
   photoDataUri: z.string().optional().describe("A photo of the sick chicken or its droppings, as a data URI. Format: 'data:<mimetype>;base64,<encoded_data>'."),
 });
+export type DiagnoseChickenHealthInput = z.infer<typeof DiagnoseChickenHealthInputSchema>;
+
 
 const DiseasePossibilitySchema = z.object({
     name: z.string().describe('The name of the possible disease (e.g., Coccidiosis, Marek\'s Disease).'),
@@ -27,6 +28,8 @@ const DiagnoseChickenHealthOutputSchema = z.object({
   recommendedActions: z.string().describe('Immediate, actionable steps the farmer should take right now (e.g., Isolate sick birds, provide fresh water with electrolytes).'),
   preventativeMeasures: z.string().describe('Long-term preventative measures to avoid this issue in the future (e.g., Improve litter management, review vaccination schedule).'),
 });
+export type DiagnoseChickenHealthOutput = z.infer<typeof DiagnoseChickenHealthOutputSchema>;
+
 
 const promptTemplate = `You are a specialized poultry veterinarian AI. Your task is to diagnose potential diseases in a chicken flock based on the information provided by a farmer.
 
@@ -53,7 +56,7 @@ const diagnosePrompt = ai.definePrompt({
   prompt: promptTemplate,
 });
 
-export async function diagnoseChickenHealth(input: z.infer<typeof DiagnoseChickenHealthInputSchema>): Promise<z.infer<typeof DiagnoseChickenHealthOutputSchema>> {
+export async function diagnoseChickenHealth(input: DiagnoseChickenHealthInput): Promise<DiagnoseChickenHealthOutput> {
   return diagnoseChickenHealthFlow(input);
 }
 

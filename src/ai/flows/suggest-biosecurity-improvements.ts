@@ -7,16 +7,19 @@
  * - suggestBiosecurityImprovements - A function that returns improvement suggestions.
  */
 
-import {ai} from '@/ai/genkit';
-import {z} from 'zod';
+import {ai, z} from '@/ai/genkit';
 
 const SuggestBiosecurityImprovementsInputSchema = z.object({
   failedItems: z.array(z.string()).describe('A list of biosecurity checklist items that the user answered "No" to.'),
 });
+export type SuggestBiosecurityImprovementsInput = z.infer<typeof SuggestBiosecurityImprovementsInputSchema>;
+
 
 const SuggestBiosecurityImprovementsOutputSchema = z.object({
   suggestions: z.string().describe('A detailed, actionable list of suggestions to improve biosecurity, formatted as a markdown list.'),
 });
+export type SuggestBiosecurityImprovementsOutput = z.infer<typeof SuggestBiosecurityImprovementsOutputSchema>;
+
 
 const prompt = ai.definePrompt({
   name: 'suggestBiosecurityImprovementsPrompt',
@@ -48,8 +51,8 @@ const prompt = ai.definePrompt({
 });
 
 export async function suggestBiosecurityImprovements(
-  input: z.infer<typeof SuggestBiosecurityImprovementsInputSchema>
-): Promise<z.infer<typeof SuggestBiosecurityImprovementsOutputSchema>> {
+  input: SuggestBiosecurityImprovementsInput
+): Promise<SuggestBiosecurityImprovementsOutput> {
   return suggestBiosecurityImprovementsFlow(input);
 }
 

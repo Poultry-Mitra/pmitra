@@ -21,7 +21,7 @@ import { AppIcon } from "@/app/icon-component";
 import { Loader2 } from "lucide-react";
 import indianStates from "@/lib/indian-states-districts.json";
 import type { Invitation, UserRole } from "@/lib/types";
-import { createProfile } from "@/ai/flows/create-profile";
+import { createProfile } from "@/app/actions/create-profile-action";
 
 
 const formSchema = z.object({
@@ -118,7 +118,7 @@ export default function DetailedSignupPage() {
 
         const isAdminEmail = values.email.toLowerCase() === 'ipoultrymitra@gmail.com';
         const finalRole = invitation?.role || (isAdminEmail ? 'admin' : initialRole);
-        const finalStatus = 'Pending';
+        const finalStatus = 'Active'; // Changed from 'Pending'
         const finalPlan = invitation?.planType || (isAdminEmail ? 'premium' : 'free');
 
         const profileResponse = await createProfile({
@@ -144,6 +144,8 @@ export default function DetailedSignupPage() {
         if (invitation) {
             await deleteDoc(doc(firestore, 'invitations', invitation.id));
         }
+
+        // Removed email verification logic
     }
 
 
@@ -159,6 +161,7 @@ export default function DetailedSignupPage() {
             if (authProvider === 'google' && googleUser) {
                  createdAuthUser = googleUser;
                  await handleFinalUserCreation(createdAuthUser, values);
+                 router.replace(`/login/${createdAuthUser.email === 'ipoultrymitra@gmail.com' ? 'admin' : initialRole}`); // Redirect to login
             } else {
                 if (!values.password) {
                     form.setError('password', { message: 'Password is required for email signup.' });
@@ -169,10 +172,14 @@ export default function DetailedSignupPage() {
                 createdAuthUser = userCredential.user;
                 
                 await handleFinalUserCreation(createdAuthUser, values);
+                toast({
+                    title: "Account Created!",
+                    description: "You can now log in with your credentials.",
+                });
+                if (auth?.currentUser) await auth.signOut();
+                router.replace(`/login/${createdAuthUser.email === 'ipoultrymitra@gmail.com' ? 'admin' : initialRole}`); // Redirect to login
             }
 
-            setShowPendingMessage(true);
-            if (auth?.currentUser) await auth.signOut();
 
         } catch (error: any) {
             console.error("Signup failed:", error);
