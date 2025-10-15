@@ -1,3 +1,4 @@
+
 // src/hooks/use-users.ts
 'use client';
 
@@ -17,6 +18,7 @@ import {
   limit,
   type Auth,
   FirestoreError,
+  orderBy,
 } from 'firebase/firestore';
 import { useFirestore, useAuth } from '@/firebase/provider';
 import type { User, UserRole, UserStatus } from '@/lib/types';
@@ -61,14 +63,12 @@ export function useUsers(role?: 'farmer' | 'dealer' | 'admin') {
   const [loading, setLoading] = useState(true);
   
   useEffect(() => {
-    // Wait for appUser and firestore to be available
     if (appUserLoading || !firestore) {
         setLoading(true);
         return;
     }
     
-    // CRITICAL FIX: Only admins can list users. If the user is not an admin,
-    // immediately return an empty array and stop loading.
+    // If a non-admin tries to use this hook for listing all users, return empty.
     if (appUser?.role !== 'admin') {
         setUsers([]);
         setLoading(false);
@@ -79,10 +79,16 @@ export function useUsers(role?: 'farmer' | 'dealer' | 'admin') {
     let usersQuery;
     const baseQuery = collection(firestore, 'users');
 
-    if (role) {
+    if (appUser.role === 'admin') {
+      // For admin, fetch the most recent 100 users instead of all, to avoid list permission issues.
+      usersQuery = query(baseQuery, orderBy("dateJoined", "desc"), limit(100));
+    } else if (role) {
       usersQuery = query(baseQuery, where("role", "==", role));
     } else {
-      usersQuery = query(baseQuery);
+      // For non-admin, this part shouldn't even be reached, but as a fallback, return empty.
+      setUsers([]);
+      setLoading(false);
+      return;
     }
     
     const unsubscribe = onSnapshot(
@@ -92,15 +98,14 @@ export function useUsers(role?: 'farmer' | 'dealer' | 'admin') {
         setLoading(false);
       },
       (err: FirestoreError) => {
-        console.error("Original error in useUsers:", err); // Keep original for server logs
+        console.error("Error in useUsers hook:", err);
         setLoading(false);
         
         const permissionError = new FirestorePermissionError({
-          path: 'users', // The collection path being queried
-          operation: 'list', // This is a collection read operation
+          path: 'users',
+          operation: 'list',
         }, auth);
         
-        // This will be caught by the global error boundary
         errorEmitter.emit('permission-error', permissionError);
       }
     );
