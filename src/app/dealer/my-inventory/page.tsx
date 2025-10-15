@@ -1,5 +1,4 @@
-
-
+// src/app/dealer/my-inventory/page.tsx
 "use client";
 
 import Link from 'next/link';
@@ -53,19 +52,17 @@ export default function MyInventoryPage() {
             </PageHeader>
 
             <div className="mt-8 space-y-8">
-                 {loading && (
+                 {loading ? (
                     <div className="flex justify-center items-center h-64">
                          <Loader2 className="mx-auto animate-spin" />
                     </div>
-                )}
-                {!loading && Object.keys(inventoryBySupplier).length === 0 && (
+                ) : Object.keys(inventoryBySupplier).length === 0 ? (
                      <Card>
                         <CardContent className="pt-6 text-center text-muted-foreground">
                             No inventory items found. Click "Add Stock / Purchase" to get started.
                         </CardContent>
                     </Card>
-                )}
-                {!loading && Object.entries(inventoryBySupplier).map(([supplierName, items]) => {
+                ) : Object.entries(inventoryBySupplier).map(([supplierName, items]) => {
                     const totalValue = items.reduce((acc, item) => acc + (item.quantity * item.purchaseRatePerUnit), 0);
                     return (
                     <Card key={supplierName}>

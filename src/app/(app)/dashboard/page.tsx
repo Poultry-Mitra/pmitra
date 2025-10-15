@@ -1,9 +1,8 @@
-
 // src/app/(app)/dashboard/page.tsx
 "use client";
 
 import { useState, useMemo } from 'react';
-import { Card } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Copy, Loader2, Link as LinkIcon, CheckCircle, XCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -60,39 +59,39 @@ function DealerConnectionRequests() {
 
     return (
         <Card>
-            <TableHeader>
-                <div className="p-6">
-                    <h3 className="font-semibold">Dealer Connection Requests</h3>
-                    <p className="text-sm text-muted-foreground">Review and respond to connection requests from dealers.</p>
-                </div>
-            </TableHeader>
-            <Table>
-                <TableHeader>
-                    <TableRow>
-                        <TableHead>Dealer Name</TableHead>
-                        <TableHead>Date</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                </TableHeader>
-                <TableBody>
-                    {pendingRequests.map(req => (
-                        <TableRow key={req.id}>
-                            <TableCell className="font-medium">{getDealerName(req.dealerUID)}</TableCell>
-                            <TableCell>{new Date(req.createdAt).toLocaleDateString()}</TableCell>
-                            <TableCell className="text-right space-x-2">
-                                 <Button size="sm" variant="outline" className="text-green-600 hover:bg-green-50 hover:text-green-700" onClick={() => handleAction(req.id, 'Approved')}>
-                                    <CheckCircle className="mr-2" />
-                                    Approve
-                                </Button>
-                                 <Button size="sm" variant="outline" className="text-red-600 hover:bg-red-50 hover:text-red-700" onClick={() => handleAction(req.id, 'Rejected')}>
-                                    <XCircle className="mr-2" />
-                                    Reject
-                                </Button>
-                            </TableCell>
+            <CardHeader>
+               <CardTitle>Dealer Connection Requests</CardTitle>
+               <CardDescription>Review and respond to connection requests from dealers.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>Dealer Name</TableHead>
+                            <TableHead>Date</TableHead>
+                            <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
-                    ))}
-                </TableBody>
-            </Table>
+                    </TableHeader>
+                    <TableBody>
+                        {pendingRequests.map(req => (
+                            <TableRow key={req.id}>
+                                <TableCell className="font-medium">{getDealerName(req.dealerUID)}</TableCell>
+                                <TableCell>{new Date(req.createdAt).toLocaleDateString()}</TableCell>
+                                <TableCell className="text-right space-x-2">
+                                    <Button size="sm" variant="outline" className="text-green-600 hover:bg-green-50 hover:text-green-700" onClick={() => handleAction(req.id, 'Approved')}>
+                                        <CheckCircle className="mr-2" />
+                                        Approve
+                                    </Button>
+                                    <Button size="sm" variant="outline" className="text-red-600 hover:bg-red-50 hover:text-red-700" onClick={() => handleAction(req.id, 'Rejected')}>
+                                        <XCircle className="mr-2" />
+                                        Reject
+                                    </Button>
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </CardContent>
         </Card>
     )
 }

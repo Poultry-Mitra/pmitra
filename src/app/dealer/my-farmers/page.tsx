@@ -86,9 +86,7 @@ export default function MyFarmersPage() {
                 </Button>
             </PageHeader>
             
-            {loading && <div className="flex justify-center p-8"><Loader2 className="animate-spin" /></div>}
-
-            {!loading && (
+            {loading ? <div className="flex justify-center p-8"><Loader2 className="animate-spin" /></div> : (
                 <div className="mt-8 space-y-8">
                 
                 <Card>
@@ -111,7 +109,13 @@ export default function MyFarmersPage() {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {connectedFarmers.length === 0 && <TableRow><TableCell colSpan={5} className="h-24 text-center">No farmers connected yet.</TableCell></TableRow>}
+                                {connectedFarmers.length === 0 && (
+                                     <TableRow>
+                                        <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
+                                            No farmers connected yet. Share your dealer code or use the "Connect New Farmer" button.
+                                        </TableCell>
+                                     </TableRow>
+                                )}
                                 {connectedFarmers.map((farmer) => {
                                     return (
                                     <TableRow key={farmer.id}>

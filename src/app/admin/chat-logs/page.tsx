@@ -17,7 +17,7 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { MoreHorizontal, FileDown } from "lucide-react";
@@ -58,6 +58,10 @@ export default function ChatLogsPage() {
             </PageHeader>
             <div className="mt-8">
                 <Card>
+                    <CardHeader>
+                        <CardTitle>All Chat Sessions</CardTitle>
+                        <CardDescription>A log of all AI chat interactions on the platform.</CardDescription>
+                    </CardHeader>
                     <CardContent className="pt-6">
                         <Table>
                             <TableHeader>
