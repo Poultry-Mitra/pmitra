@@ -1,4 +1,3 @@
-
 import { Timestamp } from "firebase/firestore";
 
 export type UserRole = 'farmer' | 'dealer' | 'admin';
@@ -237,4 +236,16 @@ export type VaccinationScheduleItem = {
     day: number;
     vaccine: string;
     method: string;
+};
+
+export type ChatSession = {
+    id: string;
+    userId: string;
+    userName: string;
+    userEmail: string;
+    userRole: UserRole;
+    startTime: string;
+    lastQuery: string;
+    lastResponse: string;
+    messageCount: number;
 };
