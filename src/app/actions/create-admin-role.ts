@@ -17,7 +17,7 @@ export async function createAdminRole(uid: string, email: string): Promise<{ suc
     const adminRoleRef = doc(db, 'roles_admin', uid);
 
     // Directly set the document. Security rules will be temporarily adjusted to allow this.
-    await setDoc(adminRole_ref, {
+    await setDoc(adminRoleRef, {
       email: email,
       role: 'admin',
       createdAt: new Date().toISOString(),
