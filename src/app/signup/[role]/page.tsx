@@ -109,7 +109,7 @@ export default function DetailedSignupPage() {
         }
     }, [selectedState, form]);
     
-    async function handleFinalUserCreation(userId: string, values: FormValues) {
+    async function handleFinalUserCreation(user: FirebaseAuthUser, values: FormValues, isEmailSignup: boolean) {
         if (!firestore) {
             throw new Error("Firestore not available.");
         };
@@ -121,7 +121,7 @@ export default function DetailedSignupPage() {
 
         // This flow now only constructs the object, it doesn't write to DB.
         const profileData = await createProfile({
-            uid: userId,
+            uid: user.uid,
             name: values.fullName,
             email: values.email,
             role: finalRole,
@@ -134,11 +134,16 @@ export default function DetailedSignupPage() {
         });
 
         // The client (this component) is now responsible for writing to Firestore.
-        const userDocRef = doc(firestore, 'users', userId);
+        const userDocRef = doc(firestore, 'users', user.uid);
         await setDoc(userDocRef, profileData);
         
         if (invitation) {
             await deleteDoc(doc(firestore, 'invitations', invitation.id));
+        }
+
+        // Send verification email ONLY if it's an email signup and not an admin
+        if (isEmailSignup && !isAdminEmail) {
+            await sendEmailVerification(user);
         }
 
         return { finalRole, finalStatus };
@@ -155,7 +160,7 @@ export default function DetailedSignupPage() {
         try {
             if (authProvider === 'google' && googleUser) {
                  createdAuthUser = googleUser;
-                 const { finalRole } = await handleFinalUserCreation(createdAuthUser.uid, values);
+                 const { finalRole } = await handleFinalUserCreation(createdAuthUser, values, false); // isEmailSignup is false
                  toast({ title: "Account Finalized!", description: "Your account is ready. Redirecting to login." });
                  if (auth?.currentUser) await auth.signOut();
                  router.push(`/login/${finalRole}`);
@@ -168,8 +173,7 @@ export default function DetailedSignupPage() {
                 const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
                 createdAuthUser = userCredential.user;
                 
-                await sendEmailVerification(createdAuthUser);
-                const { finalRole } = await handleFinalUserCreation(createdAuthUser.uid, values);
+                const { finalRole } = await handleFinalUserCreation(createdAuthUser, values, true); // isEmailSignup is true
                 
                 toast({ title: "Account Created!", description: "A verification email has been sent. Please check your inbox.", duration: 8000 });
                 if (auth?.currentUser) await auth.signOut();
@@ -323,3 +327,5 @@ export default function DetailedSignupPage() {
         </div>
     );
 }
+
+    
