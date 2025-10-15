@@ -17,7 +17,7 @@ import {
   Auth,
 } from 'firebase/firestore';
 import type { Supplier } from '@/lib/types';
-import { useFirestore } from '@/firebase/provider';
+import { useFirestore, useMemoFirebase } from '@/firebase/provider';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { errorEmitter } from '@/firebase/error-emitter';
 
@@ -37,25 +37,31 @@ export function useSuppliers(dealerUID: string | undefined) {
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const suppliersQuery = useMemoFirebase(() => {
+    if (!firestore || !dealerUID) return null;
+    const suppliersCollection = collection(firestore, 'suppliers');
+    return query(
+        suppliersCollection, 
+        where("dealerUID", "==", dealerUID)
+    );
+  }, [firestore, dealerUID]);
+
+
   useEffect(() => {
-    if (!firestore || !dealerUID) {
+    if (!suppliersQuery) {
         setSuppliers([]);
         setLoading(false);
         return;
     }
     
     setLoading(true);
-    const suppliersCollection = collection(firestore, 'suppliers');
-    const q = query(
-        suppliersCollection, 
-        where("dealerUID", "==", dealerUID),
-        orderBy("name", "asc")
-    );
-
     const unsubscribe = onSnapshot(
-      q,
+      suppliersQuery,
       (snapshot) => {
-        setSuppliers(snapshot.docs.map(toSupplier));
+        const fetchedSuppliers = snapshot.docs.map(toSupplier);
+        // Sort client-side
+        fetchedSuppliers.sort((a, b) => a.name.localeCompare(b.name));
+        setSuppliers(fetchedSuppliers);
         setLoading(false);
       },
       (err) => {
@@ -65,7 +71,7 @@ export function useSuppliers(dealerUID: string | undefined) {
     );
 
     return () => unsubscribe();
-  }, [firestore, dealerUID]);
+  }, [suppliersQuery]);
 
   return { suppliers, loading };
 }
