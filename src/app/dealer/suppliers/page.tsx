@@ -1,4 +1,3 @@
-
 // src/app/dealer/suppliers/page.tsx
 "use client";
 
@@ -59,8 +58,8 @@ export default function SuppliersPage() {
                                     </TableRow>
                                 ) : suppliers.length === 0 ? (
                                      <TableRow>
-                                        <TableCell colSpan={4} className="h-24 text-center">
-                                            No suppliers found. Click "Add New Supplier" to get started.
+                                        <TableCell colSpan={4} className="h-24 text-center text-muted-foreground">
+                                            You haven't added any suppliers yet. Click the "Add New Supplier" button to get started.
                                         </TableCell>
                                     </TableRow>
                                 ) : (

@@ -1,4 +1,3 @@
-
 // src/hooks/use-suppliers.ts
 'use client';
 
@@ -21,7 +20,6 @@ import type { Supplier } from '@/lib/types';
 import { useFirestore } from '@/firebase/provider';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { errorEmitter } from '@/firebase/error-emitter';
-import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
 // Helper to convert Firestore doc to Supplier type
 function toSupplier(doc: QueryDocumentSnapshot<DocumentData>): Supplier {
@@ -84,6 +82,19 @@ export async function addSupplier(firestore: Firestore, auth: Auth | null, deale
         createdAt: serverTimestamp(),
     };
 
-    // Non-blocking write with contextual error handling
-    await addDocumentNonBlocking(collectionRef, supplierData, auth);
+    try {
+        await addDoc(collectionRef, supplierData);
+    } catch(e) {
+        if (e instanceof Error && e.message.includes('permission-denied')) {
+             errorEmitter.emit(
+                'permission-error',
+                new FirestorePermissionError({
+                    path: collectionRef.path,
+                    operation: 'create',
+                    requestResourceData: supplierData,
+                }, auth)
+             );
+        }
+        throw e;
+    }
 }

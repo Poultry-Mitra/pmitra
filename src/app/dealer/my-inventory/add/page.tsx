@@ -311,21 +311,24 @@ export default function AddStockPage() {
                                          <FormField name="supplierId" control={form.control} render={({ field }) => (
                                             <FormItem>
                                                 <FormLabel>Select Supplier</FormLabel>
-                                                <Select onValueChange={field.onChange} defaultValue={field.value} disabled={suppliersLoading} key={suppliers.length}>
+                                                <Select onValueChange={field.onChange} defaultValue={field.value} disabled={suppliersLoading}>
                                                     <FormControl>
                                                         <SelectTrigger>
                                                             <SelectValue placeholder={suppliersLoading ? "Loading suppliers..." : "Select a supplier"} />
                                                         </SelectTrigger>
                                                     </FormControl>
                                                     <SelectContent>
-                                                        {suppliers.map(supplier => (
-                                                            <SelectItem key={supplier.id} value={supplier.id}>{supplier.name}</SelectItem>
-                                                        ))}
+                                                         {suppliers.length === 0 && !suppliersLoading ? (
+                                                            <div className="p-4 text-center text-sm text-muted-foreground">
+                                                                No suppliers found. <Link href="/dealer/suppliers/add" className="text-primary hover:underline">Add one first</Link>.
+                                                            </div>
+                                                        ) : (
+                                                            suppliers.map(supplier => (
+                                                                <SelectItem key={supplier.id} value={supplier.id}>{supplier.name}</SelectItem>
+                                                            ))
+                                                        )}
                                                     </SelectContent>
                                                 </Select>
-                                                <FormDescription className="text-xs">
-                                                    Can't find a supplier? <Link href="/dealer/suppliers/add" className="text-primary hover:underline">Add one here</Link>.
-                                                </FormDescription>
                                                 <FormMessage />
                                             </FormItem>
                                         )} />
@@ -620,4 +623,3 @@ export default function AddStockPage() {
     );
 }
 
-    
