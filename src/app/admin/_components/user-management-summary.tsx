@@ -1,3 +1,4 @@
+
 // This file is no longer used by the dashboard and can be removed or kept for the dedicated user management pages.
 // No changes are necessary here for the dashboard fix.
 
@@ -57,6 +58,7 @@ import { useUsers, deleteUser, updateUserStatus, updateUserPlan } from "@/hooks/
 import { useFirestore, AuthContext } from "@/firebase/provider";
 import { addAuditLog } from "@/hooks/use-audit-logs";
 import { useLanguage } from "@/components/language-provider";
+import { getAuth, sendPasswordResetEmail } from "firebase/auth";
 
 
 const statusVariant: { [key in UserStatus]: "default" | "secondary" | "destructive" | "outline" } = {
@@ -116,6 +118,39 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
 
     const title = roleToShow ? t(`admin.users.title_${roleToShow}`) : t('admin.users.title_recent');
     const description = roleToShow ? t(`admin.users.description_${roleToShow}`) : t('admin.users.description_recent');
+
+    const handleApproveUser = async (user: User) => {
+        if (!firestore || !adminUser.user || !auth || !user.email) return;
+
+        try {
+            // 1. Update user status to 'Active'
+            updateUserStatus(firestore, auth as any, user.id, 'Active');
+
+            // 2. Send password reset email
+            const firebaseAuth = getAuth();
+            await sendPasswordResetEmail(firebaseAuth, user.email);
+            
+            // 3. Log the audit trail
+            await addAuditLog(firestore, {
+                adminUID: adminUser.user.uid,
+                action: 'UPDATE_USER_STATUS',
+                details: `Approved user ${user.name} and sent password setup email.`,
+            });
+
+            toast({
+                title: `User Approved`,
+                description: `${user.name} is now active. A password setup email has been sent to them.`,
+            });
+        } catch (error: any) {
+             toast({
+                title: "Approval Failed",
+                description: error.message || `Could not approve user.`,
+                variant: "destructive",
+            });
+        }
+        
+        setDialogState({ action: null, user: null });
+    };
 
     const handleStatusUpdate = async (newStatus: UserStatus) => {
         if (!dialogState.user || !firestore || !adminUser.user || !auth) return;
@@ -411,13 +446,13 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
                 <AlertDialogContent>
                     <AlertDialogHeader>
                         <AlertDialogTitle>{
-                            dialogState.action === 'approve' ? 'Approve User' : t('dialog.are_you_sure_title')
+                            dialogState.action === 'approve' ? 'Approve User & Send Password Link' : t('dialog.are_you_sure_title')
                         }</AlertDialogTitle>
                         <AlertDialogDescription>
                             {dialogState.action === 'delete'
                                 ? t('dialog.delete_user_desc', { name: dialogState.user?.name })
                                 : dialogState.action === 'approve' 
-                                ? `Are you sure you want to approve ${dialogState.user?.name}? Their account will become active.`
+                                ? `This will activate ${dialogState.user?.name}'s account and send them an email to set their password. Do you want to continue?`
                                 : t(dialogState.user?.status === 'Active' ? 'dialog.suspend_user_desc' : 'dialog.unsuspend_user_desc', { name: dialogState.user?.name })
                             }
                         </AlertDialogDescription>
@@ -454,7 +489,7 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
                         <AlertDialogAction
                             onClick={() => {
                                 if (dialogState.action === 'delete') handleDelete();
-                                else if (dialogState.action === 'approve') handleStatusUpdate('Active');
+                                else if (dialogState.action === 'approve' && dialogState.user) handleApproveUser(dialogState.user);
                                 else if (dialogState.action === 'suspend') handleStatusUpdate(dialogState.user?.status === 'Active' ? 'Suspended' : 'Active');
                             }}
                             className={cn({
@@ -465,7 +500,7 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
                              {
                                 {
                                     'delete': t('actions.yes_delete'),
-                                    'approve': 'Yes, Approve',
+                                    'approve': 'Yes, Approve & Send Email',
                                     'suspend': dialogState.user?.status === 'Active' ? t('actions.yes_suspend') : t('actions.yes_unsuspend')
                                 }[dialogState.action || '']
                             }

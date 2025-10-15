@@ -15,7 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth, useFirestore } from "@/firebase/provider";
-import { GoogleAuthProvider, signInWithPopup, type User as FirebaseAuthUser, createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth";
+import { GoogleAuthProvider, signInWithPopup, type User as FirebaseAuthUser, createUserWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
 import { doc, getDoc, collection, query, where, getDocs, limit, deleteDoc, setDoc } from "firebase/firestore";
 import { AppIcon } from "@/app/icon-component";
 import { Loader2 } from "lucide-react";
@@ -60,6 +60,8 @@ export default function DetailedSignupPage() {
     const [authProvider, setAuthProvider] = useState<'email' | 'google'>('email');
     const [googleUser, setGoogleUser] = useState<FirebaseAuthUser | null>(null);
     const [invitation, setInvitation] = useState<(Invitation & { id: string }) | null>(null);
+    const [showPendingMessage, setShowPendingMessage] = useState(false);
+
 
     const initialRole = (params.role as UserRole) || 'farmer';
 
@@ -115,7 +117,7 @@ export default function DetailedSignupPage() {
 
         const isAdminEmail = values.email.toLowerCase() === 'ipoultrymitra@gmail.com';
         const finalRole = invitation?.role || (isAdminEmail ? 'admin' : initialRole);
-        const finalStatus = 'Active'; // Auto-activate user
+        const finalStatus = 'Pending'; // Set status to Pending by default
         const finalPlan = invitation?.planType || (isAdminEmail ? 'premium' : 'free');
 
         const userProfile: any = {
@@ -162,10 +164,7 @@ export default function DetailedSignupPage() {
         try {
             if (authProvider === 'google' && googleUser) {
                  createdAuthUser = googleUser;
-                 const { finalRole } = await handleFinalUserCreation(createdAuthUser, values);
-                 toast({ title: "Account Created!", description: "Your account is ready. Please log in." });
-                 if (auth?.currentUser) await auth.signOut();
-                 router.push(`/login/${finalRole}`);
+                 await handleFinalUserCreation(createdAuthUser, values);
             } else {
                 if (!values.password) {
                     form.setError('password', { message: 'Password is required for email signup.' });
@@ -175,12 +174,16 @@ export default function DetailedSignupPage() {
                 const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
                 createdAuthUser = userCredential.user;
                 
-                const { finalRole } = await handleFinalUserCreation(createdAuthUser, values);
-                
-                toast({ title: "Account Created!", description: "Your account is active. Please log in.", duration: 8000 });
-                if (auth?.currentUser) await auth.signOut();
-                router.push(`/login/${finalRole}`);
+                await handleFinalUserCreation(createdAuthUser, values);
             }
+
+            // Show pending message instead of redirecting
+            setShowPendingMessage(true);
+
+            // Sign out the user immediately after creation
+            if (auth?.currentUser) await auth.signOut();
+            
+
         } catch (error: any) {
             console.error("Signup failed:", error);
             if (error.code === 'auth/email-already-in-use') {
@@ -236,6 +239,27 @@ export default function DetailedSignupPage() {
         } finally {
             setIsGoogleLoading(false);
         }
+    }
+
+    if (showPendingMessage) {
+        return (
+            <div className="flex min-h-screen w-full items-center justify-center bg-muted/30 p-4">
+                <Card className="w-full max-w-md text-center">
+                    <CardHeader>
+                        <CardTitle className="font-headline text-2xl">Registration Received</CardTitle>
+                        <CardDescription>Thank you for signing up!</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <p className="text-muted-foreground">
+                            Your account is now pending approval from an administrator. You will receive an email with a link to set up your password once your account is approved.
+                        </p>
+                        <Button asChild className="mt-6 w-full">
+                            <Link href="/">Back to Homepage</Link>
+                        </Button>
+                    </CardContent>
+                </Card>
+            </div>
+        )
     }
 
 
