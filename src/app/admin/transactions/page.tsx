@@ -10,7 +10,6 @@ import { useUsers } from "@/hooks/use-users";
 import { useLedger } from "@/hooks/use-ledger";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 import type { LedgerEntry } from "@/lib/types";
 
 function LedgerDetails({ userId, userName }: { userId: string, userName: string }) {
@@ -34,7 +33,7 @@ function LedgerDetails({ userId, userName }: { userId: string, userName: string 
                     <div className="text-right">
                         <div className="text-sm text-muted-foreground">Final Balance</div>
                         <div className={`text-xl font-bold ${finalBalance >= 0 ? 'text-green-600' : 'text-destructive'}`}>
-                            ₹{finalBalance.toLocaleString()}
+                            ₹{finalBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </div>
                     </div>
                 </div>
@@ -75,7 +74,7 @@ export default function TransactionsPage() {
     const { users, loading: usersLoading } = useUsers();
     const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
 
-    const selectedUser = users.find(u => u.id === selectedUserId);
+    const selectedUser = selectedUserId ? users.find(u => u.id === selectedUserId) : null;
 
     return (
         <>
@@ -93,7 +92,7 @@ export default function TransactionsPage() {
                     </CardHeader>
                     <CardContent className="space-y-6">
                         <div className="max-w-sm">
-                            <Select onValueChange={setSelectedUserId} disabled={usersLoading}>
+                            <Select onValueChange={setSelectedUserId} disabled={usersLoading} value={selectedUserId || ""}>
                                 <SelectTrigger>
                                     <SelectValue placeholder={usersLoading ? "Loading users..." : "Select a user..."} />
                                 </SelectTrigger>
@@ -112,6 +111,11 @@ export default function TransactionsPage() {
                         
                         {selectedUser && (
                            <LedgerDetails userId={selectedUser.id} userName={selectedUser.name} />
+                        )}
+                         {usersLoading && (
+                            <div className="flex justify-center items-center h-48">
+                                <Loader2 className="animate-spin" />
+                            </div>
                         )}
                     </CardContent>
                 </Card>
