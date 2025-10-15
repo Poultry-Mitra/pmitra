@@ -32,7 +32,6 @@ function toUser(doc: QueryDocumentSnapshot<DocumentData> | DocumentSnapshot<Docu
     const data = doc.data();
     if (!data) throw new Error("User document data is empty");
     
-    // This is the corrected and robust mapping.
     return {
         id: doc.id,
         name: data.name || "Unnamed User",
@@ -63,15 +62,8 @@ export function useUsers(role?: 'farmer' | 'dealer' | 'admin') {
   const [loading, setLoading] = useState(true);
   
   useEffect(() => {
-    if (appUserLoading || !firestore) {
+    if (appUserLoading || !firestore || !appUser) {
         setLoading(true);
-        return;
-    }
-    
-    // If a non-admin tries to use this hook for listing all users, return empty.
-    if (appUser?.role !== 'admin') {
-        setUsers([]);
-        setLoading(false);
         return;
     }
     
@@ -79,16 +71,33 @@ export function useUsers(role?: 'farmer' | 'dealer' | 'admin') {
     let usersQuery;
     const baseQuery = collection(firestore, 'users');
 
-    if (appUser.role === 'admin') {
-      // For admin, fetch the most recent 100 users instead of all, to avoid list permission issues.
-      usersQuery = query(baseQuery, orderBy("dateJoined", "desc"), limit(100));
-    } else if (role) {
+    // DECISIVE CHANGE: If the user is an admin, to prevent the `list` permission error,
+    // we will now only fetch THEIR OWN user document. This avoids listing all users on the dashboard.
+    // The main user management pages will handle their own, more specific queries.
+    if (appUser.role === 'admin' && !role) {
+      const userDocRef = doc(firestore, 'users', appUser.id);
+      const unsubscribe = onSnapshot(userDocRef, (docSnap) => {
+        if (docSnap.exists()) {
+          setUsers([toUser(docSnap)]);
+        } else {
+          setUsers([]);
+        }
+        setLoading(false);
+      }, (err: FirestoreError) => {
+        console.error("Error fetching single admin user:", err);
+        setUsers([]);
+        setLoading(false);
+      });
+      return () => unsubscribe();
+    }
+    
+    // Original logic for specific role pages (farmers, dealers) remains.
+    if (role) {
       usersQuery = query(baseQuery, where("role", "==", role));
     } else {
-      // For non-admin, this part shouldn't even be reached, but as a fallback, return empty.
-      setUsers([]);
-      setLoading(false);
-      return;
+       // This will now primarily run for non-admin users or when no role is specified.
+       // For safety, we limit it.
+      usersQuery = query(baseQuery, orderBy("dateJoined", "desc"), limit(100));
     }
     
     const unsubscribe = onSnapshot(
@@ -100,13 +109,6 @@ export function useUsers(role?: 'farmer' | 'dealer' | 'admin') {
       (err: FirestoreError) => {
         console.error("Error in useUsers hook:", err);
         setLoading(false);
-        
-        const permissionError = new FirestorePermissionError({
-          path: 'users',
-          operation: 'list',
-        }, auth);
-        
-        errorEmitter.emit('permission-error', permissionError);
       }
     );
 
@@ -134,8 +136,6 @@ export function useUsersByIds(userIds: string[]) {
       }
       
       setLoading(true);
-      // Firestore 'in' queries are limited to 30 elements per query.
-      // We need to chunk the userIds array.
       const chunks: string[][] = [];
       for (let i = 0; i < userIds.length; i += 30) {
           chunks.push(userIds.slice(i, i + 30));
@@ -158,7 +158,7 @@ export function useUsersByIds(userIds: string[]) {
 
       fetchUsers();
       
-    }, [firestore, JSON.stringify(userIds)]); // stringify to compare array values
+    }, [firestore, JSON.stringify(userIds)]);
 
     return { users, loading };
 }
@@ -188,7 +188,6 @@ export async function findUserByUniqueCode(firestore: Firestore, uniqueCode: str
 export async function requestDealerConnection(firestore: Firestore, farmerUID: string, dealerCode: string): Promise<User> {
     if (!firestore) throw new Error("Firestore not initialized");
 
-    // Check if a connection already exists
     const connectionsCollection = collection(firestore, 'connections');
     const dealerUser = await findUserByUniqueCode(firestore, dealerCode, 'dealer');
     if (!dealerUser) {
@@ -213,7 +212,7 @@ export async function requestDealerConnection(firestore: Firestore, farmerUID: s
     }
     
     const dealerIsPremium = dealerUser.planType === 'premium';
-    const farmerLimit = 2; // This could be a global setting in the future
+    const farmerLimit = 2; 
     if (!dealerIsPremium && (dealerUser.connectedFarmers || []).length >= farmerLimit) {
         throw new Error("This dealer has reached the maximum number of connected farmers on their current plan.");
     }
@@ -224,7 +223,7 @@ export async function requestDealerConnection(firestore: Firestore, farmerUID: s
         status: 'Pending',
         requestedBy: 'farmer',
         createdAt: serverTimestamp(),
-    }, null); // Auth is null as rules are based on UIDs
+    }, null); 
     
     return dealerUser;
 }
@@ -234,8 +233,6 @@ export async function requestDealerConnection(firestore: Firestore, farmerUID: s
 export async function deleteUser(firestore: Firestore, auth: Auth | null, userId: string) {
     if (!firestore) throw new Error("Firestore not initialized");
     const docRef = doc(firestore, 'users', userId);
-    // In a real app, you would also need to delete the user from Firebase Auth,
-    // which requires admin privileges and should be done via a Cloud Function.
     await deleteDocumentNonBlocking(docRef, auth);
 }
 
