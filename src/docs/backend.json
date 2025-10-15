@@ -274,7 +274,7 @@
           "schema": {
             "$ref": "#/backend/entities/UserProfile"
           },
-          "description": "Documents in this collection represent admin users. Existence of a document grants admin privileges. Admin email is ipoultrymitra@gmail.com",
+          "description": "Documents in this collection represent admin users. Existence of a document grants admin privileges.",
           "params": [
             {
               "name": "userId",

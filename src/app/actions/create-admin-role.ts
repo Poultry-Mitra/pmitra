@@ -1,24 +1,29 @@
+
 'use server';
 
-import { getFirestore } from 'firebase-admin/firestore';
-import { initializeAdminApp } from '@/firebase/admin-config';
+import { getFirestore, doc, setDoc } from 'firebase/firestore';
+import { initializeApp, getApps, getApp } from 'firebase/app';
+import { firebaseConfig } from '@/firebase/config';
+
+// This is a simplified, client-SDK based action to avoid Admin SDK issues.
+// It should only be called from a trusted environment like the one-time setup page.
 
 /**
- * Sets the admin role for a given user UID.
+ * Sets the admin role for a given user UID by creating a document in the 'roles_admin' collection.
  * This action is intended for one-time use to set up the initial admin.
  * @param uid The user ID to grant admin privileges to.
+ * @param email The user's email.
  * @returns An object indicating the success or failure of the operation.
  */
 export async function createAdminRole(uid: string, email: string): Promise<{ success: boolean; message: string }> {
   try {
-    // Ensure the admin app is initialized and get the app instance.
-    const adminApp = await initializeAdminApp();
-    
-    // Get the Firestore instance from the initialized app.
-    const db = getFirestore(adminApp);
-    const adminRoleRef = db.collection('roles_admin').doc(uid);
+    // We need to initialize a temporary app instance here to use the client SDK on the server.
+    const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+    const db = getFirestore(app);
 
-    await adminRoleRef.set({
+    const adminRoleRef = doc(db, 'roles_admin', uid);
+
+    await setDoc(adminRoleRef, {
       email: email,
       role: 'admin',
       createdAt: new Date().toISOString(),
