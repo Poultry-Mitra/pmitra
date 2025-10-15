@@ -11,6 +11,10 @@
           "type": "string",
           "description": "Unique identifier for the user profile."
         },
+        "poultryMitraId": {
+            "type": "string",
+            "description": "A user-facing, unique, and indexable ID (e.g., PM-FARM-ABC12)."
+        },
         "email": {
           "type": "string",
           "description": "Email address of the user.",
