@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import Link from "next/link";
@@ -124,14 +123,14 @@ export function DealerSidebar() {
                     </Link>
                 </SidebarMenuItem>
 
-                 {/* Procurement Group */}
+                 {/* Purchases Group */}
                 <Collapsible open={procurementOpen} onOpenChange={setProcurementOpen}>
                     <SidebarMenuItem className="relative">
                     <CollapsibleTrigger asChild>
-                        <SidebarMenuButton tooltip="Procurement" className="w-full justify-between pr-8" isActive={pathname.startsWith("/dealer/suppliers") || pathname.startsWith('/dealer/my-inventory/add')}>
+                        <SidebarMenuButton tooltip="Purchases" className="w-full justify-between pr-8" isActive={pathname.startsWith("/dealer/suppliers") || pathname.startsWith('/dealer/my-inventory/add')}>
                             <div className="flex items-center gap-3">
                                 <ShoppingCart />
-                                <span>Procurement</span>
+                                <span>Purchases</span>
                             </div>
                         </SidebarMenuButton>
                     </CollapsibleTrigger>
@@ -161,14 +160,14 @@ export function DealerSidebar() {
                     </CollapsibleContent>
                 </Collapsible>
 
-                 {/* Sales Group */}
+                 {/* Customers & Sales Group */}
                 <Collapsible open={salesOpen} onOpenChange={setSalesOpen}>
                     <SidebarMenuItem className="relative">
                     <CollapsibleTrigger asChild>
-                        <SidebarMenuButton tooltip="Sales" className="w-full justify-between pr-8" isActive={pathname.startsWith("/dealer/my-farmers") || pathname.startsWith('/dealer/my-orders')}>
+                        <SidebarMenuButton tooltip="Customers &amp; Sales" className="w-full justify-between pr-8" isActive={pathname.startsWith("/dealer/my-farmers") || pathname.startsWith('/dealer/my-orders')}>
                             <div className="flex items-center gap-3">
                                 <Users />
-                                <span>Sales</span>
+                                <span>Customers &amp; Sales</span>
                             </div>
                         </SidebarMenuButton>
                     </CollapsibleTrigger>
@@ -209,7 +208,7 @@ export function DealerSidebar() {
             </SidebarMenu>
 
              <SidebarSeparator />
-            <SidebarGroupLabel>AI & Analytics</SidebarGroupLabel>
+            <SidebarGroupLabel>AI &amp; Analytics</SidebarGroupLabel>
             <SidebarMenu>
                  <SidebarMenuItem>
                     <Link href="/dealer/chat">
@@ -289,3 +288,5 @@ export function DealerSidebar() {
     </>
   );
 }
+
+    
