@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
@@ -10,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Send, WandSparkles } from 'lucide-react';
 import { AppIcon } from '@/app/icon-component';
-import { aiQueryPoultryAction } from '@/app/ai/actions';
+import { siteExpertAction } from '@/app/ai/actions';
 import { ChatBubble } from './chat-bubble';
 import { useAppUser } from '@/app/app-provider';
 import { useLanguage } from '../language-provider';
@@ -61,7 +62,7 @@ export function FloatingChatWidget() {
     setLoading(true);
 
     try {
-      const result = await aiQueryPoultryAction({ query: currentQuery });
+      const result = await siteExpertAction({ query: currentQuery });
       const aiMessage: Message = { id: (Date.now() + 1).toString(), text: result.answer, sender: 'ai' };
       setMessages((prev) => [...prev, aiMessage]);
     } catch (error) {

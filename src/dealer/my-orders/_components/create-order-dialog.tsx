@@ -1,4 +1,3 @@
-
 // src/app/dealer/my-orders/_components/create-order-dialog.tsx
 "use client";
 
@@ -25,14 +24,14 @@ import {
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { useFirestore, useAuth, AuthContext } from '@/firebase/provider';
+import { useFirestore, useAuth } from '@/firebase/provider';
 import { useUsersByIds } from "@/hooks/use-users";
 import { useDealerInventory } from "@/hooks/use-dealer-inventory";
 import { createOrder } from "@/hooks/use-orders";
 import { Send, Loader2 } from "lucide-react";
-import { useMemo, useEffect, useState, useContext } from "react";
-import type { User } from "@/lib/types";
-import { doc, onSnapshot } from "firebase/firestore";
+import { useMemo } from "react";
+import { useAppUser } from "@/app/app-provider";
+
 
 const formSchema = z.object({
     farmerUID: z.string().min(1, "Please select a farmer."),
@@ -46,23 +45,11 @@ export function CreateOrderDialog({ open, onOpenChange }: { open: boolean; onOpe
     const { toast } = useToast();
     const firestore = useFirestore();
     const auth = useAuth();
-    const { user: dealerUser } = useContext(AuthContext)!;
-    const [dealerInfo, setDealerInfo] = useState<User | null>(null);
+    const { user: dealerUser } = useAppUser();
 
-    useEffect(() => {
-        if(dealerUser && firestore) {
-            const unsub = onSnapshot(doc(firestore, 'users', dealerUser.uid), (doc) => {
-                if(doc.exists()) {
-                    setDealerInfo(doc.data() as User);
-                }
-            });
-            return () => unsub();
-        }
-    }, [dealerUser, firestore]);
-
-    const farmerIds = useMemo(() => dealerInfo?.connectedFarmers || [], [dealerInfo]);
+    const farmerIds = useMemo(() => dealerUser?.connectedFarmers || [], [dealerUser]);
     const { users: farmers, loading: farmersLoading } = useUsersByIds(farmerIds);
-    const { inventory: products, loading: productsLoading } = useDealerInventory(dealerUser?.uid || '');
+    const { inventory: products, loading: productsLoading } = useDealerInventory(dealerUser?.id || '');
 
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
@@ -89,9 +76,9 @@ export function CreateOrderDialog({ open, onOpenChange }: { open: boolean; onOpe
         }
 
         try {
-            await createOrder(firestore, auth, {
+            await createOrder(firestore, {
                 farmerUID: values.farmerUID,
-                dealerUID: dealerUser.uid,
+                dealerUID: dealerUser.id,
                 isOfflineSale: false,
                 productId: values.productId,
                 productName: selectedProduct.productName,
@@ -106,8 +93,8 @@ export function CreateOrderDialog({ open, onOpenChange }: { open: boolean; onOpe
             });
             onOpenChange(false);
             form.reset();
-        } catch (error) {
-            toast({ title: "Error", description: "Failed to create order.", variant: "destructive" });
+        } catch (error: any) {
+            toast({ title: "Error", description: error.message || "Failed to create order.", variant: "destructive" });
         }
     }
     

@@ -66,10 +66,10 @@ export default function RootLayout({
                     <FirebaseErrorListener />
                     {children}
                     <FloatingChatWidget />
-                    <Toaster />
                   </ChatProvider>
                 </AppProvider>
             </FirebaseProvider>
+            <Toaster />
           </ThemeProvider>
         </LanguageProvider>
       </body>

@@ -239,6 +239,7 @@ const connectNavItems = [
 ];
 
 const aiNavItems = [
+    { href: "/chat", icon: MessageSquare, label: "ai_chat.title" },
     { href: "/monitoring", icon: Signal, label: "monitoring.title" },
     { href: "/biosecurity", icon: ShieldCheck, label: "biosecurity.title" },
     { href: "/analytics", icon: AreaChart, label: "analytics.title"},

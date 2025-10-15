@@ -177,7 +177,6 @@ export default function LandingPage() {
             <Link href="/pricing" className="text-muted-foreground transition-colors hover:text-foreground">{t('nav.pricing')}</Link>
             <Link href="/blog" className="text-muted-foreground transition-colors hover:text-foreground">Guide</Link>
             <Link href="/daily-rates" className="text-muted-foreground transition-colors hover:text-foreground">{t('daily_rates.title')}</Link>
-            <Link href="/chat" className="text-muted-foreground transition-colors hover:text-foreground">{t('nav.ai_chat')}</Link>
             <Link href="#contact" className="text-muted-foreground transition-colors hover:text-foreground">{t('nav.contact')}</Link>
           </nav>
           <div className="ml-auto flex items-center space-x-2">

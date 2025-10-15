@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import Link from "next/link";
@@ -211,8 +212,8 @@ export function DealerSidebar() {
             <SidebarGroupLabel>AI &amp; Analytics</SidebarGroupLabel>
             <SidebarMenu>
                  <SidebarMenuItem>
-                    <Link href="/dealer/chat">
-                        <SidebarMenuButton isActive={pathname === "/dealer/chat"} tooltip={t('dealer.chat')}>
+                    <Link href="/chat">
+                        <SidebarMenuButton isActive={pathname === "/chat"} tooltip={t('dealer.chat')}>
                         <MessageSquare />
                         <span>{t('dealer.chat')}</span>
                          {!isPremium && <Badge variant="secondary" className="ml-auto group-data-[state=collapsed]:hidden">PRO</Badge>}
