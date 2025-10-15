@@ -15,7 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth, useFirestore } from "@/firebase/provider";
-import { GoogleAuthProvider, signInWithPopup, type User as FirebaseAuthUser, createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth";
+import { GoogleAuthProvider, signInWithPopup, type User as FirebaseAuthUser, createUserWithEmailAndPassword, fetchSignInMethodsForEmail } from "firebase/auth";
 import { doc, getDoc, collection, query, where, getDocs, limit, deleteDoc, setDoc } from "firebase/firestore";
 import { AppIcon } from "@/app/icon-component";
 import { Loader2 } from "lucide-react";
@@ -144,8 +144,6 @@ export default function DetailedSignupPage() {
         if (invitation) {
             await deleteDoc(doc(firestore, 'invitations', invitation.id));
         }
-
-        // Removed email verification logic
     }
 
 
@@ -158,6 +156,14 @@ export default function DetailedSignupPage() {
         let createdAuthUser: FirebaseAuthUser | null = null;
         
         try {
+            // Check if user already exists in Firebase Auth before trying to create a new one
+            const signInMethods = await fetchSignInMethodsForEmail(auth, values.email);
+            if (signInMethods.length > 0 && !googleUser) {
+                form.setError('email', { type: 'manual', message: 'This email is already registered. Please login.' });
+                setIsSubmitting(false);
+                return;
+            }
+
             if (authProvider === 'google' && googleUser) {
                  createdAuthUser = googleUser;
                  await handleFinalUserCreation(createdAuthUser, values);
@@ -183,11 +189,13 @@ export default function DetailedSignupPage() {
 
         } catch (error: any) {
             console.error("Signup failed:", error);
-            if (error.code === 'auth/email-already-in-use') {
+            // Error handling is more specific now
+             if (error.code === 'auth/email-already-in-use') {
                 form.setError('email', { type: 'manual', message: 'This email is already registered. Please login.' });
             } else {
                 toast({ title: "Signup Failed", description: error.message || "An unexpected error occurred.", variant: "destructive" });
             }
+            // Rollback auth user creation if firestore part fails
             if (createdAuthUser) {
                 try {
                     await createdAuthUser.delete();

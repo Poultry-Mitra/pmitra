@@ -1,32 +1,26 @@
 
 'use server';
 
-import { z } from 'zod';
+// This input type is exported for use in other server components if needed.
+export type CreateProfileInput = {
+  uid: string;
+  name: string;
+  email: string;
+  role: 'farmer' | 'dealer' | 'admin';
+  status: 'Pending' | 'Active' | 'Suspended';
+  planType: 'free' | 'premium';
+  mobileNumber?: string;
+  state: string;
+  district: string;
+  pinCode?: string;
+};
 
-// This schema is now internal and not exported to avoid breaking client-side builds.
-const CreateProfileInputSchema = z.object({
-  uid: z.string().describe("The user's Firebase Authentication UID."),
-  name: z.string().describe("The user's full name."),
-  email: z.string().email().describe("The user's email address."),
-  role: z.enum(['farmer', 'dealer', 'admin']).describe("The user's role."),
-  status: z.enum(['Pending', 'Active', 'Suspended']).describe("The user's status."),
-  planType: z.enum(['free', 'premium']).describe("The user's subscription plan."),
-  mobileNumber: z.string().optional().describe("The user's mobile number."),
-  state: z.string().describe("The user's state."),
-  district: z.string().describe("The user's district."),
-  pinCode: z.string().optional().describe("The user's pin code."),
-});
-
-// The input type is still exported for use in other server components if needed.
-export type CreateProfileInput = z.infer<typeof CreateProfileInputSchema>;
-
-// The output schema defines the shape of the object this flow returns.
-const CreateProfileOutputSchema = z.object({
-  success: z.boolean(),
-  message: z.string(),
-  userProfile: z.any().optional(), // The profile object to be saved on the client.
-});
-export type CreateProfileOutput = z.infer<typeof CreateProfileOutputSchema>;
+// The output type for this action.
+export type CreateProfileOutput = {
+  success: boolean;
+  message: string;
+  userProfile?: any; // The profile object to be saved on the client.
+};
 
 // The main exported function that can be called from server components.
 export async function createProfile(input: CreateProfileInput): Promise<CreateProfileOutput> {

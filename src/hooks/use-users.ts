@@ -27,7 +27,6 @@ function toUser(doc: QueryDocumentSnapshot<DocumentData> | DocumentSnapshot<Docu
     const data = doc.data();
     if (!data) throw new Error("User document data is empty");
     
-    // Return a sanitized user object, excluding potentially sensitive or large fields for general queries
     return {
         id: doc.id,
         name: data.name,
@@ -103,7 +102,7 @@ export function useUsersByIds(userIds: string[]) {
       if (!firestore || !userIds || userIds.length === 0) return null;
       // Firestore 'in' queries are limited to 30 elements.
       return query(collection(firestore, 'users'), where('__name__', 'in', userIds.slice(0, 30)));
-    }, [firestore, userIds]);
+    }, [firestore, JSON.stringify(userIds)]); // stringify to ensure dependency check works on array content
 
 
     useEffect(() => {

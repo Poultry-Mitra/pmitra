@@ -100,12 +100,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     const requiredRole = getRoleFromPath(pathname);
     
-    // If user is already on a public page, the root, or an unknown page, do nothing.
+    // If a logged-in user is on the root page, redirect them to their dashboard.
+    if (appUser && requiredRole === 'root') {
+        router.replace(getRedirectPath(appUser.role));
+        return;
+    }
+    
+    // If the path is public or unknown, no redirection needed.
     if (requiredRole === 'public' || requiredRole === 'root' || requiredRole === 'none') {
-        // However, if a logged-in user is on the root page, redirect them to their dashboard.
-        if (appUser && requiredRole === 'root') {
-             router.replace(getRedirectPath(appUser.role));
-        }
         return;
     }
 

@@ -84,8 +84,8 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
     const [detailsUser, setDetailsUser] = useState<User | null>(null);
     const { toast } = useToast();
     const firestore = useFirestore();
-    const adminUser = useContext(AuthContext)!;
-    const auth = adminUser.isUserLoading ? null : adminUser;
+    const { user: adminUser, isUserLoading } = useContext(AuthContext)!;
+    const auth = getAuth();
     const { t } = useLanguage();
     const [activeTab, setActiveTab] = useState<string>("pending");
     
@@ -120,19 +120,18 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
     const description = roleToShow ? t(`admin.users.description_${roleToShow}`) : t('admin.users.description_recent');
 
     const handleApproveUser = async (user: User) => {
-        if (!firestore || !adminUser.user || !auth || !user.email) return;
+        if (!firestore || !adminUser || !user.email) return;
 
         try {
             // 1. Update user status to 'Active'
-            updateUserStatus(firestore, auth as any, user.id, 'Active');
+            updateUserStatus(firestore, auth, user.id, 'Active');
 
             // 2. Send password reset email
-            const firebaseAuth = getAuth();
-            await sendPasswordResetEmail(firebaseAuth, user.email);
+            await sendPasswordResetEmail(auth, user.email);
             
             // 3. Log the audit trail
             await addAuditLog(firestore, {
-                adminUID: adminUser.user.uid,
+                adminUID: adminUser.uid,
                 action: 'UPDATE_USER_STATUS',
                 details: `Approved user ${user.name} and sent password setup email.`,
             });
@@ -153,7 +152,7 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
     };
 
     const handleStatusUpdate = async (newStatus: UserStatus) => {
-        if (!dialogState.user || !firestore || !adminUser.user || !auth) return;
+        if (!dialogState.user || !firestore || !adminUser) return;
         
         const finalReason = reason === 'other' ? otherReason : reason;
         if ((dialogState.action === 'suspend' && !finalReason) || (dialogState.action === 'delete' && !finalReason)) {
@@ -166,9 +165,9 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
         }
 
         try {
-            updateUserStatus(firestore, auth as any, dialogState.user.id, newStatus);
+            updateUserStatus(firestore, auth, dialogState.user.id, newStatus);
             await addAuditLog(firestore, {
-                adminUID: adminUser.user.uid,
+                adminUID: adminUser.uid,
                 action: 'UPDATE_USER_STATUS',
                 details: `Changed status of ${dialogState.user.name} to ${newStatus}. ${finalReason ? `Reason: ${finalReason}` : ''}`,
             });
@@ -191,7 +190,7 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
     };
 
     const handleDelete = async () => {
-        if (!dialogState.user || !firestore || !adminUser.user || !auth) return;
+        if (!dialogState.user || !firestore || !adminUser) return;
 
         const finalReason = reason === 'other' ? otherReason : reason;
          if (!finalReason) {
@@ -204,11 +203,11 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
         }
 
         try {
-            deleteUser(firestore, auth as any, dialogState.user.id);
+            deleteUser(firestore, auth, dialogState.user.id);
             handleUserDeletion(dialogState.user.id); // Immediately remove from UI
             
             await addAuditLog(firestore, {
-                adminUID: adminUser.user.uid,
+                adminUID: adminUser.uid,
                 action: 'DELETE_USER',
                 details: `Deleted user: ${dialogState.user.name} (${dialogState.user.id}). Reason: ${finalReason}`,
             });
@@ -232,7 +231,7 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
     };
 
     const handlePlanChange = async () => {
-        if (!planChangeState.user || !firestore || !adminUser.user || !planChangeState.newPlan || !auth) return;
+        if (!planChangeState.user || !firestore || !adminUser || !planChangeState.newPlan) return;
         
         if (!planChangeState.reason) {
              toast({ title: "Reason Required", description: "Please provide a reason for this plan change.", variant: "destructive" });
@@ -240,9 +239,9 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
         }
 
         try {
-            updateUserPlan(firestore, auth as any, planChangeState.user.id, planChangeState.newPlan);
+            updateUserPlan(firestore, auth, planChangeState.user.id, planChangeState.newPlan);
             await addAuditLog(firestore, {
-                adminUID: adminUser.user.uid,
+                adminUID: adminUser.uid,
                 action: 'UPDATE_USER_PLAN',
                 details: `Changed plan for ${planChangeState.user.name} to ${planChangeState.newPlan}. Reason: ${planChangeState.reason}`,
             });
