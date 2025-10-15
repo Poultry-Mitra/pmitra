@@ -21,7 +21,6 @@ import { AppIcon } from "@/app/icon-component";
 import { Loader2 } from "lucide-react";
 import indianStates from "@/lib/indian-states-districts.json";
 import type { Invitation, UserRole } from "@/lib/types";
-import { createProfile } from "@/ai/flows/create-profile";
 
 
 const formSchema = z.object({
@@ -109,19 +108,17 @@ export default function DetailedSignupPage() {
         }
     }, [selectedState, form]);
     
-    async function handleFinalUserCreation(user: FirebaseAuthUser, values: FormValues, isEmailSignup: boolean) {
+    async function handleFinalUserCreation(user: FirebaseAuthUser, values: FormValues) {
         if (!firestore) {
             throw new Error("Firestore not available.");
         };
 
         const isAdminEmail = values.email.toLowerCase() === 'ipoultrymitra@gmail.com';
         const finalRole = invitation?.role || (isAdminEmail ? 'admin' : initialRole);
-        const finalStatus = invitation ? 'Active' : (isAdminEmail ? 'Active' : 'Pending');
+        const finalStatus = 'Active'; // Auto-activate user
         const finalPlan = invitation?.planType || (isAdminEmail ? 'premium' : 'free');
 
-        // This flow now only creates a profile *object*, it does not write to the DB.
-        const profileResponse = await createProfile({
-            uid: user.uid,
+        const userProfile: any = {
             name: values.fullName,
             email: values.email,
             role: finalRole,
@@ -131,26 +128,27 @@ export default function DetailedSignupPage() {
             state: values.state,
             district: values.district,
             pinCode: values.pinCode || "",
-        });
+            aiQueriesCount: 0,
+            lastQueryDate: "",
+            dateJoined: new Date().toISOString(),
+        };
 
-        if (!profileResponse.success || !profileResponse.userProfile) {
-            throw new Error(profileResponse.message);
+        if (finalRole === 'dealer') {
+            userProfile.uniqueDealerCode = `DL-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+            userProfile.connectedFarmers = [];
+        }
+        if (finalRole === 'farmer') {
+            userProfile.connectedDealers = [];
         }
 
-        // Now, we perform the actual write operation to Firestore from the client.
         const userDocRef = doc(firestore, 'users', user.uid);
-        await setDoc(userDocRef, profileResponse.userProfile);
+        await setDoc(userDocRef, userProfile);
         
         if (invitation) {
             await deleteDoc(doc(firestore, 'invitations', invitation.id));
         }
 
-        // Send verification email ONLY if it's an email signup and not an admin
-        if (isEmailSignup && !isAdminEmail) {
-            await sendEmailVerification(user);
-        }
-
-        return { finalRole, finalStatus };
+        return { finalRole };
     }
 
     async function onSubmit(values: FormValues) {
@@ -164,8 +162,8 @@ export default function DetailedSignupPage() {
         try {
             if (authProvider === 'google' && googleUser) {
                  createdAuthUser = googleUser;
-                 const { finalRole } = await handleFinalUserCreation(createdAuthUser, values, false); // isEmailSignup is false
-                 toast({ title: "Account Finalized!", description: "Your account is ready. Redirecting to login." });
+                 const { finalRole } = await handleFinalUserCreation(createdAuthUser, values);
+                 toast({ title: "Account Created!", description: "Your account is ready. Please log in." });
                  if (auth?.currentUser) await auth.signOut();
                  router.push(`/login/${finalRole}`);
             } else {
@@ -177,9 +175,9 @@ export default function DetailedSignupPage() {
                 const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
                 createdAuthUser = userCredential.user;
                 
-                const { finalRole } = await handleFinalUserCreation(createdAuthUser, values, true); // isEmailSignup is true
+                const { finalRole } = await handleFinalUserCreation(createdAuthUser, values);
                 
-                toast({ title: "Account Created!", description: "A verification email has been sent. Please check your inbox.", duration: 8000 });
+                toast({ title: "Account Created!", description: "Your account is active. Please log in.", duration: 8000 });
                 if (auth?.currentUser) await auth.signOut();
                 router.push(`/login/${finalRole}`);
             }
@@ -190,7 +188,6 @@ export default function DetailedSignupPage() {
             } else {
                 toast({ title: "Signup Failed", description: error.message || "An unexpected error occurred.", variant: "destructive" });
             }
-             // Rollback Auth user if profile creation failed
             if (createdAuthUser) {
                 try {
                     await createdAuthUser.delete();

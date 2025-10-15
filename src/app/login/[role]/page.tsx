@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -11,9 +12,9 @@ import { Input } from '@/components/ui/input';
 import { useAuth, useFirestore } from '@/firebase/provider';
 import { useEffect, useState, useRef } from 'react';
 import { useRouter, useParams, useSearchParams } from 'next/navigation';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc } from 'firebase/firestore';
 import type { User as AppUser, UserRole } from '@/lib/types';
-import { sendPasswordResetEmail, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, type User as FirebaseAuthUser, sendEmailVerification } from 'firebase/auth';
+import { sendPasswordResetEmail, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, type User as FirebaseAuthUser } from 'firebase/auth';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -53,10 +54,6 @@ export default function RoleLoginPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   
-  const authForResend = useRef<typeof auth | null>(null);
-  authForResend.current = auth;
-
-
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: { email: '', password: '' },
@@ -82,29 +79,10 @@ export default function RoleLoginPage() {
     }
   }, [appUser, isAppLoading, router]);
 
-  const resendVerificationEmail = async () => {
-    const auth = authForResend.current;
-    if (auth && auth.currentUser) {
-      try {
-        await sendEmailVerification(auth.currentUser);
-        toast({ title: "Verification Email Sent", description: "A new verification link has been sent to your email address." });
-      } catch (error) {
-        toast({ title: "Error", description: "Failed to send verification email. Please try again later.", variant: "destructive" });
-      } finally {
-        await auth.signOut();
-      }
-    }
-  };
-
   async function handleLoginSuccess(user: FirebaseAuthUser) {
     if (!firestore || !auth) {
       throw new Error('System not ready. Please try again.');
     }
-
-    const isEmailPasswordSignIn = user.providerData.some(p => p.providerId === 'password');
-    // We need to reload the user to get the latest emailVerified status
-    await user.reload();
-    const isEmailVerified = user.emailVerified;
     
     // Special handling for admin role, no need to check 'users' collection
     if (role === 'admin' && user.email === 'ipoultrymitra@gmail.com') {
@@ -122,7 +100,6 @@ export default function RoleLoginPage() {
 
     if (!docSnap.exists()) {
       await auth.signOut();
-      // Throw a specific error to be caught by the caller.
       throw new Error('User profile not found. Please sign up or contact support.');
     }
 
@@ -133,21 +110,6 @@ export default function RoleLoginPage() {
       toast({ title: "Role Mismatch", description: `This account is a ${userData.role || 'undefined'}. Please use the correct login page.`, variant: "destructive" });
       router.replace(`/login/${userData.role}`);
       return;
-    }
-
-    // Auto-activate user if they are pending and have verified their email
-    if (userData.status === 'Pending' && isEmailVerified) {
-        await updateDoc(userDocRef, { status: 'Active' });
-        userData.status = 'Active'; // Update local object to continue login flow
-    } else if (isEmailPasswordSignIn && !isEmailVerified) {
-        toast({
-            title: "Email Not Verified",
-            description: "Please verify your email address before logging in. Check your inbox for a verification link.",
-            variant: "destructive",
-            action: <Button variant="secondary" size="sm" onClick={resendVerificationEmail}>Resend Email</Button>,
-            duration: 10000,
-        });
-        throw new Error("Email not verified");
     }
     
     if (userData.status !== 'Active') {
@@ -169,15 +131,11 @@ export default function RoleLoginPage() {
       await handleLoginSuccess(userCredential.user);
     } catch (error: any) {
         let message = error.message || 'An unknown error occurred.';
-        // Don't show generic error for specific auth codes
         if (['auth/user-not-found', 'auth/wrong-password', 'auth/invalid-credential'].includes(error.code)) {
             message = 'Invalid email or password. Please try again.';
         }
         
-        // Don't show toast if it's our custom "Email not verified" error
-        if (message !== "Email not verified") {
-            toast({ title: 'Login Failed', description: message, variant: 'destructive' });
-        }
+        toast({ title: 'Login Failed', description: message, variant: 'destructive' });
     } finally {
         setIsSubmitting(false);
     }
