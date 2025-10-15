@@ -12,6 +12,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { RevenueChart } from "../_components/revenue-chart";
 import { RecentUsers } from "./_components/recent-users";
 import { RecentTransactions } from "./_components/recent-transactions";
+import { Button } from "@/components/ui/button";
+import Link from 'next/link';
 
 function KpiCard({ title, value, change, changeColor, icon: Icon }: { title: string, value: string | number, change: string, changeColor: string, icon: React.ElementType }) {
     return (
@@ -52,7 +54,13 @@ export default function AdminDashboardPage() {
 
     return (
         <>
-            <PageHeader title={t('admin.dashboard.title')} description={t('admin.dashboard.description')} />
+            <PageHeader title={t('admin.dashboard.title')} description={t('admin.dashboard.description')}>
+                <Button asChild>
+                    <Link href="/admin/setup">
+                        One-Time Admin Setup
+                    </Link>
+                </Button>
+            </PageHeader>
             <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                {loading || !kpiData ? (
                    [...Array(3)].map((_, i) => (

@@ -67,7 +67,7 @@ export function useUsers(role?: 'farmer' | 'dealer' | 'admin') {
         return;
     }
     
-    // **CRITICAL FIX**: Only admins can list users. If the user is not an admin,
+    // CRITICAL FIX: Only admins can list users. If the user is not an admin,
     // immediately return an empty array and stop loading.
     if (appUser?.role !== 'admin') {
         setUsers([]);
@@ -95,8 +95,6 @@ export function useUsers(role?: 'farmer' | 'dealer' | 'admin') {
         console.error("Original error in useUsers:", err); // Keep original for server logs
         setLoading(false);
         
-        // The permission error is now thrown from the component that uses the hook if needed,
-        // but this client-side check should prevent it in the first place.
         const permissionError = new FirestorePermissionError({
           path: 'users', // The collection path being queried
           operation: 'list', // This is a collection read operation
