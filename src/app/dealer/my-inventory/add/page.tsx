@@ -43,7 +43,7 @@ const productSchema = z.object({
 
 const formSchema = z.object({
   // Supplier
-  supplierName: z.string().min(1, "Please select a supplier."),
+  supplierId: z.string().min(1, "Please select a supplier."),
   
   // Products Array
   products: z.array(productSchema).min(1, "Please add at least one product."),
@@ -133,7 +133,7 @@ export default function AddStockPage() {
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            supplierName: "",
+            supplierId: "",
             products: [{ 
                 productName: "", 
                 category: "Feed", 
@@ -237,10 +237,13 @@ export default function AddStockPage() {
 
         try {
              await runTransaction(firestore, async (transaction) => {
+                const supplier = suppliers.find(s => s.id === values.supplierId);
+                if (!supplier) throw new Error("Supplier not found");
+
                 // 1. Add inventory items
                 for (const product of values.products) {
                     addDealerInventoryItem(firestore, auth, user.id, {
-                        supplierName: values.supplierName,
+                        supplierName: supplier.name,
                         productName: product.productName,
                         category: product.category,
                         quantity: product.quantity,
@@ -256,8 +259,7 @@ export default function AddStockPage() {
                 const netPayable = values.products.reduce((acc, p) => acc + (p.purchaseRatePerUnit * p.quantity) - p.discountAmount, 0) 
                                  + values.transportCost + values.miscCost;
 
-                const supplier = suppliers.find(s => s.id === values.supplierName);
-                const ledgerDescription = `Purchase from ${supplier?.name || 'Unknown Supplier'}` + (values.invoiceNumber ? ` (Bill: ${values.invoiceNumber})` : '');
+                const ledgerDescription = `Purchase from ${supplier.name}` + (values.invoiceNumber ? ` (Bill: ${values.invoiceNumber})` : '');
                 
                 if (netPayable > 0) {
                      await addLedgerEntry(firestore, user.id, {
@@ -270,7 +272,7 @@ export default function AddStockPage() {
                 // 3. Add a credit entry if payment was made
                 if (values.amountPaid > 0) {
                      await addLedgerEntry(firestore, user.id, {
-                        description: `Payment to ${supplier?.name || 'Unknown Supplier'} via ${values.paymentMethod}`,
+                        description: `Payment to ${supplier.name} via ${values.paymentMethod}`,
                         amount: values.amountPaid,
                         date: new Date(values.invoiceDate).toISOString(),
                     }, 'Credit');
@@ -306,7 +308,7 @@ export default function AddStockPage() {
                                         <CardTitle>Supplier Details</CardTitle>
                                     </CardHeader>
                                     <CardContent>
-                                        <FormField name="supplierName" control={form.control} render={({ field }) => (
+                                        <FormField name="supplierId" control={form.control} render={({ field }) => (
                                             <FormItem>
                                                 <FormLabel>Select Supplier</FormLabel>
                                                 <Select onValueChange={field.onChange} defaultValue={field.value} disabled={suppliersLoading} key={suppliers.length}>
