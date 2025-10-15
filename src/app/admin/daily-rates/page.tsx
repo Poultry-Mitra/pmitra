@@ -1,3 +1,4 @@
+
 // src/app/admin/daily-rates/page.tsx
 "use client";
 
@@ -213,7 +214,6 @@ export default function DailyRateManagementPage() {
         }
     }
 
-
     return (
         <>
             <PageHeader title="Daily Rate Management" description="Update daily market rates for poultry products." />
@@ -384,3 +384,5 @@ export default function DailyRateManagementPage() {
         </>
     );
 }
+
+    
