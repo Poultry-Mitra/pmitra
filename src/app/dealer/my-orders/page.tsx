@@ -30,6 +30,7 @@ import type { Order } from '@/lib/types';
 import Link from 'next/link';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useLanguage } from '@/components/language-provider';
+import { CreateOrderDialog } from './_components/create-order-dialog';
 
 
 const statusConfig = {
@@ -48,6 +49,7 @@ export default function MyOrdersPage() {
     const { toast } = useToast();
     const [activeTab, setActiveTab] = useState("pending");
     const { t } = useLanguage();
+    const [isCreateOrderOpen, setCreateOrderOpen] = useState(false);
 
     const farmerIds = useMemo(() => {
         if (ordersLoading) return [];
@@ -96,12 +98,17 @@ export default function MyOrdersPage() {
                 title={t('dealer.farmer_orders')}
                 description="Review and manage incoming orders from your connected farmers."
             >
-                <Button asChild>
-                    <Link href="/dealer/my-orders/create">
+                <div className="flex items-center gap-2">
+                     <Button variant="outline" asChild>
+                        <Link href="/dealer/my-orders/create">
+                            Record Offline Sale
+                        </Link>
+                    </Button>
+                    <Button onClick={() => setCreateOrderOpen(true)}>
                         <PlusCircle className="mr-2" />
                         {t('dealer.create_order')}
-                    </Link>
-                </Button>
+                    </Button>
+                </div>
             </PageHeader>
 
             <div className="mt-8">
@@ -180,6 +187,7 @@ export default function MyOrdersPage() {
                     </CardContent>
                 </Card>
             </div>
+            <CreateOrderDialog open={isCreateOrderOpen} onOpenChange={setCreateOrderOpen} />
         </>
     );
 }

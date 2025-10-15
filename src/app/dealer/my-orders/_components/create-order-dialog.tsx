@@ -25,7 +25,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { useFirestore, useAuth } from "@/firebase/provider";
+import { useFirestore } from "@/firebase/provider";
 import { useUsersByIds } from "@/hooks/use-users";
 import { useDealerInventory } from "@/hooks/use-dealer-inventory";
 import { createOrder } from "@/hooks/use-orders";
@@ -45,7 +45,6 @@ type FormValues = z.infer<typeof formSchema>;
 export function CreateOrderDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
     const { toast } = useToast();
     const firestore = useFirestore();
-    const auth = useAuth();
     const { user: dealerUser } = useAppUser();
 
     const farmerIds = useMemo(() => dealerUser?.connectedFarmers || [], [dealerUser]);
@@ -65,7 +64,7 @@ export function CreateOrderDialog({ open, onOpenChange }: { open: boolean; onOpe
     const selectedProduct = products.find(p => p.id === selectedProductId);
 
     async function onSubmit(values: FormValues) {
-        if (!dealerUser || !selectedProduct || !firestore || !auth) {
+        if (!dealerUser || !selectedProduct || !firestore) {
             toast({ title: "Error", description: "Could not create order.", variant: "destructive" });
             return;
         }
@@ -77,7 +76,7 @@ export function CreateOrderDialog({ open, onOpenChange }: { open: boolean; onOpe
         }
 
         try {
-            await createOrder(firestore, auth, {
+            await createOrder(firestore, {
                 farmerUID: values.farmerUID,
                 dealerUID: dealerUser.id,
                 isOfflineSale: false,
@@ -94,8 +93,8 @@ export function CreateOrderDialog({ open, onOpenChange }: { open: boolean; onOpe
             });
             onOpenChange(false);
             form.reset();
-        } catch (error) {
-            toast({ title: "Error", description: "Failed to create order.", variant: "destructive" });
+        } catch (error: any) {
+            toast({ title: "Error", description: error.message || "Failed to create order.", variant: "destructive" });
         }
     }
     
@@ -144,7 +143,7 @@ export function CreateOrderDialog({ open, onOpenChange }: { open: boolean; onOpe
                                     </FormControl>
                                     <SelectContent>
                                         {products.map(product => (
-                                            <SelectItem key={product.id} value={product.id}>
+                                            <SelectItem key={product.id} value={product.id} disabled={product.quantity <= 0}>
                                                 {product.productName} (Stock: {product.quantity})
                                             </SelectItem>
                                         ))}
