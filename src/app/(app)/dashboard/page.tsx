@@ -1,3 +1,4 @@
+
 // src/app/(app)/dashboard/page.tsx
 "use client";
 
@@ -18,6 +19,7 @@ import { useUsersByIds } from '@/hooks/use-users';
 import { useFirestore, useAuth } from '@/firebase/provider';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { PageHeader } from '../_components/page-header';
+import { VaccinationReminders } from './_components/vaccination-reminders';
 
 
 function DealerConnectionRequests() {
@@ -147,9 +149,12 @@ export default function DashboardPage() {
           <DashboardStats batches={activeBatches} loading={batchesLoading} />
       </div>
 
-      <div className="mt-8 grid grid-cols-1 gap-8">
+      <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <VaccinationReminders batches={activeBatches} loading={batchesLoading} />
         <DealerConnectionRequests />
-        <PendingOrders />
+        <div className="lg:col-span-2">
+            <PendingOrders />
+        </div>
       </div>
       <ConnectDealerDialog open={isConnectDealerOpen} onOpenChange={setConnectDealerOpen} />
     </>

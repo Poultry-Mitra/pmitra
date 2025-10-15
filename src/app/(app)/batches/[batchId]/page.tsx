@@ -1,7 +1,8 @@
+
 // src/app/(app)/batches/[batchId]/page.tsx
 "use client";
 
-import { useState, memo } from "react";
+import { useState, memo, useMemo } from "react";
 import dynamic from 'next/dynamic';
 import { useParams } from "next/navigation";
 import { useBatch, useDailyRecords } from "@/hooks/use-batches";
@@ -11,10 +12,11 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Bird, Droplet, Percent, Scale, Wheat, IndianRupee, Loader2, AlertCircle, PlusCircle, Thermometer, ShieldCheck } from "lucide-react";
 import { AddDailyRecordDialog } from "./_components/add-daily-record-dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { format } from 'date-fns';
+import { format, differenceInDays } from 'date-fns';
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { broilerVaccinationSchedule } from '@/lib/vaccination-schedule';
 
 // Dynamically import the charts component to reduce initial bundle size
 const BatchCharts = dynamic(
@@ -46,21 +48,28 @@ const StatCard = memo(function StatCard({ title, value, icon: Icon, unit }: { ti
     );
 });
 
-const vaccinationSchedule = [
-  { day: 'Day 1', vaccine: "Marek's Disease", method: 'Injection (at hatchery)', status: 'Done' },
-  { day: 'Day 7', vaccine: 'Ranikhet (LaSota/F-strain)', method: 'Eye Drop / Drinking Water', status: 'Pending' },
-  { day: 'Day 14', vaccine: 'Gumboro (IBD) - Mild Strain', method: 'Eye Drop / Drinking Water', status: 'Pending' },
-  { day: 'Day 21', vaccine: 'Ranikhet (LaSota) - Booster', method: 'Drinking Water', status: 'Pending' },
-  { day: 'Day 28', vaccine: 'Gumboro (IBD) - Booster', method: 'Drinking Water', status: 'Pending' },
-];
-
-
 export default function BatchDetailPage() {
     const params = useParams();
     const batchId = params.batchId as string;
     const { batch, loading: batchLoading } = useBatch(batchId);
     const { records, loading: recordsLoading } = useDailyRecords(batchId);
     const [isAddRecordOpen, setAddRecordOpen] = useState(false);
+
+    const ageInDays = useMemo(() => {
+        if (!batch) return 0;
+        const ageInMs = new Date().getTime() - new Date(batch.batchStartDate).getTime();
+        return Math.floor(ageInMs / (1000 * 60 * 60 * 24));
+    }, [batch]);
+
+    const vaccinationStatus = useMemo(() => {
+        if (!batch) return [];
+        return broilerVaccinationSchedule.map(item => {
+            const isDone = ageInDays >= item.day;
+            const isDue = ageInDays < item.day && (item.day - ageInDays) <= 7;
+            const status = isDone ? 'Done' : isDue ? 'Due Soon' : 'Pending';
+            return { ...item, status };
+        });
+    }, [batch, ageInDays]);
 
     if (batchLoading) {
         return (
@@ -91,9 +100,6 @@ export default function BatchDetailPage() {
     const feedConversionRatio = (batch.feedConsumed > 0 && totalWeightGainKg > 0)
         ? (batch.feedConsumed / totalWeightGainKg).toFixed(2)
         : '0.00';
-    
-    const ageInMs = new Date().getTime() - new Date(batch.batchStartDate).getTime();
-    const ageInDays = Math.floor(ageInMs / (1000 * 60 * 60 * 24));
     
     const getIdealTemp = (days: number) => {
         if (days <= 2) return 35;
@@ -198,13 +204,15 @@ export default function BatchDetailPage() {
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {vaccinationSchedule.map(item => (
+                                    {vaccinationStatus.map(item => (
                                         <TableRow key={item.vaccine}>
-                                            <TableCell className="font-medium">{item.day}</TableCell>
+                                            <TableCell className="font-medium">Day {item.day}</TableCell>
                                             <TableCell>{item.vaccine}</TableCell>
                                             <TableCell>{item.method}</TableCell>
                                             <TableCell>
-                                                <Badge variant={item.status === 'Done' ? 'default' : 'secondary'}>{item.status}</Badge>
+                                                <Badge variant={item.status === 'Done' ? 'default' : (item.status === 'Due Soon' ? 'outline' : 'secondary')}>
+                                                    {item.status}
+                                                </Badge>
                                             </TableCell>
                                         </TableRow>
                                     ))}
