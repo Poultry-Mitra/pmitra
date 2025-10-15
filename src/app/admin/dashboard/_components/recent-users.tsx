@@ -5,13 +5,19 @@ import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import type { User } from "@/lib/types"; // Assuming a shared types definition
+import type { User } from "@/lib/types"; 
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useMemo } from 'react';
 
 
 export function RecentUsers({ users, loading }: { users: User[], loading: boolean }) {
-  const recentUsers = users.slice(0, 5);
+  const recentUsers = useMemo(() => {
+    return [...users]
+        .sort((a, b) => new Date(b.dateJoined).getTime() - new Date(a.dateJoined).getTime())
+        .slice(0, 5);
+  }, [users]);
+
 
   return (
     <Card>

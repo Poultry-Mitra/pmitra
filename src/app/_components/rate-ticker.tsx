@@ -11,7 +11,6 @@ import { collection, onSnapshot, query, orderBy, limit } from 'firebase/firestor
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useAppUser } from '@/app/app-provider';
-import { mockDailyRates } from '@/lib/data';
 
 export function RateTicker() {
     const firestore = useFirestore();
@@ -82,23 +81,8 @@ export function RateTicker() {
      if (!isLoggedIn && !isLoading) {
         return (
             <div className="bg-secondary text-secondary-foreground relative">
-                 <div className="container mx-auto px-4 h-10 flex items-center justify-center text-sm blur-sm pointer-events-none select-none">
-                    <div className="flex items-center gap-2">
-                         <span className="flex items-center gap-1 text-primary text-xs font-bold uppercase tracking-wider">
-                            <TrendingUp className="size-4" />
-                            Live Rates
-                        </span>
-                        <span className="text-sm font-medium">Pune, Maharashtra</span>
-                    </div>
-                     <span className="h-4 w-px bg-border mx-6"></span>
-                     <div className="flex items-center gap-2 text-sm">
-                        <Bird className="size-4 text-muted-foreground" />
-                        <span className="font-semibold">Ready Bird:</span>
-                        <span className="font-mono text-primary font-bold">₹125/kg</span>
-                    </div>
-                </div>
-                <div className="absolute inset-0 flex items-center justify-center bg-background/30 backdrop-blur-sm z-10">
-                    <Button asChild>
+                 <div className="container mx-auto px-4 h-10 flex items-center justify-center text-sm">
+                    <Button asChild variant="ghost" size="sm">
                         <Link href="/login">
                             <EyeOff className="mr-2" />
                             Login to View Live Rates

@@ -105,7 +105,7 @@ export default function AdminDashboardPage() {
                 </Card>
                 <div className="space-y-8">
                     <RecentUsers users={users} loading={usersLoading} />
-                    <RecentTransactions users={users} loading={usersLoading} />
+                    <RecentTransactions orders={orders} loading={ordersLoading} />
                 </div>
             </div>
         </>

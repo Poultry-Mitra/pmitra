@@ -4,19 +4,38 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import type { User } from "@/lib/types"; // Assuming a shared types definition
+import type { User, Order } from "@/lib/types";
 import Link from 'next/link';
 import { Skeleton } from "@/components/ui/skeleton";
+import { useUsersByIds } from "@/hooks/use-users";
+import { useMemo } from "react";
 
-// Mock data, in a real app this would come from a Firestore hook
-const mockTransactions = [
-  { amount: 249, userName: "Rohan Patel", userEmail: "rohan@example.com" },
-  { amount: 499, userName: "Priya Singh", userEmail: "priya.dealer@example.com" },
-  { amount: 249, userName: "Sanjay Kumar", userEmail: "sanjay.k@example.com" },
-];
+export function RecentTransactions({ orders, loading }: { orders: Order[], loading: boolean }) {
+  const recentOrders = useMemo(() => {
+    return orders
+      .filter(o => o.status === 'Approved' || o.status === 'Completed')
+      .slice(0, 5);
+  }, [orders]);
+  
+  const userIds = useMemo(() => {
+    return [...new Set(recentOrders.map(o => o.farmerUID).filter(Boolean) as string[])];
+  }, [recentOrders]);
 
-export function RecentTransactions({ users, loading }: { users: User[], loading: boolean }) {
-  if (loading) {
+  const { users: farmers, loading: usersLoading } = useUsersByIds(userIds);
+  const isLoading = loading || usersLoading;
+
+  const getFarmerName = (farmerId?: string) => {
+      if (!farmerId) return "Offline Sale";
+      return farmers.find(f => f.id === farmerId)?.name || '...';
+  }
+  
+  const getFarmerInitial = (farmerId?: string) => {
+      if (!farmerId) return "O";
+      const name = farmers.find(f => f.id === farmerId)?.name;
+      return name ? name.charAt(0) : '-';
+  }
+
+  if (isLoading) {
     return (
         <Card>
             <CardHeader>
@@ -46,24 +65,25 @@ export function RecentTransactions({ users, loading }: { users: User[], loading:
       <CardHeader>
         <CardTitle>Recent Transactions</CardTitle>
         <CardDescription>
-          Recent subscription payments and upgrades.
+          Most recent approved orders and payments.
         </CardDescription>
       </CardHeader>
       <CardContent className="grid gap-6">
-        {mockTransactions.map((txn, i) => (
+         {recentOrders.length === 0 && <p className="text-sm text-muted-foreground text-center">No recent transactions found.</p>}
+        {recentOrders.map((order, i) => (
           <div key={i} className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Avatar className="hidden h-9 w-9 sm:flex">
-                <AvatarFallback>{txn.userName.charAt(0)}</AvatarFallback>
+                <AvatarFallback>{getFarmerInitial(order.farmerUID)}</AvatarFallback>
               </Avatar>
               <div className="grid gap-1">
-                <p className="text-sm font-medium leading-none">{txn.userName}</p>
+                <p className="text-sm font-medium leading-none">{getFarmerName(order.farmerUID)}</p>
                 <p className="text-sm text-muted-foreground">
-                  {txn.userEmail}
+                  {order.productName}
                 </p>
               </div>
             </div>
-            <div className="ml-auto font-medium">+₹{txn.amount}</div>
+            <div className="ml-auto font-medium">+₹{order.totalAmount.toLocaleString()}</div>
           </div>
         ))}
          <Button asChild variant="outline" className="w-full">
