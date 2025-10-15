@@ -61,8 +61,14 @@ export function useUsers(role?: 'farmer' | 'dealer' | 'admin') {
     }
     
     setLoading(true);
+    let usersQuery;
     const baseQuery = collection(firestore, 'users');
-    const usersQuery = role ? query(baseQuery, where("role", "==", role)) : query(baseQuery);
+    if (role) {
+      usersQuery = query(baseQuery, where("role", "==", role));
+    } else {
+      usersQuery = query(baseQuery);
+    }
+    
 
     const unsubscribe = onSnapshot(
       usersQuery,
@@ -93,7 +99,6 @@ export function useUsersByIds(userIds: string[]) {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-      const userIdsString = JSON.stringify(userIds); // Create a stable dependency
       if (!firestore || !userIds || userIds.length === 0) {
         setUsers([]);
         setLoading(false);
@@ -125,7 +130,7 @@ export function useUsersByIds(userIds: string[]) {
 
       fetchUsers();
       
-    }, [firestore, userIdsString]); // Use the stringified version as dependency
+    }, [firestore, userIds]);
 
     return { users, loading };
 }
