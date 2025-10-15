@@ -1,4 +1,3 @@
-
 // src/hooks/use-users.ts
 'use client';
 
@@ -23,9 +22,6 @@ import {
 import { useFirestore, useAuth } from '@/firebase/provider';
 import type { User, UserRole, UserStatus } from '@/lib/types';
 import { deleteDocumentNonBlocking, updateDocumentNonBlocking, addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
-import { useAppUser } from '@/app/app-provider';
 
 // Helper to convert Firestore doc to User type, sanitizing the data
 function toUser(doc: QueryDocumentSnapshot<DocumentData> | DocumentSnapshot<DocumentData>): User {
@@ -54,67 +50,37 @@ function toUser(doc: QueryDocumentSnapshot<DocumentData> | DocumentSnapshot<Docu
     } as User;
 }
 
-export function useUsers(role?: 'farmer' | 'dealer' | 'admin') {
+// This hook is now designed for admins to fetch a list of all users.
+// It uses a limited query to avoid 'list' permission issues.
+export function useUsers() {
   const firestore = useFirestore();
-  const auth = useAuth();
-  const { user: appUser, loading: appUserLoading } = useAppUser();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
-  
-  useEffect(() => {
-    if (appUserLoading || !firestore || !appUser) {
-        setLoading(true);
-        return;
-    }
-    
-    setLoading(true);
-    let usersQuery;
-    const baseQuery = collection(firestore, 'users');
 
-    // DECISIVE CHANGE: If the user is an admin, to prevent the `list` permission error,
-    // we will now only fetch THEIR OWN user document. This avoids listing all users on the dashboard.
-    // The main user management pages will handle their own, more specific queries.
-    if (appUser.role === 'admin' && !role) {
-      const userDocRef = doc(firestore, 'users', appUser.id);
-      const unsubscribe = onSnapshot(userDocRef, (docSnap) => {
-        if (docSnap.exists()) {
-          setUsers([toUser(docSnap)]);
-        } else {
-          setUsers([]);
-        }
-        setLoading(false);
-      }, (err: FirestoreError) => {
-        console.error("Error fetching single admin user:", err);
+  useEffect(() => {
+    if (!firestore) {
         setUsers([]);
         setLoading(false);
-      });
-      return () => unsubscribe();
-    }
+        return;
+    };
     
-    // Original logic for specific role pages (farmers, dealers) remains.
-    if (role) {
-      usersQuery = query(baseQuery, where("role", "==", role));
-    } else {
-       // This will now primarily run for non-admin users or when no role is specified.
-       // For safety, we limit it.
-      usersQuery = query(baseQuery, orderBy("dateJoined", "desc"), limit(100));
-    }
+    setLoading(true);
+    // Query the main 'users' collection directly, but with a limit
+    // to avoid running into broad 'list' permission errors.
+    const usersCollection = collection(firestore, 'users');
+    const q = query(usersCollection, orderBy("dateJoined", "desc"), limit(100));
     
-    const unsubscribe = onSnapshot(
-      usersQuery,
-      (snapshot) => {
+    const unsubscribe = onSnapshot(q, (snapshot) => {
         setUsers(snapshot.docs.map(toUser));
         setLoading(false);
-      },
-      (err: FirestoreError) => {
-        console.error("Error in useUsers hook:", err);
+    }, (err) => {
+        console.error(`Error fetching users:`, err);
         setLoading(false);
-      }
-    );
+    });
 
     return () => unsubscribe();
-  }, [firestore, role, auth, appUser, appUserLoading]);
-
+  }, [firestore]);
+  
   const handleUserDeletion = (userId: string) => {
       setUsers(prevUsers => prevUsers.filter(u => u.id !== userId));
   };

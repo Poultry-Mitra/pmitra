@@ -70,8 +70,8 @@ const statusColorScheme = {
 };
 
 
-export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 'dealer' }) {
-    const { users: allUsers, loading, handleUserDeletion } = useUsers(roleToShow);
+export function UserManagementSummary({ roleToShow }: { roleToShow: 'farmer' | 'dealer' }) {
+    const { users: allUsers, loading, handleUserDeletion } = useUsers();
     
     const [dialogState, setDialogState] = useState<{ action: 'delete' | 'suspend' | 'approve' | null, user: User | null }>({ action: null, user: null });
     const [planChangeState, setPlanChangeState] = useState<{ user: User | null, newPlan: 'free' | 'premium' | '', reason: string }>({ user: null, newPlan: '', reason: '' });
@@ -85,10 +85,7 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
     const { t } = useLanguage();
     const [activeTab, setActiveTab] = useState<string>("active");
     
-    const users = useMemo(() => {
-        if (!roleToShow) return allUsers.slice(0, 5); // For dashboard recent users
-        return allUsers;
-    }, [allUsers, roleToShow]);
+    const users = useMemo(() => allUsers.filter(u => u.role === roleToShow), [allUsers, roleToShow]);
     
     const { pendingUsers, activeUsers, suspendedUsers } = useMemo(() => {
         const pending: User[] = [];
@@ -110,10 +107,10 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
         suspended: suspendedUsers,
     };
     
-    const filteredUsers = roleToShow ? usersByTab[activeTab] : users;
+    const filteredUsers = usersByTab[activeTab];
 
-    const title = roleToShow ? t(`admin.users.title_${roleToShow}`) : t('admin.users.title_recent');
-    const description = roleToShow ? t(`admin.users.description_${roleToShow}`) : t('admin.users.description_recent');
+    const title = t(`admin.users.title_${roleToShow}`);
+    const description = t(`admin.users.description_${roleToShow}`);
 
     const handleApproveUser = async (user: User) => {
         if (!firestore || !adminUser || !user.email || !auth) return;
@@ -274,29 +271,25 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
                         <CardTitle>{title}</CardTitle>
                         <CardDescription>{description}</CardDescription>
                     </div>
-                    {roleToShow && (
-                        <Button asChild>
-                            <Link href="/admin/user-management/add-user">
-                                <PlusCircle className="mr-2 h-4 w-4" />
-                                {t('admin.users.add_user_button')}
-                            </Link>
-                        </Button>
-                    )}
+                    <Button asChild>
+                        <Link href="/admin/user-management/add-user">
+                            <PlusCircle className="mr-2 h-4 w-4" />
+                            {t('admin.users.add_user_button')}
+                        </Link>
+                    </Button>
                 </CardHeader>
                 <CardContent className="overflow-x-auto">
-                    {roleToShow && (
-                        <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-4">
-                            <TabsList>
-                                <TabsTrigger value="active">Active</TabsTrigger>
-                                <TabsTrigger value="pending">
-                                    Pending
-                                    {pendingUsers.length > 0 && <Badge className="ml-2">{pendingUsers.length}</Badge>}
-                                </TabsTrigger>
-                                <TabsTrigger value="suspended">Suspended</TabsTrigger>
-                                <TabsTrigger value="all">All</TabsTrigger>
-                            </TabsList>
-                        </Tabs>
-                    )}
+                    <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-4">
+                        <TabsList>
+                            <TabsTrigger value="active">Active</TabsTrigger>
+                            <TabsTrigger value="pending">
+                                Pending
+                                {pendingUsers.length > 0 && <Badge className="ml-2">{pendingUsers.length}</Badge>}
+                            </TabsTrigger>
+                            <TabsTrigger value="suspended">Suspended</TabsTrigger>
+                            <TabsTrigger value="all">All</TabsTrigger>
+                        </TabsList>
+                    </Tabs>
                     <Table>
                         <TableHeader>
                             <TableRow>
@@ -447,7 +440,7 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
                             {dialogState.action === 'delete'
                                 ? t('dialog.delete_user_desc', { name: dialogState.user?.name })
                                 : dialogState.action === 'approve' 
-                                ? `This will activate ${dialogState.user?.name}'s account and send them an email to set their password. Do you want to continue?`
+                                ? `This will activate ${dialogState.user?.name}'s account and send them an email to set up their password. Do you want to continue?`
                                 : t(dialogState.user?.status === 'Active' ? 'dialog.suspend_user_desc' : 'dialog.unsuspend_user_desc', { name: dialogState.user?.name })
                             }
                         </AlertDialogDescription>
