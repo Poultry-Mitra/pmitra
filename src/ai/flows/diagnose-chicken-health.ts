@@ -72,5 +72,3 @@ const diagnoseChickenHealthFlow = ai.defineFlow(
     return output!;
   }
 );
-
-    

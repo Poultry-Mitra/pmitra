@@ -7,7 +7,8 @@
  * - getFarmAnalytics - A function that returns farm analytics.
  */
 
-import {ai, z} from '@/ai/genkit';
+import {ai} from '@/ai/genkit';
+import {z} from 'genkit';
 import type { Batch } from '@/lib/types';
 
 const FarmAnalyticsInputSchema = z.object({

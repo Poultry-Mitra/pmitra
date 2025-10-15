@@ -7,7 +7,8 @@
  * - suggestFarmImprovements - A function that provides farm improvement suggestions.
  */
 
-import {ai, z} from '@/ai/genkit';
+import {ai} from '@/ai/genkit';
+import {z} from 'genkit';
 
 const SuggestFarmImprovementsInputSchema = z.object({
   productionRate: z.number().describe('Current egg production rate (eggs per hen per day).'),

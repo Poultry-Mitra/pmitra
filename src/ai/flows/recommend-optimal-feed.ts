@@ -7,7 +7,8 @@
  * - recommendOptimalFeed - A function that recommends optimal feed based on farm production data.
  */
 
-import {ai, z} from '@/ai/genkit';
+import {ai} from '@/ai/genkit';
+import {z} from 'genkit';
 
 const RecommendOptimalFeedInputSchema = z.object({
   productionRate: z.number().describe('The current egg production rate of the farm (eggs per day).'),

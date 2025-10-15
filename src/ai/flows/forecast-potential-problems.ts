@@ -7,7 +7,8 @@
  * - forecastPotentialProblems - A function that handles the forecasting process.
  */
 
-import {ai, z} from '@/ai/genkit';
+import {ai} from '@/ai/genkit';
+import {z} from 'genkit';
 
 const ForecastPotentialProblemsInputSchema = z.object({
   sensorData: z.string().describe('A JSON string containing the latest sensor data from the farm.  Include timestamps, temperature, humidity, ammonia levels, feed consumption, water consumption, and any other relevant data.'),
