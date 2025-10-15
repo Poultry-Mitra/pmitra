@@ -213,7 +213,7 @@ export default function DailyRateManagementPage() {
             toast({ title: "Error", description: "Failed to update daily rates.", variant: "destructive" });
         }
     }
-
+    
     return (
         <>
             <PageHeader title="Daily Rate Management" description="Update daily market rates for poultry products." />
