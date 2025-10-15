@@ -174,7 +174,6 @@ export default function LandingPage() {
             <Link href="/" className="transition-colors hover:text-foreground">{t('nav.home')}</Link>
             <Link href="#features" className="text-muted-foreground transition-colors hover:text-foreground">{t('nav.features')}</Link>
             <Link href="/pricing" className="text-muted-foreground transition-colors hover:text-foreground">{t('nav.pricing')}</Link>
-            <Link href="/blog" className="text-muted-foreground transition-colors hover:text-foreground">Guide</Link>
             <Link href="#contact" className="text-muted-foreground transition-colors hover:text-foreground">{t('nav.contact')}</Link>
           </nav>
           <div className="ml-auto flex items-center space-x-2">
@@ -409,7 +408,6 @@ export default function LandingPage() {
               <nav className="mt-4 flex flex-col space-y-2 text-sm">
                 <Link href="#features" className="text-muted-foreground hover:text-primary">{t('footer.about')}</Link>
                 <Link href="/pricing" className="text-muted-foreground hover:text-primary">{t('nav.pricing')}</Link>
-                <Link href="/blog" className="text-muted-foreground hover:text-primary">Blog</Link>
               </nav>
             </div>
 

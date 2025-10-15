@@ -29,7 +29,6 @@ import {
   Loader2,
   AlertTriangle,
   Wallet,
-  Newspaper,
 } from "lucide-react";
 import { useLanguage } from "@/components/language-provider";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
@@ -147,14 +146,6 @@ export function AdminSidebar() {
 
             <SidebarGroupLabel>Content & AI</SidebarGroupLabel>
             <SidebarMenu>
-             <SidebarMenuItem>
-                <Link href="/admin/blog">
-                    <SidebarMenuButton isActive={pathname.startsWith("/admin/blog")} tooltip={t('admin.blog_management')}>
-                    <Newspaper />
-                    <span>{t('admin.blog_management')}</span>
-                    </SidebarMenuButton>
-                </Link>
-            </SidebarMenuItem>
             <SidebarMenuItem>
                 <Link href="/admin/chat-logs">
                     <SidebarMenuButton isActive={pathname.startsWith("/admin/chat-logs")} tooltip={t('admin.ai_chat_logs')}>
