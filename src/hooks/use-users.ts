@@ -67,8 +67,8 @@ export function useUsers(role?: 'farmer' | 'dealer' | 'admin') {
         return;
     }
     
-    // If the user is not an admin, they cannot list users.
-    // Return empty array and stop loading.
+    // **CRITICAL FIX**: Only admins can list users. If the user is not an admin,
+    // immediately return an empty array and stop loading.
     if (appUser?.role !== 'admin') {
         setUsers([]);
         setLoading(false);
