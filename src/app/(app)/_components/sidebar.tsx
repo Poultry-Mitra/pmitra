@@ -67,6 +67,7 @@ export function AppSidebar() {
     );
   }
 
+  // Fallback for older user documents that might not have poultryMitraId
   const poultryMitraId = user.poultryMitraId || `PM-FARM-${user.id.substring(0, 5).toUpperCase()}`;
 
   return (
@@ -241,3 +242,5 @@ const aiNavItems = [
     { href: "/feed-recommendation", icon: WandSparkles, label: "feed_ai.title"},
     { href: "/diagnose-health", icon: HeartPulse, label: "diagnose_health.title" },
 ];
+
+    

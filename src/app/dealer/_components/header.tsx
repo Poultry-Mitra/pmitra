@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { usePathname, useRouter } from 'next/navigation';
@@ -99,9 +100,12 @@ export function DealerHeader() {
      );
   }
 
+  // Fallback for older user documents that might not have the code
+  const uniqueDealerCode = user.uniqueDealerCode || `DL-${user.id.substring(0, 8).toUpperCase()}`;
+
   const handleCopyCode = () => {
-    if(user.uniqueDealerCode) {
-        navigator.clipboard.writeText(user.uniqueDealerCode);
+    if(uniqueDealerCode) {
+        navigator.clipboard.writeText(uniqueDealerCode);
         toast({ title: "Copied!", description: "Your unique dealer code has been copied to the clipboard." });
     }
   }
@@ -111,9 +115,9 @@ export function DealerHeader() {
         <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background/80 px-4 backdrop-blur-sm sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
         <SidebarTrigger className="md:hidden" />
         <div className="hidden md:block">
-            {user.role === 'dealer' && user.uniqueDealerCode ? (
+            {user.role === 'dealer' ? (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <span>Your Code: <span className="font-mono text-base text-foreground font-semibold">{user.uniqueDealerCode}</span></span>
+                    <span>Your Code: <span className="font-mono text-base text-foreground font-semibold">{uniqueDealerCode}</span></span>
                     <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handleCopyCode}>
                         <Copy className="size-3.5" />
                     </Button>
@@ -176,3 +180,5 @@ export function DealerHeader() {
     </>
   );
 }
+
+    
