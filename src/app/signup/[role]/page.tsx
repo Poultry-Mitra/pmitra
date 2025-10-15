@@ -118,6 +118,7 @@ export default function DetailedSignupPage() {
         const finalStatus = invitation ? 'Active' : (isAdminEmail ? 'Active' : 'Pending');
         const finalPlan = invitation?.planType || (isAdminEmail ? 'premium' : 'free');
 
+        // This flow now only creates a profile *object*, it does not write to the DB.
         const profileResponse = await createProfile({
             uid: user.uid,
             name: values.fullName,
@@ -131,9 +132,13 @@ export default function DetailedSignupPage() {
             pinCode: values.pinCode || "",
         });
 
-        if (!profileResponse.success) {
+        if (!profileResponse.success || !profileResponse.userProfile) {
             throw new Error(profileResponse.message);
         }
+
+        // Now, we perform the actual write operation to Firestore from the client.
+        const userDocRef = doc(firestore, 'users', user.uid);
+        await setDoc(userDocRef, profileResponse.userProfile);
         
         if (invitation) {
             await deleteDoc(doc(firestore, 'invitations', invitation.id));

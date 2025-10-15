@@ -3,24 +3,13 @@
 
 /**
  * @fileOverview A secure backend flow to create a user profile in Firestore.
- * This flow uses the Firebase Admin SDK to bypass security rules, ensuring
- * reliable profile creation immediately after authentication.
+ * This flow now constructs a user profile object without direct database interaction.
  */
 
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
-import * as admin from 'firebase-admin';
 
-// Initialize Firebase Admin SDK if not already initialized
-if (!admin.apps.length) {
-  admin.initializeApp({
-    // These credentials will be automatically sourced from the environment
-    // in a Firebase/Google Cloud environment.
-    credential: admin.credential.applicationDefault(),
-  });
-}
-const firestore = admin.firestore();
-
+// This schema is now internal and not exported to avoid breaking client-side builds.
 const CreateProfileInputSchema = z.object({
   uid: z.string().describe("The user's Firebase Authentication UID."),
   name: z.string().describe("The user's full name."),
@@ -33,14 +22,19 @@ const CreateProfileInputSchema = z.object({
   district: z.string().describe("The user's district."),
   pinCode: z.string().optional().describe("The user's pin code."),
 });
+
+// The input type is still exported for use in other server components if needed.
 export type CreateProfileInput = z.infer<typeof CreateProfileInputSchema>;
 
+// The output schema defines the shape of the object this flow returns.
 const CreateProfileOutputSchema = z.object({
   success: z.boolean(),
   message: z.string(),
+  userProfile: z.any().optional(), // The profile object to be saved on the client.
 });
 export type CreateProfileOutput = z.infer<typeof CreateProfileOutputSchema>;
 
+// The main exported function that can be called from server components.
 export async function createProfile(input: CreateProfileInput): Promise<CreateProfileOutput> {
   return createProfileFlow(input);
 }
@@ -53,18 +47,16 @@ const createProfileFlow = ai.defineFlow(
   },
   async (input) => {
     try {
-      const userDocRef = firestore.collection('users').doc(input.uid);
-
       const userProfile: any = {
         name: input.name,
         email: input.email,
         role: input.role,
         status: input.status,
         planType: input.planType,
-        mobileNumber: input.mobileNumber || undefined,
+        mobileNumber: input.mobileNumber || "",
         state: input.state,
         district: input.district,
-        pinCode: input.pinCode || undefined,
+        pinCode: input.pinCode || "",
         aiQueriesCount: 0,
         lastQueryDate: "",
         dateJoined: new Date().toISOString(),
@@ -78,17 +70,18 @@ const createProfileFlow = ai.defineFlow(
         userProfile.connectedDealers = [];
       }
       
-      await userDocRef.set(userProfile);
-
+      // Instead of writing to the DB, we return the constructed profile.
+      // The client-side code will be responsible for the actual write operation.
       return {
         success: true,
-        message: 'User profile created successfully.',
+        message: 'User profile object created successfully.',
+        userProfile: userProfile,
       };
     } catch (error: any) {
-      console.error('Error creating profile in flow:', error);
+      console.error('Error creating profile object in flow:', error);
       return {
         success: false,
-        message: error.message || 'An unexpected error occurred while creating the profile.',
+        message: error.message || 'An unexpected error occurred while creating the profile object.',
       };
     }
   }
