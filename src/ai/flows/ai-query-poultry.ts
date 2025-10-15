@@ -1,4 +1,5 @@
 
+'use server';
 /**
  * @fileOverview A flow that answers user questions about poultry farming.
  *
