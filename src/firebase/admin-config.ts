@@ -8,7 +8,7 @@ const serviceAccount = {
   privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
 };
 
-export function initializeAdminApp() {
+export async function initializeAdminApp() {
   if (admin.apps.length === 0) {
     admin.initializeApp({
       credential: admin.credential.cert(serviceAccount),
