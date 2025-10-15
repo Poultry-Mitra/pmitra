@@ -18,8 +18,7 @@ import {
 } from 'firebase/firestore';
 import type { Supplier } from '@/lib/types';
 import { useFirestore, useMemoFirebase } from '@/firebase/provider';
-import { FirestorePermissionError } from '@/firebase/errors';
-import { errorEmitter } from '@/firebase/error-emitter';
+import { useToast } from './use-toast';
 
 // Helper to convert Firestore doc to Supplier type
 function toSupplier(doc: QueryDocumentSnapshot<DocumentData>): Supplier {
@@ -77,7 +76,7 @@ export function useSuppliers(dealerUID: string | undefined) {
 }
 
 
-export async function addSupplier(firestore: Firestore, auth: Auth, dealerUID: string, data: Omit<Supplier, 'id' | 'dealerUID' | 'createdAt'>) {
+export async function addSupplier(firestore: Firestore, dealerUID: string, data: Omit<Supplier, 'id' | 'dealerUID' | 'createdAt'>) {
     if (!firestore) throw new Error("Firestore not initialized");
 
     const collectionRef = collection(firestore, 'suppliers');
@@ -87,20 +86,12 @@ export async function addSupplier(firestore: Firestore, auth: Auth, dealerUID: s
         dealerUID,
         createdAt: serverTimestamp(),
     };
-
+    
     try {
         await addDoc(collectionRef, supplierData);
-    } catch(e) {
-        if (e instanceof Error && e.message.includes('permission-denied')) {
-             errorEmitter.emit(
-                'permission-error',
-                new FirestorePermissionError({
-                    path: collectionRef.path,
-                    operation: 'create',
-                    requestResourceData: supplierData,
-                }, auth)
-             );
-        }
-        throw e;
+    } catch(e: any) {
+        console.error("Firestore addDoc error in addSupplier:", e);
+        // Re-throw the error with a user-friendly message so the UI can catch it.
+        throw new Error("Failed to save supplier to the database. Please check your network connection and Firestore security rules.");
     }
 }
