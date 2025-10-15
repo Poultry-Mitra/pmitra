@@ -61,7 +61,7 @@ export default function DetailedSignupPage() {
     const [googleUser, setGoogleUser] = useState<FirebaseAuthUser | null>(null);
     const [invitation, setInvitation] = useState<(Invitation & { id: string }) | null>(null);
 
-    const initialRole = params.role as UserRole || 'farmer';
+    const initialRole = (params.role as UserRole) || 'farmer';
 
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
