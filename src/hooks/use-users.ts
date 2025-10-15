@@ -1,7 +1,7 @@
 // src/hooks/use-users.ts
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import {
   collection,
   onSnapshot,
@@ -19,17 +19,18 @@ import {
   FirestoreError,
   orderBy,
 } from 'firebase/firestore';
-import { useFirestore, useAuth } from '@/firebase/provider';
+import { useFirestore, useAuth, AuthContext } from '@/firebase/provider';
 import type { User, UserRole, UserStatus } from '@/lib/types';
 import { deleteDocumentNonBlocking, updateDocumentNonBlocking, addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { getAllUsers } from '@/ai/flows/get-all-users';
 
 // Helper to convert Firestore doc to User type, sanitizing the data
-function toUser(doc: QueryDocumentSnapshot<DocumentData> | DocumentSnapshot<DocumentData>): User {
-    const data = doc.data();
+function toUser(doc: QueryDocumentSnapshot<DocumentData> | DocumentSnapshot<DocumentData> | any, isFromFlow: boolean = false): User {
+    const data = isFromFlow ? doc : doc.data();
     if (!data) throw new Error("User document data is empty");
     
     return {
-        id: doc.id,
+        id: isFromFlow ? data.id : doc.id,
         name: data.name || "Unnamed User",
         email: data.email || "",
         role: data.role || "farmer",
@@ -50,36 +51,40 @@ function toUser(doc: QueryDocumentSnapshot<DocumentData> | DocumentSnapshot<Docu
     } as User;
 }
 
-// This hook is now designed for admins to fetch a list of all users.
-// It uses a limited query to avoid 'list' permission issues.
+
+// This hook now uses a Genkit flow to fetch all users for the admin, bypassing security rules.
 export function useUsers() {
-  const firestore = useFirestore();
+  const { user: adminUser } = useContext(AuthContext)!;
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!firestore) {
-        setUsers([]);
-        setLoading(false);
-        return;
-    };
-    
-    setLoading(true);
-    // Query the main 'users' collection directly, but with a limit
-    // to avoid running into broad 'list' permission errors.
-    const usersCollection = collection(firestore, 'users');
-    const q = query(usersCollection, orderBy("dateJoined", "desc"), limit(100));
-    
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-        setUsers(snapshot.docs.map(toUser));
-        setLoading(false);
-    }, (err) => {
-        console.error(`Error fetching users:`, err);
-        setLoading(false);
-    });
+    async function fetchUsers() {
+        if (!adminUser || adminUser.email !== 'ipoultrymitra@gmail.com') {
+            setUsers([]);
+            setLoading(false);
+            return;
+        }
 
-    return () => unsubscribe();
-  }, [firestore]);
+        setLoading(true);
+        try {
+            const result = await getAllUsers({ adminUid: adminUser.uid });
+            if (result && result.users) {
+                 const mappedUsers = result.users.map(u => toUser(u, true));
+                 // Sort client-side
+                 mappedUsers.sort((a, b) => new Date(b.dateJoined).getTime() - new Date(a.dateJoined).getTime());
+                 setUsers(mappedUsers);
+            }
+        } catch (err) {
+            console.error("Error fetching users via Genkit flow:", err);
+            setUsers([]); // Set to empty array on error
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    fetchUsers();
+  }, [adminUser]);
   
   const handleUserDeletion = (userId: string) => {
       setUsers(prevUsers => prevUsers.filter(u => u.id !== userId));
@@ -113,7 +118,7 @@ export function useUsersByIds(userIds: string[]) {
             getDocs(query(collection(firestore, 'users'), where('__name__', 'in', chunk)))
           );
           const userSnapshots = await Promise.all(userPromises);
-          const fetchedUsers = userSnapshots.flatMap(snapshot => snapshot.docs.map(toUser));
+          const fetchedUsers = userSnapshots.flatMap(snapshot => snapshot.docs.map(doc => toUser(doc)));
           setUsers(fetchedUsers);
         } catch (err) {
           console.error("Error fetching users by IDs:", err);
