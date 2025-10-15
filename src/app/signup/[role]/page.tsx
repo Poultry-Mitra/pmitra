@@ -20,7 +20,7 @@ import { doc, getDoc, collection, query, where, getDocs, limit, deleteDoc, setDo
 import { AppIcon } from "@/app/icon-component";
 import { Loader2 } from "lucide-react";
 import indianStates from "@/lib/indian-states-districts.json";
-import type { Invitation, UserRole } from "@/lib/types";
+import type { Invitation, UserRole, UserStatus } from "@/lib/types";
 import { createProfile } from "@/app/actions/create-profile-action";
 
 

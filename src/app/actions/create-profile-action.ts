@@ -1,13 +1,15 @@
 
 'use server';
 
+import type { UserRole, UserStatus } from "@/lib/types";
+
 // This input type is exported for use in other server components if needed.
 export type CreateProfileInput = {
   uid: string;
   name: string;
   email: string;
-  role: 'farmer' | 'dealer' | 'admin';
-  status: 'Pending' | 'Active' | 'Suspended';
+  role: UserRole;
+  status: UserStatus;
   planType: 'free' | 'premium';
   mobileNumber?: string;
   state: string;
