@@ -1,6 +1,3 @@
-// This file is no longer used by the dashboard and can be removed or kept for the dedicated user management pages.
-// No changes are necessary here for the dashboard fix.
-
 // src/app/admin/_components/user-management-summary.tsx
 
 "use client";
@@ -54,10 +51,10 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useUsers, deleteUser, updateUserStatus, updateUserPlan } from "@/hooks/use-users";
-import { useFirestore, AuthContext } from "@/firebase/provider";
+import { useFirestore, AuthContext, useAuth } from '@/firebase/provider';
 import { addAuditLog } from "@/hooks/use-audit-logs";
 import { useLanguage } from "@/components/language-provider";
-import { getAuth, sendPasswordResetEmail } from "firebase/auth";
+import { sendPasswordResetEmail } from "firebase/auth";
 
 
 const statusVariant: { [key in UserStatus]: "default" | "secondary" | "destructive" | "outline" } = {
@@ -83,8 +80,8 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
     const [detailsUser, setDetailsUser] = useState<User | null>(null);
     const { toast } = useToast();
     const firestore = useFirestore();
-    const { user: adminUser, isUserLoading } = useContext(AuthContext)!;
-    const auth = getAuth();
+    const auth = useAuth();
+    const { user: adminUser } = useContext(AuthContext)!;
     const { t } = useLanguage();
     const [activeTab, setActiveTab] = useState<string>("pending");
     
@@ -119,7 +116,7 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
     const description = roleToShow ? t(`admin.users.description_${roleToShow}`) : t('admin.users.description_recent');
 
     const handleApproveUser = async (user: User) => {
-        if (!firestore || !adminUser || !user.email) return;
+        if (!firestore || !adminUser || !user.email || !auth) return;
 
         try {
             // 1. Update user status to 'Active'
@@ -151,7 +148,7 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
     };
 
     const handleStatusUpdate = async (newStatus: UserStatus) => {
-        if (!dialogState.user || !firestore || !adminUser) return;
+        if (!dialogState.user || !firestore || !adminUser || !auth) return;
         
         const finalReason = reason === 'other' ? otherReason : reason;
         if ((dialogState.action === 'suspend' && !finalReason) || (dialogState.action === 'delete' && !finalReason)) {
@@ -189,7 +186,7 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
     };
 
     const handleDelete = async () => {
-        if (!dialogState.user || !firestore || !adminUser) return;
+        if (!dialogState.user || !firestore || !adminUser || !auth) return;
 
         const finalReason = reason === 'other' ? otherReason : reason;
          if (!finalReason) {
@@ -230,7 +227,7 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
     };
 
     const handlePlanChange = async () => {
-        if (!planChangeState.user || !firestore || !adminUser || !planChangeState.newPlan) return;
+        if (!planChangeState.user || !firestore || !adminUser || !planChangeState.newPlan || !auth) return;
         
         if (!planChangeState.reason) {
              toast({ title: "Reason Required", description: "Please provide a reason for this plan change.", variant: "destructive" });
