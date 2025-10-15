@@ -1,7 +1,7 @@
 // src/app/admin/transactions/page.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { PageHeader } from "@/app/admin/_components/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -74,7 +74,11 @@ export default function TransactionsPage() {
     const { users, loading: usersLoading } = useUsers();
     const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
 
-    const selectedUser = selectedUserId ? users.find(u => u.id === selectedUserId) : null;
+    const filteredUsers = useMemo(() => {
+        return users.filter(user => user.role !== 'admin');
+    }, [users]);
+    
+    const selectedUser = selectedUserId ? filteredUsers.find(u => u.id === selectedUserId) : null;
 
     return (
         <>
@@ -94,10 +98,10 @@ export default function TransactionsPage() {
                         <div className="max-w-sm">
                             <Select onValueChange={setSelectedUserId} disabled={usersLoading} value={selectedUserId || ""}>
                                 <SelectTrigger>
-                                    <SelectValue placeholder={usersLoading ? "Loading users..." : "Select a user..."} />
+                                    <SelectValue placeholder={usersLoading ? "Loading users..." : "Select a farmer or dealer..."} />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {users.map(user => (
+                                    {filteredUsers.map(user => (
                                         <SelectItem key={user.id} value={user.id}>
                                             <div className="flex items-center gap-2">
                                                 <UsersIcon className="size-4 text-muted-foreground" />
