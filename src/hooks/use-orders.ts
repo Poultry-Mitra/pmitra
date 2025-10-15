@@ -44,7 +44,7 @@ export function useOrders() {
 
   const allOrdersQuery = useMemoFirebase(() => {
     if (!firestore) return null;
-    return query(collection(firestore, 'orders'), orderBy("createdAt", "desc"));
+    return query(collection(firestore, 'orders'));
   }, [firestore]);
 
   useEffect(() => {
@@ -58,7 +58,8 @@ export function useOrders() {
     const unsubscribe = onSnapshot(
       allOrdersQuery,
       (snapshot) => {
-        setOrders(snapshot.docs.map(toOrder));
+        const fetchedOrders = snapshot.docs.map(toOrder).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        setOrders(fetchedOrders);
         setLoading(false);
       },
       (err) => {
@@ -82,7 +83,7 @@ export function useOrdersByDealer(dealerUID?: string) {
   const ordersQuery = useMemoFirebase(() => {
     if (!firestore || !dealerUID) return null;
     const ordersCollection = collection(firestore, 'orders');
-    return query(ordersCollection, where("dealerUID", "==", dealerUID), orderBy("createdAt", "desc"));
+    return query(ordersCollection, where("dealerUID", "==", dealerUID));
   }, [firestore, dealerUID]);
 
   useEffect(() => {
@@ -96,7 +97,8 @@ export function useOrdersByDealer(dealerUID?: string) {
     const unsubscribe = onSnapshot(
       ordersQuery,
       (snapshot) => {
-        setOrders(snapshot.docs.map(toOrder));
+        const fetchedOrders = snapshot.docs.map(toOrder).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        setOrders(fetchedOrders);
         setLoading(false);
       },
       (err) => {
@@ -121,8 +123,7 @@ export function useOrdersByFarmer(farmerUID?: string) {
       const ordersCollection = collection(firestore, 'orders');
       return query(
         ordersCollection, 
-        where("farmerUID", "==", farmerUID),
-        orderBy("createdAt", "desc")
+        where("farmerUID", "==", farmerUID)
       );
   }, [firestore, farmerUID]);
 
@@ -137,7 +138,8 @@ export function useOrdersByFarmer(farmerUID?: string) {
     const unsubscribe = onSnapshot(
       farmerOrdersQuery,
       (snapshot) => {
-        setOrders(snapshot.docs.map(toOrder));
+        const fetchedOrders = snapshot.docs.map(toOrder).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        setOrders(fetchedOrders);
         setLoading(false);
       },
       (err) => {

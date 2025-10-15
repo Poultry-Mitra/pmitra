@@ -100,8 +100,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     const requiredRole = getRoleFromPath(pathname);
     
-    // Allow access to public pages and the root landing page for everyone, regardless of login state.
+    // If user is already on a public page, the root, or an unknown page, do nothing.
     if (requiredRole === 'public' || requiredRole === 'root' || requiredRole === 'none') {
+        // However, if a logged-in user is on the root page, redirect them to their dashboard.
+        if (appUser && requiredRole === 'root') {
+             router.replace(getRedirectPath(appUser.role));
+        }
         return;
     }
 
