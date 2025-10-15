@@ -1,4 +1,3 @@
-
 // src/app/(app)/profile/page.tsx
 "use client";
 
@@ -74,7 +73,7 @@ export default function ProfilePage() {
         };
 
         try {
-            await updateDoc(userDocRef, updatedData);
+            updateDocumentNonBlocking(userDocRef, updatedData, auth);
             toast({ title: t('profile.update_success_title'), description: t('profile.update_success_desc') });
         } catch (error) {
             console.error("Profile update failed:", error);

@@ -47,7 +47,7 @@ export function AdminSidebar() {
   const { user: currentUser, loading } = useAppUser();
 
 
-  if (loading || !currentUser) {
+  if (loading || !currentUser || currentUser.role !== 'admin') {
       return (
           <Sidebar>
               <SidebarHeader>

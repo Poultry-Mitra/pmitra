@@ -1,4 +1,3 @@
-
 // src/hooks/use-dealer-inventory.ts
 'use client';
 
@@ -98,7 +97,7 @@ export function addDealerInventoryItem(firestore: Firestore, auth: Auth | null, 
     addDocumentNonBlocking(collectionRef, itemData, auth);
 }
 
-export function updateDealerInventoryItem(firestore: Firestore, itemId: string, data: Partial<Pick<DealerInventoryItem, 'quantity' | 'ratePerUnit' | 'lowStockThreshold'>>) {
+export function updateDealerInventoryItem(firestore: Firestore, auth: Auth | null, itemId: string, data: Partial<Pick<DealerInventoryItem, 'quantity' | 'ratePerUnit' | 'lowStockThreshold'>>) {
     if (!firestore) throw new Error("Firestore not initialized");
 
     const docRef = doc(firestore, 'dealerInventory', itemId);
@@ -108,7 +107,5 @@ export function updateDealerInventoryItem(firestore: Firestore, itemId: string, 
         updatedAt: serverTimestamp(),
     };
 
-    // Auth is passed as null as this should be called by an authenticated user,
-    // and rules will handle the permission check based on the resource's dealerUID.
-    updateDocumentNonBlocking(docRef, itemData, null);
+    updateDocumentNonBlocking(docRef, itemData, auth);
 }
