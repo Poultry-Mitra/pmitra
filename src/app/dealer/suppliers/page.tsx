@@ -1,5 +1,4 @@
 
-
 // src/app/dealer/suppliers/page.tsx
 "use client";
 
@@ -10,7 +9,6 @@ import { PlusCircle, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useSuppliers } from '@/hooks/use-suppliers';
-import { AddSupplierDialog } from './_components/add-supplier-dialog';
 import { useLanguage } from '@/components/language-provider';
 import { useAppUser } from '@/app/app-provider';
 import Link from 'next/link';
@@ -18,7 +16,6 @@ import Link from 'next/link';
 export default function SuppliersPage() {
     const { user } = useAppUser();
     const { suppliers, loading } = useSuppliers(user?.id);
-    const [isAddDialogOpen, setAddDialogOpen] = useState(false);
     const { t } = useLanguage();
 
     return (
@@ -27,9 +24,11 @@ export default function SuppliersPage() {
                 title={t('dealer.suppliers')}
                 description="Manage the list of suppliers you purchase from."
             >
-                <Button onClick={() => setAddDialogOpen(true)}>
-                    <PlusCircle className="mr-2" />
-                    Add New Supplier
+                <Button asChild>
+                    <Link href="/dealer/suppliers/add">
+                        <PlusCircle className="mr-2" />
+                        Add New Supplier
+                    </Link>
                 </Button>
             </PageHeader>
             <div className="mt-8">
@@ -79,7 +78,6 @@ export default function SuppliersPage() {
                     </CardContent>
                 </Card>
             </div>
-            <AddSupplierDialog open={isAddDialogOpen} onOpenChange={setAddDialogOpen} />
         </>
     )
 }
