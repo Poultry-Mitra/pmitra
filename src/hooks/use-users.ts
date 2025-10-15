@@ -1,4 +1,3 @@
-
 // src/hooks/use-users.ts
 'use client';
 
@@ -60,7 +59,8 @@ export function useUsers(role?: 'farmer' | 'dealer' | 'admin') {
     if (role) {
         return query(baseQuery, where("role", "==", role));
     }
-    return query(baseQuery); // Return all users if no role is specified
+    // IMPORTANT: When no role is specified, query all users.
+    return query(baseQuery);
   }, [firestore, role]);
 
 

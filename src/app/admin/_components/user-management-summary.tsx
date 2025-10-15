@@ -1,4 +1,3 @@
-
 // src/app/admin/_components/user-management-summary.tsx
 
 "use client";
@@ -72,7 +71,7 @@ const statusColorScheme = {
 
 
 export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 'dealer' }) {
-    const { users: allUsers, loading, handleUserDeletion } = useUsers();
+    const { users: allUsers, loading, handleUserDeletion } = useUsers(roleToShow);
     
     const [dialogState, setDialogState] = useState<{ action: 'delete' | 'suspend' | 'approve' | null, user: User | null }>({ action: null, user: null });
     const [planChangeState, setPlanChangeState] = useState<{ user: User | null, newPlan: 'free' | 'premium' | '', reason: string }>({ user: null, newPlan: '', reason: '' });
@@ -84,11 +83,11 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
     const auth = useAuth();
     const { user: adminUser } = useContext(AuthContext)!;
     const { t } = useLanguage();
-    const [activeTab, setActiveTab] = useState<string>("pending");
+    const [activeTab, setActiveTab] = useState<string>("active");
     
     const users = useMemo(() => {
         if (!roleToShow) return allUsers.slice(0, 5); // For dashboard recent users
-        return allUsers.filter(user => user.role === roleToShow);
+        return allUsers;
     }, [allUsers, roleToShow]);
     
     const { pendingUsers, activeUsers, suspendedUsers } = useMemo(() => {
@@ -101,7 +100,7 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
             else if (status === 'Active') active.push(user);
             else if (status === 'Suspended') suspended.push(user);
         });
-        return { pendingUsers: pending, activeUsers: active, suspendedUsers: suspended };
+        return { pendingUsers, activeUsers, suspendedUsers };
     }, [users]);
 
     const usersByTab: { [key: string]: User[] } = {
@@ -288,11 +287,11 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
                     {roleToShow && (
                         <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-4">
                             <TabsList>
+                                <TabsTrigger value="active">Active</TabsTrigger>
                                 <TabsTrigger value="pending">
                                     Pending
                                     {pendingUsers.length > 0 && <Badge className="ml-2">{pendingUsers.length}</Badge>}
                                 </TabsTrigger>
-                                <TabsTrigger value="active">Active</TabsTrigger>
                                 <TabsTrigger value="suspended">Suspended</TabsTrigger>
                                 <TabsTrigger value="all">All</TabsTrigger>
                             </TabsList>
