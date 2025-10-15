@@ -8,10 +8,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { IndianRupee } from "lucide-react";
+import { IndianRupee, Save } from "lucide-react";
 
 export default function PricingSettingsPage() {
     const { toast } = useToast();
+
+    // In a real app, you'd use useState and fetch these values from Firestore
+    // For this example, we'll just show the UI for updating.
 
     const handlePricingSave = () => {
         toast({
@@ -58,7 +61,7 @@ export default function PricingSettingsPage() {
                 </Card>
                  <div className="md:col-span-2">
                     <Button onClick={handlePricingSave} className="w-full">
-                        <IndianRupee className="mr-2"/>
+                        <Save className="mr-2"/>
                         Save All Pricing
                     </Button>
                 </div>

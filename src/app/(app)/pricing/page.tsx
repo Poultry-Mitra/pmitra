@@ -7,11 +7,13 @@ import { CheckCircle, Zap } from "lucide-react";
 import { PageHeader } from "../_components/page-header";
 import type { PricingPlan } from "@/lib/types";
 import { useState } from "react";
+import { useAppUser } from "@/app/app-provider";
+import { useLanguage } from "@/components/language-provider";
+import Link from 'next/link';
 
-const initialPlans: Omit<PricingPlan, 'priceMonthly' | 'priceYearly'>[] = [
+const initialPlans: Omit<PricingPlan, 'priceMonthly' | 'priceYearly' | 'price'>[] = [
     {
         name: "Free",
-        price: "₹0",
         priceDesc: "for basic needs",
         description: "For small farms and hobbyists starting out.",
         features: [
@@ -27,7 +29,6 @@ const initialPlans: Omit<PricingPlan, 'priceMonthly' | 'priceYearly'>[] = [
     },
     {
         name: "Premium",
-        price: "₹249",
         priceDesc: "per month",
         description: "For growing farms that need advanced tools.",
         features: [
@@ -45,7 +46,6 @@ const initialPlans: Omit<PricingPlan, 'priceMonthly' | 'priceYearly'>[] = [
     },
      {
         name: "Free",
-        price: "₹0",
         priceDesc: "for basic needs",
         description: "For dealers starting out.",
         features: [
@@ -60,7 +60,6 @@ const initialPlans: Omit<PricingPlan, 'priceMonthly' | 'priceYearly'>[] = [
     },
     {
         name: "Premium",
-        price: "₹499",
         priceDesc: "per month",
         description: "Tailored solutions for large-scale poultry businesses and dealers.",
         features: [
@@ -78,7 +77,7 @@ const initialPlans: Omit<PricingPlan, 'priceMonthly' | 'priceYearly'>[] = [
     }
 ]
 
-function PricingCard({ plan }: { plan: PricingPlan }) {
+function PricingCard({ plan, isCurrentPlan }: { plan: PricingPlan, isCurrentPlan: boolean }) {
     return (
         <Card className={`flex flex-col ${plan.isPopular ? 'border-primary shadow-lg' : ''}`}>
              <CardHeader className="relative">
@@ -110,7 +109,9 @@ function PricingCard({ plan }: { plan: PricingPlan }) {
                 </ul>
             </CardContent>
             <CardFooter>
-                <Button className="w-full" variant={plan.isPopular ? "default" : "outline"}>{plan.cta}</Button>
+                 <Button className="w-full" variant={plan.isPopular ? "default" : "outline"} disabled={isCurrentPlan}>
+                    {isCurrentPlan ? "Your Current Plan" : plan.cta}
+                </Button>
             </CardFooter>
         </Card>
     )
@@ -124,44 +125,78 @@ export default function PricingPage() {
         dealer: { monthly: 499, yearly: 4999 },
     });
     
+    const { user } = useAppUser();
+    const { t } = useLanguage();
+
     const plans: PricingPlan[] = initialPlans.map(p => {
-        if(p.userType === "Farmer" && p.name === "Premium") {
-            return { ...p, priceMonthly: prices.farmer.monthly.toString(), priceYearly: prices.farmer.yearly.toString() };
+        let priceMonthly = "0";
+        let priceYearly = "—";
+
+        if (p.name === "Premium") {
+            if (p.userType === "Farmer") {
+                priceMonthly = prices.farmer.monthly.toString();
+                priceYearly = prices.farmer.yearly.toString();
+            } else if (p.userType === "Dealer") {
+                priceMonthly = prices.dealer.monthly.toString();
+                priceYearly = prices.dealer.yearly.toString();
+            }
         }
-        if(p.userType === "Dealer" && p.name === "Premium") {
-            return { ...p, priceMonthly: prices.dealer.monthly.toString(), priceYearly: prices.dealer.yearly.toString() };
-        }
-        return { ...p, priceMonthly: "0", priceYearly: "—" };
+        
+        return {
+            ...p,
+            priceMonthly,
+            priceYearly,
+            price: priceMonthly,
+        };
     });
 
-    const farmerPlans = plans.filter(p => p.userType === 'Farmer');
-    const dealerPlans = plans.filter(p => p.userType === 'Dealer');
-
+    const userPlans = user ? plans.filter(p => p.userType.toLowerCase() === user.role) : [];
+    
     return (
         <>
             <PageHeader
-                title="Subscription Plans"
+                title={t('pricing.title')}
                 description="Choose the plan that's right for your farm. Unlock powerful AI features to boost your productivity."
             />
 
             <div className="mt-8 space-y-12">
-                <div>
-                    <h2 className="font-headline text-2xl font-bold tracking-tight mb-6">For Farmers (मुर्गीपालक)</h2>
-                    <div className="grid gap-6 md:grid-cols-2 lg:max-w-4xl">
-                        {farmerPlans.map(plan => (
-                            <PricingCard key={`${plan.name}-${plan.userType}`} plan={plan} />
-                        ))}
-                    </div>
-                </div>
-
-                 <div>
-                    <h2 className="font-headline text-2xl font-bold tracking-tight mb-6">For Dealers (डीलर / सप्लायर)</h2>
-                     <div className="grid gap-6 md:grid-cols-2 lg:max-w-4xl">
-                        {dealerPlans.map(plan => (
-                             <PricingCard key={`${plan.name}-${plan.userType}`} plan={plan} />
-                        ))}
-                    </div>
-                </div>
+                
+                {user ? (
+                     <div>
+                        <h2 className="font-headline text-2xl font-bold tracking-tight mb-6">Plans for your {user.role} account</h2>
+                         <div className="grid gap-6 md:grid-cols-2 lg:max-w-4xl">
+                            {userPlans.map(plan => (
+                                <PricingCard 
+                                    key={`${plan.name}-${plan.userType}`} 
+                                    plan={plan} 
+                                    isCurrentPlan={(user.planType?.toLowerCase() || 'free') === plan.name.toLowerCase()}
+                                />
+                            ))}
+                        </div>
+                     </div>
+                ) : (
+                    <>
+                        <div>
+                            <h2 className="font-headline text-2xl font-bold tracking-tight mb-6">For Farmers (मुर्गीपालक)</h2>
+                            <div className="grid gap-6 md:grid-cols-2 lg:max-w-4xl">
+                                {plans.filter(p => p.userType === 'Farmer').map(plan => (
+                                    <PricingCard key={`${plan.name}-${plan.userType}`} plan={plan} isCurrentPlan={false}/>
+                                ))}
+                            </div>
+                        </div>
+                        <div>
+                            <h2 className="font-headline text-2xl font-bold tracking-tight mb-6">For Dealers (डीलर / सप्लायर)</h2>
+                            <div className="grid gap-6 md:grid-cols-2 lg:max-w-4xl">
+                                {plans.filter(p => p.userType === 'Dealer').map(plan => (
+                                    <PricingCard key={`${plan.name}-${plan.userType}`} plan={plan} isCurrentPlan={false}/>
+                                ))}
+                            </div>
+                        </div>
+                         <div className="text-center">
+                            <Button asChild><Link href="/signup">Get Started</Link></Button>
+                        </div>
+                    </>
+                )}
             </div>
         </>
     )
