@@ -2,7 +2,7 @@
 'use server';
 
 import { aiQueryPoultry } from '@/ai/flows/ai-query-poultry';
-import { z } from 'genkit';
+import { z } from 'zod';
 
 const AIQueryPoultryInputSchema = z.object({
   query: z.string(),
