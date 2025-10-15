@@ -106,8 +106,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         return;
     }
     
-    // If the path is public or unknown, no redirection needed.
-    if (requiredRole === 'public' || requiredRole === 'none') {
+    // If the path is public, no redirection needed.
+    if (requiredRole === 'public') {
         return;
     }
 
@@ -130,7 +130,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   // Show a global loader for protected routes while we're still authenticating
   // This prevents a flicker of content before redirection.
-  if (isLoading && requiredRole !== 'public' && requiredRole !== 'none') {
+  if (isLoading && requiredRole !== 'public') {
     return (
         <div className="flex h-screen w-full items-center justify-center">
             <Loader2 className="h-8 w-8 animate-spin" />
