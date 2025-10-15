@@ -98,35 +98,39 @@ export function useUsersByIds(userIds: string[]) {
     const [users, setUsers] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
 
-    const usersByIdsQuery = useMemoFirebase(() => {
-      if (!firestore || !userIds || userIds.length === 0) return null;
-      // Firestore 'in' queries are limited to 30 elements.
-      return query(collection(firestore, 'users'), where('__name__', 'in', userIds.slice(0, 30)));
-    }, [firestore, JSON.stringify(userIds)]); // stringify to ensure dependency check works on array content
-
-
     useEffect(() => {
-        if (!usersByIdsQuery) {
-            setUsers([]);
-            setLoading(false);
-            return;
+      if (!firestore || !userIds || userIds.length === 0) {
+        setUsers([]);
+        setLoading(false);
+        return;
+      }
+      
+      setLoading(true);
+      // Firestore 'in' queries are limited to 30 elements per query.
+      // We need to chunk the userIds array.
+      const chunks: string[][] = [];
+      for (let i = 0; i < userIds.length; i += 30) {
+          chunks.push(userIds.slice(i, i + 30));
+      }
+
+      const fetchUsers = async () => {
+        try {
+          const userPromises = chunks.map(chunk => 
+            getDocs(query(collection(firestore, 'users'), where('__name__', 'in', chunk)))
+          );
+          const userSnapshots = await Promise.all(userPromises);
+          const fetchedUsers = userSnapshots.flatMap(snapshot => snapshot.docs.map(toUser));
+          setUsers(fetchedUsers);
+        } catch (err) {
+          console.error("Error fetching users by IDs:", err);
+        } finally {
+          setLoading(false);
         }
+      };
 
-        setLoading(true);
-        const unsubscribe = onSnapshot(
-            usersByIdsQuery,
-            (snapshot) => {
-                setUsers(snapshot.docs.map(toUser));
-                setLoading(false);
-            },
-            (err) => {
-                 console.error("Error fetching users by IDs:", err);
-                setLoading(false);
-            }
-        );
-
-        return () => unsubscribe();
-    }, [usersByIdsQuery]);
+      fetchUsers();
+      
+    }, [firestore, userIds]);
 
     return { users, loading };
 }
@@ -153,39 +157,50 @@ export async function findUserByUniqueCode(firestore: Firestore, uniqueCode: str
 }
 
 
-export function requestDealerConnection(firestore: Firestore, farmerUID: string, dealerCode: string): Promise<User> {
+export async function requestDealerConnection(firestore: Firestore, farmerUID: string, dealerCode: string): Promise<User> {
     if (!firestore) throw new Error("Firestore not initialized");
 
-    return new Promise(async (resolve, reject) => {
-        try {
-            const dealerUser = await findUserByUniqueCode(firestore, dealerCode, 'dealer');
-            if (!dealerUser) {
-                return reject(new Error("Dealer not found with that code."));
-            }
-            
-            const dealerIsPremium = dealerUser.planType === 'premium';
-            const farmerLimit = 2;
-            if (!dealerIsPremium && (dealerUser.connectedFarmers || []).length >= farmerLimit) {
-                return reject(new Error("This dealer has reached the maximum number of connected farmers on their current plan."));
-            }
+    const dealerUser = await findUserByUniqueCode(firestore, dealerCode, 'dealer');
+    if (!dealerUser) {
+        throw new Error("Dealer not found with that code.");
+    }
+    
+    // Check if a connection already exists
+    const connectionsCollection = collection(firestore, 'connections');
+    const existingConnectionQuery = query(
+        connectionsCollection,
+        where("farmerUID", "==", farmerUID),
+        where("dealerUID", "==", dealerUser.id)
+    );
 
-            const connectionsCollection = collection(firestore, 'connections');
-            // Auth is passed as null because the security rules for creating a connection
-            // are based on the UIDs in the data, not the logged-in user.
-            await addDocumentNonBlocking(connectionsCollection, {
-                farmerUID,
-                dealerUID: dealerUser.id,
-                status: 'Pending',
-                requestedBy: 'farmer',
-                createdAt: serverTimestamp(),
-            }, null);
-            
-            resolve(dealerUser);
-        } catch (error) {
-            reject(error);
+    const existingConnectionSnapshot = await getDocs(existingConnectionQuery);
+    if (!existingConnectionSnapshot.empty) {
+        const existingStatus = existingConnectionSnapshot.docs[0].data().status;
+        if (existingStatus === 'Approved') {
+            throw new Error(`You are already connected with ${dealerUser.name}.`);
         }
-    });
+        if (existingStatus === 'Pending') {
+            throw new Error(`A connection request to ${dealerUser.name} is already pending.`);
+        }
+    }
+    
+    const dealerIsPremium = dealerUser.planType === 'premium';
+    const farmerLimit = 2; // This could be a global setting in the future
+    if (!dealerIsPremium && (dealerUser.connectedFarmers || []).length >= farmerLimit) {
+        throw new Error("This dealer has reached the maximum number of connected farmers on their current plan.");
+    }
+
+    await addDocumentNonBlocking(connectionsCollection, {
+        farmerUID,
+        dealerUID: dealerUser.id,
+        status: 'Pending',
+        requestedBy: 'farmer',
+        createdAt: serverTimestamp(),
+    }, null); // Auth is null as rules are based on UIDs
+    
+    return dealerUser;
 }
+
 
 
 export async function deleteUser(firestore: Firestore, auth: Auth | null, userId: string) {

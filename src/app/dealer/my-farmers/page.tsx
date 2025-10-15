@@ -33,7 +33,6 @@ import {
 import { PlusCircle, AlertTriangle, Loader2 } from "lucide-react";
 import { useUsersByIds } from '@/hooks/use-users';
 import { ConnectFarmerDialog } from './_components/connect-farmer-dialog';
-import { useFirestore } from '@/firebase/provider';
 import type { User } from '@/lib/types';
 import { useConnections } from '@/hooks/use-connections';
 import { FarmerDetailsDialog } from './_components/farmer-details-dialog';
@@ -86,9 +85,7 @@ export default function MyFarmersPage() {
                 </Button>
             </PageHeader>
             
-            {loading ? <div className="flex justify-center p-8"><Loader2 className="animate-spin" /></div> : (
-                <div className="mt-8 space-y-8">
-                
+            <div className="mt-8">
                 <Card>
                     <CardHeader>
                         <CardTitle>Connected Farmers</CardTitle>
@@ -98,45 +95,49 @@ export default function MyFarmersPage() {
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Farmer Name</TableHead>
-                                    <TableHead>Email</TableHead>
-                                    <TableHead>Location</TableHead>
-                                    <TableHead>Plan</TableHead>
-                                    <TableHead className='text-right'>{t('tables.actions')}</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {connectedFarmers.length === 0 && (
-                                     <TableRow>
-                                        <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
-                                            No farmers connected yet. Share your dealer code or use the "Connect New Farmer" button.
-                                        </TableCell>
-                                     </TableRow>
-                                )}
-                                {connectedFarmers.map((farmer) => {
-                                    return (
-                                    <TableRow key={farmer.id}>
-                                        <TableCell className="font-medium">{farmer.name}</TableCell>
-                                        <TableCell>{farmer.email}</TableCell>
-                                        <TableCell>{farmer.district}, {farmer.state}</TableCell>
-                                        <TableCell>
-                                            <Badge variant={farmer.planType === 'premium' ? 'default' : 'secondary'} className="capitalize">{farmer.planType}</Badge>
-                                        </TableCell>
-                                        <TableCell className="text-right">
-                                             <Button variant="outline" size="sm" onClick={() => handleViewDetails(farmer)}>{t('actions.view_details')}</Button>
-                                        </TableCell>
+                         {loading ? (
+                            <div className="flex justify-center items-center h-48">
+                                <Loader2 className="animate-spin" />
+                            </div>
+                         ) : (
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Farmer Name</TableHead>
+                                        <TableHead>Email</TableHead>
+                                        <TableHead>Location</TableHead>
+                                        <TableHead>Plan</TableHead>
+                                        <TableHead className='text-right'>{t('tables.actions')}</TableHead>
                                     </TableRow>
-                                )})}
-                            </TableBody>
-                        </Table>
+                                </TableHeader>
+                                <TableBody>
+                                    {connectedFarmers.length === 0 ? (
+                                        <TableRow>
+                                            <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
+                                                No farmers connected yet. Share your dealer code or use the "Connect New Farmer" button.
+                                            </TableCell>
+                                        </TableRow>
+                                    ) : (
+                                        connectedFarmers.map((farmer) => (
+                                            <TableRow key={farmer.id}>
+                                                <TableCell className="font-medium">{farmer.name}</TableCell>
+                                                <TableCell>{farmer.email}</TableCell>
+                                                <TableCell>{farmer.district}, {farmer.state}</TableCell>
+                                                <TableCell>
+                                                    <Badge variant={farmer.planType === 'premium' ? 'default' : 'secondary'} className="capitalize">{farmer.planType}</Badge>
+                                                </TableCell>
+                                                <TableCell className="text-right">
+                                                    <Button variant="outline" size="sm" onClick={() => handleViewDetails(farmer)}>{t('actions.view_details')}</Button>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))
+                                    )}
+                                </TableBody>
+                            </Table>
+                         )}
                     </CardContent>
                 </Card>
-                </div>
-            )}
-
+            </div>
 
             <ConnectFarmerDialog open={isConnectDialogOpen} onOpenChange={setConnectDialogOpen} />
             <AlertDialog open={showUpgradeAlert} onOpenChange={setShowUpgradeAlert}>
