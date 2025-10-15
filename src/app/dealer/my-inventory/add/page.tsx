@@ -305,10 +305,10 @@ export default function AddStockPage() {
                             <div className="lg:col-span-2 space-y-8">
                                 <Card>
                                     <CardHeader>
-                                        <CardTitle>Supplier Details</CardTitle>
+                                        <CardTitle>Supplier & Invoice Details</CardTitle>
                                     </CardHeader>
-                                    <CardContent>
-                                        <FormField name="supplierId" control={form.control} render={({ field }) => (
+                                    <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                         <FormField name="supplierId" control={form.control} render={({ field }) => (
                                             <FormItem>
                                                 <FormLabel>Select Supplier</FormLabel>
                                                 <Select onValueChange={field.onChange} defaultValue={field.value} disabled={suppliersLoading} key={suppliers.length}>
@@ -323,10 +323,23 @@ export default function AddStockPage() {
                                                         ))}
                                                     </SelectContent>
                                                 </Select>
-                                                <FormDescription>
-                                                    If supplier not in list, <Link href="/dealer/suppliers/add" className="text-primary hover:underline">add new supplier here</Link>.
+                                                <FormDescription className="text-xs">
+                                                    Can't find a supplier? <Link href="/dealer/suppliers/add" className="text-primary hover:underline">Add one here</Link>.
                                                 </FormDescription>
                                                 <FormMessage />
+                                            </FormItem>
+                                        )} />
+                                        <FormField name="invoiceDate" control={form.control} render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Invoice/Bill Date</FormLabel>
+                                                <FormControl><Input type="date" {...field} /></FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )} />
+                                        <FormField name="invoiceNumber" control={form.control} render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Invoice/Bill No. (Optional)</FormLabel>
+                                                <FormControl><Input placeholder="e.g., INV-2024-001" {...field} /></FormControl>
                                             </FormItem>
                                         )} />
                                     </CardContent>
@@ -541,25 +554,9 @@ export default function AddStockPage() {
                                 <SummaryCard control={form.control} />
                                 <Card>
                                     <CardHeader>
-                                        <CardTitle>Invoice & Payment</CardTitle>
+                                        <CardTitle>Additional Costs & Payment</CardTitle>
                                     </CardHeader>
                                      <CardContent className="space-y-6">
-                                        <FormField name="invoiceDate" control={form.control} render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Invoice/Bill Date</FormLabel>
-                                                <FormControl><Input type="date" {...field} /></FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )} />
-                                        <FormField name="invoiceNumber" control={form.control} render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Invoice/Bill No. (Optional)</FormLabel>
-                                                <FormControl><Input placeholder="e.g., INV-2024-001" {...field} /></FormControl>
-                                            </FormItem>
-                                        )} />
-                                        
-                                        <Separator/>
-
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <FormField name="transportCost" control={form.control} render={({ field }) => (
                                                 <FormItem>
@@ -622,3 +619,5 @@ export default function AddStockPage() {
         </>
     );
 }
+
+    
