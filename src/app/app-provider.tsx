@@ -24,12 +24,7 @@ export function useAppUser() {
   return context;
 }
 
-const PUBLIC_PATHS = ['/login', '/signup', '/blog', '/privacy', '/terms', '/analytics', '/biosecurity', '/chat', '/diagnose-health'];
-const FARMER_PATHS = [
-    '/dashboard', '/batches', '/ledger', '/inventory', '/dealers', '/monitoring', 
-    '/feed-recommendation', '/daily-rates', '/pricing', '/profile'
-];
-
+const PUBLIC_PATHS = ['/login', '/signup', '/blog', '/privacy', '/terms'];
 
 const getRedirectPath = (role?: UserRole | null) => {
   if (!role) return '/login';
@@ -40,22 +35,16 @@ const getRedirectPath = (role?: UserRole | null) => {
   }[role] || '/login';
 };
 
-const getRoleFromPath = (path: string): UserRole | 'public' | 'root' | 'none' => {
-  if (path === '/') return 'root';
-  if (PUBLIC_PATHS.some(p => path.startsWith(p))) return 'public';
-  if (path.startsWith('/admin')) return 'admin';
-  if (path.startsWith('/dealer')) return 'dealer';
-  // Check for exact matches for farmer-specific root pages
-  if (FARMER_PATHS.includes(path) || FARMER_PATHS.some(p => path.startsWith(p + '/'))) {
-      return 'farmer';
-  }
-  
-  // Broader check for farmer paths to be safe
-  if (path.startsWith('/dashboard') || path.startsWith('/batches') || path.startsWith('/ledger') || path.startsWith('/inventory') || path.startsWith('/dealers') || path.startsWith('/monitoring') || path.startsWith('/feed-recommendation') || path.startsWith('/daily-rates') || path.startsWith('/pricing') || path.startsWith('/profile')) {
-      return 'farmer';
-  }
-
-  return 'none';
+const getRoleFromPath = (path: string): UserRole | 'public' | 'none' => {
+    if (path === '/' || PUBLIC_PATHS.some(p => path.startsWith(p))) {
+        return 'public';
+    }
+    if (path.startsWith('/admin')) return 'admin';
+    if (path.startsWith('/dealer')) return 'dealer';
+    if (path.startsWith('/dashboard') || path.startsWith('/batches') || path.startsWith('/ledger') || path.startsWith('/inventory') || path.startsWith('/dealers') || path.startsWith('/monitoring') || path.startsWith('/feed-recommendation') || path.startsWith('/daily-rates') || path.startsWith('/pricing') || path.startsWith('/profile') || path.startsWith('/analytics') || path.startsWith('/biosecurity') || path.startsWith('/chat') || path.startsWith('/diagnose-health')) {
+        return 'farmer';
+    }
+    return 'none';
 };
 
 
@@ -112,13 +101,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const requiredRole = getRoleFromPath(pathname);
     
     // If a logged-in user is on the root page, redirect them to their dashboard.
-    if (appUser && requiredRole === 'root') {
+    if (appUser && pathname === '/') {
         router.replace(getRedirectPath(appUser.role));
         return;
     }
     
     // If the path is public or unknown, no redirection needed.
-    if (requiredRole === 'public' || requiredRole === 'root' || requiredRole === 'none') {
+    if (requiredRole === 'public' || requiredRole === 'none') {
         return;
     }
 
@@ -141,7 +130,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   // Show a global loader for protected routes while we're still authenticating
   // This prevents a flicker of content before redirection.
-  if (isLoading && requiredRole !== 'public' && requiredRole !== 'root' && requiredRole !== 'none') {
+  if (isLoading && requiredRole !== 'public' && requiredRole !== 'none') {
     return (
         <div className="flex h-screen w-full items-center justify-center">
             <Loader2 className="h-8 w-8 animate-spin" />
