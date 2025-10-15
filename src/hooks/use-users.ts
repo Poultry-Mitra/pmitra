@@ -1,4 +1,3 @@
-
 // src/hooks/use-users.ts
 'use client';
 
@@ -56,8 +55,12 @@ export function useUsers(role?: 'farmer' | 'dealer' | 'admin') {
   
   const usersQuery = useMemoFirebase(() => {
     if (!firestore) return null;
-    return query(collection(firestore, 'users'));
-  }, [firestore]);
+    const baseQuery = collection(firestore, 'users');
+    if (role) {
+        return query(baseQuery, where("role", "==", role));
+    }
+    return query(baseQuery);
+  }, [firestore, role]);
 
 
   useEffect(() => {
@@ -82,7 +85,7 @@ export function useUsers(role?: 'farmer' | 'dealer' | 'admin') {
     return () => unsubscribe();
   }, [usersQuery]);
 
-  const users = role ? allUsers.filter(user => user.role === role) : allUsers;
+  const users = allUsers;
   
   const handleUserDeletion = (userId: string) => {
       setAllUsers(prevUsers => prevUsers.filter(u => u.id !== userId));
@@ -160,13 +163,13 @@ export async function findUserByUniqueCode(firestore: Firestore, uniqueCode: str
 export async function requestDealerConnection(firestore: Firestore, farmerUID: string, dealerCode: string): Promise<User> {
     if (!firestore) throw new Error("Firestore not initialized");
 
+    // Check if a connection already exists
+    const connectionsCollection = collection(firestore, 'connections');
     const dealerUser = await findUserByUniqueCode(firestore, dealerCode, 'dealer');
     if (!dealerUser) {
         throw new Error("Dealer not found with that code.");
     }
     
-    // Check if a connection already exists
-    const connectionsCollection = collection(firestore, 'connections');
     const existingConnectionQuery = query(
         connectionsCollection,
         where("farmerUID", "==", farmerUID),
