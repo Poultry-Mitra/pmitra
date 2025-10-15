@@ -3,6 +3,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { usePosts } from "@/hooks/use-posts";
 import { Loader2, ArrowRight } from "lucide-react";
@@ -23,8 +24,23 @@ export default function BlogPage() {
             />
             <div className="mt-8">
                 {loading ? (
-                    <div className="flex justify-center py-12">
-                        <Loader2 className="animate-spin" />
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        {[...Array(3)].map((_, i) => (
+                             <Card key={i} className="flex flex-col">
+                                <div className="aspect-video bg-muted animate-pulse"></div>
+                                <CardHeader>
+                                    <div className="h-6 w-3/4 bg-muted animate-pulse rounded-md"></div>
+                                    <div className="h-4 w-1/2 bg-muted animate-pulse rounded-md mt-2"></div>
+                                </CardHeader>
+                                <CardContent className="flex-1">
+                                    <div className="h-4 w-full bg-muted animate-pulse rounded-md"></div>
+                                    <div className="h-4 w-5/6 bg-muted animate-pulse rounded-md mt-2"></div>
+                                </CardContent>
+                                <CardFooter>
+                                     <div className="h-9 w-28 bg-muted animate-pulse rounded-md"></div>
+                                </CardFooter>
+                            </Card>
+                        ))}
                     </div>
                 ) : publishedPosts.length === 0 ? (
                     <div className="text-center py-12 text-muted-foreground">
@@ -33,9 +49,24 @@ export default function BlogPage() {
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                         {publishedPosts.map(post => (
-                            <Card key={post.id} className="flex flex-col">
+                            <Card key={post.id} className="flex flex-col overflow-hidden">
+                                <Link href={`/blog/${post.slug}`} className="block">
+                                    <div className="relative aspect-video">
+                                        {post.featuredImageUrl ? (
+                                            <Image src={post.featuredImageUrl} alt={post.title} fill style={{objectFit: 'cover'}} />
+                                        ) : (
+                                            <div className="w-full h-full bg-muted flex items-center justify-center text-muted-foreground text-sm">
+                                                No Image
+                                            </div>
+                                        )}
+                                    </div>
+                                </Link>
                                 <CardHeader>
-                                    <CardTitle className="line-clamp-2">{post.title}</CardTitle>
+                                    <CardTitle className="line-clamp-2">
+                                        <Link href={`/blog/${post.slug}`} className="hover:text-primary transition-colors">
+                                            {post.title}
+                                        </Link>
+                                    </CardTitle>
                                     <CardDescription>
                                         By {post.authorName} on {format(new Date(post.createdAt), "MMM d, yyyy")}
                                     </CardDescription>

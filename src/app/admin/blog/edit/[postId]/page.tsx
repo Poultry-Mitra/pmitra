@@ -7,6 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import Image from 'next/image';
 import { PageHeader } from "@/app/admin/_components/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -17,13 +18,14 @@ import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { useFirestore, useUser } from "@/firebase/provider";
 import { usePost, addPost, updatePost } from "@/hooks/use-posts";
-import { Loader2, Save, WandSparkles } from "lucide-react";
+import { Loader2, Save, WandSparkles, Upload } from "lucide-react";
 import slugify from "slugify";
 import { siteExpert } from "@/ai/flows/site-expert";
 
 const formSchema = z.object({
   title: z.string().min(5, "Title must be at least 5 characters."),
   content: z.string().min(50, "Content must be at least 50 characters."),
+  featuredImageUrl: z.string().url("Please enter a valid image URL.").optional().or(z.literal('')),
   tags: z.string().optional(),
   isPublished: z.boolean().default(false),
 });
@@ -46,6 +48,7 @@ export default function EditPostPage() {
         defaultValues: {
             title: "",
             content: "",
+            featuredImageUrl: "",
             tags: "",
             isPublished: false,
         },
@@ -56,6 +59,7 @@ export default function EditPostPage() {
             form.reset({
                 title: post.title,
                 content: post.content,
+                featuredImageUrl: post.featuredImageUrl || "",
                 tags: post.tags?.join(", ") || "",
                 isPublished: post.isPublished,
             });
@@ -100,6 +104,7 @@ export default function EditPostPage() {
             title: values.title,
             slug: slugify(values.title, { lower: true, strict: true }),
             content: values.content,
+            featuredImageUrl: values.featuredImageUrl,
             tags: values.tags?.split(",").map(tag => tag.trim()).filter(Boolean) || [],
             isPublished: values.isPublished,
             authorId: adminUser.uid,
@@ -120,6 +125,8 @@ export default function EditPostPage() {
             toast({ title: "Error", description: "Failed to save the post.", variant: "destructive" });
         }
     }
+    
+    const imageUrl = form.watch("featuredImageUrl");
 
     if (postLoading && postId) {
         return <div className="flex justify-center p-8"><Loader2 className="animate-spin" /></div>;
@@ -137,7 +144,7 @@ export default function EditPostPage() {
                         <Card>
                             <CardHeader>
                                 <CardTitle>Post Content</CardTitle>
-                                <CardDescription>Use markdown for formatting. Images are not yet supported.</CardDescription>
+                                <CardDescription>Use markdown for formatting.</CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-6">
                                 <FormField
@@ -147,6 +154,29 @@ export default function EditPostPage() {
                                         <FormItem>
                                             <FormLabel>Post Title</FormLabel>
                                             <FormControl><Input placeholder="A catchy title for your article" {...field} /></FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                
+                                <FormField
+                                    control={form.control}
+                                    name="featuredImageUrl"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Featured Image URL</FormLabel>
+                                            <FormControl>
+                                                <div className="flex items-center gap-4">
+                                                    <Input placeholder="https://picsum.photos/seed/1/800/400" {...field} />
+                                                    {/* In a real app, this would be a proper file upload component */}
+                                                    <Button type="button" variant="outline"><Upload className="mr-2"/> Upload</Button>
+                                                </div>
+                                            </FormControl>
+                                            {imageUrl && (
+                                                <div className="mt-4 relative aspect-video w-full overflow-hidden rounded-md border">
+                                                    <Image src={imageUrl} alt="Featured Image Preview" fill style={{objectFit: 'cover'}} />
+                                                </div>
+                                            )}
                                             <FormMessage />
                                         </FormItem>
                                     )}

@@ -3,6 +3,7 @@
 "use client";
 
 import { useParams, notFound } from "next/navigation";
+import Image from 'next/image';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { usePostBySlug } from "@/hooks/use-posts";
@@ -50,14 +51,16 @@ export default function BlogPostPage() {
     if (loading) {
         return (
             <div className="container max-w-4xl py-8">
+                <Skeleton className="h-10 w-full mb-4" />
                 <Skeleton className="h-12 w-3/4" />
-                <div className="mt-4 flex items-center gap-4">
+                <div className="mt-6 flex items-center gap-4">
                     <Skeleton className="h-10 w-10 rounded-full" />
                     <div className="space-y-2">
                         <Skeleton className="h-4 w-24" />
                         <Skeleton className="h-4 w-32" />
                     </div>
                 </div>
+                <Skeleton className="mt-8 aspect-video w-full" />
                 <div className="mt-8 space-y-4">
                     <Skeleton className="h-4 w-full" />
                     <Skeleton className="h-4 w-full" />
@@ -135,17 +138,21 @@ export default function BlogPostPage() {
                     </div>
                 </header>
                 
-                <Card className="mt-8">
-                    <CardContent className="pt-6">
-                        <div 
-                            className="prose prose-lg dark:prose-invert max-w-none"
-                        >
-                           <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                             {post.content}
-                           </ReactMarkdown>
-                        </div>
-                    </CardContent>
-                </Card>
+                {post.featuredImageUrl && (
+                    <div className="relative aspect-video w-full overflow-hidden rounded-lg mt-8 border">
+                        <Image src={post.featuredImageUrl} alt={post.title} fill style={{objectFit: 'cover'}}/>
+                    </div>
+                )}
+
+                <div className="mt-8">
+                    <div 
+                        className="prose prose-lg dark:prose-invert max-w-none"
+                    >
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                            {post.content}
+                        </ReactMarkdown>
+                    </div>
+                </div>
             </article>
         </div>
     );
