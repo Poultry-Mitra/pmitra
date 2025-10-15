@@ -63,6 +63,11 @@ export default function CreateOfflineSalePage() {
             toast({ title: t('messages.error'), description: "Could not create order.", variant: "destructive" });
             return;
         }
+        
+        if (values.quantity > selectedProduct.quantity) {
+            form.setError('quantity', { type: 'manual', message: `Cannot exceed available stock of ${selectedProduct.quantity}.` });
+            return;
+        }
 
         try {
             await createOrder(firestore, {
@@ -92,7 +97,7 @@ export default function CreateOfflineSalePage() {
         <>
         <PageHeader 
             title="Record Offline Sale"
-            description="Use this form to record a sale made to a walk-in or offline customer."
+            description="Use this form to record a sale made to a walk-in or offline customer. Inventory and ledger will be updated automatically."
         />
         <div className="mt-8 max-w-2xl">
             <Card>

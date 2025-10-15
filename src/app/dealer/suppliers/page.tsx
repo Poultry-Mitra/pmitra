@@ -13,6 +13,7 @@ import { useSuppliers } from '@/hooks/use-suppliers';
 import { AddSupplierDialog } from './_components/add-supplier-dialog';
 import { useLanguage } from '@/components/language-provider';
 import { useAppUser } from '@/app/app-provider';
+import Link from 'next/link';
 
 export default function SuppliersPage() {
     const { user } = useAppUser();
@@ -35,7 +36,10 @@ export default function SuppliersPage() {
                 <Card>
                     <CardHeader>
                         <CardTitle>All Suppliers</CardTitle>
-                        <CardDescription>A list of all your registered suppliers.</CardDescription>
+                        <CardDescription>
+                            A list of all your registered suppliers. To add items to your inventory, 
+                            <Link href="/dealer/my-inventory/add" className="text-primary hover:underline font-medium"> create a new purchase</Link>.
+                        </CardDescription>
                     </CardHeader>
                     <CardContent>
                          <Table>

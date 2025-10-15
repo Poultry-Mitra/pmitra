@@ -218,11 +218,11 @@ export function DealerSidebar() {
                         Let's Add Your First Purchase!
                     </AlertDialogTitle>
                     <AlertDialogDescription>
-                        The first step is to record a purchase from a supplier. This will automatically add items to your inventory.
+                        The first step to managing inventory is to record a purchase from one of your suppliers. This will automatically add items to your stock.
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogCancel>Maybe Later</AlertDialogCancel>
                     <AlertDialogAction asChild>
                         <Link href="/dealer/my-inventory/add">Add Purchase</Link>
                     </AlertDialogAction>

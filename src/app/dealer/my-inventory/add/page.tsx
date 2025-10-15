@@ -322,7 +322,7 @@ export default function AddStockPage() {
                                                     </SelectContent>
                                                 </Select>
                                                 <FormDescription>
-                                                    If supplier not in list, <Link href="/dealer/suppliers" className="text-primary hover:underline">add new supplier here</Link>.
+                                                    If supplier not in list, <Link href="/dealer/suppliers/add" className="text-primary hover:underline">add new supplier here</Link>.
                                                 </FormDescription>
                                                 <FormMessage />
                                             </FormItem>
