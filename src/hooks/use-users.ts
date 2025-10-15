@@ -26,14 +26,15 @@ function toUser(doc: QueryDocumentSnapshot<DocumentData> | DocumentSnapshot<Docu
     const data = doc.data();
     if (!data) throw new Error("User document data is empty");
     
+    // This is the corrected and robust mapping.
     return {
         id: doc.id,
-        name: data.name,
-        email: data.email,
-        role: data.role,
-        status: data.status,
-        dateJoined: data.dateJoined,
-        planType: data.planType,
+        name: data.name || "Unnamed User",
+        email: data.email || "",
+        role: data.role || "farmer",
+        status: data.status || "Pending",
+        dateJoined: data.dateJoined || new Date().toISOString(),
+        planType: data.planType || "free",
         uniqueDealerCode: data.uniqueDealerCode,
         poultryMitraId: data.poultryMitraId,
         mobileNumber: data.mobileNumber,
@@ -41,9 +42,9 @@ function toUser(doc: QueryDocumentSnapshot<DocumentData> | DocumentSnapshot<Docu
         district: data.district,
         pinCode: data.pinCode,
         biosecurityMeasures: data.biosecurityMeasures,
-        connectedFarmers: data.connectedFarmers,
-        connectedDealers: data.connectedDealers,
-        aiQueriesCount: data.aiQueriesCount,
+        connectedFarmers: data.connectedFarmers || [],
+        connectedDealers: data.connectedDealers || [],
+        aiQueriesCount: data.aiQueriesCount || 0,
         lastQueryDate: data.lastQueryDate,
     } as User;
 }
@@ -63,17 +64,17 @@ export function useUsers(role?: 'farmer' | 'dealer' | 'admin') {
     setLoading(true);
     let usersQuery;
     const baseQuery = collection(firestore, 'users');
+
     if (role) {
       usersQuery = query(baseQuery, where("role", "==", role));
     } else {
       usersQuery = query(baseQuery);
     }
     
-
     const unsubscribe = onSnapshot(
       usersQuery,
       (snapshot) => {
-        setUsers(snapshot.docs.map(d => toUser(d)));
+        setUsers(snapshot.docs.map(toUser));
         setLoading(false);
       },
       (err) => {
@@ -130,7 +131,7 @@ export function useUsersByIds(userIds: string[]) {
 
       fetchUsers();
       
-    }, [firestore, userIds]);
+    }, [firestore, JSON.stringify(userIds)]); // stringify to compare array values
 
     return { users, loading };
 }
