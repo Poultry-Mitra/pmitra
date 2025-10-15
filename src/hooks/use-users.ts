@@ -27,7 +27,7 @@ function toUser(doc: QueryDocumentSnapshot<DocumentData> | DocumentSnapshot<Docu
     const data = doc.data();
     if (!data) throw new Error("User document data is empty");
     
-    // Return a sanitized user object, excluding potentially sensitive fields
+    // Return a sanitized user object, excluding potentially sensitive fields for general queries
     return {
         id: doc.id,
         name: data.name,
@@ -43,7 +43,7 @@ function toUser(doc: QueryDocumentSnapshot<DocumentData> | DocumentSnapshot<Docu
         district: data.district,
         pinCode: data.pinCode,
         connectedFarmers: data.connectedFarmers,
-        // Explicitly DO NOT include connectedDealers here for general purpose user fetching
+        connectedDealers: data.connectedDealers,
     } as User;
 }
 
