@@ -73,6 +73,7 @@ export function CreateOrderDialog({ open, onOpenChange, product, dealer }: Creat
             await createOrder(firestore, {
                 farmerUID: farmerUser.uid,
                 dealerUID: dealer.id,
+                isOfflineSale: false,
                 productId: product.id,
                 productName: product.productName,
                 quantity: values.quantity,
