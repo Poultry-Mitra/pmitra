@@ -22,14 +22,27 @@ import { useFirestore, useMemoFirebase } from '@/firebase/provider';
 import type { User, UserRole, UserStatus } from '@/lib/types';
 import { deleteDocumentNonBlocking, updateDocumentNonBlocking, addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
-// Helper to convert Firestore doc to User type
+// Helper to convert Firestore doc to User type, sanitizing the data
 function toUser(doc: QueryDocumentSnapshot<DocumentData> | DocumentSnapshot<DocumentData>): User {
     const data = doc.data();
     if (!data) throw new Error("User document data is empty");
+    
+    // Return a sanitized user object, excluding potentially sensitive fields
     return {
         id: doc.id,
-        ...data,
+        name: data.name,
+        email: data.email,
+        role: data.role,
+        status: data.status,
         dateJoined: data.dateJoined,
+        planType: data.planType,
+        uniqueDealerCode: data.uniqueDealerCode, // This can be public
+        mobileNumber: data.mobileNumber,
+        state: data.state,
+        district: data.district,
+        pinCode: data.pinCode,
+        // Explicitly DO NOT include connectedFarmers or connectedDealers here
+        // for general purpose user fetching, unless specifically required and secured.
     } as User;
 }
 

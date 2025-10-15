@@ -1,5 +1,4 @@
 
-
 // src/app/dealer/my-orders/page.tsx
 "use client";
 
@@ -64,6 +63,7 @@ export default function MyOrdersPage() {
         return farmers.find(f => f.id === order.farmerUID)?.name || "Loading...";
     }
     
+    // Improved loading state to wait for farmer names as well
     const loading = ordersLoading || (farmerIds.length > 0 && farmersLoading);
 
     const handleUpdateStatus = async (order: Order, newStatus: 'Approved' | 'Rejected') => {
