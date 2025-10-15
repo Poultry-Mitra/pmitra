@@ -37,12 +37,13 @@ function toUser(doc: QueryDocumentSnapshot<DocumentData> | DocumentSnapshot<Docu
         dateJoined: data.dateJoined,
         planType: data.planType,
         uniqueDealerCode: data.uniqueDealerCode, // This can be public
+        poultryMitraId: data.poultryMitraId,
         mobileNumber: data.mobileNumber,
         state: data.state,
         district: data.district,
         pinCode: data.pinCode,
-        // Explicitly DO NOT include connectedFarmers or connectedDealers here
-        // for general purpose user fetching, unless specifically required and secured.
+        connectedFarmers: data.connectedFarmers,
+        // Explicitly DO NOT include connectedDealers here for general purpose user fetching
     } as User;
 }
 
@@ -133,7 +134,7 @@ export async function findUserByUniqueCode(firestore: Firestore, uniqueCode: str
     if (!firestore) throw new Error("Firestore not initialized");
 
     const usersCollection = collection(firestore, 'users');
-    const fieldToQuery = role === 'dealer' ? 'uniqueDealerCode' : 'id'; 
+    const fieldToQuery = role === 'dealer' ? 'uniqueDealerCode' : 'poultryMitraId'; 
     
     const q = query(usersCollection, where(fieldToQuery, "==", uniqueCode), where("role", "==", role), limit(1));
     
@@ -204,3 +205,5 @@ export function updateUserPlan(firestore: Firestore, auth: Auth | null, userId: 
     const docRef = doc(firestore, 'users', userId);
     updateDocumentNonBlocking(docRef, { planType }, auth);
 }
+
+    

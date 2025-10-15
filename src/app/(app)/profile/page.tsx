@@ -1,3 +1,4 @@
+
 // src/app/(app)/profile/page.tsx
 "use client";
 
@@ -25,6 +26,8 @@ import { useAppUser } from '@/app/app-provider';
 const formSchema = z.object({
   name: z.string().min(3, "Name must be at least 3 characters."),
   mobileNumber: z.string().optional(),
+  state: z.string().optional(),
+  district: z.string().optional(),
   pinCode: z.string().optional(),
 });
 
@@ -44,6 +47,8 @@ export default function ProfilePage() {
         defaultValues: {
             name: "",
             mobileNumber: "",
+            state: "",
+            district: "",
             pinCode: "",
         },
     });
@@ -53,6 +58,8 @@ export default function ProfilePage() {
             form.reset({
                 name: user.name || '',
                 mobileNumber: user.mobileNumber || '',
+                state: user.state || '',
+                district: user.district || '',
                 pinCode: user.pinCode || '',
             });
         }
@@ -66,14 +73,9 @@ export default function ProfilePage() {
         }
 
         const userDocRef = doc(firestore, "users", firebaseUser.uid);
-        const updatedData = {
-            name: values.name,
-            mobileNumber: values.mobileNumber,
-            pinCode: values.pinCode
-        };
-
+        
         try {
-            updateDocumentNonBlocking(userDocRef, updatedData, auth);
+            updateDocumentNonBlocking(userDocRef, values, auth);
             toast({ title: t('profile.update_success_title'), description: t('profile.update_success_desc') });
         } catch (error) {
             console.error("Profile update failed:", error);
@@ -203,3 +205,5 @@ export default function ProfilePage() {
         </>
     );
 }
+
+    

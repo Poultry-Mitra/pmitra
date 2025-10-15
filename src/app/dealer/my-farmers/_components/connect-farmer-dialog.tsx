@@ -30,6 +30,7 @@ import { addDoc, collection, serverTimestamp, query, where, getDocs, limit } fro
 import type { User } from '@/lib/types';
 import { useLanguage } from '@/components/language-provider';
 import { useAppUser } from '@/app/app-provider';
+import { findUserByUniqueCode } from '@/hooks/use-users';
 
 const formSchema = z.object({
     farmerId: z.string().min(1, "Please enter a Farmer ID.").regex(/^PM-FARM-[A-Z0-9]{5}$/, "Invalid Farmer ID format. e.g., PM-FARM-ABC12"),
@@ -57,22 +58,7 @@ export function ConnectFarmerDialog({ open, onOpenChange }: { open: boolean; onO
         }
 
         try {
-            // The UID is embedded in the custom ID. We need to extract it.
-            const farmerIdPrefix = values.farmerId.split('-')[2];
-             if (!farmerIdPrefix) {
-                throw new Error("Invalid Farmer ID format.");
-            }
-
-            const usersCollection = collection(firestore, 'users');
-            const q = query(usersCollection, where("role", "==", "farmer"));
-            const querySnapshot = await getDocs(q);
-            
-            let foundFarmer: (User & { id: string }) | null = null;
-            querySnapshot.forEach(doc => {
-                 if (doc.id.substring(0, 5).toUpperCase() === farmerIdPrefix) {
-                    foundFarmer = { id: doc.id, ...doc.data() } as User & { id: string };
-                }
-            });
+            const foundFarmer = await findUserByUniqueCode(firestore, values.farmerId, 'farmer');
 
             if (!foundFarmer) {
                  throw new Error("No farmer found with that PoultryMitra ID.");
@@ -134,3 +120,5 @@ export function ConnectFarmerDialog({ open, onOpenChange }: { open: boolean; onO
         </Dialog>
     )
 }
+
+    
