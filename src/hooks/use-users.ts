@@ -16,10 +16,13 @@ import {
   DocumentSnapshot,
   limit,
   type Auth,
+  FirestoreError,
 } from 'firebase/firestore';
-import { useFirestore } from '@/firebase/provider';
+import { useFirestore, useAuth } from '@/firebase/provider';
 import type { User, UserRole, UserStatus } from '@/lib/types';
 import { deleteDocumentNonBlocking, updateDocumentNonBlocking, addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 // Helper to convert Firestore doc to User type, sanitizing the data
 function toUser(doc: QueryDocumentSnapshot<DocumentData> | DocumentSnapshot<DocumentData>): User {
@@ -51,6 +54,7 @@ function toUser(doc: QueryDocumentSnapshot<DocumentData> | DocumentSnapshot<Docu
 
 export function useUsers(role?: 'farmer' | 'dealer' | 'admin') {
   const firestore = useFirestore();
+  const auth = useAuth();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   
@@ -77,14 +81,22 @@ export function useUsers(role?: 'farmer' | 'dealer' | 'admin') {
         setUsers(snapshot.docs.map(toUser));
         setLoading(false);
       },
-      (err) => {
-        console.error("Error fetching users:", err);
+      (err: FirestoreError) => {
+        console.error("Original error in useUsers:", err); // Keep original for server logs if needed
         setLoading(false);
+        
+        const permissionError = new FirestorePermissionError({
+          path: 'users', // The collection path being queried
+          operation: 'list', // This is a collection read operation
+        }, auth);
+        
+        // This will be caught by the global error boundary
+        errorEmitter.emit('permission-error', permissionError);
       }
     );
 
     return () => unsubscribe();
-  }, [firestore, role]);
+  }, [firestore, role, auth]);
 
   const handleUserDeletion = (userId: string) => {
       setUsers(prevUsers => prevUsers.filter(u => u.id !== userId));
