@@ -1,11 +1,10 @@
-
 // src/app/(app)/dashboard/page.tsx
 "use client";
 
 import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Copy, Loader2, Link as LinkIcon, CheckCircle, XCircle } from "lucide-react";
+import { Copy, Loader2, Link as LinkIcon, CheckCircle, XCircle, PlusCircle, ArrowRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useBatches } from "@/hooks/use-batches";
 import { DashboardStats } from "./_components/DashboardStats";
@@ -20,6 +19,78 @@ import { useFirestore, useAuth } from '@/firebase/provider';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { PageHeader } from '../_components/page-header';
 import { VaccinationReminders } from './_components/vaccination-reminders';
+import Link from 'next/link';
+
+function RecentBatches({ batches, loading }: { batches: ReturnType<typeof useBatches>['batches'], loading: boolean }) {
+    const recentActiveBatches = useMemo(() => {
+        return batches
+            .filter(b => b.status === 'Active')
+            .sort((a, b) => new Date(b.batchStartDate).getTime() - new Date(a.batchStartDate).getTime())
+            .slice(0, 3);
+    }, [batches]);
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Recent Batch Activity</CardTitle>
+                <CardDescription>A quick look at your most recent active batches.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                {loading ? (
+                    <div className="flex justify-center items-center h-24"><Loader2 className="animate-spin" /></div>
+                ) : recentActiveBatches.length === 0 ? (
+                    <p className="text-sm text-muted-foreground text-center py-4">No active batches. Add one to get started!</p>
+                ) : (
+                    <div className="space-y-4">
+                        {recentActiveBatches.map(batch => {
+                             const ageInMs = new Date().getTime() - new Date(batch.batchStartDate).getTime();
+                             const ageInDays = Math.floor(ageInMs / (1000 * 60 * 60 * 24));
+                            return (
+                                <div key={batch.id} className="flex items-center justify-between p-3 rounded-md bg-secondary">
+                                    <div>
+                                        <p className="font-semibold text-sm">{batch.batchName}</p>
+                                        <p className="text-xs text-muted-foreground">Age: {ageInDays} days</p>
+                                    </div>
+                                    <Button asChild variant="ghost" size="sm">
+                                        <Link href={`/batches/${batch.id}`}>View Details <ArrowRight className="ml-2 size-4" /></Link>
+                                    </Button>
+                                </div>
+                            )
+                        })}
+                    </div>
+                )}
+                 <Button asChild variant="outline" className="w-full mt-4">
+                    <Link href="/batches">View All Batches</Link>
+                 </Button>
+            </CardContent>
+        </Card>
+    );
+}
+
+function QuickActions() {
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Quick Actions</CardTitle>
+                <CardDescription>Perform common tasks with a single click.</CardDescription>
+            </CardHeader>
+            <CardContent className="grid grid-cols-2 gap-4">
+                <Button asChild variant="outline" className="h-20 flex-col gap-2">
+                    <Link href="/batches">
+                         <PlusCircle className="size-5" />
+                         <span>Add New Batch</span>
+                    </Link>
+                </Button>
+                 <Button asChild variant="outline" className="h-20 flex-col gap-2">
+                    <Link href="/inventory/add">
+                         <PlusCircle className="size-5" />
+                         <span>Add Purchase</span>
+                    </Link>
+                </Button>
+            </CardContent>
+        </Card>
+    )
+}
 
 
 function DealerConnectionRequests() {
@@ -149,11 +220,15 @@ export default function DashboardPage() {
           <DashboardStats batches={activeBatches} loading={batchesLoading} />
       </div>
 
-      <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <VaccinationReminders batches={activeBatches} loading={batchesLoading} />
-        <DealerConnectionRequests />
-        <div className="lg:col-span-2">
+      <div className="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+        <div className="lg:col-span-2 space-y-8">
+            <RecentBatches batches={batches} loading={batchesLoading} />
             <PendingOrders />
+        </div>
+        <div className="space-y-8 lg:sticky lg:top-24">
+            <QuickActions />
+            <VaccinationReminders batches={activeBatches} loading={batchesLoading} />
+            <DealerConnectionRequests />
         </div>
       </div>
       <ConnectDealerDialog open={isConnectDealerOpen} onOpenChange={setConnectDealerOpen} />
