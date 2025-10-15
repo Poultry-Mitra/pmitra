@@ -1,4 +1,5 @@
 
+
 // src/hooks/use-batches.ts
 'use client';
 
@@ -20,11 +21,13 @@ import {
   addDoc,
   deleteDoc,
   type Auth,
+  updateDoc,
 } from 'firebase/firestore';
 import { useAuth, useFirestore, AuthContext } from '@/firebase/provider';
 import type { Batch, DailyRecord } from '@/lib/types';
-import { addDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { addDocumentNonBlocking, deleteDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { getDoc } from 'firebase/firestore';
+import { addLedgerEntry } from './use-ledger';
 
 // Helper to convert Firestore doc to Batch type
 function toBatch(doc: QueryDocumentSnapshot<DocumentData> | DocumentSnapshot<DocumentData>): Batch {
@@ -283,4 +286,43 @@ export async function addDailyRecord(
         // Check for alerts
         await checkAndCreateAlerts(transaction, firestore, batchDoc, dailyRecordData);
     });
+}
+
+export async function completeBatch(
+  firestore: Firestore,
+  auth: Auth | null,
+  farmerUID: string,
+  batchId: string,
+  saleData: {
+    totalWeightSold: number;
+    pricePerKg: number;
+    buyerName: string;
+    saleDate: Date;
+  }
+) {
+  if (!firestore || !auth) throw new Error("Firestore or Auth not initialized");
+
+  const batchRef = doc(firestore, 'batches', batchId);
+  const totalSaleAmount = saleData.totalWeightSold * saleData.pricePerKg;
+
+  await runTransaction(firestore, async (transaction) => {
+    const batchDoc = await transaction.get(batchRef);
+    if (!batchDoc.exists()) {
+      throw new Error("Batch not found.");
+    }
+    const batchData = batchDoc.data() as Batch;
+
+    // 1. Update the batch status to 'Completed'
+    transaction.update(batchRef, { status: "Completed" });
+
+    // 2. Add income to the user's ledger
+    const ledgerData = {
+      description: `Sale of batch: ${batchData.batchName} to ${saleData.buyerName}`,
+      amount: totalSaleAmount,
+      date: saleData.saleDate.toISOString(),
+    };
+    
+    // We are calling this directly as it's a standalone transaction handler
+    await addLedgerEntry(firestore, farmerUID, ledgerData, 'Credit');
+  });
 }

@@ -34,6 +34,7 @@ import { useRouter } from "next/navigation";
 import { useFirestore, useAuth } from '@/firebase/provider';
 import { AddBatchDialog } from "./_components/add-batch-dialog";
 import { useAppUser } from "@/app/app-provider";
+import { CompleteBatchDialog } from "./_components/complete-batch-dialog";
 
 
 const statusVariant: { [key in 'Active' | 'Completed' | 'Planned']: "default" | "secondary" | "outline" } = {
@@ -57,6 +58,7 @@ export default function BatchesPage() {
   const [isAddBatchOpen, setAddBatchOpen] = useState(false);
   const [showUpgradeAlert, setShowUpgradeAlert] = useState(false);
   const [showDeleteAlert, setShowDeleteAlert] = useState<Batch | null>(null);
+  const [batchToComplete, setBatchToComplete] = useState<Batch | null>(null);
   const { toast } = useToast();
   const router = useRouter();
 
@@ -165,7 +167,7 @@ export default function BatchesPage() {
                                             <DropdownMenuItem asChild>
                                                 <Link href={`/batches/${batch.id}`}>View Details</Link>
                                             </DropdownMenuItem>
-                                            <DropdownMenuItem>Mark as Completed</DropdownMenuItem>
+                                            {batch.status === 'Active' && <DropdownMenuItem onClick={() => setBatchToComplete(batch)}>Mark as Completed</DropdownMenuItem>}
                                             <DropdownMenuItem className="text-destructive" onClick={() => setShowDeleteAlert(batch)}>Delete</DropdownMenuItem>
                                         </DropdownMenuContent>
                                     </DropdownMenu>
@@ -180,6 +182,14 @@ export default function BatchesPage() {
       </div>
 
       <AddBatchDialog open={isAddBatchOpen} onOpenChange={setAddBatchOpen} />
+      
+      {batchToComplete && (
+          <CompleteBatchDialog 
+            batch={batchToComplete}
+            open={!!batchToComplete}
+            onOpenChange={() => setBatchToComplete(null)}
+          />
+      )}
 
        <AlertDialog open={showUpgradeAlert} onOpenChange={setShowUpgradeAlert}>
         <AlertDialogContent>
