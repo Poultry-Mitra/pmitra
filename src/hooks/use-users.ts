@@ -17,7 +17,7 @@ import {
   limit,
   type Auth,
 } from 'firebase/firestore';
-import { useFirestore, useMemoFirebase } from '@/firebase/provider';
+import { useFirestore } from '@/firebase/provider';
 import type { User, UserRole, UserStatus } from '@/lib/types';
 import { deleteDocumentNonBlocking, updateDocumentNonBlocking, addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
@@ -53,25 +53,17 @@ export function useUsers(role?: 'farmer' | 'dealer' | 'admin') {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   
-  const usersQuery = useMemoFirebase(() => {
-    if (!firestore) return null;
-    const baseQuery = collection(firestore, 'users');
-    if (role) {
-        return query(baseQuery, where("role", "==", role));
-    }
-    // IMPORTANT: When no role is specified, query all users.
-    return query(baseQuery);
-  }, [firestore, role]);
-
-
   useEffect(() => {
-    if (!usersQuery) {
+    if (!firestore) {
         setUsers([]);
         setLoading(false);
         return;
     }
     
     setLoading(true);
+    const baseQuery = collection(firestore, 'users');
+    const usersQuery = role ? query(baseQuery, where("role", "==", role)) : query(baseQuery);
+
     const unsubscribe = onSnapshot(
       usersQuery,
       (snapshot) => {
@@ -85,7 +77,7 @@ export function useUsers(role?: 'farmer' | 'dealer' | 'admin') {
     );
 
     return () => unsubscribe();
-  }, [usersQuery]);
+  }, [firestore, role]);
 
   const handleUserDeletion = (userId: string) => {
       setUsers(prevUsers => prevUsers.filter(u => u.id !== userId));
@@ -101,6 +93,7 @@ export function useUsersByIds(userIds: string[]) {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+      const userIdsString = JSON.stringify(userIds); // Create a stable dependency
       if (!firestore || !userIds || userIds.length === 0) {
         setUsers([]);
         setLoading(false);
@@ -132,7 +125,7 @@ export function useUsersByIds(userIds: string[]) {
 
       fetchUsers();
       
-    }, [firestore, userIds]);
+    }, [firestore, userIdsString]); // Use the stringified version as dependency
 
     return { users, loading };
 }
