@@ -268,22 +268,6 @@
         }
       },
       {
-        "path": "/roles_admin/{userId}",
-        "definition": {
-          "entityName": "roles_admin",
-          "schema": {
-            "$ref": "#/backend/entities/UserProfile"
-          },
-          "description": "Documents in this collection represent admin users. Existence of a document grants admin privileges. Admin email is ipoultrymitra@gmail.com",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier for the admin user."
-            }
-          ]
-        }
-      },
-      {
         "path": "/farms/{farmId}",
         "definition": {
           "entityName": "Farm",
@@ -388,6 +372,6 @@
         }
       }
     ],
-    "reasoning": "The Firestore structure is designed to ensure authorization independence, clarity, and scalability. User profiles are stored in a top-level `users` collection, with the admin role determined by document existence in the `roles_admin` collection. Farm data, including sensor readings, is nested under the `farms` collection to link it to a specific farm. A new `alerts` subcollection is added under `farms` to manage real-time alerts efficiently. The denormalization of the `UserProfile` is included in each farm, subscriptionPlan and orders. This eliminates the need for `get()` calls in security rules when accessing associated farm data or dealing with orders related to a user. For managing administrator access, the structure leverages a dedicated `roles_admin` collection, using the principle of existence-based authorization. This approach simplifies the security rules and enhances maintainability. The `orders` collection stores order details, including the `farmerId` and `dealerId` for linking orders to specific users. The new `suppliers` collection is added to store dealer-specific supplier information, with security rules ensuring that only the owner dealer can manage their own suppliers."
+    "reasoning": "The Firestore structure is designed to ensure authorization independence, clarity, and scalability. User profiles are stored in a top-level `users` collection. The admin role is now determined by a direct check of the user's email in the security rules, which is simpler and more robust than relying on a separate collection. Farm data, including sensor readings, is nested under the `farms` collection to link it to a specific farm. An `alerts` subcollection is under `farms` to manage real-time alerts efficiently. The `orders` collection stores order details, including `farmerId` and `dealerId`. The `suppliers` collection stores dealer-specific supplier information, with security rules ensuring that only the owner dealer can manage their own suppliers."
   }
 }
