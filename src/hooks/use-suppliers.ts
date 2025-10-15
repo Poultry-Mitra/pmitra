@@ -76,7 +76,7 @@ export function useSuppliers(dealerUID: string | undefined) {
 }
 
 
-export async function addSupplier(firestore: Firestore, dealerUID: string, data: Omit<Supplier, 'id' | 'dealerUID' | 'createdAt'>) {
+export async function addSupplier(firestore: Firestore, auth: Auth | null, dealerUID: string, data: Omit<Supplier, 'id' | 'dealerUID' | 'createdAt'>) {
     if (!firestore) throw new Error("Firestore not initialized");
 
     const collectionRef = collection(firestore, 'suppliers');
