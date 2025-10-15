@@ -61,14 +61,14 @@ export default function RootLayout({
             disableTransitionOnChange
           >
             <FirebaseProvider>
-              <ChatProvider>
                 <AppProvider>
+                  <ChatProvider>
                     <FirebaseErrorListener />
                     {children}
                     <FloatingChatWidget />
                     <Toaster />
+                  </ChatProvider>
                 </AppProvider>
-              </ChatProvider>
             </FirebaseProvider>
           </ThemeProvider>
         </LanguageProvider>
