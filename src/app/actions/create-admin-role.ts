@@ -11,10 +11,11 @@ import { initializeAdminApp } from '@/firebase/admin-config';
  */
 export async function createAdminRole(uid: string, email: string): Promise<{ success: boolean; message: string }> {
   try {
-    // Ensure the admin app is initialized.
-    initializeAdminApp();
-
-    const db = getFirestore();
+    // Ensure the admin app is initialized and get the app instance.
+    const adminApp = await initializeAdminApp();
+    
+    // Get the Firestore instance from the initialized app.
+    const db = getFirestore(adminApp);
     const adminRoleRef = db.collection('roles_admin').doc(uid);
 
     await adminRoleRef.set({
