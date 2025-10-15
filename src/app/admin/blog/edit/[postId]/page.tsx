@@ -4,7 +4,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from 'next/image';
 import { PageHeader } from "@/app/admin/_components/page-header";
@@ -15,7 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import { useFirestore, useUser } from "@/firebase/provider";
+import { useFirestore, AuthContext } from "@/firebase/provider";
 import { usePost, addPost, updatePost } from "@/hooks/use-posts";
 import { Loader2, Save, WandSparkles, Upload } from "lucide-react";
 import slugify from "slugify";
@@ -36,7 +36,7 @@ export default function EditPostPage() {
     const router = useRouter();
     const { toast } = useToast();
     const firestore = useFirestore();
-    const { user: adminUser } = useUser();
+    const { user: adminUser } = useContext(AuthContext)!;
     
     const postId = params.postId === 'new' ? null : params.postId as string;
     const { post, loading: postLoading } = usePost(postId);
