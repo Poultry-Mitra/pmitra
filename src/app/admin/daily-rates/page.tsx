@@ -1,4 +1,3 @@
-
 // src/app/admin/daily-rates/page.tsx
 "use client";
 
