@@ -1,8 +1,9 @@
+
 // src/app/app-provider.tsx
 'use client';
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { type User as FirebaseAuthUser, getAuth } from 'firebase/auth';
+import { type User as FirebaseAuthUser } from 'firebase/auth';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { useAuth, useFirestore, AuthContext } from '@/firebase/provider';
 import type { User, UserRole } from '@/lib/types';
@@ -62,6 +63,22 @@ export function AppProvider({ children }: { children: ReactNode }) {
         return;
     }
     
+    // Special case for the primary admin email. This grants access even if a user doc doesn't exist yet.
+    if (firebaseUser?.email === 'ipoultrymitra@gmail.com') {
+      const adminUser: User = {
+        id: firebaseUser.uid,
+        email: firebaseUser.email,
+        name: firebaseUser.displayName || "Admin",
+        role: 'admin',
+        status: 'Active',
+        planType: 'premium',
+        dateJoined: firebaseUser.metadata.creationTime || new Date().toISOString(),
+      };
+      setAppUser(adminUser);
+      setProfileLoading(false);
+      return;
+    }
+    
     if (firebaseUser && firestore) {
       setProfileLoading(true);
       const userDocRef = doc(firestore, 'users', firebaseUser.uid);
@@ -69,14 +86,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         if (docSnap.exists()) {
           setAppUser({ id: docSnap.id, ...docSnap.data() } as User);
         } else {
-          // Special case for admin role that might not be in 'users' collection.
-          // This check ensures the admin can log in even without a user document.
-          const auth = getAuth();
-          if(auth.currentUser?.email === 'ipoultrymitra@gmail.com') {
-             setAppUser({ id: firebaseUser.uid, email: 'ipoultrymitra@gmail.com', role: 'admin', name: 'Admin', status: 'Active', dateJoined: new Date().toISOString() } as User);
-          } else {
-             setAppUser(null);
-          }
+          setAppUser(null);
         }
         setProfileLoading(false);
       }, (error) => {
