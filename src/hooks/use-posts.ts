@@ -1,4 +1,3 @@
-
 // src/hooks/use-posts.ts
 'use client';
 
