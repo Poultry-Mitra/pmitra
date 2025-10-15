@@ -15,7 +15,7 @@ import type { BiosecurityChecklistItem } from '@/lib/types';
 import { suggestBiosecurityImprovements } from '@/ai/flows/suggest-biosecurity-improvements';
 import { useAppUser } from '@/app/app-provider';
 import { updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
-import { useFirestore } from '@/firebase/provider';
+import { useFirestore, useAuth } from '@/firebase/provider';
 import { doc } from 'firebase/firestore';
 
 const checklistItems: BiosecurityChecklistItem[] = [
@@ -39,6 +39,7 @@ const checklistItems: BiosecurityChecklistItem[] = [
 export default function BiosecurityPage() {
     const { user, loading: userLoading } = useAppUser();
     const firestore = useFirestore();
+    const auth = useAuth();
     const [checkedItems, setCheckedItems] = useState<Record<string, boolean>>({});
     const [loadingSuggestions, setLoadingSuggestions] = useState(false);
     const [aiSuggestions, setAiSuggestions] = useState<string | null>(null);
@@ -55,7 +56,7 @@ export default function BiosecurityPage() {
         // Persist non-blocking
         if (firestore && user) {
             const userRef = doc(firestore, 'users', user.id);
-            updateDocumentNonBlocking(userRef, { biosecurityMeasures: newCheckedItems });
+            updateDocumentNonBlocking(userRef, { biosecurityMeasures: newCheckedItems }, auth);
         }
     };
 
@@ -152,11 +153,10 @@ export default function BiosecurityPage() {
                                 {loadingSuggestions ? 'Analyzing...' : 'Get AI Suggestions'}
                             </Button>
                             {aiSuggestions && (
-                                <div className="mt-4 space-y-4">
+                                <div className="mt-4 space-y-4 prose prose-sm dark:prose-invert max-w-none text-sm text-muted-foreground">
                                     <Separator />
                                      <div 
-                                        className="prose prose-sm dark:prose-invert max-w-none text-sm text-muted-foreground whitespace-pre-wrap"
-                                        dangerouslySetInnerHTML={{ __html: aiSuggestions.replace(/\n/g, '<br />') }}
+                                        dangerouslySetInnerHTML={{ __html: aiSuggestions.replace(/\n/g, '<br />').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') }}
                                     />
                                 </div>
                             )}
@@ -164,6 +164,12 @@ export default function BiosecurityPage() {
                                  <div className="mt-4 text-center text-sm text-orange-600 flex items-center gap-2 p-2 bg-orange-500/10 rounded-md">
                                      <ShieldAlert className="size-8" />
                                      <span>You have {failedItems.length} unaddressed biosecurity risks. Click the button above to get a plan.</span>
+                                 </div>
+                             )}
+                              {failedItems.length === 0 && !loadingSuggestions && (
+                                 <div className="mt-4 text-center text-sm text-green-600 flex items-center gap-2 p-2 bg-green-500/10 rounded-md">
+                                     <ShieldAlert className="size-8" />
+                                     <span>Excellent! You've passed all biosecurity checks.</span>
                                  </div>
                              )}
                         </CardContent>
