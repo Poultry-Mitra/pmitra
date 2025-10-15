@@ -2,7 +2,7 @@
 // src/app/(app)/daily-rates/page.tsx
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import Link from 'next/link';
 import { PageHeader } from "../_components/page-header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,7 +12,7 @@ import { doc, getDoc } from 'firebase/firestore';
 import type { User as AppUser, DailyRates } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
-import { useFirestore, useUser } from '@/firebase/provider';
+import { useFirestore, AuthContext } from '@/firebase/provider';
 import { useAppUser } from '@/app/app-provider';
 
 export default function DailyRatesPage() {

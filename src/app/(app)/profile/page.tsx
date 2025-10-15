@@ -1,4 +1,5 @@
 
+
 // src/app/(app)/profile/page.tsx
 "use client";
 
@@ -11,9 +12,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { useUser, useFirestore, useAuth } from '@/firebase/provider';
+import { useFirestore, useAuth, AuthContext } from '@/firebase/provider';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useContext } from 'react';
 import { Loader2, Save, KeyRound, Edit } from 'lucide-react';
 import type { User as AppUser } from '@/lib/types';
 import { useLanguage } from '@/components/language-provider';
@@ -36,7 +37,7 @@ type FormValues = z.infer<typeof formSchema>;
 export default function ProfilePage() {
     const { t } = useLanguage();
     const { user, loading: isUserLoading } = useAppUser();
-    const { user: firebaseUser } = useUser();
+    const { user: firebaseUser } = useContext(AuthContext)!;
     const firestore = useFirestore();
     const auth = useAuth();
     const { toast } = useToast();

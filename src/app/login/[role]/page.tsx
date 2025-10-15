@@ -9,8 +9,8 @@ import { useLanguage } from '@/components/language-provider';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { useAuth, useFirestore } from '@/firebase/provider';
-import { useEffect, useState, useRef } from 'react';
+import { useAuth, useFirestore, AuthContext } from '@/firebase/provider';
+import { useEffect, useState, useContext } from 'react';
 import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import { doc, getDoc } from 'firebase/firestore';
 import type { User as AppUser, UserRole } from '@/lib/types';
@@ -44,7 +44,6 @@ export default function RoleLoginPage() {
   const { t } = useLanguage();
   const { user: appUser, loading: isAppLoading } = useAppUser();
   const auth = useAuth();
-  const firestore = useFirestore();
   const router = useRouter();
   const params = useParams();
   const searchParams = useSearchParams();
@@ -79,87 +78,38 @@ export default function RoleLoginPage() {
     }
   }, [appUser, isAppLoading, router]);
 
-  async function handleLoginSuccess(user: FirebaseAuthUser) {
-    if (!firestore || !auth) {
-      throw new Error('System not ready. Please try again.');
+  async function handleLogin(loginFn: () => Promise<FirebaseAuthUser>) {
+    try {
+        await loginFn();
+        // The AppProvider will now handle redirection automatically
+        // when the auth state changes. No logic needed here.
+    } catch (error: any) {
+        let message = error.message || 'An unknown error occurred.';
+         if (['auth/user-not-found', 'auth/wrong-password', 'auth/invalid-credential', 'auth/popup-closed-by-user', 'auth/cancelled-popup-request'].includes(error.code)) {
+            message = 'Invalid email or password. Please try again.';
+        } else if (error.code === 'auth/account-exists-with-different-credential') {
+             message = 'An account already exists with this email address. Please sign in using the original method.';
+        }
+        
+        toast({ title: 'Login Failed', description: message, variant: 'destructive' });
+        return null;
     }
-    
-    // Special handling for admin role, no need to check 'users' collection
-    if (role === 'admin' && user.email === 'ipoultrymitra@gmail.com') {
-      router.replace(getRedirectPath('admin'));
-      return;
-    }
-    
-    if (role === 'admin' && user.email !== 'ipoultrymitra@gmail.com') {
-        await auth.signOut();
-        throw new Error('This is not a valid admin account.');
-    }
-
-    const userDocRef = doc(firestore, 'users', user.uid);
-    const docSnap = await getDoc(userDocRef);
-
-    if (!docSnap.exists()) {
-      await auth.signOut();
-      throw new Error('User profile not found. Please sign up or contact support.');
-    }
-
-    const userData = docSnap.data() as AppUser;
-    
-    if (userData.role !== role) {
-      await auth.signOut();
-      toast({ title: "Role Mismatch", description: `This account is a ${userData.role || 'undefined'}. Please use the correct login page.`, variant: "destructive" });
-      router.replace(`/login/${userData.role}`);
-      return;
-    }
-    
-    if (userData.status !== 'Active') {
-        await auth.signOut();
-        const message = userData.status === 'Pending' 
-            ? "Your account is pending approval. You will be notified once it is active."
-            : "Your account has been suspended. Please contact support for assistance.";
-        throw new Error(message);
-    }
-    
-    router.replace(getRedirectPath(role));
   }
+
 
   async function onSubmit(values: FormValues) {
     if (!auth) return;
     setIsSubmitting(true);
-    try {
-      const userCredential = await signInWithEmailAndPassword(auth, values.email, values.password);
-      await handleLoginSuccess(userCredential.user);
-    } catch (error: any) {
-        let message = error.message || 'An unknown error occurred.';
-        if (['auth/user-not-found', 'auth/wrong-password', 'auth/invalid-credential'].includes(error.code)) {
-            message = 'Invalid email or password. Please try again.';
-        }
-        
-        toast({ title: 'Login Failed', description: message, variant: 'destructive' });
-    } finally {
-        setIsSubmitting(false);
-    }
+    await handleLogin(() => signInWithEmailAndPassword(auth, values.email, values.password).then(c => c.user));
+    setIsSubmitting(false);
   }
 
   const handleGoogleSignIn = async () => {
     if (!auth) return;
     setIsGoogleLoading(true);
     const provider = new GoogleAuthProvider();
-    try {
-      const userCredential = await signInWithPopup(auth, provider);
-      await handleLoginSuccess(userCredential.user);
-    } catch (error: any) {
-        let message = error.message || 'Could not sign in with Google. Please try again.';
-        if (error.code === 'auth/popup-closed-by-user') {
-            setIsGoogleLoading(false);
-            return;
-        }
-        
-        console.error("Google sign-in error:", error);
-        toast({ title: "Google Sign-In Failed", description: message, variant: "destructive" });
-    } finally {
-        setIsGoogleLoading(false);
-    }
+    await handleLogin(() => signInWithPopup(auth, provider).then(c => c.user));
+    setIsGoogleLoading(false);
   };
 
   const handleForgotPassword = async () => {
@@ -179,7 +129,7 @@ export default function RoleLoginPage() {
 
   const isLoading = isSubmitting || isGoogleLoading || isAppLoading;
   
-  if (isAppLoading) {
+  if (isAppLoading || appUser) {
     return (
       <div className="flex min-h-screen w-full flex-col items-center justify-center bg-muted/30 p-4 font-body">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />

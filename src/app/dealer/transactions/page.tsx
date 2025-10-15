@@ -13,8 +13,8 @@ import { useLanguage } from "@/components/language-provider";
 import { useAppUser } from "@/app/app-provider";
 
 export default function TransactionsPage() {
-    const { user: firebaseUser, loading: isUserLoading } = useAppUser();
-    const { entries, loading: ledgerLoading } = useLedger(firebaseUser?.id);
+    const { user: dealerUser, loading: isUserLoading } = useAppUser();
+    const { entries, loading: ledgerLoading } = useLedger(dealerUser?.id);
     const loading = isUserLoading || ledgerLoading;
     const { t } = useLanguage();
 

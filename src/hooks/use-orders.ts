@@ -155,8 +155,8 @@ export function useOrdersByFarmer(farmerUID?: string) {
 }
 
 
-export async function createOrder(firestore: Firestore, auth: Auth, data: Omit<Order, 'id' | 'createdAt'>): Promise<string> {
-    if (!firestore || !auth) throw new Error("Firestore or Auth not initialized");
+export async function createOrder(firestore: Firestore, data: Omit<Order, 'id' | 'createdAt'>): Promise<string> {
+    if (!firestore) throw new Error("Firestore not initialized");
 
     const orderCollection = collection(firestore, 'orders');
 
@@ -170,21 +170,21 @@ export async function createOrder(firestore: Firestore, auth: Auth, data: Omit<O
     if (data.isOfflineSale) {
         const newOrder = { id: docRef.id, ...orderData, createdAt: new Date().toISOString() } as Order;
         // CRITICAL: Await the status update to ensure the transaction completes for offline sales.
-        await updateOrderStatus(newOrder, 'Completed', firestore, auth);
+        await updateOrderStatus(newOrder, 'Completed', firestore);
     }
     
     return docRef.id;
 }
 
 
-export async function updateOrderStatus(order: Order, newStatus: 'Approved' | 'Rejected' | 'Completed', firestore: Firestore | null, auth: Auth | null) {
-    if (!firestore || !auth) throw new Error("Firestore or Auth not initialized");
+export async function updateOrderStatus(order: Order, newStatus: 'Approved' | 'Rejected' | 'Completed', firestore: Firestore | null, auth?: Auth | null) {
+    if (!firestore) throw new Error("Firestore not initialized");
 
     const orderRef = doc(firestore, 'orders', order.id);
     
     if (newStatus === 'Rejected') {
         // Use non-blocking update for simple status changes.
-        updateDocumentNonBlocking(orderRef, { status: newStatus }, auth);
+        updateDocumentNonBlocking(orderRef, { status: newStatus }, auth || null);
         return;
     }
 

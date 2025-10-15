@@ -1,3 +1,4 @@
+
 // src/app/(app)/dealers/[dealerId]/products/_components/create-order-dialog.tsx
 "use client";
 
@@ -23,10 +24,11 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { useUser, useFirestore } from "@/firebase/provider";
+import { useFirestore, AuthContext } from "@/firebase/provider";
 import { createOrder } from "@/hooks/use-orders";
 import { Send, Loader2 } from "lucide-react";
 import type { User, DealerInventoryItem } from "@/lib/types";
+import { useContext } from 'react';
 
 const formSchema = z.object({
     quantity: z.coerce.number().min(1, "Quantity must be at least 1."),
@@ -44,7 +46,7 @@ interface CreateOrderDialogProps {
 export function CreateOrderDialog({ open, onOpenChange, product, dealer }: CreateOrderDialogProps) {
     const { toast } = useToast();
     const firestore = useFirestore();
-    const { user: farmerUser } = useUser();
+    const { user: farmerUser } = useContext(AuthContext)!;
 
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),

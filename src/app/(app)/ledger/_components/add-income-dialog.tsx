@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useForm } from 'react-hook-form';
@@ -24,13 +25,14 @@ import {
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { addLedgerEntry } from '@/hooks/use-ledger';
-import { useFirestore, useUser } from '@/firebase/provider';
+import { useFirestore, AuthContext } from '@/firebase/provider';
 import { Calendar as CalendarIcon, IndianRupee } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { Textarea } from '@/components/ui/textarea';
+import { useContext } from 'react';
 
 const formSchema = z.object({
     description: z.string().min(3, "Description is required."),
@@ -43,7 +45,7 @@ type FormValues = z.infer<typeof formSchema>;
 export function AddIncomeDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
     const { toast } = useToast();
     const firestore = useFirestore();
-    const user = useUser();
+    const { user } = useContext(AuthContext)!;
 
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),

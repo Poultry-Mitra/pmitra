@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useState } from 'react';
+import { useState, useContext } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -27,7 +27,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { addBatch, type Batch } from '@/hooks/use-batches';
-import { useFirestore, useUser, useAuth } from '@/firebase/provider';
+import { useFirestore, useAuth, AuthContext } from '@/firebase/provider';
 import { Calendar as CalendarIcon } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
@@ -49,7 +49,7 @@ export function AddBatchDialog({ open, onOpenChange }: { open: boolean; onOpenCh
     const { toast } = useToast();
     const firestore = useFirestore();
     const auth = useAuth();
-    const user = useUser();
+    const { user } = useContext(AuthContext)!;
 
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
@@ -66,7 +66,7 @@ export function AddBatchDialog({ open, onOpenChange }: { open: boolean; onOpenCh
     const batchType = useWatch({ control: form.control, name: 'batchType' });
 
     function onSubmit(values: FormValues) {
-        if (!firestore || !user.user || !auth) {
+        if (!firestore || !user || !auth) {
             toast({ title: "Error", description: "You must be logged in to add a batch.", variant: "destructive" });
             return;
         }
@@ -82,7 +82,7 @@ export function AddBatchDialog({ open, onOpenChange }: { open: boolean; onOpenCh
             breed: values.batchType === 'Broiler' ? values.breed : undefined,
         };
 
-        addBatch(firestore, auth, user.user.uid, newBatch);
+        addBatch(firestore, auth, user.uid, newBatch);
         toast({
             title: "Batch Added",
             description: `${newBatch.batchName} has been successfully created.`,

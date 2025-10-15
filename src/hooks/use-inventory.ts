@@ -2,7 +2,7 @@
 // src/hooks/use-inventory.ts
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import {
   collection,
   onSnapshot,
@@ -13,7 +13,7 @@ import {
   query,
   where,
 } from 'firebase/firestore';
-import { useFirestore } from '@/firebase/provider';
+import { useFirestore, AuthContext } from '@/firebase/provider';
 import type { InventoryItem } from '@/lib/types';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
@@ -113,6 +113,7 @@ export function addInventoryItem(firestore: Firestore, farmerUID: string, data: 
         farmerUID,
         lastUpdated: serverTimestamp(),
     };
-
+    
+    const { user } = useContext(AuthContext)!;
     addDocumentNonBlocking(collectionRef, docData, null);
 }

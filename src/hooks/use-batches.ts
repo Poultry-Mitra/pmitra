@@ -153,6 +153,8 @@ export function addBatch(firestore: Firestore, auth: Auth | null, farmerUID: str
 
     const collectionRef = collection(firestore, 'batches');
     
+    const { user } = useContext(AuthContext)!;
+
     const batchData = {
         ...data,
         farmerUID,

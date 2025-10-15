@@ -18,7 +18,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/firebase/provider";
+import { useFirestore, useAuth } from "@/firebase/provider";
 import { useUsersByIds } from "@/hooks/use-users";
 import { useDealerInventory } from "@/hooks/use-dealer-inventory";
 import { createOrder } from "@/hooks/use-orders";
@@ -58,7 +58,7 @@ type FormValues = z.infer<typeof formSchema>;
 export default function CreateOrderPage() {
     const { toast } = useToast();
     const router = useRouter();
-    const auth = useAuth();
+    const firestore = useFirestore();
     const { user: dealerUser } = useAppUser();
     const { t } = useLanguage();
 
@@ -81,7 +81,7 @@ export default function CreateOrderPage() {
     const totalAmount = (selectedProduct?.ratePerUnit || 0) * (quantity || 0);
 
     async function onSubmit(values: FormValues) {
-        if (!dealerUser || !selectedProduct || !auth) {
+        if (!dealerUser || !selectedProduct || !firestore) {
             toast({ title: t('messages.error'), description: "Could not create order.", variant: "destructive" });
             return;
         }
@@ -89,7 +89,7 @@ export default function CreateOrderPage() {
         const isOfflineSale = values.saleType === 'offline';
 
         try {
-            await createOrder(auth.firestore, auth, {
+            await createOrder(firestore, {
                 dealerUID: dealerUser.id,
                 isOfflineSale,
                 farmerUID: isOfflineSale ? undefined : values.farmerUID,

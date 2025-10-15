@@ -1,3 +1,4 @@
+
 // src/app/dealer/my-inventory/page.tsx
 "use client";
 
@@ -8,15 +9,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from '@/components/ui/badge';
 import { PlusCircle, MoreHorizontal, Loader2, Edit } from 'lucide-react';
-import { useUser } from '@/firebase/provider';
+import { useAppUser } from '@/app/app-provider';
 import { useDealerInventory, type DealerInventoryItem } from '@/hooks/use-dealer-inventory';
 import { useState, useMemo } from 'react';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import { EditStockDialog } from './_components/edit-stock-dialog';
 
 export default function MyInventoryPage() {
-    const {user: firebaseUser} = useUser();
-    const { inventory, loading } = useDealerInventory(firebaseUser?.uid);
+    const {user: dealerUser} = useAppUser();
+    const { inventory, loading } = useDealerInventory(dealerUser?.id);
     const [selectedItem, setSelectedItem] = useState<DealerInventoryItem | null>(null);
     const [isEditDialogOpen, setEditDialogOpen] = useState(false);
 

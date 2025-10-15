@@ -1,4 +1,5 @@
 
+
 // src/app/(app)/inventory/page.tsx
 "use client";
 
@@ -16,8 +17,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useUser } from "@/firebase/provider";
+import { AuthContext } from '@/firebase/provider';
 import { useAppUser } from "@/app/app-provider";
+import { useContext } from "react";
 
 export default function InventoryPage() {
   const { user: appUser, loading: userLoading } = useAppUser();

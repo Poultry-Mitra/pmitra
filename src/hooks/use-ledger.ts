@@ -1,7 +1,8 @@
+
 // src/hooks/use-ledger.ts
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import {
   collection,
   onSnapshot,
@@ -17,7 +18,7 @@ import {
   Transaction,
 } from 'firebase/firestore';
 import type { LedgerEntry } from '@/lib/types';
-import { useFirestore } from '@/firebase/provider';
+import { useFirestore, AuthContext } from '@/firebase/provider';
 import { useMemoFirebase } from '@/firebase/provider';
 
 // Helper to convert Firestore doc to LedgerEntry type

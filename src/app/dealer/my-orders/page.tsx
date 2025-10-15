@@ -2,7 +2,7 @@
 // src/app/dealer/my-orders/page.tsx
 "use client";
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useContext } from 'react';
 import { PageHeader } from "../_components/page-header";
 import { Button } from "@/components/ui/button";
 import {
@@ -23,8 +23,8 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Loader2, PlusCircle, CheckCircle, XCircle } from "lucide-react";
 import { useToast } from '@/hooks/use-toast';
-import { useAuth, useFirestore } from '@/firebase/provider';
-import { useOrders, updateOrderStatus } from '@/hooks/use-orders';
+import { useAuth, useFirestore, AuthContext } from '@/firebase/provider';
+import { useOrdersByDealer, updateOrderStatus } from '@/hooks/use-orders';
 import { useUsersByIds } from '@/hooks/use-users';
 import type { Order } from '@/lib/types';
 import Link from 'next/link';
@@ -43,7 +43,8 @@ const statusConfig = {
 export default function MyOrdersPage() {
     const firestore = useFirestore();
     const auth = useAuth();
-    const { orders, loading: ordersLoading } = useOrders(auth?.currentUser?.uid);
+    const { user } = useContext(AuthContext)!;
+    const { orders, loading: ordersLoading } = useOrdersByDealer(user?.uid);
     const { toast } = useToast();
     const [activeTab, setActiveTab] = useState("pending");
     const { t } = useLanguage();
