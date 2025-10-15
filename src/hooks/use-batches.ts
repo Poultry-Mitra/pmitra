@@ -24,6 +24,7 @@ import {
 import { useAuth, useFirestore, AuthContext } from '@/firebase/provider';
 import type { Batch, DailyRecord } from '@/lib/types';
 import { addDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { getDoc } from 'firebase/firestore';
 
 // Helper to convert Firestore doc to Batch type
 function toBatch(doc: QueryDocumentSnapshot<DocumentData> | DocumentSnapshot<DocumentData>): Batch {
@@ -167,6 +168,53 @@ export function deleteBatch(firestore: Firestore, auth: Auth | null, batchId: st
     deleteDocumentNonBlocking(docRef, auth);
 }
 
+async function checkAndCreateAlerts(
+    transaction: any,
+    firestore: Firestore,
+    batchDoc: any,
+    dailyRecordData: any
+) {
+    const batchData = batchDoc.data();
+    const settingsDoc = await getDoc(doc(firestore, 'adminSettings', 'thresholds'));
+    const thresholds = settingsDoc.data() || {
+        mortalityWarning: 5,
+        mortalityCritical: 10,
+    };
+
+    const liveBirds = (batchData.totalChicks - batchData.mortalityCount);
+    if (liveBirds <= 0) return; // Avoid division by zero
+
+    const dailyMortalityRate = (dailyRecordData.mortality / liveBirds) * 100;
+    
+    let alertToCreate = null;
+
+    if (dailyMortalityRate > thresholds.mortalityCritical) {
+        alertToCreate = {
+            farmId: batchData.farmerUID,
+            batchId: batchDoc.id,
+            type: 'critical',
+            message: `Critical mortality rate of ${dailyMortalityRate.toFixed(1)}% in batch '${batchData.batchName}'.`,
+        };
+    } else if (dailyMortalityRate > thresholds.mortalityWarning) {
+        alertToCreate = {
+            farmId: batchData.farmerUID,
+            batchId: batchDoc.id,
+            type: 'warning',
+            message: `High mortality rate of ${dailyMortalityRate.toFixed(1)}% in batch '${batchData.batchName}'.`,
+        };
+    }
+
+    if (alertToCreate) {
+        const alertRef = doc(collection(firestore, 'farmAlerts'));
+        transaction.set(alertRef, {
+            ...alertToCreate,
+            isRead: false,
+            timestamp: serverTimestamp(),
+        });
+    }
+}
+
+
 export async function addDailyRecord(
     firestore: Firestore, 
     farmerUID: string,
@@ -202,7 +250,7 @@ export async function addDailyRecord(
         });
         
         // Create new daily record in subcollection
-        transaction.set(dailyRecordRef, {
+        const dailyRecordData = {
             date: data.date.toISOString(),
             mortality: data.mortality,
             feedConsumed: data.feedConsumed,
@@ -211,7 +259,8 @@ export async function addDailyRecord(
             medicationGiven: data.medicationGiven || "",
             notes: data.notes || "",
             createdAt: serverTimestamp(),
-        });
+        };
+        transaction.set(dailyRecordRef, dailyRecordData);
 
         // If feed was consumed, update inventory
         if (inventoryItemRef && data.feedConsumed > 0) {
@@ -228,5 +277,8 @@ export async function addDailyRecord(
                 lastUpdated: serverTimestamp()
              });
         }
+        
+        // Check for alerts
+        await checkAndCreateAlerts(transaction, firestore, batchDoc, dailyRecordData);
     });
 }

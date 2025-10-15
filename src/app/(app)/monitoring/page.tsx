@@ -111,7 +111,7 @@ export default function MonitoringPage() {
                             </Alert>
                         ))
                     ) : (
-                        <p className="text-sm text-muted-foreground pt-4">No active alerts.</p>
+                        <div className="text-center text-muted-foreground pt-4 rounded-lg border bg-card p-8">No active alerts. Your farm is looking good!</div>
                     )}
                 </div>
             </div>

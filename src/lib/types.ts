@@ -131,6 +131,7 @@ export type SensorData = {
 export type FarmAlert = {
   id: string;
   farmId: string;
+  batchId: string;
   type: 'critical' | 'warning';
   message: string;
   timestamp: string; // ISO 8601 format

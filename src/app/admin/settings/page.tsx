@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Upload, AlertTriangle } from "lucide-react";
+import { Upload, AlertTriangle, Save } from "lucide-react";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -56,6 +56,50 @@ function GeneralSettings() {
         </CardContent>
     );
 }
+
+function AlertThresholdSettings() {
+     return (
+        <CardContent className="space-y-6">
+            <Card>
+                <CardHeader>
+                    <CardTitle>Mortality Rate Alerts (%)</CardTitle>
+                    <CardDescription>Set percentage thresholds for daily mortality to trigger alerts for farmers.</CardDescription>
+                </CardHeader>
+                <CardContent className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="mortality-warning">Warning Threshold</Label>
+                        <Input id="mortality-warning" type="number" defaultValue="5" />
+                         <p className="text-xs text-muted-foreground">Alert when daily mortality exceeds this percentage.</p>
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="mortality-critical">Critical Threshold</Label>
+                        <Input id="mortality-critical" type="number" defaultValue="10" />
+                        <p className="text-xs text-muted-foreground">Alert when daily mortality exceeds this critical percentage.</p>
+                    </div>
+                </CardContent>
+            </Card>
+             <Card>
+                <CardHeader>
+                    <CardTitle>Feed Conversion Ratio (FCR) Alerts</CardTitle>
+                    <CardDescription>Trigger alerts if FCR goes above these thresholds, indicating inefficiency.</CardDescription>
+                </CardHeader>
+                <CardContent className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="fcr-warning">Warning Threshold</Label>
+                        <Input id="fcr-warning" type="number" defaultValue="1.8" />
+                         <p className="text-xs text-muted-foreground">An FCR above this value is suboptimal.</p>
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="fcr-critical">Critical Threshold</Label>
+                        <Input id="fcr-critical" type="number" defaultValue="2.2" />
+                        <p className="text-xs text-muted-foreground">An FCR above this value requires immediate attention.</p>
+                    </div>
+                </CardContent>
+            </Card>
+        </CardContent>
+    );
+}
+
 
 function FeatureSettings({ onSettingsChange }: { onSettingsChange: (key: string, value: any, description: string) => void }) {
     const [aiChatEnabled, setAiChatEnabled] = useState(true);
@@ -174,13 +218,14 @@ export default function SettingsPage() {
                 <Card>
                     <CardHeader>
                         <CardTitle>App Configuration</CardTitle>
-                        <CardDescription>Manage core features, appearance, and default behaviors.</CardDescription>
+                        <CardDescription>Manage core features, alert thresholds, appearance, and default behaviors.</CardDescription>
                     </CardHeader>
                     <CardContent>
                          <Tabs defaultValue="features" className="w-full">
-                            <TabsList className="grid w-full grid-cols-3">
+                            <TabsList className="grid w-full grid-cols-4">
                                 <TabsTrigger value="general">General</TabsTrigger>
                                 <TabsTrigger value="features">Features</TabsTrigger>
+                                <TabsTrigger value="alerts">Alerts</TabsTrigger>
                                 <TabsTrigger value="appearance">Appearance</TabsTrigger>
                             </TabsList>
                             <TabsContent value="general" className="mt-6">
@@ -189,12 +234,18 @@ export default function SettingsPage() {
                              <TabsContent value="features" className="mt-6">
                                 <FeatureSettings onSettingsChange={handleSettingsChange} />
                             </TabsContent>
+                             <TabsContent value="alerts" className="mt-6">
+                                <AlertThresholdSettings />
+                            </TabsContent>
                             <TabsContent value="appearance" className="mt-6">
                                 <AppearanceSettings />
                             </TabsContent>
                         </Tabs>
-                        <div className="mt-6">
-                             <Button onClick={handleSave}>Save All Settings</Button>
+                        <div className="mt-6 flex justify-end">
+                             <Button onClick={handleSave}>
+                                <Save className="mr-2" />
+                                Save All Settings
+                             </Button>
                         </div>
                     </CardContent>
                 </Card>
