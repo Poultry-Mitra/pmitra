@@ -48,24 +48,28 @@ export function usePosts(isAdmin: boolean = false) {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const postsQuery = useMemoFirebase(() => {
+    if (!firestore) return null;
+    const postsCollection = collection(firestore, 'posts');
+    // Correctly apply query based on isAdmin flag
+    if (isAdmin) {
+      return query(postsCollection, orderBy("createdAt", "desc"));
+    } else {
+      return query(postsCollection, where("isPublished", "==", true), orderBy("createdAt", "desc"));
+    }
+  }, [firestore, isAdmin]);
+
+
   useEffect(() => {
-    if (!firestore) {
+    if (!postsQuery) {
         setPosts([]);
         setLoading(false);
         return;
     }
     
     setLoading(true);
-    const postsCollection = collection(firestore, 'posts');
-    
-    // Conditionally apply the 'where' clause for non-admin users
-    const q = isAdmin
-      ? query(postsCollection, orderBy("createdAt", "desc"))
-      : query(postsCollection, where("isPublished", "==", true), orderBy("createdAt", "desc"));
-
-
     const unsubscribe = onSnapshot(
-      q,
+      postsQuery,
       (snapshot) => {
         setPosts(snapshot.docs.map(toPost));
         setLoading(false);
@@ -78,7 +82,7 @@ export function usePosts(isAdmin: boolean = false) {
     );
 
     return () => unsubscribe();
-  }, [firestore, isAdmin]);
+  }, [postsQuery]);
 
   return { posts, loading };
 }
