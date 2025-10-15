@@ -88,7 +88,7 @@ function SummaryCard({ control }: { control: any }) {
                     <span className="font-medium">₹{subTotal.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Total Discount</span>
+                    <span className="text-muted-foreground">Total Discount / Incentive</span>
                     <span className="font-medium text-destructive">- ₹{totalDiscount.toFixed(2)}</span>
                 </div>
                  <div className="flex justify-between text-sm">
@@ -226,7 +226,7 @@ export default function AddStockPage() {
             }
         });
         return () => subscription.unsubscribe();
-    }, [form.watch, recalculateDiscount]);
+    }, [form, recalculateDiscount]);
 
 
     async function onSubmit(values: FormValues) {
@@ -559,14 +559,13 @@ export default function AddStockPage() {
                                         <Separator/>
 
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            {!isTransportDisabled && (
-                                                <FormField name="transportCost" control={form.control} render={({ field }) => (
-                                                    <FormItem>
-                                                        <FormLabel>Transport Cost</FormLabel>
-                                                        <FormControl><Input type="number" {...field} /></FormControl>
-                                                    </FormItem>
-                                                )} />
-                                            )}
+                                            <FormField name="transportCost" control={form.control} render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Transport Cost</FormLabel>
+                                                    <FormControl><Input type="number" {...field} disabled={isTransportDisabled} /></FormControl>
+                                                    {isTransportDisabled && <FormDescription className="text-xs">Disabled for FOR pricing.</FormDescription>}
+                                                </FormItem>
+                                            )} />
                                             <FormField name="miscCost" control={form.control} render={({ field }) => (
                                                 <FormItem>
                                                     <FormLabel>Other Costs</FormLabel>
