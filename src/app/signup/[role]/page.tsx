@@ -15,12 +15,13 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth, useFirestore } from "@/firebase/provider";
-import { GoogleAuthProvider, signInWithPopup, type User as FirebaseAuthUser, createUserWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
+import { GoogleAuthProvider, signInWithPopup, type User as FirebaseAuthUser, createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth";
 import { doc, getDoc, collection, query, where, getDocs, limit, deleteDoc, setDoc } from "firebase/firestore";
 import { AppIcon } from "@/app/icon-component";
 import { Loader2 } from "lucide-react";
 import indianStates from "@/lib/indian-states-districts.json";
 import type { Invitation, UserRole } from "@/lib/types";
+import { createProfile } from "@/ai/flows/create-profile";
 
 
 const formSchema = z.object({
@@ -117,41 +118,34 @@ export default function DetailedSignupPage() {
 
         const isAdminEmail = values.email.toLowerCase() === 'ipoultrymitra@gmail.com';
         const finalRole = invitation?.role || (isAdminEmail ? 'admin' : initialRole);
-        const finalStatus = 'Pending'; // Set status to Pending by default
+        const finalStatus = 'Pending';
         const finalPlan = invitation?.planType || (isAdminEmail ? 'premium' : 'free');
 
-        const userProfile: any = {
+        const profileResponse = await createProfile({
+            uid: user.uid,
             name: values.fullName,
             email: values.email,
             role: finalRole,
             status: finalStatus,
             planType: finalPlan,
-            mobileNumber: values.mobileNumber || "",
+            mobileNumber: values.mobileNumber,
             state: values.state,
             district: values.district,
-            pinCode: values.pinCode || "",
-            aiQueriesCount: 0,
-            lastQueryDate: "",
-            dateJoined: new Date().toISOString(),
-        };
+            pinCode: values.pinCode,
+        });
 
-        if (finalRole === 'dealer') {
-            userProfile.uniqueDealerCode = `DL-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
-            userProfile.connectedFarmers = [];
-        }
-        if (finalRole === 'farmer') {
-            userProfile.connectedDealers = [];
+        if (!profileResponse.success || !profileResponse.userProfile) {
+            throw new Error(profileResponse.message || "Failed to construct user profile.");
         }
 
         const userDocRef = doc(firestore, 'users', user.uid);
-        await setDoc(userDocRef, userProfile);
+        await setDoc(userDocRef, profileResponse.userProfile);
         
         if (invitation) {
             await deleteDoc(doc(firestore, 'invitations', invitation.id));
         }
-
-        return { finalRole };
     }
+
 
     async function onSubmit(values: FormValues) {
         if (!auth || !firestore) {
@@ -177,12 +171,8 @@ export default function DetailedSignupPage() {
                 await handleFinalUserCreation(createdAuthUser, values);
             }
 
-            // Show pending message instead of redirecting
             setShowPendingMessage(true);
-
-            // Sign out the user immediately after creation
             if (auth?.currentUser) await auth.signOut();
-            
 
         } catch (error: any) {
             console.error("Signup failed:", error);
