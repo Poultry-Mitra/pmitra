@@ -231,3 +231,9 @@ export type Supplier = {
   gstin?: string;
   createdAt: string;
 };
+
+export type VaccinationScheduleItem = {
+    day: number;
+    vaccine: string;
+    method: string;
+};
