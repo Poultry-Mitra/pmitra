@@ -1,4 +1,3 @@
-
 // src/app/app-provider.tsx
 'use client';
 
@@ -41,7 +40,8 @@ const getRoleFromPath = (path: string): UserRole | 'public' | 'root' | 'none' =>
   if (PUBLIC_PATHS.some(p => path.startsWith(p))) return 'public';
   if (path.startsWith('/admin')) return 'admin';
   if (path.startsWith('/dealer')) return 'dealer';
-  if (['/dashboard', '/batches', '/ledger', '/inventory', '/dealers', '/chat', '/monitoring', '/analytics', '/feed-recommendation', '/daily-rates', '/pricing', '/profile', '/biosecurity', '/diagnose-health'].some(p => path.startsWith(p))) {
+  // Simplified logic for farmer routes
+  if (path.startsWith('/(app)') || ['/dashboard', '/batches', '/ledger', '/inventory', '/dealers', '/monitoring', '/analytics', '/feed-recommendation', '/daily-rates', '/pricing', '/profile', '/biosecurity', '/diagnose-health'].some(p => path.startsWith(p))) {
     return 'farmer';
   }
   return 'none';
