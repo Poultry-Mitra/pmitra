@@ -5,7 +5,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { PageHeader } from "@/app/admin/_components/page-header";
 import { Button } from "@/components/ui/button";
@@ -17,8 +17,9 @@ import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { useFirestore, useUser } from "@/firebase/provider";
 import { usePost, addPost, updatePost } from "@/hooks/use-posts";
-import { Loader2, Save } from "lucide-react";
+import { Loader2, Save, WandSparkles } from "lucide-react";
 import slugify from "slugify";
+import { siteExpert } from "@/ai/flows/site-expert";
 
 const formSchema = z.object({
   title: z.string().min(5, "Title must be at least 5 characters."),
@@ -38,6 +39,7 @@ export default function EditPostPage() {
     
     const postId = params.postId === 'new' ? null : params.postId as string;
     const { post, loading: postLoading } = usePost(postId);
+    const [isAiLoading, setIsAiLoading] = useState(false);
 
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
@@ -59,6 +61,34 @@ export default function EditPostPage() {
             });
         }
     }, [post, form]);
+
+    const handleGenerateContent = async () => {
+        const title = form.getValues("title");
+        if (!title || title.length < 10) {
+            toast({
+                title: "Title is too short",
+                description: "Please provide a more descriptive title (at least 10 characters) for the AI to generate content.",
+                variant: "destructive"
+            });
+            return;
+        }
+
+        setIsAiLoading(true);
+        try {
+            const result = await siteExpert({ query: `Write a detailed blog post about: ${title}` });
+            form.setValue("content", result.answer, { shouldValidate: true });
+        } catch (error) {
+            console.error("AI content generation failed:", error);
+            toast({
+                title: "AI Assistant Failed",
+                description: "Could not generate content at this time. Please try again.",
+                variant: "destructive"
+            });
+        } finally {
+            setIsAiLoading(false);
+        }
+    };
+
 
     async function onSubmit(values: FormValues) {
         if (!firestore || !adminUser) {
@@ -121,13 +151,20 @@ export default function EditPostPage() {
                                         </FormItem>
                                     )}
                                 />
+
                                 <FormField
                                     control={form.control}
                                     name="content"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>Main Content</FormLabel>
-                                            <FormControl><Textarea placeholder="Write your article here..." {...field} rows={15} /></FormControl>
+                                            <div className="flex items-center justify-between">
+                                                <FormLabel>Main Content</FormLabel>
+                                                <Button type="button" variant="outline" size="sm" onClick={handleGenerateContent} disabled={isAiLoading}>
+                                                    {isAiLoading ? <Loader2 className="mr-2 animate-spin" /> : <WandSparkles className="mr-2" />}
+                                                    {isAiLoading ? "Generating..." : "AI Assistant"}
+                                                </Button>
+                                            </div>
+                                            <FormControl><Textarea placeholder="Write your article here, or use the AI Assistant to generate a draft based on your title." {...field} rows={15} /></FormControl>
                                             <FormMessage />
                                         </FormItem>
                                     )}
