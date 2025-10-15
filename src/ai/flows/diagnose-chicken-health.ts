@@ -7,7 +7,8 @@
  * - diagnoseChickenHealth - A function that handles the diagnosis process.
  */
 
-import {ai, z} from '@/ai/genkit';
+import {ai} from '@/ai/genkit';
+import {z} from 'genkit';
 
 const DiagnoseChickenHealthInputSchema = z.object({
   symptoms: z.string().describe('A detailed description of the symptoms observed in the chicken(s), such as bloody diarrhea, ruffled feathers, paralysis, coughing, sneezing, etc.'),
