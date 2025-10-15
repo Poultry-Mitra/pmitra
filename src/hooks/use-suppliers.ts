@@ -73,7 +73,7 @@ export function useSuppliers(dealerUID: string | undefined) {
 }
 
 
-export function addSupplier(firestore: Firestore, auth: Auth | null, dealerUID: string, data: Omit<Supplier, 'id' | 'dealerUID' | 'createdAt'>) {
+export async function addSupplier(firestore: Firestore, auth: Auth | null, dealerUID: string, data: Omit<Supplier, 'id' | 'dealerUID' | 'createdAt'>) {
     if (!firestore) throw new Error("Firestore not initialized");
 
     const collectionRef = collection(firestore, 'suppliers');
@@ -85,5 +85,5 @@ export function addSupplier(firestore: Firestore, auth: Auth | null, dealerUID: 
     };
 
     // Non-blocking write with contextual error handling
-    addDocumentNonBlocking(collectionRef, supplierData, auth);
+    await addDocumentNonBlocking(collectionRef, supplierData, auth);
 }

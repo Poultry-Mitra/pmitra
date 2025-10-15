@@ -1,4 +1,3 @@
-
 // src/app/dealer/suppliers/add/page.tsx
 "use client";
 
@@ -62,7 +61,7 @@ export default function AddSupplierPage() {
         }
 
         try {
-            addSupplier(firestore, auth, dealerUser.id, values);
+            await addSupplier(firestore, auth, dealerUser.id, values);
             
             toast({
                 title: "Supplier Added!",
