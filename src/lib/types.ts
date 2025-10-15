@@ -135,7 +135,7 @@ export type FarmAlert = {
   batchId: string;
   type: 'critical' | 'warning';
   message: string;
-  timestamp: string; // ISO 8_601 format
+  timestamp: string; // ISO 8601 format
   isRead: boolean;
 };
 

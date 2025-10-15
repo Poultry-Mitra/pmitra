@@ -69,6 +69,7 @@ export function AppSidebar() {
 
   // Fallback for older user documents that might not have poultryMitraId
   const poultryMitraId = user.poultryMitraId || `PM-FARM-${user.id.substring(0, 5).toUpperCase()}`;
+  const planType = user.planType || 'free';
 
   return (
     <>
@@ -89,7 +90,7 @@ export function AppSidebar() {
                             <div className="text-xs text-muted-foreground">{poultryMitraId}</div>
                         </div>
                     </div>
-                    <Badge className="mt-2 w-full justify-center capitalize" variant={user.planType === 'premium' ? 'default' : 'secondary'}>{t(`plans.${user.planType}`)}</Badge>
+                    <Badge className="mt-2 w-full justify-center capitalize" variant={planType === 'premium' ? 'default' : 'secondary'}>{t(`plans.${planType}`)}</Badge>
                 </div>
             </div>
         </SidebarHeader>
@@ -193,7 +194,7 @@ export function AppSidebar() {
                         >
                             <TrendingUp/>
                             <span>{t('daily_rates.title')}</span>
-                            <Badge variant="secondary" className="ml-auto group-data-[state=collapsed]:hidden">{t('plans.pro')}</Badge>
+                            {planType !== 'premium' && <Badge variant="secondary" className="ml-auto group-data-[state=collapsed]:hidden">{t('plans.pro')}</Badge>}
                         </SidebarMenuButton>
                     </Link>
                 </SidebarMenuItem>
@@ -209,14 +210,16 @@ export function AppSidebar() {
                         </SidebarMenuButton>
                     </Link>
                 </SidebarMenuItem>
-                <SidebarMenuItem>
-                    <Link href="/pricing">
-                        <SidebarMenuButton tooltip={t('pricing.upgrade_plan')} isActive={pathname === '/pricing'}>
-                            <Rocket/>
-                            <span>{t('pricing.upgrade_plan')}</span>
-                        </SidebarMenuButton>
-                    </Link>
-                </SidebarMenuItem>
+                {planType !== 'premium' && (
+                    <SidebarMenuItem>
+                        <Link href="/pricing">
+                            <SidebarMenuButton tooltip={t('pricing.upgrade_plan')}>
+                                <Rocket/>
+                                <span>{t('pricing.upgrade_plan')}</span>
+                            </SidebarMenuButton>
+                        </Link>
+                    </SidebarMenuItem>
+                )}
                 {/* Logout button is now handled in the header */}
             </SidebarMenu>
         </SidebarFooter>

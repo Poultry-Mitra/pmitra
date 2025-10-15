@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Bird, Droplet, Percent, Wheat, WandSparkles, Activity } from "lucide-react";
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAppUser } from '@/app/app-provider';
+import { useLanguage } from '@/components/language-provider';
 
 function StatCard({ title, value, icon: Icon, unit, description }: { title: string, value: string | number, icon: React.ElementType, unit?: string, description?: string }) {
     return (
@@ -67,6 +68,7 @@ export default function AnalyticsPage() {
     const { batches, loading: batchesLoading } = useBatches(appUser?.id || ''); 
     const [analytics, setAnalytics] = useState<FarmAnalyticsOutput | null>(null);
     const [loading, setLoading] = useState(true);
+    const { t } = useLanguage();
 
     useEffect(() => {
         async function fetchAnalytics() {
@@ -74,7 +76,7 @@ export default function AnalyticsPage() {
                 setLoading(true);
                 return;
             }
-             if (batches.length === 0) {
+             if (!batches || batches.length === 0) {
                 setAnalytics({
                     totalLiveBirds: 0,
                     overallMortalityRate: 0,
@@ -102,7 +104,7 @@ export default function AnalyticsPage() {
   return (
     <>
       <PageHeader 
-        title="Farm Performance Analytics"
+        title={t('analytics.title')}
         description="An AI-powered overview of your farm's performance across all batches."
       />
       <div className="mt-8">

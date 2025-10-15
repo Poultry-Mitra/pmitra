@@ -24,11 +24,10 @@ export function useAppUser() {
   return context;
 }
 
-const PUBLIC_PATHS = ['/login', '/signup', '/blog', '/privacy', '/terms'];
+const PUBLIC_PATHS = ['/login', '/signup', '/blog', '/privacy', '/terms', '/analytics', '/biosecurity', '/chat', '/diagnose-health'];
 const FARMER_PATHS = [
     '/dashboard', '/batches', '/ledger', '/inventory', '/dealers', '/monitoring', 
-    '/analytics', '/feed-recommendation', '/daily-rates', '/pricing', '/profile',
-    '/biosecurity', '/diagnose-health', '/chat'
+    '/feed-recommendation', '/daily-rates', '/pricing', '/profile'
 ];
 
 
@@ -46,9 +45,16 @@ const getRoleFromPath = (path: string): UserRole | 'public' | 'root' | 'none' =>
   if (PUBLIC_PATHS.some(p => path.startsWith(p))) return 'public';
   if (path.startsWith('/admin')) return 'admin';
   if (path.startsWith('/dealer')) return 'dealer';
-  if (FARMER_PATHS.some(p => path.startsWith(p))) {
-    return 'farmer';
+  // Check for exact matches for farmer-specific root pages
+  if (FARMER_PATHS.includes(path) || FARMER_PATHS.some(p => path.startsWith(p + '/'))) {
+      return 'farmer';
   }
+  
+  // Broader check for farmer paths to be safe
+  if (path.startsWith('/dashboard') || path.startsWith('/batches') || path.startsWith('/ledger') || path.startsWith('/inventory') || path.startsWith('/dealers') || path.startsWith('/monitoring') || path.startsWith('/feed-recommendation') || path.startsWith('/daily-rates') || path.startsWith('/pricing') || path.startsWith('/profile')) {
+      return 'farmer';
+  }
+
   return 'none';
 };
 
