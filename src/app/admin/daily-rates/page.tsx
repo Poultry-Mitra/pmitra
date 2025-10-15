@@ -19,7 +19,7 @@ import { format } from 'date-fns';
 import { addAuditLog } from '@/hooks/use-audit-logs';
 import type { DailyRates } from '@/lib/types';
 import indianStates from '@/lib/indian-states-districts.json';
-import { useCollection } from '@/firebase/firestore/use-collection';
+import { useDailyRatesHistory } from '@/hooks/use-content';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
@@ -41,14 +41,7 @@ type FormValues = z.infer<typeof formSchema>;
 
 
 function RateHistory() {
-    const firestore = useFirestore();
-
-    const ratesQuery = useMemoFirebase(() => {
-        if (!firestore) return null;
-        return query(collection(firestore, 'dailyRates'), orderBy('lastUpdated', 'desc'), limit(30));
-    }, [firestore]);
-
-    const { data: rates, isLoading } = useCollection<DailyRates>(ratesQuery);
+    const { rates, loading: isLoading } = useDailyRatesHistory();
 
     return (
         <Card>
@@ -371,7 +364,6 @@ export default function DailyRateManagementPage() {
                                                     <FormMessage />
                                                 </FormItem>
                                             )}
-                                        />
                                 </div>
                                     
                                     <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>

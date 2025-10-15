@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { MoreHorizontal, PlusCircle, Loader2, Trash2 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { usePosts, deletePost } from "@/hooks/use-posts";
+import { usePosts, deletePost } from "@/hooks/use-content";
 import type { Post } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 import { useFirestore } from "@/firebase/provider";

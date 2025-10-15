@@ -16,7 +16,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { useFirestore, AuthContext } from "@/firebase/provider";
-import { usePost, addPost, updatePost } from "@/hooks/use-posts";
+import { usePost, addPost, updatePost } from "@/hooks/use-content";
 import { Loader2, Save, WandSparkles, Upload } from "lucide-react";
 import slugify from "slugify";
 import { siteExpert } from "@/ai/flows/site-expert";

@@ -1,11 +1,10 @@
-
 // src/app/blog/page.tsx
 "use client";
 
 import Link from "next/link";
 import Image from "next/image";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { usePosts } from "@/hooks/use-posts";
+import { usePosts } from "@/hooks/use-content";
 import { Loader2, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";

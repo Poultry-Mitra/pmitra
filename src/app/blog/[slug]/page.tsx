@@ -1,4 +1,3 @@
-
 // src/app/blog/[slug]/page.tsx
 "use client";
 
@@ -6,7 +5,7 @@ import { useParams, notFound } from "next/navigation";
 import Image from 'next/image';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { usePostBySlug } from "@/hooks/use-posts";
+import { usePostBySlug } from "@/hooks/use-content";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Loader2, Calendar, Share2, Link as LinkIcon, Twitter } from "lucide-react";
 import { format } from "date-fns";
