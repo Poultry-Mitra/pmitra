@@ -1,4 +1,3 @@
-
 // src/hooks/use-connections.ts
 'use client';
 
@@ -86,7 +85,7 @@ export async function updateConnectionStatus(firestore: Firestore, connectionId:
     const connectionRef = doc(firestore, 'connections', connectionId);
     
     if (newStatus === 'Rejected') {
-        // Here auth can be null because security rules for update might be based on resource data
+        // Use non-blocking update for simple status changes. Auth is null as security rules are sufficient.
         updateDocumentNonBlocking(connectionRef, { status: newStatus }, null);
         return;
     }

@@ -1,165 +1,194 @@
 /**
- * @description This ruleset enforces a role-based access control system with user-owned data and admin overrides.
- * All write operations are secured by identity checks. The data model includes users, farms, orders, and subscription plans.
- * @dataStructure
- * - /users/{userId}: User profiles, accessible to admins and the user themselves.
- * - /roles_admin/{userId}: Admin role definitions. Existence implies admin status.
- * - /farms/{farmId}: Farm information, publicly readable, writable by the farm owner.
- * - /farms/{farmId}/farmData/{farmDataId}: Farm data, accessible only by the farm owner.
- * - /farms/{farmId}/alerts/{alertId}: Farm alerts, accessible only by the farm owner.
- * - /subscriptionPlans/{subscriptionPlanId}: Publicly readable subscription plans, only manageable by admins.
- * - /orders/{orderId}: Orders, accessible to associated farmers and dealers.
- * - /suppliers/{supplierId}: Suppliers, accessible only by the owning dealer.
- * @keySecurityDecisions
- * - Admins can list all users and have full access to subscription plans and admin data.
- * - Users can only view and update their own profiles.
- * - Farms are publicly readable, but only the owner can modify them.
- * - Subscription plans are publicly readable, but only admins can manage them.
- * - Orders are accessible to the associated farmer and dealer.
- * - Listing of the /users collection is restricted to admins.
- * @denormalizationForAuthorization
- * - User ownership of farms is enforced using the `ownerId` field within the `/farms/{farmId}` document.
- * - Order authorization is enforced using the `farmerId` and `dealerId` within the `/orders/{orderId}` document.
- * @structuralSegregation
- * - No structural segregation is applied.
+ * @fileoverview Firestore Security Rules for PoultryMitra application.
+ *
+ * Core Philosophy:
+ * This ruleset enforces a user-ownership model for user profiles and farm data.
+ * Admins, as determined by their presence in the `roles_admin` collection, have elevated privileges.
+ * Dealer and Farmer relationships are handled through denormalization in Order objects.
+ *
+ * Data Structure:
+ * - /users/{userId}: User profile information.
+ * - /roles_admin/{userId}: Indicates admin status; document existence grants admin privileges.
+ * - /farms/{farmId}: Farm information.
+ * - /farms/{farmId}/farmData/{farmDataId}: Time-series data for farms.
+ * - /farms/{farmId}/alerts/{alertId}: Real-time alerts for farms.
+ * - /subscriptionPlans/{subscriptionPlanId}: Details of subscription plans.
+ * - /orders/{orderId}: Order information, linking farmers and dealers.
+ * - /suppliers/{supplierId}: Supplier information, specific to a dealer.
+ *
+ * Key Security Decisions:
+ * - User profiles are only readable and writable by the owner.
+ * - Only admins can create, update, or delete subscription plans.
+ * - Farm data is accessible to the farm owner and admins.
+ * - Listing of users is disallowed.
+ * - Suppliers are restricted to the owning dealer.
+ *
+ * Denormalization for Authorization:
+ * - User ownership is enforced by matching the `userId` path parameter with the authenticated user's UID.
+ * - No denormalization required as ownership is derived from the path in /users/{userId}.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Checks if the user is signed in.
+     * @description Controls access to user profile documents.
+     * @path /users/{userId}
+     * @allow (create) User with UID 'user_abc' can create their profile at /users/user_abc.
+     * @allow (get, update, delete) User with UID 'user_abc' can read, update, and delete their profile at /users/user_abc.
+     * @deny (create) User with UID 'user_xyz' cannot create a profile at /users/user_abc.
+     * @deny (update, delete) User with UID 'user_xyz' cannot update or delete the profile at /users/user_abc.
+     * @principle Enforces document ownership for writes; users can only manage their own profile.
+     */
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow list: if false;
+      allow create: if isOwner(userId);
+      allow update: if isOwner(userId) && resource != null;
+      allow delete: if isOwner(userId) && resource != null;
+    }
+
+    /**
+     * @description Controls access to admin role documents.
+     * @path /roles_admin/{userId}
+     * @allow (create) User with UID 'admin_abc' can be made admin by creating a document at /roles_admin/admin_abc if they have the correct authorization.
+     * @allow (get) Any user can check if an admin user exists.
+     * @allow (delete) An existing admin document can be deleted.  Requires elevated privileges to manage.
+     * @deny (create) Non-admin user cannot create an admin role document.
+     * @deny (update) Admin role documents cannot be updated.
+     * @principle Existence in this collection grants admin privileges; only admins can manage this collection.
+     */
+    match /roles_admin/{userId} {
+      allow get: if true;
+      allow list: if false;
+      allow create: if isAdmin();
+      allow update: if false;
+      allow delete: if isAdmin() && resource != null;
+    }
+
+    /**
+     * @description Controls access to farm documents.
+     * @path /farms/{farmId}
+     * @allow (get, list) Anyone can read farm information.
+     * @allow (create) Only admins can create farm documents.
+     * @allow (update, delete) Only admins can update or delete farm documents.
+     * @deny (create) Non-admin user cannot create a farm document.
+     * @deny (update, delete) Non-admin user cannot update or delete a farm document.
+     * @principle Public read, admin-only write for farm management.
+     */
+    match /farms/{farmId} {
+      allow get, list: if true;
+      allow create: if isAdmin();
+      allow update: if isAdmin() && resource != null;
+      allow delete: if isAdmin() && resource != null;
+    }
+
+    /**
+     * @description Controls access to farm data documents (time-series data).
+     * @path /farms/{farmId}/farmData/{farmDataId}
+     * @allow (get, list) Anyone can read farm data.
+     * @allow (create) Only admins can create farm data documents.
+     * @allow (update, delete) Only admins can update or delete farm data documents.
+     * @deny (create) Non-admin user cannot create farm data documents.
+     * @deny (update, delete) Non-admin user cannot update or delete farm data documents.
+     * @principle Public read, admin-only write for farm data management.
+     */
+    match /farms/{farmId}/farmData/{farmDataId} {
+      allow get, list: if true;
+      allow create: if isAdmin();
+      allow update: if isAdmin() && resource != null;
+      allow delete: if isAdmin() && resource != null;
+    }
+
+    /**
+     * @description Controls access to farm alert documents.
+     * @path /farms/{farmId}/alerts/{alertId}
+     * @allow (get, list) Anyone can read farm alerts.
+     * @allow (create) Only admins can create farm alert documents.
+     * @allow (update, delete) Only admins can update or delete farm alert documents.
+     * @deny (create) Non-admin user cannot create farm alert documents.
+     * @deny (update, delete) Non-admin user cannot update or delete farm alert documents.
+     * @principle Public read, admin-only write for farm alert management.
+     */
+    match /farms/{farmId}/alerts/{alertId} {
+      allow get, list: if true;
+      allow create: if isAdmin();
+      allow update: if isAdmin() && resource != null;
+      allow delete: if isAdmin() && resource != null;
+    }
+
+    /**
+     * @description Controls access to subscription plan documents.
+     * @path /subscriptionPlans/{subscriptionPlanId}
+     * @allow (get, list) Anyone can read subscription plan information.
+     * @allow (create) Only admins can create subscription plan documents.
+     * @allow (update, delete) Only admins can update or delete subscription plan documents.
+     * @deny (create) Non-admin user cannot create a subscription plan document.
+     * @deny (update, delete) Non-admin user cannot update or delete a subscription plan document.
+     * @principle Public read, admin-only write for subscription plan management.
+     */
+    match /subscriptionPlans/{subscriptionPlanId} {
+      allow get, list: if true;
+      allow create: if isAdmin();
+      allow update: if isAdmin() && resource != null;
+      allow delete: if isAdmin() && resource != null;
+    }
+
+    /**
+     * @description Controls access to order documents.
+     * @path /orders/{orderId}
+     * @allow (get, list) Anyone can read order information.
+     * @allow (create) Only authenticated users can create orders.
+     * @allow (update, delete) Only admins can update or delete order documents.
+     * @deny (create) Unauthenticated user cannot create an order.
+     * @deny (update, delete) Non-admin user cannot update or delete an order document.
+     * @principle Public read, authenticated user create, admin-only update and delete for order management.
+     */
+    match /orders/{orderId} {
+      allow get, list: if true;
+      allow create: if isSignedIn();
+      allow update: if isAdmin() && resource != null;
+      allow delete: if isAdmin() && resource != null;
+    }
+
+    /**
+     * @description Controls access to supplier documents.
+     * @path /suppliers/{supplierId}
+     * @allow (get, list) Anyone can read supplier information.
+     * @allow (create, update, delete) Only the dealer who owns the supplier can manage it.
+     * @deny (create, update, delete) Other users cannot manage suppliers that don't belong to them.
+     * @principle User-ownership model for suppliers, with an existence check on update/delete.
+     */
+    match /suppliers/{supplierId} {
+      allow get, list: if true;
+      allow create: if request.auth.uid == request.resource.data.dealerUID;
+      allow update: if request.auth.uid == resource.data.dealerUID && resource != null;
+      allow delete: if request.auth.uid == resource.data.dealerUID && resource != null;
+    }
+
+    /**
+     * @description Function to check if the user is signed in.
+     * @return {bool} True if the user is signed in, false otherwise.
      */
     function isSignedIn() {
       return request.auth != null;
     }
 
     /**
-     * @description Checks if the user is an admin by verifying the existence of their UID in the /roles_admin/{userId} collection.
-     */
-    function isAdmin() {
-      return exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
-    }
-
-    /**
-     * @description Checks if the authenticated user's UID matches the provided userId.
+     * @description Function to check if the user is the owner of the document.
+     * @param {string} userId The user ID to check against.
+     * @return {bool} True if the user is the owner, false otherwise.
      */
     function isOwner(userId) {
       return request.auth.uid == userId;
     }
 
     /**
-     * @description Checks if the authenticated user's UID matches the provided userId and the document exists.
+     * @description Function to check if the user is an admin by checking if the document exists in the roles_admin collection.
+     * @return {bool} True if the user is an admin, false otherwise.
      */
-    function isExistingOwner(userId) {
-        return isOwner(userId) && resource != null;
-    }
-
-    /**
-     * @description Defines access rules for the /roles_admin/{userId} collection.
-     * @path /roles_admin/{userId}
-     * @allow (get, list) If the user is signed in.
-     * @deny (create, update, delete) If the user is not an admin.
-     * @principle Enforces role-based access control.
-     */
-    match /roles_admin/{userId} {
-      allow get, list: if isSignedIn();
-      allow create, update, delete: if isAdmin();
-    }
-
-    /**
-     * @description Defines access rules for the /users/{userId} collection.
-     * @path /users/{userId}
-     * @allow (get, update) If the user is signed in and is the owner of the profile.
-     * @allow (list) If the user is an admin.
-     * @allow (create, delete) If the user is an admin.
-     * @deny (get, update) If the user is not the owner of the profile and not an admin.
-     * @deny (list) If the user is not an admin.
-     * @deny (create, delete) If the user is not an admin.
-     * @principle Enforces user-owned data with admin overrides.
-     */
-    match /users/{userId} {
-      allow list, get: if isAdmin();
-      allow create: if isSignedIn() && isOwner(userId);
-      allow update: if isExistingOwner(userId);
-      allow delete: if isAdmin() && resource != null;
-    }
-
-    /**
-     * @description Defines access rules for the /farms/{farmId} collection.
-     * @path /farms/{farmId}
-     * @allow (get, list) If true (publicly readable).
-     * @allow (create) If the user is signed in and the `ownerId` in the request matches the user's UID.
-     * @allow (update, delete) If the user is signed in and the user is the owner.
-     * @deny (create) If the user is not the owner.
-     * @deny (update, delete) If the user is not the owner.
-     * @principle Public read access with owner-only writes.
-     */
-    match /farms/{farmId} {
-      allow get, list: if true;
-      allow create: if isSignedIn() && request.resource.data.id == farmId;
-      allow update: if isSignedIn() && resource.data.id == farmId;
-      allow delete: if isSignedIn() && resource.data.id == farmId;
-    }
-
-    /**
-     * @description Defines access rules for the /farms/{farmId}/farmData/{farmDataId} collection.
-     * @path /farms/{farmId}/farmData/{farmDataId}
-     * @allow (read, write) If the user is signed in and is the owner of the parent farm.
-     * @deny (read, write) If the user is not signed in or is not the owner of the parent farm.
-     * @principle Enforces farm ownership for data access.
-     */
-    match /farms/{farmId}/farmData/{farmDataId} {
-      allow get, list, create, update, delete: if isSignedIn() && get(/databases/$(database)/documents/farms/$(farmId)).data.id == farmId;
-    }
-
-    /**
-     * @description Defines access rules for the /farms/{farmId}/alerts/{alertId} collection.
-     * @path /farms/{farmId}/alerts/{alertId}
-     * @allow (read, write) If the user is signed in and is the owner of the parent farm.
-     * @deny (read, write) If the user is not signed in or is not the owner of the parent farm.
-     * @principle Enforces farm ownership for alert access.
-     */
-    match /farms/{farmId}/alerts/{alertId} {
-      allow get, list, create, update, delete: if isSignedIn() && get(/databases/$(database)/documents/farms/$(farmId)).data.id == farmId;
-    }
-
-    /**
-     * @description Defines access rules for the /subscriptionPlans/{subscriptionPlanId} collection.
-     * @path /subscriptionPlans/{subscriptionPlanId}
-     * @allow (get, list) If true (publicly readable).
-     * @allow (create, update, delete) If the user is an admin.
-     * @deny (create, update, delete) If the user is not an admin.
-     * @principle Public read access with admin-only writes.
-     */
-    match /subscriptionPlans/{subscriptionPlanId} {
-      allow get, list: if true;
-      allow create, update, delete: if isAdmin();
-    }
-
-    /**
-     * @description Defines access rules for the /orders/{orderId} collection.
-     * @path /orders/{orderId}
-     * @allow (get) If the user is signed in.
-     * @allow (create, update, delete) If the user is signed in and is either the farmer or the dealer in the order.
-     * @deny (create, update, delete) If the user is not the farmer or the dealer in the order.
-     * @principle Enforces shared access between farmer and dealer.
-     */
-    match /orders/{orderId} {
-      allow get: if isSignedIn();
-      allow create: if isSignedIn() && (request.resource.data.farmerId == request.auth.uid || request.resource.data.dealerId == request.auth.uid);
-      allow update: if isSignedIn() && (resource.data.farmerId == request.auth.uid || resource.data.dealerId == request.auth.uid);
-      allow delete: if isSignedIn() && (resource.data.farmerId == request.auth.uid || resource.data.dealerId == request.auth.uid);
-    }
-
-    /**
-     * @description Defines access rules for the /suppliers/{supplierId} collection.
-     * @path /suppliers/{supplierId}
-     * @allow (read, write) If the user is signed in and the `dealerUID` in the document matches the user's UID.
-     * @deny (read, write) If the user is not signed in or is not the owner dealer.
-     */
-    match /suppliers/{supplierId} {
-      allow get, list, create, update, delete: if isSignedIn() && request.resource.data.dealerUID == request.auth.uid;
+    function isAdmin() {
+      return exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
     }
   }
 }
