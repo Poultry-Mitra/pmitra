@@ -309,7 +309,7 @@ export default function AddStockPage() {
                                         <FormField name="supplierName" control={form.control} render={({ field }) => (
                                             <FormItem>
                                                 <FormLabel>Select Supplier</FormLabel>
-                                                <Select onValueChange={field.onChange} defaultValue={field.value} disabled={suppliersLoading}>
+                                                <Select onValueChange={field.onChange} defaultValue={field.value} disabled={suppliersLoading} key={suppliers.length}>
                                                     <FormControl>
                                                         <SelectTrigger>
                                                             <SelectValue placeholder={suppliersLoading ? "Loading suppliers..." : "Select a supplier"} />
