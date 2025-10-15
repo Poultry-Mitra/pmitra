@@ -1,4 +1,3 @@
-
 // src/hooks/use-orders.ts
 'use client';
 
@@ -155,7 +154,7 @@ export function useOrdersByFarmer(farmerUID?: string) {
 }
 
 
-export async function createOrder(firestore: Firestore, auth: Auth | null, data: Omit<Order, 'id' | 'createdAt'>): Promise<string> {
+export async function createOrder(firestore: Firestore, data: Omit<Order, 'id' | 'createdAt'>): Promise<string> {
     if (!firestore) throw new Error("Firestore not initialized");
 
     const orderCollection = collection(firestore, 'orders');
@@ -170,7 +169,7 @@ export async function createOrder(firestore: Firestore, auth: Auth | null, data:
     if (data.isOfflineSale) {
         const newOrder = { id: docRef.id, ...orderData, createdAt: new Date().toISOString() } as Order;
         // CRITICAL: Await the status update to ensure the transaction completes for offline sales.
-        await updateOrderStatus(newOrder, 'Completed', firestore, auth);
+        await updateOrderStatus(newOrder, 'Completed', firestore);
     }
     
     return docRef.id;
