@@ -100,7 +100,7 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
             else if (status === 'Active') active.push(user);
             else if (status === 'Suspended') suspended.push(user);
         });
-        return { pendingUsers, activeUsers, suspendedUsers };
+        return { pendingUsers: pending, activeUsers: active, suspendedUsers: suspended };
     }, [users]);
 
     const usersByTab: { [key: string]: User[] } = {
