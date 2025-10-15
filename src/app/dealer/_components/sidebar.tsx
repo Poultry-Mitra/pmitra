@@ -33,6 +33,9 @@ import {
   Rocket,
   PlusCircle,
   Truck,
+  ChevronDown,
+  ChevronUp,
+  ShoppingCart,
 } from "lucide-react";
 import { useLanguage } from "@/components/language-provider";
 import { useState } from "react";
@@ -49,6 +52,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { useDealerInventory } from "@/hooks/use-dealer-inventory";
 import { useAppUser } from "@/app/app-provider";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 
 export function DealerSidebar() {
@@ -57,6 +61,8 @@ export function DealerSidebar() {
   const { state } = useSidebar();
   const { user: currentUser, loading: userLoading } = useAppUser();
   const [showInventoryGuide, setShowInventoryGuide] = useState(false);
+  const [procurementOpen, setProcurementOpen] = useState(pathname.startsWith('/dealer/suppliers') || pathname.startsWith('/dealer/my-inventory/add'));
+  const [salesOpen, setSalesOpen] = useState(pathname.startsWith('/dealer/my-farmers') || pathname.startsWith('/dealer/my-orders'));
 
   const { inventory, loading: inventoryLoading } = useDealerInventory(currentUser?.id);
 
@@ -110,37 +116,88 @@ export function DealerSidebar() {
                     </Link>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                    <Link href="/dealer/suppliers">
-                        <SidebarMenuButton isActive={pathname.startsWith("/dealer/suppliers")} tooltip={t('dealer.suppliers')}>
-                        <Truck />
-                        <span>{t('dealer.suppliers')}</span>
-                        </SidebarMenuButton>
-                    </Link>
-                </SidebarMenuItem>
-                 <SidebarMenuItem>
                     <Link href="/dealer/my-inventory" onClick={handleInventoryClick}>
-                        <SidebarMenuButton isActive={pathname.startsWith("/dealer/my-inventory")} tooltip={t('dealer.my_inventory')}>
+                        <SidebarMenuButton isActive={pathname === "/dealer/my-inventory"} tooltip={t('dealer.my_inventory')}>
                         <Warehouse />
                         <span>{t('dealer.my_inventory')}</span>
                         </SidebarMenuButton>
                     </Link>
                 </SidebarMenuItem>
-                <SidebarMenuItem>
-                    <Link href="/dealer/my-farmers">
-                        <SidebarMenuButton isActive={pathname.startsWith("/dealer/my-farmers")} tooltip={t('dealer.my_farmers')}>
-                        <Users />
-                        <span>{t('dealer.my_farmers')}</span>
+
+                 {/* Procurement Group */}
+                <Collapsible open={procurementOpen} onOpenChange={setProcurementOpen}>
+                    <SidebarMenuItem className="relative">
+                    <CollapsibleTrigger asChild>
+                        <SidebarMenuButton tooltip="Procurement" className="w-full justify-between pr-8" isActive={pathname.startsWith("/dealer/suppliers") || pathname.startsWith('/dealer/my-inventory/add')}>
+                            <div className="flex items-center gap-3">
+                                <ShoppingCart />
+                                <span>Procurement</span>
+                            </div>
                         </SidebarMenuButton>
-                    </Link>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                    <Link href="/dealer/my-orders">
-                        <SidebarMenuButton isActive={pathname.startsWith("/dealer/my-orders")} tooltip={t('dealer.farmer_orders')}>
-                        <ShoppingBag />
-                        <span>{t('dealer.farmer_orders')}</span>
+                    </CollapsibleTrigger>
+                     { state === 'expanded' && (
+                        <div className="absolute right-2 top-1/2 -translate-y-1/2">
+                            {procurementOpen ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
+                        </div>
+                    )}
+                    </SidebarMenuItem>
+                    <CollapsibleContent>
+                        <SidebarMenu className="ml-7 mt-1 border-l pl-3">
+                            <SidebarMenuItem>
+                                <Link href="/dealer/suppliers">
+                                    <SidebarMenuButton size="sm" isActive={pathname.startsWith('/dealer/suppliers')}>
+                                    {t('dealer.suppliers')}
+                                    </SidebarMenuButton>
+                                </Link>
+                            </SidebarMenuItem>
+                             <SidebarMenuItem>
+                                <Link href="/dealer/my-inventory/add">
+                                    <SidebarMenuButton size="sm" isActive={pathname.startsWith('/dealer/my-inventory/add')}>
+                                    Add Purchase
+                                    </SidebarMenuButton>
+                                </Link>
+                            </SidebarMenuItem>
+                        </SidebarMenu>
+                    </CollapsibleContent>
+                </Collapsible>
+
+                 {/* Sales Group */}
+                <Collapsible open={salesOpen} onOpenChange={setSalesOpen}>
+                    <SidebarMenuItem className="relative">
+                    <CollapsibleTrigger asChild>
+                        <SidebarMenuButton tooltip="Sales" className="w-full justify-between pr-8" isActive={pathname.startsWith("/dealer/my-farmers") || pathname.startsWith('/dealer/my-orders')}>
+                            <div className="flex items-center gap-3">
+                                <Users />
+                                <span>Sales</span>
+                            </div>
                         </SidebarMenuButton>
-                    </Link>
-                </SidebarMenuItem>
+                    </CollapsibleTrigger>
+                     { state === 'expanded' && (
+                        <div className="absolute right-2 top-1/2 -translate-y-1/2">
+                            {salesOpen ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
+                        </div>
+                    )}
+                    </SidebarMenuItem>
+                    <CollapsibleContent>
+                        <SidebarMenu className="ml-7 mt-1 border-l pl-3">
+                            <SidebarMenuItem>
+                                <Link href="/dealer/my-farmers">
+                                    <SidebarMenuButton size="sm" isActive={pathname.startsWith('/dealer/my-farmers')}>
+                                    {t('dealer.my_farmers')}
+                                    </SidebarMenuButton>
+                                </Link>
+                            </SidebarMenuItem>
+                             <SidebarMenuItem>
+                                <Link href="/dealer/my-orders">
+                                    <SidebarMenuButton size="sm" isActive={pathname.startsWith('/dealer/my-orders')}>
+                                    {t('dealer.farmer_orders')}
+                                    </SidebarMenuButton>
+                                </Link>
+                            </SidebarMenuItem>
+                        </SidebarMenu>
+                    </CollapsibleContent>
+                </Collapsible>
+
                 <SidebarMenuItem>
                     <Link href="/dealer/transactions">
                         <SidebarMenuButton isActive={pathname.startsWith("/dealer/transactions")} tooltip={t('dealer.ledger')}>
