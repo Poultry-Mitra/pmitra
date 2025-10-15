@@ -78,11 +78,9 @@ function buildAuthObject(currentUser: User | null): FirebaseAuthObject | null {
 function buildRequestObject(context: SecurityRuleContext, auth: Auth | null): SecurityRuleRequest {
   let authObject: FirebaseAuthObject | null = null;
   
-  if (auth && auth.currentUser) {
+  // This is the critical change: ensure we only access currentUser if auth is not null.
+  if (auth) {
       authObject = buildAuthObject(auth.currentUser);
-  } else if (!auth) {
-      // If auth is null, we can't get the user. `request.auth` will be null.
-      authObject = null;
   }
 
   return {
