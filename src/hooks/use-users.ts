@@ -1,3 +1,4 @@
+
 // src/hooks/use-users.ts
 'use client';
 
@@ -23,6 +24,7 @@ import type { User, UserRole, UserStatus } from '@/lib/types';
 import { deleteDocumentNonBlocking, updateDocumentNonBlocking, addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
+import { useAppUser } from '@/app/app-provider';
 
 // Helper to convert Firestore doc to User type, sanitizing the data
 function toUser(doc: QueryDocumentSnapshot<DocumentData> | DocumentSnapshot<DocumentData>): User {
@@ -55,11 +57,20 @@ function toUser(doc: QueryDocumentSnapshot<DocumentData> | DocumentSnapshot<Docu
 export function useUsers(role?: 'farmer' | 'dealer' | 'admin') {
   const firestore = useFirestore();
   const auth = useAuth();
+  const { user: appUser, loading: appUserLoading } = useAppUser();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   
   useEffect(() => {
-    if (!firestore) {
+    // Wait for appUser and firestore to be available
+    if (appUserLoading || !firestore) {
+        setLoading(true);
+        return;
+    }
+    
+    // If the user is not an admin, they cannot list users.
+    // Return empty array and stop loading.
+    if (appUser?.role !== 'admin') {
         setUsers([]);
         setLoading(false);
         return;
@@ -82,7 +93,7 @@ export function useUsers(role?: 'farmer' | 'dealer' | 'admin') {
         setLoading(false);
       },
       (err: FirestoreError) => {
-        console.error("Original error in useUsers:", err); // Keep original for server logs if needed
+        console.error("Original error in useUsers:", err); // Keep original for server logs
         setLoading(false);
         
         const permissionError = new FirestorePermissionError({
@@ -96,7 +107,7 @@ export function useUsers(role?: 'farmer' | 'dealer' | 'admin') {
     );
 
     return () => unsubscribe();
-  }, [firestore, role, auth]);
+  }, [firestore, role, auth, appUser, appUserLoading]);
 
   const handleUserDeletion = (userId: string) => {
       setUsers(prevUsers => prevUsers.filter(u => u.id !== userId));
