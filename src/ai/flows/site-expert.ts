@@ -93,10 +93,6 @@ Question: {{{query}}}
 `,
 });
 
-export async function siteExpert(input: z.infer<typeof SiteExpertInputSchema>): Promise<z.infer<typeof SiteExpertOutputSchema>> {
-  return siteExpertFlow(input);
-}
-
 const siteExpertFlow = ai.defineFlow(
   {
     name: 'siteExpertFlow',
@@ -108,3 +104,5 @@ const siteExpertFlow = ai.defineFlow(
     return output!;
   }
 );
+
+export const siteExpert = ai.action(siteExpertFlow);

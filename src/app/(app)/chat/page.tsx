@@ -12,7 +12,7 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Send, WandSparkles } from 'lucide-react';
 import { AppIcon } from '@/app/icon-component';
-import { siteExpertAction } from '@/app/ai/actions';
+import { siteExpert } from '@/ai/flows/site-expert';
 import { useAppUser } from '@/app/app-provider';
 import { useLanguage } from '@/components/language-provider';
 
@@ -61,7 +61,7 @@ export default function ChatPage() {
     setLoading(true);
 
     try {
-      const result = await siteExpertAction({ query: currentQuery });
+      const result = await siteExpert({ query: currentQuery });
       const aiMessage: Message = { id: (Date.now() + 1).toString(), text: result.answer, sender: 'ai' };
       setMessages((prev) => [...prev, aiMessage]);
     } catch (error) {
