@@ -1,4 +1,3 @@
-
 'use client';
 
 import Link from 'next/link';
@@ -10,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useAuth, useFirestore } from '@/firebase/provider';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import type { User as AppUser, UserRole } from '@/lib/types';
@@ -53,6 +52,10 @@ export default function RoleLoginPage() {
   const role = params.role as UserRole;
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  
+  const authForResend = useRef<typeof auth | null>(null);
+  authForResend.current = auth;
+
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -80,12 +83,15 @@ export default function RoleLoginPage() {
   }, [appUser, isAppLoading, router]);
 
   const resendVerificationEmail = async () => {
+    const auth = authForResend.current;
     if (auth && auth.currentUser) {
       try {
         await sendEmailVerification(auth.currentUser);
         toast({ title: "Verification Email Sent", description: "A new verification link has been sent to your email address." });
       } catch (error) {
         toast({ title: "Error", description: "Failed to send verification email. Please try again later.", variant: "destructive" });
+      } finally {
+        await auth.signOut();
       }
     }
   };
@@ -134,7 +140,6 @@ export default function RoleLoginPage() {
         await updateDoc(userDocRef, { status: 'Active' });
         userData.status = 'Active'; // Update local object to continue login flow
     } else if (isEmailPasswordSignIn && !isEmailVerified) {
-        await auth.signOut();
         toast({
             title: "Email Not Verified",
             description: "Please verify your email address before logging in. Check your inbox for a verification link.",
@@ -286,5 +291,3 @@ export default function RoleLoginPage() {
     </div>
   );
 }
-
-    
