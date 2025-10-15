@@ -35,6 +35,42 @@ function toOrder(doc: QueryDocumentSnapshot<DocumentData>): Order {
     } as Order;
 }
 
+export function useOrders() {
+  const firestore = useFirestore();
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const allOrdersQuery = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return query(collection(firestore, 'orders'), orderBy("createdAt", "desc"));
+  }, [firestore]);
+
+  useEffect(() => {
+    if (!allOrdersQuery) {
+        setOrders([]);
+        setLoading(false);
+        return;
+    }
+    
+    setLoading(true);
+    const unsubscribe = onSnapshot(
+      allOrdersQuery,
+      (snapshot) => {
+        setOrders(snapshot.docs.map(toOrder));
+        setLoading(false);
+      },
+      (err) => {
+        console.error("Error fetching all orders:", err);
+        setLoading(false);
+      }
+    );
+
+    return () => unsubscribe();
+  }, [allOrdersQuery]);
+
+  return { orders, loading };
+}
+
 
 export function useOrdersByDealer(dealerUID?: string) {
   const firestore = useFirestore();
