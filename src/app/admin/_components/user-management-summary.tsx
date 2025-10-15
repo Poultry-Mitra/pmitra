@@ -1,3 +1,4 @@
+
 // src/app/admin/_components/user-management-summary.tsx
 
 "use client";
@@ -120,7 +121,7 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
 
         try {
             // 1. Update user status to 'Active'
-            updateUserStatus(firestore, auth, user.id, 'Active');
+            await updateUserStatus(firestore, auth, user.id, 'Active');
 
             // 2. Send password reset email
             await sendPasswordResetEmail(auth, user.email);
@@ -161,7 +162,7 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
         }
 
         try {
-            updateUserStatus(firestore, auth, dialogState.user.id, newStatus);
+            await updateUserStatus(firestore, auth, dialogState.user.id, newStatus);
             await addAuditLog(firestore, {
                 adminUID: adminUser.uid,
                 action: 'UPDATE_USER_STATUS',
@@ -199,7 +200,7 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
         }
 
         try {
-            deleteUser(firestore, auth, dialogState.user.id);
+            await deleteUser(firestore, auth, dialogState.user.id);
             handleUserDeletion(dialogState.user.id); // Immediately remove from UI
             
             await addAuditLog(firestore, {
@@ -235,7 +236,7 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
         }
 
         try {
-            updateUserPlan(firestore, auth, planChangeState.user.id, planChangeState.newPlan);
+            await updateUserPlan(firestore, auth, planChangeState.user.id, planChangeState.newPlan);
             await addAuditLog(firestore, {
                 adminUID: adminUser.uid,
                 action: 'UPDATE_USER_PLAN',
@@ -482,10 +483,10 @@ export function UserManagementSummary({ roleToShow }: { roleToShow?: 'farmer' | 
                     <AlertDialogFooter>
                         <AlertDialogCancel onClick={() => { setReason(""); setOtherReason(""); }}>{t('actions.cancel')}</AlertDialogCancel>
                         <AlertDialogAction
-                            onClick={() => {
-                                if (dialogState.action === 'delete') handleDelete();
-                                else if (dialogState.action === 'approve' && dialogState.user) handleApproveUser(dialogState.user);
-                                else if (dialogState.action === 'suspend') handleStatusUpdate(dialogState.user?.status === 'Active' ? 'Suspended' : 'Active');
+                            onClick={async () => {
+                                if (dialogState.action === 'delete') await handleDelete();
+                                else if (dialogState.action === 'approve' && dialogState.user) await handleApproveUser(dialogState.user);
+                                else if (dialogState.action === 'suspend') await handleStatusUpdate(dialogState.user?.status === 'Active' ? 'Suspended' : 'Active');
                             }}
                             className={cn({
                                 'bg-destructive hover:bg-destructive/90 text-destructive-foreground': dialogState.action === 'delete',

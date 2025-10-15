@@ -1,3 +1,4 @@
+
 import { Timestamp } from "firebase/firestore";
 
 export type UserRole = 'farmer' | 'dealer' | 'admin';
@@ -38,7 +39,7 @@ export type Invitation = {
     status: 'pending' | 'accepted';
     createdAt: string;
     createdBy: string; // Admin UID
-    token: string; // Secure, unique token
+    token?: string; // Secure, unique token
 };
 
 export type Batch = {

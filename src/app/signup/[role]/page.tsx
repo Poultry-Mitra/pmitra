@@ -79,25 +79,36 @@ export default function DetailedSignupPage() {
         },
     });
 
-    // Check for invitation token
+    // Check for invitation by email
     useEffect(() => {
-        const token = searchParams.get('token');
-        if (token && firestore) {
+        const checkInvitation = async (email: string) => {
+            if (!firestore) return;
             const invitationsRef = collection(firestore, "invitations");
-            const q = query(invitationsRef, where("token", "==", token), limit(1));
-            getDocs(q).then(snapshot => {
-                if (!snapshot.empty) {
-                    const invDoc = snapshot.docs[0];
-                    const invData = { id: invDoc.id, ...invDoc.data() } as Invitation & { id: string };
-                    setInvitation(invData);
-                    form.reset({
-                        fullName: invData.name,
-                        email: invData.email,
-                    });
-                }
-            });
+            const q = query(invitationsRef, where("email", "==", email), where("status", "==", "pending"), limit(1));
+            const snapshot = await getDocs(q);
+            if (!snapshot.empty) {
+                const invDoc = snapshot.docs[0];
+                const invData = { id: invDoc.id, ...invDoc.data() } as Invitation & { id: string };
+                setInvitation(invData);
+                form.reset({
+                    fullName: invData.name,
+                    email: invData.email,
+                    // keep other fields as they are
+                    state: form.getValues('state'),
+                    district: form.getValues('district'),
+                    mobileNumber: form.getValues('mobileNumber'),
+                    pinCode: form.getValues('pinCode'),
+                });
+            } else {
+                setInvitation(null);
+            }
+        };
+
+        const email = form.watch('email');
+        if (z.string().email().safeParse(email).success) {
+            checkInvitation(email);
         }
-    }, [searchParams, firestore, form]);
+    }, [form.watch('email'), firestore, form]);
 
     const selectedState = form.watch("state");
 
@@ -118,7 +129,7 @@ export default function DetailedSignupPage() {
 
         const isAdminEmail = values.email.toLowerCase() === 'ipoultrymitra@gmail.com';
         const finalRole = invitation?.role || (isAdminEmail ? 'admin' : initialRole);
-        const finalStatus = 'Active'; // Changed from 'Pending'
+        const finalStatus = invitation ? 'Active' : 'Pending';
         const finalPlan = invitation?.planType || (isAdminEmail ? 'premium' : 'free');
 
         const profileResponse = await createProfile({
@@ -144,6 +155,8 @@ export default function DetailedSignupPage() {
         if (invitation) {
             await deleteDoc(doc(firestore, 'invitations', invitation.id));
         }
+
+        return finalStatus;
     }
 
 
@@ -156,7 +169,6 @@ export default function DetailedSignupPage() {
         let createdAuthUser: FirebaseAuthUser | null = null;
         
         try {
-            // Check if user already exists in Firebase Auth before trying to create a new one
             const signInMethods = await fetchSignInMethodsForEmail(auth, values.email);
             if (signInMethods.length > 0 && !googleUser) {
                 form.setError('email', { type: 'manual', message: 'This email is already registered. Please login.' });
@@ -164,10 +176,10 @@ export default function DetailedSignupPage() {
                 return;
             }
 
+            let finalStatus: UserStatus = 'Pending';
             if (authProvider === 'google' && googleUser) {
                  createdAuthUser = googleUser;
-                 await handleFinalUserCreation(createdAuthUser, values);
-                 router.replace(`/login/${createdAuthUser.email === 'ipoultrymitra@gmail.com' ? 'admin' : initialRole}`); // Redirect to login
+                 finalStatus = await handleFinalUserCreation(createdAuthUser, values);
             } else {
                 if (!values.password) {
                     form.setError('password', { message: 'Password is required for email signup.' });
@@ -176,26 +188,29 @@ export default function DetailedSignupPage() {
                 }
                 const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
                 createdAuthUser = userCredential.user;
-                
-                await handleFinalUserCreation(createdAuthUser, values);
+                finalStatus = await handleFinalUserCreation(createdAuthUser, values);
+            }
+            
+            if (auth?.currentUser) await auth.signOut();
+
+            if (finalStatus === 'Pending') {
+                setShowPendingMessage(true);
+            } else {
                 toast({
                     title: "Account Created!",
                     description: "You can now log in with your credentials.",
                 });
-                if (auth?.currentUser) await auth.signOut();
-                router.replace(`/login/${createdAuthUser.email === 'ipoultrymitra@gmail.com' ? 'admin' : initialRole}`); // Redirect to login
+                router.replace(`/login/${createdAuthUser.email === 'ipoultrymitra@gmail.com' ? 'admin' : initialRole}`);
             }
 
 
         } catch (error: any) {
             console.error("Signup failed:", error);
-            // Error handling is more specific now
              if (error.code === 'auth/email-already-in-use') {
                 form.setError('email', { type: 'manual', message: 'This email is already registered. Please login.' });
             } else {
                 toast({ title: "Signup Failed", description: error.message || "An unexpected error occurred.", variant: "destructive" });
             }
-            // Rollback auth user creation if firestore part fails
             if (createdAuthUser) {
                 try {
                     await createdAuthUser.delete();
@@ -216,7 +231,6 @@ export default function DetailedSignupPage() {
             const result = await signInWithPopup(auth, provider);
             const user = result.user;
 
-            // Check if user already has a document in Firestore
             const userDocRef = doc(firestore, "users", user.uid);
             const docSnap = await getDoc(userDocRef);
             if (docSnap.exists()) {
@@ -272,11 +286,11 @@ export default function DetailedSignupPage() {
             <Card className="w-full max-w-xl">
                 <CardHeader className="text-center">
                      <AppIcon className="mx-auto size-10 text-primary" />
-                    <CardTitle className="font-headline text-2xl capitalize">Create Your {initialRole} Account</CardTitle>
+                    <CardTitle className="font-headline text-2xl capitalize">Create Your {invitation?.role || initialRole} Account</CardTitle>
                     <CardDescription>{invitation ? `Accepting invitation for ${invitation.email}` : "Fill in your details or use Google to get started."}</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    {!invitation && authProvider === 'email' && (
+                    {authProvider === 'email' && (
                         <>
                             <Button variant="outline" className="w-full" onClick={handleGoogleSignUp} disabled={isSubmitting || isGoogleLoading}>
                                 {isGoogleLoading ? <Loader2 className="mr-2 animate-spin" /> : <GoogleIcon />}

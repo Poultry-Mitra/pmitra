@@ -1,3 +1,4 @@
+
 // src/hooks/use-users.ts
 'use client';
 
@@ -171,7 +172,7 @@ export function requestDealerConnection(firestore: Firestore, farmerUID: string,
             const connectionsCollection = collection(firestore, 'connections');
             // Auth is passed as null because the security rules for creating a connection
             // are based on the UIDs in the data, not the logged-in user.
-            addDocumentNonBlocking(connectionsCollection, {
+            await addDocumentNonBlocking(connectionsCollection, {
                 farmerUID,
                 dealerUID: dealerUser.id,
                 status: 'Pending',
@@ -187,22 +188,22 @@ export function requestDealerConnection(firestore: Firestore, farmerUID: string,
 }
 
 
-export function deleteUser(firestore: Firestore, auth: Auth | null, userId: string) {
+export async function deleteUser(firestore: Firestore, auth: Auth | null, userId: string) {
     if (!firestore) throw new Error("Firestore not initialized");
     const docRef = doc(firestore, 'users', userId);
     // In a real app, you would also need to delete the user from Firebase Auth,
     // which requires admin privileges and should be done via a Cloud Function.
-    deleteDocumentNonBlocking(docRef, auth);
+    await deleteDocumentNonBlocking(docRef, auth);
 }
 
-export function updateUserStatus(firestore: Firestore, auth: Auth | null, userId: string, status: UserStatus) {
+export async function updateUserStatus(firestore: Firestore, auth: Auth | null, userId: string, status: UserStatus) {
     if (!firestore) throw new Error("Firestore not initialized");
     const docRef = doc(firestore, 'users', userId);
-    updateDocumentNonBlocking(docRef, { status }, auth);
+    await updateDocumentNonBlocking(docRef, { status }, auth);
 }
 
-export function updateUserPlan(firestore: Firestore, auth: Auth | null, userId: string, planType: 'free' | 'premium') {
+export async function updateUserPlan(firestore: Firestore, auth: Auth | null, userId: string, planType: 'free' | 'premium') {
     if (!firestore) throw new Error("Firestore not initialized");
     const docRef = doc(firestore, 'users', userId);
-    updateDocumentNonBlocking(docRef, { planType }, auth);
+    await updateDocumentNonBlocking(docRef, { planType }, auth);
 }
