@@ -18,17 +18,12 @@ import { AppIcon } from "@/app/icon-component";
 import {
   LayoutGrid,
   Users,
-  Bot,
   Settings,
-  LogOut,
-  TrendingUp,
   Bell,
   CreditCard,
   ChevronDown,
   ChevronUp,
   Loader2,
-  AlertTriangle,
-  Wallet,
 } from "lucide-react";
 import { useLanguage } from "@/components/language-provider";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
@@ -146,14 +141,6 @@ export function AdminSidebar() {
 
             <SidebarGroupLabel>Content & AI</SidebarGroupLabel>
             <SidebarMenu>
-            <SidebarMenuItem>
-                <Link href="/admin/chat-logs">
-                    <SidebarMenuButton isActive={pathname.startsWith("/admin/chat-logs")} tooltip={t('admin.ai_chat_logs')}>
-                    <Bot />
-                    <span>{t('admin.ai_chat_logs')}</span>
-                    </SidebarMenuButton>
-                </Link>
-            </SidebarMenuItem>
             <SidebarMenuItem>
                 <Link href="/admin/notifications">
                     <SidebarMenuButton isActive={pathname.startsWith("/admin/notifications")} tooltip={t('admin.notifications')}>

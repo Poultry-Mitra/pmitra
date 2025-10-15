@@ -223,15 +223,3 @@ export type VaccinationScheduleItem = {
     vaccine: string;
     method: string;
 };
-
-export type ChatSession = {
-    id: string;
-    userId: string;
-    userName: string;
-    userEmail: string;
-    userRole: UserRole;
-    startTime: string;
-    lastQuery: string;
-    lastResponse: string;
-    messageCount: number;
-};
