@@ -1,3 +1,4 @@
+
 // src/hooks/use-users.ts
 'use client';
 
@@ -41,11 +42,11 @@ function toUser(doc: QueryDocumentSnapshot<DocumentData> | DocumentSnapshot<Docu
         state: data.state,
         district: data.district,
         pinCode: data.pinCode,
+        biosecurityMeasures: data.biosecurityMeasures,
         connectedFarmers: data.connectedFarmers,
         connectedDealers: data.connectedDealers,
-        // Explicitly exclude large arrays unless specifically requested
-        // connectedFarmers: data.connectedFarmers,
-        // connectedDealers: data.connectedDealers,
+        aiQueriesCount: data.aiQueriesCount,
+        lastQueryDate: data.lastQueryDate,
     } as User;
 }
 

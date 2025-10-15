@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -5,7 +6,6 @@
  * This flow now constructs a user profile object without direct database interaction.
  */
 
-import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 
 // This schema is now internal and not exported to avoid breaking client-side builds.
