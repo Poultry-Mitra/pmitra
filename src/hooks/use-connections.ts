@@ -44,8 +44,9 @@ export function useConnections(userId: string | undefined, userRole: 'farmer' | 
     const field = userRole === 'farmer' ? 'farmerUID' : 'dealerUID';
     return query(
         connectionsCollection, 
-        where(field, "==", userId),
-        orderBy("createdAt", "desc")
+        where(field, "==", userId)
+        // Removed orderBy("createdAt") which would require a composite index
+        // Sorting can be done on the client if needed.
     );
   }, [firestore, userId, userRole]);
 
@@ -61,7 +62,9 @@ export function useConnections(userId: string | undefined, userRole: 'farmer' | 
     const unsubscribe = onSnapshot(
       connectionsQuery,
       (snapshot) => {
-        setConnections(snapshot.docs.map(toConnection));
+        // Sort client-side
+        const sortedConnections = snapshot.docs.map(toConnection).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        setConnections(sortedConnections);
         setLoading(false);
       },
       (err) => {

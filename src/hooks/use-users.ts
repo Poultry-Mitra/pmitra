@@ -1,4 +1,3 @@
-
 // src/hooks/use-users.ts
 'use client';
 
@@ -27,7 +26,7 @@ function toUser(doc: QueryDocumentSnapshot<DocumentData> | DocumentSnapshot<Docu
     const data = doc.data();
     if (!data) throw new Error("User document data is empty");
     
-    // Return a sanitized user object, excluding potentially sensitive fields for general queries
+    // Return a sanitized user object, excluding potentially sensitive or large fields for general queries
     return {
         id: doc.id,
         name: data.name,
@@ -36,7 +35,7 @@ function toUser(doc: QueryDocumentSnapshot<DocumentData> | DocumentSnapshot<Docu
         status: data.status,
         dateJoined: data.dateJoined,
         planType: data.planType,
-        uniqueDealerCode: data.uniqueDealerCode, // This can be public
+        uniqueDealerCode: data.uniqueDealerCode,
         poultryMitraId: data.poultryMitraId,
         mobileNumber: data.mobileNumber,
         state: data.state,
@@ -44,6 +43,9 @@ function toUser(doc: QueryDocumentSnapshot<DocumentData> | DocumentSnapshot<Docu
         pinCode: data.pinCode,
         connectedFarmers: data.connectedFarmers,
         connectedDealers: data.connectedDealers,
+        // Explicitly exclude large arrays unless specifically requested
+        // connectedFarmers: data.connectedFarmers,
+        // connectedDealers: data.connectedDealers,
     } as User;
 }
 
@@ -205,5 +207,3 @@ export function updateUserPlan(firestore: Firestore, auth: Auth | null, userId: 
     const docRef = doc(firestore, 'users', userId);
     updateDocumentNonBlocking(docRef, { planType }, auth);
 }
-
-    
