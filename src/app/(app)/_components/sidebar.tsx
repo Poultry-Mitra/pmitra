@@ -230,6 +230,3 @@ const aiNavItems = [
     { href: "/feed-recommendation", icon: WandSparkles, label: "feed_ai.title"},
     { href: "/diagnose-health", icon: HeartPulse, label: "diagnose_health.title" },
 ];
-
-    
-    
