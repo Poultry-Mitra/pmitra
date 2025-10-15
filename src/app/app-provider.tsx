@@ -1,4 +1,5 @@
 
+
 // src/app/app-provider.tsx
 'use client';
 
@@ -42,7 +43,7 @@ const getRoleFromPath = (path: string): UserRole | 'public' | 'none' => {
     }
     if (path.startsWith('/admin')) return 'admin';
     if (path.startsWith('/dealer')) return 'dealer';
-    if (path.startsWith('/dashboard') || path.startsWith('/batches') || path.startsWith('/ledger') || path.startsWith('/inventory') || path.startsWith('/dealers') || path.startsWith('/monitoring') || path.startsWith('/feed-recommendation') || path.startsWith('/daily-rates') || path.startsWith('/pricing') || path.startsWith('/profile') || path.startsWith('/analytics') || path.startsWith('/biosecurity') || path.startsWith('/chat') || path.startsWith('/diagnose-health')) {
+    if (path.startsWith('/dashboard') || path.startsWith('/batches') || path.startsWith('/ledger') || path.startsWith('/inventory') || path.startsWith('/dealers') || path.startsWith('/monitoring') || path.startsWith('/feed-recommendation') || path.startsWith('/pricing') || path.startsWith('/profile') || path.startsWith('/analytics') || path.startsWith('/biosecurity') || path.startsWith('/chat') || path.startsWith('/diagnose-health')) {
         return 'farmer';
     }
     return 'none';

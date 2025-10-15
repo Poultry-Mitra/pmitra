@@ -147,14 +147,6 @@ export function AdminSidebar() {
 
             <SidebarGroupLabel>Content & AI</SidebarGroupLabel>
             <SidebarMenu>
-                <SidebarMenuItem>
-                <Link href="/admin/daily-rates">
-                    <SidebarMenuButton isActive={pathname.startsWith("/admin/daily-rates")} tooltip={t('daily_rates.title')}>
-                    <TrendingUp />
-                    <span>{t('daily_rates.title')}</span>
-                    </SidebarMenuButton>
-                </Link>
-            </SidebarMenuItem>
              <SidebarMenuItem>
                 <Link href="/admin/blog">
                     <SidebarMenuButton isActive={pathname.startsWith("/admin/blog")} tooltip={t('admin.blog_management')}>

@@ -183,22 +183,6 @@ export function AppSidebar() {
             ))}
             </SidebarMenu>
             
-            <SidebarSeparator />
-            <SidebarGroupLabel>{t('sidebar.market')}</SidebarGroupLabel>
-            <SidebarMenu>
-                <SidebarMenuItem>
-                    <Link href="/daily-rates">
-                        <SidebarMenuButton
-                            isActive={pathname.startsWith("/daily-rates")}
-                            tooltip={t('daily_rates.title')}
-                        >
-                            <TrendingUp/>
-                            <span>{t('daily_rates.title')}</span>
-                            {planType !== 'premium' && <Badge variant="secondary" className="ml-auto group-data-[state=collapsed]:hidden">{t('plans.pro')}</Badge>}
-                        </SidebarMenuButton>
-                    </Link>
-                </SidebarMenuItem>
-            </SidebarMenu>
         </SidebarContent>
         <SidebarFooter>
             <SidebarMenu>

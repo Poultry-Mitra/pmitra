@@ -229,15 +229,6 @@ export function DealerSidebar() {
                         </SidebarMenuButton>
                     </Link>
                 </SidebarMenuItem>
-                 <SidebarMenuItem>
-                    <Link href="/dealer/daily-rates">
-                        <SidebarMenuButton isActive={pathname === "/dealer/daily-rates"} tooltip={t('dealer.market_rates')}>
-                        <TrendingUp />
-                        <span>{t('dealer.market_rates')}</span>
-                        {!isPremium && <Badge variant="secondary" className="ml-auto group-data-[state=collapsed]:hidden">PRO</Badge>}
-                        </SidebarMenuButton>
-                    </Link>
-                </SidebarMenuItem>
             </SidebarMenu>
 
 

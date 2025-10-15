@@ -27,7 +27,6 @@ import { AppIcon } from './icon-component';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { LanguageToggle } from '@/components/language-toggle';
 import { useLanguage } from '@/components/language-provider';
-import { RateTicker } from './_components/rate-ticker';
 import { useAuth } from '@/firebase/provider';
 import { Skeleton } from '@/components/ui/skeleton';
 import { signOut } from 'firebase/auth';
@@ -176,7 +175,6 @@ export default function LandingPage() {
             <Link href="#features" className="text-muted-foreground transition-colors hover:text-foreground">{t('nav.features')}</Link>
             <Link href="/pricing" className="text-muted-foreground transition-colors hover:text-foreground">{t('nav.pricing')}</Link>
             <Link href="/blog" className="text-muted-foreground transition-colors hover:text-foreground">Guide</Link>
-            <Link href="/daily-rates" className="text-muted-foreground transition-colors hover:text-foreground">{t('daily_rates.title')}</Link>
             <Link href="#contact" className="text-muted-foreground transition-colors hover:text-foreground">{t('nav.contact')}</Link>
           </nav>
           <div className="ml-auto flex items-center space-x-2">
@@ -206,7 +204,6 @@ export default function LandingPage() {
             )}
           </div>
         </div>
-        <RateTicker />
       </header>
       <main className="flex-1">
         <section id="hero" className="container py-20 text-center md:py-28 lg:py-32">
