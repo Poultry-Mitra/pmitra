@@ -1,3 +1,4 @@
+
 // src/hooks/use-users.ts
 'use client';
 
@@ -22,15 +23,15 @@ import {
 import { useFirestore, useAuth, AuthContext } from '@/firebase/provider';
 import type { User, UserRole, UserStatus } from '@/lib/types';
 import { deleteDocumentNonBlocking, updateDocumentNonBlocking, addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
-import { getAllUsers } from '@/ai/flows/get-all-users';
+
 
 // Helper to convert Firestore doc to User type, sanitizing the data
-function toUser(doc: QueryDocumentSnapshot<DocumentData> | DocumentSnapshot<DocumentData> | any, isFromFlow: boolean = false): User {
-    const data = isFromFlow ? doc : doc.data();
+function toUser(doc: QueryDocumentSnapshot<DocumentData> | DocumentSnapshot<DocumentData> | any): User {
+    const data = doc.data();
     if (!data) throw new Error("User document data is empty");
     
     return {
-        id: isFromFlow ? data.id : doc.id,
+        id: doc.id,
         name: data.name || "Unnamed User",
         email: data.email || "",
         role: data.role || "farmer",
@@ -52,39 +53,36 @@ function toUser(doc: QueryDocumentSnapshot<DocumentData> | DocumentSnapshot<Docu
 }
 
 
-// This hook now uses a Genkit flow to fetch all users for the admin, bypassing security rules.
+// This hook now fetches all users directly for the admin.
 export function useUsers() {
+  const firestore = useFirestore();
   const { user: adminUser } = useContext(AuthContext)!;
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function fetchUsers() {
-        if (!adminUser || adminUser.email !== 'ipoultrymitra@gmail.com') {
-            setUsers([]);
-            setLoading(false);
-            return;
-        }
-
-        setLoading(true);
-        try {
-            const result = await getAllUsers({ adminUid: adminUser.uid });
-            if (result && result.users) {
-                 const mappedUsers = result.users.map(u => toUser(u, true));
-                 // Sort client-side
-                 mappedUsers.sort((a, b) => new Date(b.dateJoined).getTime() - new Date(a.dateJoined).getTime());
-                 setUsers(mappedUsers);
-            }
-        } catch (err) {
-            console.error("Error fetching users via Genkit flow:", err);
-            setUsers([]); // Set to empty array on error
-        } finally {
-            setLoading(false);
-        }
+    if (!firestore || !adminUser || adminUser.email !== 'ipoultrymitra@gmail.com') {
+      setUsers([]);
+      setLoading(false);
+      return;
     }
 
-    fetchUsers();
-  }, [adminUser]);
+    setLoading(true);
+    const usersCollection = collection(firestore, 'users');
+    const q = query(usersCollection, orderBy("dateJoined", "desc"));
+    
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+        const fetchedUsers = snapshot.docs.map(doc => toUser(doc));
+        setUsers(fetchedUsers);
+        setLoading(false);
+    }, (err) => {
+        console.error("Error fetching all users:", err);
+        setUsers([]);
+        setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, [firestore, adminUser]);
   
   const handleUserDeletion = (userId: string) => {
       setUsers(prevUsers => prevUsers.filter(u => u.id !== userId));
@@ -129,6 +127,7 @@ export function useUsersByIds(userIds: string[]) {
 
       fetchUsers();
       
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [firestore, JSON.stringify(userIds)]);
 
     return { users, loading };

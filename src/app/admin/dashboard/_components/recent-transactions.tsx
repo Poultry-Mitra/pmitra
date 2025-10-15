@@ -18,22 +18,34 @@ export function RecentTransactions({ orders, loading }: { orders: Order[], loadi
   }, [orders]);
   
   const userIds = useMemo(() => {
-    return [...new Set(recentOrders.map(o => o.farmerUID).filter(Boolean) as string[])];
+    const ids = new Set<string>();
+    recentOrders.forEach(o => {
+        if (o.farmerUID) ids.add(o.farmerUID);
+        if (o.dealerUID) ids.add(o.dealerUID);
+    });
+    return Array.from(ids);
   }, [recentOrders]);
 
-  const { users: farmers, loading: usersLoading } = useUsersByIds(userIds);
+  const { users, loading: usersLoading } = useUsersByIds(userIds);
   const isLoading = loading || usersLoading;
 
-  const getFarmerName = (farmerId?: string) => {
-      if (!farmerId) return "Offline Sale";
-      return farmers.find(f => f.id === farmerId)?.name || '...';
+  const getUser = (id?: string) => {
+      if (!id) return null;
+      return users.find(u => u.id === id);
   }
   
-  const getFarmerInitial = (farmerId?: string) => {
-      if (!farmerId) return "O";
-      const name = farmers.find(f => f.id === farmerId)?.name;
-      return name ? name.charAt(0) : '-';
+  const getTransactionPartyName = (order: Order) => {
+    if (order.isOfflineSale) return order.offlineCustomerName || "Offline Sale";
+    const farmer = getUser(order.farmerUID);
+    return farmer?.name || '...';
   }
+
+  const getTransactionPartyInitial = (order: Order) => {
+     if (order.isOfflineSale) return (order.offlineCustomerName || "O").charAt(0);
+     const farmer = getUser(order.farmerUID);
+     return farmer?.name.charAt(0) || '-';
+  }
+
 
   if (isLoading) {
     return (
@@ -74,10 +86,10 @@ export function RecentTransactions({ orders, loading }: { orders: Order[], loadi
           <div key={i} className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Avatar className="hidden h-9 w-9 sm:flex">
-                <AvatarFallback>{getFarmerInitial(order.farmerUID)}</AvatarFallback>
+                <AvatarFallback>{getTransactionPartyInitial(order)}</AvatarFallback>
               </Avatar>
               <div className="grid gap-1">
-                <p className="text-sm font-medium leading-none">{getFarmerName(order.farmerUID)}</p>
+                <p className="text-sm font-medium leading-none">{getTransactionPartyName(order)}</p>
                 <p className="text-sm text-muted-foreground">
                   {order.productName}
                 </p>
