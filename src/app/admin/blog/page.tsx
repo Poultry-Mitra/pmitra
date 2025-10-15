@@ -18,7 +18,8 @@ import { useFirestore } from "@/firebase/provider";
 import { format } from 'date-fns';
 
 export default function AdminBlogPage() {
-    const { posts, loading } = usePosts();
+    // Pass `true` to usePosts to fetch all posts, including drafts.
+    const { posts, loading } = usePosts(true); 
     const { toast } = useToast();
     const firestore = useFirestore();
     const [postToDelete, setPostToDelete] = useState<Post | null>(null);

@@ -12,8 +12,8 @@ import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/app/(app)/_components/page-header";
 
 export default function BlogPage() {
-    const { posts, loading } = usePosts();
-    const publishedPosts = posts?.filter(p => p.isPublished) || [];
+    const { posts, loading } = usePosts(); // This will fetch only published posts by default
+    const publishedPosts = posts || [];
 
     return (
         <div className="container py-8">

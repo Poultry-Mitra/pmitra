@@ -43,7 +43,7 @@ function toPost(doc: QueryDocumentSnapshot<DocumentData> | DocumentSnapshot<Docu
     } as Post;
 }
 
-export function usePosts() {
+export function usePosts(isAdmin: boolean = false) {
   const firestore = useFirestore();
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
@@ -57,7 +57,12 @@ export function usePosts() {
     
     setLoading(true);
     const postsCollection = collection(firestore, 'posts');
-    const q = query(postsCollection, orderBy("createdAt", "desc"));
+    
+    // Conditionally apply the 'where' clause for non-admin users
+    const q = isAdmin
+      ? query(postsCollection, orderBy("createdAt", "desc"))
+      : query(postsCollection, where("isPublished", "==", true), orderBy("createdAt", "desc"));
+
 
     const unsubscribe = onSnapshot(
       q,
@@ -67,12 +72,13 @@ export function usePosts() {
       },
       (err) => {
         console.error("Error fetching posts:", err);
+        setPosts([]);
         setLoading(false);
       }
     );
 
     return () => unsubscribe();
-  }, [firestore]);
+  }, [firestore, isAdmin]);
 
   return { posts, loading };
 }
