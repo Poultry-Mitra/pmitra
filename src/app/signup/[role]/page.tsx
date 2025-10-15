@@ -209,22 +209,21 @@ export default function DetailedSignupPage() {
     }
     
     async function handleGoogleSignUp() {
-        if (!auth) return;
+        if (!auth || !firestore) return;
         setIsGoogleLoading(true);
         const provider = new GoogleAuthProvider();
         try {
             const result = await signInWithPopup(auth, provider);
             const user = result.user;
-            
-            if (firestore) {
-                const userDocRef = doc(firestore, "users", user.uid);
-                const docSnap = await getDoc(userDocRef);
-                if (docSnap.exists()) {
-                    toast({ title: "Account Exists", description: "You already have an account. Please log in.", variant: "destructive" });
-                    await auth.signOut();
-                    router.push('/login');
-                    return;
-                }
+
+            // Check if user already has a document in Firestore
+            const userDocRef = doc(firestore, "users", user.uid);
+            const docSnap = await getDoc(userDocRef);
+            if (docSnap.exists()) {
+                toast({ title: "Account Exists", description: "This Google account is already registered. Please log in.", variant: "destructive" });
+                await auth.signOut();
+                router.push('/login');
+                return;
             }
             
             form.reset({

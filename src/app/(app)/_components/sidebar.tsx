@@ -67,7 +67,7 @@ export function AppSidebar() {
     );
   }
 
-  const poultryMitraId = `PM-FARM-${user.id.substring(0, 5).toUpperCase()}`;
+  const poultryMitraId = user.poultryMitraId || `PM-FARM-${user.id.substring(0, 5).toUpperCase()}`;
 
   return (
     <>

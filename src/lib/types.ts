@@ -1,4 +1,3 @@
-
 import { Timestamp } from "firebase/firestore";
 
 export type UserRole = 'farmer' | 'dealer' | 'admin';
@@ -10,6 +9,7 @@ export type BiosecurityMeasures = {
 
 export type User = {
   id: string;
+  poultryMitraId?: string;
   name: string;
   email: string;
   role: UserRole;
@@ -135,7 +135,7 @@ export type FarmAlert = {
   batchId: string;
   type: 'critical' | 'warning';
   message: string;
-  timestamp: string; // ISO 8601 format
+  timestamp: string; // ISO 8_601 format
   isRead: boolean;
 };
 
