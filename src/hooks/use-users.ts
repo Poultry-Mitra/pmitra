@@ -1,3 +1,4 @@
+
 // src/hooks/use-users.ts
 'use client';
 
@@ -50,7 +51,7 @@ function toUser(doc: QueryDocumentSnapshot<DocumentData> | DocumentSnapshot<Docu
 
 export function useUsers(role?: 'farmer' | 'dealer' | 'admin') {
   const firestore = useFirestore();
-  const [allUsers, setAllUsers] = useState<User[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   
   const usersQuery = useMemoFirebase(() => {
@@ -59,12 +60,13 @@ export function useUsers(role?: 'farmer' | 'dealer' | 'admin') {
     if (role) {
         return query(baseQuery, where("role", "==", role));
     }
-    return query(baseQuery);
+    return query(baseQuery); // Return all users if no role is specified
   }, [firestore, role]);
 
 
   useEffect(() => {
     if (!usersQuery) {
+        setUsers([]);
         setLoading(false);
         return;
     }
@@ -73,7 +75,7 @@ export function useUsers(role?: 'farmer' | 'dealer' | 'admin') {
     const unsubscribe = onSnapshot(
       usersQuery,
       (snapshot) => {
-        setAllUsers(snapshot.docs.map(d => toUser(d)));
+        setUsers(snapshot.docs.map(d => toUser(d)));
         setLoading(false);
       },
       (err) => {
@@ -85,12 +87,9 @@ export function useUsers(role?: 'farmer' | 'dealer' | 'admin') {
     return () => unsubscribe();
   }, [usersQuery]);
 
-  const users = allUsers;
-  
   const handleUserDeletion = (userId: string) => {
-      setAllUsers(prevUsers => prevUsers.filter(u => u.id !== userId));
+      setUsers(prevUsers => prevUsers.filter(u => u.id !== userId));
   };
-
 
   return { users, loading, handleUserDeletion };
 }
