@@ -102,10 +102,10 @@ export function AdminSidebar() {
                 <Collapsible open={managementOpen} onOpenChange={setManagementOpen}>
                     <SidebarMenuItem className="relative">
                         <CollapsibleTrigger asChild>
-                            <SidebarMenuButton tooltip={t('admin.users.title_farmer')} className="w-full justify-between pr-8" isActive={pathname.startsWith("/admin/user-management")}>
+                            <SidebarMenuButton tooltip={t('admin.users.title_management')} className="w-full justify-between pr-8" isActive={pathname.startsWith("/admin/user-management")}>
                                 <div className="flex items-center gap-3">
                                     <Users />
-                                    <span>{t('admin.users.title_farmer')}</span>
+                                    <span>{t('admin.users.title_management')}</span>
                                 </div>
                             </SidebarMenuButton>
                         </CollapsibleTrigger>
