@@ -1,4 +1,3 @@
-
 // src/app/(app)/diagnose-health/_components/symptom-checker.tsx
 "use client";
 
@@ -29,6 +28,8 @@ import { cn } from '@/lib/utils';
 import { AppIcon } from '@/app/icon-component';
 import { Avatar } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+
 
 const formSchema = z.object({
   symptoms: z.array(z.string()).min(1, "Please select at least one symptom."),
@@ -39,7 +40,7 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 // Expanded symptom lists
-const respiratorySymptoms = ["खाँसी", "छींक", "नाक बहना", "सांस फूलना", "घरघराहट", "आँखों में सूजन"];
+const respiratorySymptoms = ["खाँसी (Coughing)", "छींक (Sneezing)", "नाक बहना (Nasal Discharge)", "सांस फूलना (Gasping)", "घरघराहट (Rattling)"];
 const digestiveSymptoms = ["ढीला मल (Diarrhea)", "मल में खून (Bloody Droppings)", "पानी जैसा दस्त (Watery Diarrhea)", "हरा दस्त (Greenish Droppings)"];
 const neurologicalSymptoms = ["गर्दन मुड़ी होना (Twisted Neck)", "लंगड़ापन (Lameness)", "पक्षाघात (Paralysis)"];
 const physicalSymptoms = ["पंख फूलना (Ruffled Feathers)", "शरीर पर गांठें (Lumps on body)", "नीले रंग का सिर (Bluish Comb/Wattles)", "पैरों पर पपड़ी (Scaly Legs)"];
@@ -117,36 +118,36 @@ export function SymptomChecker() {
   };
   
     const runLocalDiagnosis = (values: FormValues): DiagnoseChickenHealthOutput => {
-        let disease = "हल्के लक्षण";
+        let disease = "हल्के लक्षण (Mild Symptoms)";
         let likelihood: "High" | "Medium" | "Low" = "Low";
-        let reasoning = "यह लक्षण तनाव या हल्के संक्रमण के कारण हो सकते हैं।";
-        let treatmentPlan = [{step: "इलेक्ट्रोलाइट्स दें", details: "तनाव कम करने के लिए पीने के पानी में इलेक्ट्रोलाइट्स मिलाएं।"}, {step: "आरामदायक वातावरण", details: "सुनिश्चित करें कि शेड सूखा, हवादार और सही तापमान पर हो।"}];
-        let preventativeMeasures = ["नियमित टीकाकरण और स्वच्छता बनाए रखें।", "संतुलित आहार प्रदान करें।"];
-        let biharSpecificAdvice = "बिहार के मौसम में बदलाव के दौरान विशेष ध्यान दें।";
+        let reasoning = "यह लक्षण तनाव या हल्के संक्रमण के कारण हो सकते हैं। (These symptoms might be due to stress or a minor infection.)";
+        let treatmentPlan = [{step: "इलेक्ट्रोलाइट्स दें (Give Electrolytes)", details: "तनाव कम करने के लिए पीने के पानी में इलेक्ट्रोलाइट्स मिलाएं। (Mix electrolytes in drinking water to reduce stress.)"}, {step: "आरामदायक वातावरण (Comfortable Environment)", details: "सुनिश्चित करें कि शेड सूखा, हवादार और सही तापमान पर हो। (Ensure the shed is dry, well-ventilated, and at the correct temperature.)"}];
+        let preventativeMeasures = ["नियमित टीकाकरण और स्वच्छता बनाए रखें। (Maintain regular vaccination and hygiene.)", "संतुलित आहार प्रदान करें। (Provide a balanced diet.)"];
+        let biharSpecificAdvice = "बिहार के मौसम में बदलाव के दौरान विशेष ध्यान दें, खासकर गर्मी और बरसात में। (Pay special attention during weather changes in Bihar, especially in summer and monsoon.)";
 
         const symptoms = values.symptoms;
 
         if (symptoms.includes("मल में खून (Bloody Droppings)")) {
             disease = "कोक्सीडियोसिस (Coccidiosis)";
             likelihood = "High";
-            reasoning = "मल में खून आना कोक्सीडियोसिस का एक प्रमुख लक्षण है, जो एक परजीवी संक्रमण है।";
-            treatmentPlan = [{step: "एम्प्रोलियम का प्रयोग करें", details:"पशु चिकित्सक की सलाह के अनुसार पीने के पानी में एम्प्रोलियम मिलाएं। यह एक सामान्य और प्रभावी दवा है।"}, {step: "बिस्तर बदलें", details: "गीले बिस्तर को तुरंत हटा दें और नया, सूखा बिस्तर बिछाएं ताकि परजीवी का प्रसार रुक सके।"}];
-            preventativeMeasures = ["बिस्तर को हमेशा सूखा रखें।", "कोक्सीडियोस्टैट युक्त स्टार्टर फ़ीड का उपयोग करें।"];
-            biharSpecificAdvice = "एम्प्रोलियम या टॉल्ट्राज़ुरिल दवा बिहार की दवा दुकानों में आसानी से उपलब्ध है।";
+            reasoning = "मल में खून आना कोक्सीडियोसिस का एक प्रमुख लक्षण है, जो एक परजीवी संक्रमण है। (Bloody droppings are a primary symptom of Coccidiosis, a parasitic infection.)";
+            treatmentPlan = [{step: "एम्प्रोलियम का प्रयोग करें (Use Amprolium)", details:"पशु चिकित्सक की सलाह के अनुसार पीने के पानी में एम्प्रोलियम मिलाएं। यह एक सामान्य और प्रभावी दवा है। (Administer Amprolium in drinking water as per veterinary advice. It's a common and effective medicine.)"}, {step: "बिस्तर बदलें (Change Litter)", details: "गीले बिस्तर को तुरंत हटा दें और नया, सूखा बिस्तर बिछाएं ताकि परजीवी का प्रसार रुक सके। (Immediately remove wet litter and replace it with fresh, dry litter to stop the spread of parasites.)"}];
+            preventativeMeasures = ["बिस्तर को हमेशा सूखा रखें। (Keep the litter dry at all times.)", "कोक्सीडियोस्टैट युक्त स्टार्टर फ़ीड का उपयोग करें। (Use starter feed containing Coccidiostats.)"];
+            biharSpecificAdvice = "एम्प्रोलियम या टॉल्ट्राज़ुरिल दवा बिहार की दवा दुकानों में आसानी से उपलब्ध है। (Amprolium or Toltrazuril medicine is easily available in Bihar's medicine shops.)";
         } else if (symptoms.includes("गर्दन मुड़ी होना (Twisted Neck)")) {
             disease = "रानीखेत (Newcastle Disease)";
             likelihood = "High";
-            reasoning = "गर्दन का मुड़ना रानीखेत रोग का एक विशिष्ट तंत्रिका-संबंधी लक्षण है।";
-            treatmentPlan = [{step: "तुरंत पशु चिकित्सक से मिलें", details: "यह एक गंभीर वायरल बीमारी है और इसके लिए पेशेवर मदद की आवश्यकता है।"}, {step: "बीमार मुर्गियों को अलग करें", details: "संक्रमण को फैलने से रोकने के लिए प्रभावित पक्षियों को तुरंत स्वस्थ झुंड से अलग करें।"}];
-            preventativeMeasures = ["समय पर 'R2B' और 'LaSota' का टीकाकरण करवाएं।", "फार्म पर बाहरी लोगों का प्रवेश प्रतिबंधित करें।"];
-            biharSpecificAdvice = "बिहार में लासोटा वैक्सीन सरकारी पशुपालन केंद्रों पर उपलब्ध है। टीकाकरण कार्यक्रम का सख्ती से पालन करें।";
-        } else if (symptoms.some(s => ["खाँसी", "छींक", "घरघराहट"].includes(s))) {
+            reasoning = "गर्दन का मुड़ना रानीखेत रोग का एक विशिष्ट तंत्रिका-संबंधी लक्षण है। (A twisted neck is a specific neurological symptom of Newcastle Disease.)";
+            treatmentPlan = [{step: "तुरंत पशु चिकित्सक से मिलें (Consult a Vet Immediately)", details: "यह एक गंभीर वायरल बीमारी है और इसके लिए पेशेवर मदद की आवश्यकता है। (This is a serious viral disease and requires professional help.)"}, {step: "बीमार मुर्गियों को अलग करें (Isolate Sick Birds)", details: "संक्रमण को फैलने से रोकने के लिए प्रभावित पक्षियों को तुरंत स्वस्थ झुंड से अलग करें। (Isolate affected birds immediately from the healthy flock to prevent the spread of infection.)"}];
+            preventativeMeasures = ["समय पर 'R2B' और 'LaSota' का टीकाकरण करवाएं। (Get 'R2B' and 'LaSota' vaccinations done on time.)", "फार्म पर बाहरी लोगों का प्रवेश प्रतिबंधित करें। (Restrict entry of outsiders to the farm.)"];
+            biharSpecificAdvice = "बिहार में लासोटा वैक्सीन सरकारी पशुपालन केंद्रों पर उपलब्ध है। टीकाकरण कार्यक्रम का सख्ती से पालन करें। (LaSota vaccine is available at government animal husbandry centers in Bihar. Strictly follow the vaccination schedule.)";
+        } else if (symptoms.some(s => ["खाँसी (Coughing)", "छींक (Sneezing)", "घरघराहट (Rattling)"].includes(s))) {
             disease = "श्वसन संबंधी संक्रमण (CRD)";
             likelihood = "Medium";
-            reasoning = "खांसी और छींक जैसे लक्षण क्रोनिक रेस्पिरेटरी डिजीज (CRD) का संकेत देते हैं।";
-            treatmentPlan = [{step: "एंटीबायोटिक दें", details: "पशु चिकित्सक की सलाह पर पानी में टायलासिन या टेट्रासाइक्लिन जैसे एंटीबायोटिक्स दें।"}, {step: "वेंटिलेशन सुधारें", details: "शेड में ताजी हवा का प्रवाह सुनिश्चित करें ताकि अमोनिया गैस बाहर निकल सके।"}];
-            preventativeMeasures = ["शेड में भीड़ कम करें।", "अमोनिया के स्तर को नियंत्रित करने के लिए बिस्तर का उचित प्रबंधन करें।"];
-            biharSpecificAdvice = "सर्दियों और बरसात के मौसम में सीआरडी का खतरा बढ़ जाता है, इसलिए अतिरिक्त सावधानी बरतें।";
+            reasoning = "खांसी और छींक जैसे लक्षण क्रोनिक रेस्पिरेटरी डिजीज (CRD) का संकेत देते हैं। (Symptoms like coughing and sneezing indicate Chronic Respiratory Disease (CRD).)";
+            treatmentPlan = [{step: "एंटीबायोटिक दें (Administer Antibiotics)", details: "पशु चिकित्सक की सलाह पर पानी में टायलोसिन या टेट्रासाइक्लिन जैसे एंटीबायोटिक्स दें। (Administer antibiotics like Tylosin or Tetracycline in water, on veterinary advice.)"}, {step: "वेंटिलेशन सुधारें (Improve Ventilation)", details: "शेड में ताजी हवा का प्रवाह सुनिश्चित करें ताकि अमोनिया गैस बाहर निकल सके। (Ensure fresh air flow in the shed to let out ammonia gas.)"}];
+            preventativeMeasures = ["शेड में भीड़ कम करें। (Reduce crowding in the shed.)", "अमोनिया के स्तर को नियंत्रित करने के लिए बिस्तर का उचित प्रबंधन करें। (Properly manage litter to control ammonia levels.)"];
+            biharSpecificAdvice = "सर्दियों और बरसात के मौसम में सीआरडी का खतरा बढ़ जाता है, इसलिए अतिरिक्त सावधानी बरतें। (The risk of CRD increases during winter and rainy seasons, so take extra precautions.)";
         }
 
         return {
