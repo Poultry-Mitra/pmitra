@@ -220,6 +220,15 @@ export function DealerSidebar() {
                         </SidebarMenuButton>
                     </Link>
                 </SidebarMenuItem>
+                 <SidebarMenuItem>
+                    <Link href="/dealer/analytics">
+                        <SidebarMenuButton isActive={pathname.startsWith("/dealer/analytics")} tooltip={t('dealer.analytics')}>
+                        <LineChart />
+                        <span>{t('dealer.analytics')}</span>
+                         {!isPremium && <Badge variant="secondary" className="ml-auto group-data-[state=collapsed]:hidden">PRO</Badge>}
+                        </SidebarMenuButton>
+                    </Link>
+                </SidebarMenuItem>
             </SidebarMenu>
 
 
@@ -271,3 +280,4 @@ export function DealerSidebar() {
     </>
   );
 }
+
