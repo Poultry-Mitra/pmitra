@@ -27,6 +27,7 @@ import { useMemoFirebase } from '@/firebase/provider';
 import { updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
+import { getAuth } from 'firebase/auth';
 
 // Helper to convert Firestore doc to Order type
 function toOrder(doc: QueryDocumentSnapshot<DocumentData>): Order {
@@ -40,47 +41,18 @@ function toOrder(doc: QueryDocumentSnapshot<DocumentData>): Order {
 }
 
 export function useOrders() {
-  const firestore = useFirestore();
-  const auth = useAuth();
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  const allOrdersQuery = useMemoFirebase(() => {
-    if (!firestore) return null;
-    return query(collection(firestore, 'orders'));
-  }, [firestore]);
-
-  useEffect(() => {
-    if (!allOrdersQuery) {
-        setOrders([]);
-        setLoading(false);
-        return;
-    }
+    const firestore = useFirestore();
+    const [orders, setOrders] = useState<Order[]>([]);
+    const [loading, setLoading] = useState(true);
     
-    setLoading(true);
-    const unsubscribe = onSnapshot(
-      allOrdersQuery,
-      (snapshot) => {
-        const fetchedOrders = snapshot.docs.map(toOrder).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-        setOrders(fetchedOrders);
-        setLoading(false);
-      },
-      (err) => {
-        console.error("Error fetching all orders:", err);
-         const contextualError = new FirestorePermissionError({
-            operation: 'list',
-            path: allOrdersQuery.path,
-        }, auth);
-        errorEmitter.emit('permission-error', contextualError);
+    // Admin does not use this hook. This is a placeholder for potential future use.
+    // For now, we will assume this hook is not called by an admin and won't implement a Genkit flow.
+    useEffect(() => {
         setOrders([]);
         setLoading(false);
-      }
-    );
+    }, []);
 
-    return () => unsubscribe();
-  }, [allOrdersQuery, auth]);
-
-  return { orders, loading };
+    return { orders, loading };
 }
 
 
@@ -113,9 +85,9 @@ export function useOrdersByDealer(dealerUID?: string) {
       },
       (err) => {
         console.error("Error fetching orders:", err);
-         const contextualError = new FirestorePermissionError({
+        const contextualError = new FirestorePermissionError({
             operation: 'list',
-            path: ordersQuery.path,
+            path: 'orders',
         }, auth);
         errorEmitter.emit('permission-error', contextualError);
         setOrders([]);
@@ -163,7 +135,7 @@ export function useOrdersByFarmer(farmerUID?: string) {
         console.error("Error fetching orders by farmer:", err);
         const contextualError = new FirestorePermissionError({
             operation: 'list',
-            path: farmerOrdersQuery.path,
+            path: 'orders',
         }, auth);
         errorEmitter.emit('permission-error', contextualError);
         setOrders([]);
