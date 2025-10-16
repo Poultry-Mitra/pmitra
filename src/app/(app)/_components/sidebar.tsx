@@ -38,6 +38,7 @@ import {
   User as UserIcon,
   AreaChart,
   Signal,
+  Heart,
 } from "lucide-react";
 import { useLanguage } from "@/components/language-provider";
 import { Badge } from "@/components/ui/badge";
