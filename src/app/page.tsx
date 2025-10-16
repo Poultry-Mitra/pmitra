@@ -224,7 +224,7 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <section id="disease-checker" className="py-16 lg:py-24">
+        <section id="disease-checker" className="bg-secondary py-16 lg:py-24">
             <div className="container">
                 <SymptomChecker />
             </div>
@@ -444,3 +444,5 @@ export default function LandingPage() {
     </div>
   );
 }
+
+    
