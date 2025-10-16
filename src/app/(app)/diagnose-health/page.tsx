@@ -82,7 +82,7 @@ const symptomsData = [
 ];
 
 
-export function DiseaseSymptomChecker() {
+export default function DiseaseSymptomChecker() {
   const { t, language } = useLanguage();
   const { user } = useAppUser();
   const [loading, setLoading] = useState(false);
@@ -258,3 +258,5 @@ export function DiseaseSymptomChecker() {
     </>
   );
 }
+
+    

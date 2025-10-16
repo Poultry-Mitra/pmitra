@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import Link from 'next/link';
@@ -34,7 +33,7 @@ import { useRouter } from 'next/navigation';
 import { useAppUser } from '@/app/app-provider';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
-import { DiseaseSymptomChecker } from '@/app/(app)/diagnose-health/page';
+import DiseaseSymptomChecker from '@/app/(app)/diagnose-health/page';
 
 
 export default function LandingPage() {
@@ -445,3 +444,5 @@ export default function LandingPage() {
     </div>
   );
 }
+
+    
