@@ -11,7 +11,7 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
 const DiagnoseChickenHealthInputSchema = z.object({
-  symptoms: z.string().describe('A detailed description of the symptoms observed in the chicken(s), such as bloody diarrhea, ruffled feathers, paralysis, coughing, sneezing, etc.'),
+  symptoms: z.string().describe('A comma-separated string of symptoms observed in the chicken(s), such as bloody diarrhea, ruffled feathers, paralysis, coughing, sneezing, etc.'),
   flockAgeWeeks: z.number().int().describe('The age of the flock in weeks.'),
   photoDataUri: z.string().optional().describe("A photo of the sick chicken or its droppings, as a data URI. Format: 'data:<mimetype>;base64,<encoded_data>'."),
 });
@@ -26,8 +26,8 @@ const DiseasePossibilitySchema = z.object({
 
 const DiagnoseChickenHealthOutputSchema = z.object({
   possibleDiseases: z.array(DiseasePossibilitySchema).describe('A list of possible diseases, ranked by likelihood.'),
-  recommendedActions: z.string().describe('Immediate, actionable steps the farmer should take right now (e.g., Isolate sick birds, provide fresh water with electrolytes).'),
-  preventativeMeasures: z.string().describe('Long-term preventative measures to avoid this issue in the future (e.g., Improve litter management, review vaccination schedule).'),
+  recommendedActions: z.string().describe('Immediate, actionable steps the farmer should take right now (e.g., Isolate sick birds, provide fresh water with electrolytes). Formatted as a numbered or bulleted list.'),
+  preventativeMeasures: z.string().describe('Long-term preventative measures to avoid this issue in the future (e.g., Improve litter management, review vaccination schedule). Formatted as a numbered or bulleted list.'),
 });
 export type DiagnoseChickenHealthOutput = z.infer<typeof DiagnoseChickenHealthOutputSchema>;
 
@@ -47,7 +47,7 @@ Based on this information, provide a diagnosis. Your response must be in a struc
 2.  **recommendedActions**: List 2-3 critical, immediate, step-by-step actions the farmer must take to manage the situation and prevent further spread.
 3.  **preventativeMeasures**: Suggest 2-3 long-term measures to prevent similar issues in the future.
 
-Prioritize common diseases and consider the flock's age. For example, Gumboro is more common in young chicks. Coccidiosis is often linked to bloody diarrhea and wet litter. Consider the flock's vaccination history if available. An unvaccinated flock is more susceptible to diseases like Gumboro or Newcastle disease. Provide clear, concise, and practical advice.`;
+Prioritize common diseases and consider the flock's age. For example, Gumboro is more common in young chicks. Coccidiosis is often linked to bloody diarrhea and wet litter. Provide clear, concise, and practical advice.`;
 
 
 const diagnosePrompt = ai.definePrompt({

@@ -10,7 +10,7 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
 const SiteExpertInputSchema = z.object({
-  query: z.string().describe('The user\'s question about poultry farming.'),
+  query: z.string().describe('The user\'s question about poultry farming. This may include context from a previous diagnosis.'),
 });
 
 const SiteExpertOutputSchema = z.object({
@@ -83,14 +83,14 @@ const prompt = ai.definePrompt({
   name: 'siteExpertPrompt',
   input: {schema: SiteExpertInputSchema},
   output: {schema: SiteExpertOutputSchema},
-  prompt: `You are an expert poultry farming assistant for the PoultryMitra application. Your knowledge is based *exclusively* on the context provided below. Answer the user's question clearly and concisely in the same language as the query (English or Hindi). If the question cannot be answered from the context, politely say that you don't have information on that topic.
+  prompt: `You are an expert poultry farming assistant for the PoultryMitra application. Your knowledge is based on the context provided below. Answer the user's question clearly and concisely in the same language as the query (English, Hindi, or Hinglish). If the user's query includes diagnostic results, use that as the primary context for your answer. If the question cannot be answered from the context, politely say that you don't have information on that topic.
 
 Context:
 ---
 ${poultryGuideContext}
 ---
 
-Question: {{{query}}}
+User's Query and Diagnosis (if any): {{{query}}}
 `,
 });
 
