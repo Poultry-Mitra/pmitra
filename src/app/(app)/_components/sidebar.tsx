@@ -228,5 +228,4 @@ const aiNavItems = [
     { href: "/biosecurity", icon: ShieldCheck, label: "biosecurity.title" },
     { href: "/analytics", icon: AreaChart, label: "analytics.title"},
     { href: "/feed-recommendation", icon: WandSparkles, label: "feed_ai.title"},
-    { href: "/diagnose-health", icon: HeartPulse, label: "diagnose_health.title" },
 ];

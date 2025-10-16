@@ -2,149 +2,191 @@
 // src/app/(app)/diagnose-health/page.tsx
 "use client";
 
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { PageHeader } from '../_components/page-header';
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Loader2, WandSparkles, Upload, FileQuestion, ShieldAlert, Heart, Activity } from 'lucide-react';
+import {
+  Loader2,
+  WandSparkles,
+  FileQuestion,
+  Heart,
+  Activity,
+  AlertTriangle,
+} from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { diagnoseChickenHealth, type DiagnoseChickenHealthOutput } from '@/ai/flows/diagnose-chicken-health';
 import { useLanguage } from '@/components/language-provider';
+import { useAppUser } from '@/app/app-provider';
+import { Label } from '@/components/ui/label';
 
-const formSchema = z.object({
-  symptoms: z.string().min(20, 'Please provide a detailed description of the symptoms (at least 20 characters).'),
-  flockAgeWeeks: z.coerce.number().int().min(0, 'Flock age must be a non-negative number.'),
-  photo: z.instanceof(File).optional(),
-});
+const symptomsData = [
+    {
+        category: 'respiratory',
+        symptoms: [
+            { id: 'gasping', text: { en: 'Gasping, coughing, or sneezing', hi: 'हंँफना, खांसना या छींकना' } },
+            { id: 'nasal_discharge', text: { en: 'Nasal discharge', hi: 'नाक से स्राव' } },
+            { id: 'swollen_face', text: { en: 'Swollen face or head', hi: 'चेहरा या सिर सूजा हुआ' } },
+            { id: 'rattling_sounds', text: { en: 'Rattling or gurgling sounds from the throat', hi: 'गले से घरघराहट या खरख़राहट की आवाज़' } },
+            { id: 'bluish_comb', text: { en: 'Bluish or purplish discoloration of comb and wattles', hi: 'कंघा और गलफड़ें नीले-बैंगनी होना' } },
+            { id: 'foul_odor_swelling', text: { en: 'Swelling of face with foul odor', hi: 'चेहरे पर दुर्गंध के साथ सूजन' } },
+        ]
+    },
+    {
+        category: 'digestive',
+        symptoms: [
+            { id: 'diarrhea', text: { en: 'Diarrhea (especially bloody or greenish)', hi: 'दस्त (विशेषकर खूनी या हरा)' } },
+            { id: 'loss_of_appetite', text: { en: 'Loss of appetite', hi: 'भूख न लगना' } },
+            { id: 'pasted_vent', text: { en: 'Pasted vent', hi: 'वेंट पर मल जमना' } },
+            { id: 'sudden_mortality', text: { en: 'Sudden, high mortality in the flock', hi: 'झुंड में अचानक, अधिक मृत्यु' } },
+        ]
+    },
+    {
+        category: 'behavioral',
+        symptoms: [
+            { id: 'lethargy', text: { en: 'Lethargy, depression, or huddling', hi: 'सुस्ती, उदासी या झुंड में रहना' } },
+            { id: 'paralysis', text: { en: 'Paralysis or limping', hi: 'लकवा या लंगड़ापन' } },
+            { id: 'twisted_neck', text: { en: 'Twisted neck (Torticollis)', hi: 'गर्दन मुड़ना (टॉरटीकोलिस)' } },
+            { id: 'swollen_belly', text: { en: 'Watery, swollen belly (Ascites)', hi: 'पेट में पानी भरना' } },
+            { id: 'droopy_wings', text: { en: 'Droopy or weak wings', hi: 'पंखों का लटकना या कमजोर दिखना' } },
+            { id: 'warts_lesions', text: { en: 'Warts or lesions on comb and wattles', hi: 'कंघा और गलफड़ों पर मस्से या घाव' } },
+            { id: 'joint_swelling', text: { en: 'Swelling in joints and lameness', hi: 'जोड़ों में सूजन और लंगड़ापन' } },
+        ]
+    }
+];
 
-type FormValues = z.infer<typeof formSchema>;
 
-export default function DiagnoseHealthPage() {
-  const { t } = useLanguage();
+export function DiseaseSymptomChecker() {
+  const { t, language } = useLanguage();
+  const { user } = useAppUser();
   const [loading, setLoading] = useState(false);
   const [diagnosis, setDiagnosis] = useState<DiagnoseChickenHealthOutput | null>(null);
-  const [preview, setPreview] = useState<string | null>(null);
+  const [age, setAge] = useState(0);
+  const [selectedSymptoms, setSelectedSymptoms] = useState<Record<string, boolean>>({});
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      symptoms: '',
-      flockAgeWeeks: 0,
-    },
-  });
+  const handleSymptomChange = (id: string, checked: boolean) => {
+    setSelectedSymptoms(prev => ({ ...prev, [id]: checked }));
+  };
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      form.setValue('photo', file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+  const handleSubmit = async () => {
+    const usageCount = parseInt(localStorage.getItem('diseaseCheckerUsage') || '0');
+    if (!user && usageCount >= 1) {
+      setShowLoginPrompt(true);
+      return;
     }
-  };
 
-  const fileToBase64 = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = (error) => reject(error);
-    });
-  };
-
-  async function onSubmit(values: FormValues) {
     setLoading(true);
     setDiagnosis(null);
+
+    const symptomTexts = Object.keys(selectedSymptoms)
+        .filter(key => selectedSymptoms[key])
+        .map(key => {
+            for (const category of symptomsData) {
+                const symptom = category.symptoms.find(s => s.id === key);
+                if (symptom) return symptom.text[language];
+            }
+            return '';
+        })
+        .filter(Boolean)
+        .join(', ');
+
+    if (!symptomTexts) {
+        setLoading(false);
+        // Maybe show a toast or message to select symptoms
+        return;
+    }
+    
     try {
-      let photoDataUri: string | undefined = undefined;
-      if (values.photo) {
-        photoDataUri = await fileToBase64(values.photo);
-      }
-      const result = await diagnoseChickenHealth({ ...values, photoDataUri });
+      const result = await diagnoseChickenHealth({ symptoms: symptomTexts, flockAgeWeeks: age });
       setDiagnosis(result);
+      if (!user) {
+        localStorage.setItem('diseaseCheckerUsage', (usageCount + 1).toString());
+      }
     } catch (error) {
       console.error('Diagnosis failed:', error);
       // You could set an error state here to show a message to the user
     } finally {
       setLoading(false);
     }
-  }
+  };
 
   return (
     <>
-      <PageHeader
-        title={t('diagnose_health.title')}
-        description={t('diagnose_health.description')}
-      />
-      <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 items-start">
         <Card>
           <CardHeader>
             <CardTitle>{t('diagnose_health.form_title')}</CardTitle>
             <CardDescription>{t('diagnose_health.form_description')}</CardDescription>
           </CardHeader>
-          <CardContent>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                <FormField
-                  control={form.control}
-                  name="symptoms"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t('diagnose_health.symptoms_label')}</FormLabel>
-                      <FormControl>
-                        <Textarea rows={5} placeholder={t('diagnose_health.symptoms_placeholder')} {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="flockAgeWeeks"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t('diagnose_health.age_label')}</FormLabel>
-                      <FormControl>
-                        <Input type="number" placeholder="e.g., 4" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormItem>
-                  <FormLabel>{t('diagnose_health.photo_label')}</FormLabel>
-                  <FormControl>
-                    <div className="flex items-center gap-4">
-                      {preview && <img src={preview} alt="Preview" className="h-20 w-20 rounded-md object-cover" />}
-                      <Button asChild variant="outline" className="relative">
-                        <label htmlFor="photo-upload" className="cursor-pointer">
-                          <Upload className="mr-2" /> {t('diagnose_health.upload_button')}
-                          <input id="photo-upload" type="file" className="sr-only" onChange={handleFileChange} accept="image/*" />
-                        </label>
-                      </Button>
-                    </div>
-                  </FormControl>
-                  <FormDescription>{t('diagnose_health.photo_description')}</FormDescription>
-                </FormItem>
-                <Button type="submit" disabled={loading} className="w-full">
-                  {loading ? <Loader2 className="mr-2 animate-spin" /> : <WandSparkles className="mr-2" />}
-                  {loading ? t('diagnose_health.analyzing_button') : t('diagnose_health.diagnose_button')}
-                </Button>
-              </form>
-            </Form>
+          <CardContent className="space-y-6">
+            <div className="space-y-2">
+                <Label>{t('diagnose_health.age_label')}</Label>
+                <Select onValueChange={(value) => setAge(parseInt(value))} defaultValue='0'>
+                    <SelectTrigger>
+                        <SelectValue placeholder="Select bird's age"/>
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="2">0 - 2 Weeks (Chicks)</SelectItem>
+                        <SelectItem value="4">3 - 5 Weeks (Growers)</SelectItem>
+                        <SelectItem value="6">5+ Weeks (Adults)</SelectItem>
+                    </SelectContent>
+                </Select>
+            </div>
+
+            {symptomsData.map(category => (
+                <div key={category.category} className="space-y-2">
+                     <h4 className="font-medium text-sm">{language === 'hi' ? {respiratory: 'श्वसन संबंधी लक्षण', digestive: 'पाचन संबंधी लक्षण', behavioral: 'व्यवहार और शारीरिक लक्षण'}[category.category] : category.category.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}</h4>
+                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2">
+                        {category.symptoms.map(symptom => (
+                            <div key={symptom.id} className="flex items-center space-x-2">
+                                <Checkbox
+                                    id={symptom.id}
+                                    checked={selectedSymptoms[symptom.id] || false}
+                                    onCheckedChange={(checked) => handleSymptomChange(symptom.id, !!checked)}
+                                />
+                                <label htmlFor={symptom.id} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                                    {symptom.text[language]}
+                                </label>
+                            </div>
+                        ))}
+                     </div>
+                </div>
+            ))}
+
+            <Button onClick={handleSubmit} disabled={loading} className="w-full">
+              {loading ? <Loader2 className="mr-2 animate-spin" /> : <WandSparkles className="mr-2" />}
+              {loading ? t('diagnose_health.analyzing_button') : t('diagnose_health.diagnose_button')}
+            </Button>
           </CardContent>
         </Card>
-        <Card className="flex flex-col">
+        <Card className="flex flex-col sticky top-24">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <WandSparkles className="text-primary" /> {t('diagnose_health.results_title')}
@@ -188,14 +230,31 @@ export default function DiagnoseHealthPage() {
               </div>
             ) : (
               <div className="flex h-full items-center justify-center text-center text-muted-foreground">
-                <p>{t('diagnose_health.results_placeholder')}</p>
+                <p>आपके निदान के परिणाम यहां दिखाई देंगे।</p>
               </div>
             )}
           </CardContent>
         </Card>
       </div>
+      <AlertDialog open={showLoginPrompt} onOpenChange={setShowLoginPrompt}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+                <AlertTriangle className="text-orange-500"/>
+                Login to Continue
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              You have used your free diagnosis. Please login or create an account to continue using this tool without limits.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction asChild>
+                <Link href="/login">Login / Sign Up</Link>
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
-
-    

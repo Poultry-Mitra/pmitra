@@ -25,7 +25,7 @@ import {
 } from 'lucide-react';
 import { AppIcon } from './icon-component';
 import { ThemeToggle } from '@/components/theme-toggle';
-import { LanguageToggle } from '@/components/language-toggle';
+import { LanguageToggle } from '@/components/language-provider';
 import { useLanguage } from '@/components/language-provider';
 import { useAuth } from '@/firebase/provider';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -34,6 +34,7 @@ import { useRouter } from 'next/navigation';
 import { useAppUser } from '@/app/app-provider';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
+import { DiseaseSymptomChecker } from '@/app/(app)/diagnose-health/page';
 
 
 export default function LandingPage() {
@@ -222,6 +223,12 @@ export default function LandingPage() {
               </Button>
             </div>
           </div>
+        </section>
+
+        <section id="disease-checker" className="py-16 lg:py-24">
+            <div className="container">
+                <DiseaseSymptomChecker />
+            </div>
         </section>
         
         <section id="social-proof" className="py-12">
