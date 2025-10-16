@@ -1,7 +1,7 @@
 // src/app/(app)/diagnose-health/page.tsx
-// This file is temporarily renamed to force a cache reset.
 import { PageHeader } from "../_components/page-header";
 import { SymptomChecker } from "./_components/symptom-checker";
+// This comment is added to force a cache refresh.
 
 export default function DiagnoseHealthPage() {
     return (
