@@ -33,7 +33,7 @@ import { useRouter } from 'next/navigation';
 import { useAppUser } from '@/app/app-provider';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
-import DiseaseSymptomChecker from '@/app/(app)/diagnose-health/page';
+import { SymptomChecker } from '@/app/(app)/diagnose-health/_components/symptom-checker';
 
 
 export default function LandingPage() {
@@ -226,7 +226,7 @@ export default function LandingPage() {
 
         <section id="disease-checker" className="py-16 lg:py-24">
             <div className="container">
-                <DiseaseSymptomChecker />
+                <SymptomChecker />
             </div>
         </section>
         
@@ -444,5 +444,3 @@ export default function LandingPage() {
     </div>
   );
 }
-
-    
