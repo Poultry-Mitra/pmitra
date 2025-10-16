@@ -21,10 +21,11 @@ import {
   CheckCircle,
   TrendingUp,
   Zap,
+  Heart,
 } from 'lucide-react';
 import { AppIcon } from './icon-component';
 import { ThemeToggle } from '@/components/theme-toggle';
-import { LanguageToggle } from '@/components/language-provider';
+import { LanguageToggle } from '@/components/language-toggle';
 import { useLanguage } from '@/components/language-provider';
 import { useAuth } from '@/firebase/provider';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -33,7 +34,6 @@ import { useRouter } from 'next/navigation';
 import { useAppUser } from '@/app/app-provider';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
-import { SymptomChecker } from '@/app/(app)/diagnose-health/_components/symptom-checker';
 
 
 export default function LandingPage() {
@@ -225,8 +225,21 @@ export default function LandingPage() {
         </section>
 
         <section id="disease-checker" className="bg-secondary py-16 lg:py-24">
-            <div className="container">
-                <SymptomChecker />
+            <div className="container text-center">
+                 <div className="mx-auto flex max-w-xl flex-col items-center">
+                     <h2 className="font-headline text-3xl font-bold leading-[1.1] sm:text-3xl md:text-5xl">
+                       AI Health Diagnosis
+                    </h2>
+                     <p className="mt-4 max-w-[85%] leading-normal text-muted-foreground sm:text-lg sm:leading-7">
+                        Worried about a sick bird? Use our AI tool to check symptoms and get immediate recommendations.
+                    </p>
+                    <Button size="lg" className="mt-6" asChild>
+                        <Link href="/diagnose-health">
+                            <Heart className="mr-2"/>
+                            Check Flock Health Now
+                        </Link>
+                    </Button>
+                 </div>
             </div>
         </section>
         
