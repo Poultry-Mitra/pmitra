@@ -23,6 +23,8 @@ import {
 import { useFirestore, useAuth, AuthContext } from '@/firebase/provider';
 import type { User, UserRole, UserStatus } from '@/lib/types';
 import { deleteDocumentNonBlocking, updateDocumentNonBlocking, addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 
 // Helper to convert Firestore doc to User type, sanitizing the data
@@ -56,6 +58,7 @@ function toUser(doc: QueryDocumentSnapshot<DocumentData> | DocumentSnapshot<Docu
 // This hook now fetches all users directly for the admin.
 export function useUsers() {
   const firestore = useFirestore();
+  const auth = useAuth();
   const { user: adminUser } = useContext(AuthContext)!;
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -77,12 +80,17 @@ export function useUsers() {
         setLoading(false);
     }, (err) => {
         console.error("Error fetching all users:", err);
+        const contextualError = new FirestorePermissionError({
+            operation: 'list',
+            path: usersCollection.path,
+        }, auth);
+        errorEmitter.emit('permission-error', contextualError);
         setUsers([]);
         setLoading(false);
     });
 
     return () => unsubscribe();
-  }, [firestore, adminUser]);
+  }, [firestore, adminUser, auth]);
   
   const handleUserDeletion = (userId: string) => {
       setUsers(prevUsers => prevUsers.filter(u => u.id !== userId));
