@@ -37,7 +37,6 @@ import {
   AlertTriangle,
   User as UserIcon,
   AreaChart,
-  HeartPulse,
   Signal,
 } from "lucide-react";
 import { useLanguage } from "@/components/language-provider";
