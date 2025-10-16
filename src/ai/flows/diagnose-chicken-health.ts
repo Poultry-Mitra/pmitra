@@ -58,17 +58,9 @@ const diagnosePrompt = ai.definePrompt({
 });
 
 export async function diagnoseChickenHealth(input: DiagnoseChickenHealthInput): Promise<DiagnoseChickenHealthOutput> {
-  return diagnoseChickenHealthFlow(input);
-}
-
-const diagnoseChickenHealthFlow = ai.defineFlow(
-  {
-    name: 'diagnoseChickenHealthFlow',
-    inputSchema: DiagnoseChickenHealthInputSchema,
-    outputSchema: DiagnoseChickenHealthOutputSchema,
-  },
-  async input => {
-    const {output} = await diagnosePrompt(input);
-    return output!;
+  const {output} = await diagnosePrompt(input);
+  if (!output) {
+    throw new Error("Unable to get a diagnosis from the AI.");
   }
-);
+  return output;
+}

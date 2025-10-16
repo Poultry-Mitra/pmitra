@@ -1,4 +1,3 @@
-// This file is temporarily renamed to force a cache reset.
 // src/app/(app)/diagnose-health/_components/symptom-checker.tsx
 "use client";
 

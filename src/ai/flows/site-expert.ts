@@ -94,16 +94,10 @@ Question: {{{query}}}
 `,
 });
 
-const siteExpertFlow = ai.defineFlow(
-  {
-    name: 'siteExpertFlow',
-    inputSchema: SiteExpertInputSchema,
-    outputSchema: SiteExpertOutputSchema,
-  },
-  async input => {
+export async function siteExpert(input: z.infer<typeof SiteExpertInputSchema>) {
     const {output} = await prompt(input);
-    return output!;
-  }
-);
-
-export const siteExpert = ai.action(siteExpertFlow);
+    if (!output) {
+      throw new Error("The AI was unable to generate an answer.");
+    }
+    return output;
+}
