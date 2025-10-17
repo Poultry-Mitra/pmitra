@@ -226,22 +226,54 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <section id="disease-checker" className="bg-secondary py-16 lg:py-24">
-            <div className="container text-center">
-                 <div className="mx-auto flex max-w-xl flex-col items-center">
-                     <h2 className="font-headline text-3xl font-bold leading-[1.1] sm:text-3xl md:text-5xl">
-                       AI Health Diagnosis
-                    </h2>
-                     <p className="mt-4 max-w-[85%] leading-normal text-muted-foreground sm:text-lg sm:leading-7">
-                        Worried about a sick bird? Use our AI tool to check symptoms and get immediate recommendations.
-                    </p>
-                    <Button size="lg" className="mt-6" asChild>
-                        <Link href="/diagnose">
-                            <Heart className="mr-2"/>
-                            Check Flock Health Now
-                        </Link>
-                    </Button>
-                 </div>
+        <section id="interactive-tools" className="bg-secondary py-16 lg:py-24">
+            <div className="container grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+                 <Card className="h-full">
+                    <CardHeader className="text-center">
+                        <div className="flex items-center gap-2 justify-center">
+                            <Heart className="size-8 text-destructive" />
+                            <CardTitle className="font-headline text-2xl">AI Health Diagnosis</CardTitle>
+                        </div>
+                        <CardDescription>Worried about a sick bird? Check symptoms and get immediate AI-powered recommendations.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <Image src="https://picsum.photos/seed/chick/600/400" alt="Sick chicken diagnosis" width={600} height={400} className="rounded-lg object-cover" data-ai-hint="sick chicken" />
+                    </CardContent>
+                    <CardFooter>
+                        <Button size="lg" className="w-full" asChild>
+                            <Link href="/diagnose">Check Flock Health Now</Link>
+                        </Button>
+                    </CardFooter>
+                 </Card>
+
+                 <Card className="h-full flex flex-col">
+                    <CardHeader className="text-center">
+                         <div className="flex items-center gap-2 justify-center">
+                            <Calculator className="size-8 text-primary" />
+                            <CardTitle className="font-headline text-2xl">Broiler Farm Calculator</CardTitle>
+                        </div>
+                        <CardDescription>Estimate your costs and profits for a 45-day broiler cycle.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="flex-1">
+                        {appUser ? (
+                            <BroilerCalculator />
+                        ) : (
+                            <div className="text-center p-4 h-full flex flex-col justify-center items-center rounded-lg border-2 border-dashed">
+                                 <p className="text-muted-foreground mb-4">
+                                    Login to use this tool and plan your expenses and predict your earnings.
+                                 </p>
+                                  <div className="flex justify-center gap-4">
+                                      <Button asChild>
+                                        <Link href="/login">Login to Use</Link>
+                                      </Button>
+                                      <Button variant="outline" asChild>
+                                        <Link href="/signup">Sign up Now</Link>
+                                      </Button>
+                                  </div>
+                            </div>
+                        )}
+                    </CardContent>
+                 </Card>
             </div>
         </section>
         
@@ -276,39 +308,6 @@ export default function LandingPage() {
                      </div>
                 </div>
             </div>
-        </section>
-
-        <section id="calculator" className="container py-16 md:py-20 lg:py-24">
-          <div className="mx-auto max-w-4xl">
-            {appUser ? (
-              <BroilerCalculator />
-            ) : (
-              <Card className="text-center">
-                <CardHeader>
-                    <div className="flex items-center gap-2 justify-center">
-                        <Calculator className="size-8 text-primary" />
-                        <div>
-                            <CardTitle className="font-headline text-2xl">Broiler Farm Calculator</CardTitle>
-                        </div>
-                    </div>
-                  <CardDescription>Estimate your costs and profits for a 45-day broiler cycle. Login to use this feature.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground">
-                    This tool helps you plan your expenses and predict your earnings. To get started, please log in or create an account.
-                  </p>
-                </CardContent>
-                <CardFooter className="flex justify-center gap-4">
-                  <Button asChild>
-                    <Link href="/login">Login to Use</Link>
-                  </Button>
-                  <Button variant="outline" asChild>
-                    <Link href="/signup">Sign up Now</Link>
-                  </Button>
-                </CardFooter>
-              </Card>
-            )}
-          </div>
         </section>
 
         <section id="features" className="container space-y-12 py-16 md:py-20 lg:py-24">

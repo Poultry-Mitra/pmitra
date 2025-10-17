@@ -1,4 +1,3 @@
-
 // src/app/(app)/diagnose/report/[reportId]/page.tsx
 "use client";
 
