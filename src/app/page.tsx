@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import Link from 'next/link';
@@ -246,22 +245,7 @@ export default function LandingPage() {
             </div>
         </section>
         
-        <section id="social-proof" className="py-12">
-            <div className="container">
-                <p className="text-center font-medium text-muted-foreground">
-                    Trusted by 500+ farms and businesses across India
-                </p>
-                <div className="mt-6 flex flex-wrap items-center justify-center gap-x-12 gap-y-4 opacity-50">
-                    <span className="font-bold text-lg">Company A</span>
-                    <span className="font-bold text-lg">Business B</span>
-                    <span className="font-bold text-lg">Enterprise C</span>
-                    <span className="font-bold text-lg">Farm D</span>
-                    <span className="font-bold text-lg">Org E</span>
-                </div>
-            </div>
-        </section>
-
-        <section id="how-it-works" className="bg-secondary py-16 lg:py-24">
+        <section id="how-it-works" className="py-16 lg:py-24">
             <div className="container">
                 <div className="mx-auto flex max-w-[58rem] flex-col items-center space-y-4 text-center">
                     <h2 className="font-headline text-3xl font-bold leading-[1.1] sm:text-3xl md:text-5xl">
