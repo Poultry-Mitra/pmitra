@@ -2,17 +2,15 @@
 "use client";
 
 import Link from 'next/link';
-import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Heart,
-  Calculator,
-  Droplet,
   Wrench,
 } from 'lucide-react';
 import { BroilerCalculator } from '@/app/_components/broiler-calculator';
 import { FcrCalculator } from '@/app/_components/fcr-calculator';
+import { FeedComparisonCalculator } from '../_components/feed-comparison-calculator';
 
 export default function ToolsPage() {
   return (
@@ -56,6 +54,11 @@ export default function ToolsPage() {
         <FcrCalculator />
         
       </div>
+       <div className="mt-8">
+          <FeedComparisonCalculator />
+        </div>
     </div>
   );
 }
+
+    

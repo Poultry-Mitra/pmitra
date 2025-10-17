@@ -15,19 +15,12 @@ import {
   Twitter,
   Facebook,
   Linkedin,
-  Download,
-  Store,
-  CheckCircle,
-  TrendingUp,
-  Zap,
   Heart,
-  Calculator,
-  Droplet,
   Wrench,
 } from 'lucide-react';
 import { AppIcon } from './icon-component';
 import { ThemeToggle } from '@/components/theme-toggle';
-import { LanguageToggle } from '@/components/language-toggle';
+import { LanguageToggle } from '@/components/language-provider';
 import { useLanguage } from '@/components/language-provider';
 import { useAuth } from '@/firebase/provider';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -35,9 +28,9 @@ import { signOut } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import { useAppUser } from '@/app/app-provider';
 import { Input } from '@/components/ui/input';
-import { cn } from '@/lib/utils';
 import { BroilerCalculator } from '@/app/_components/broiler-calculator';
 import { FcrCalculator } from './_components/fcr-calculator';
+import { FeedComparisonCalculator } from './_components/feed-comparison-calculator';
 
 
 export default function LandingPage() {
@@ -240,60 +233,8 @@ export default function LandingPage() {
                     </p>
                 </div>
                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-start">
-                    <Card className="h-full flex flex-col">
-                        <CardHeader>
-                            <div className="flex items-center gap-2">
-                                <Heart className="size-8 text-destructive" />
-                                <div>
-                                    <CardTitle className="font-headline text-2xl">AI Health Diagnosis</CardTitle>
-                                    <CardDescription>Worried about a sick bird? Check symptoms for an AI-powered diagnosis.</CardDescription>
-                                </div>
-                            </div>
-                        </CardHeader>
-                        <CardContent className="flex-1">
-                             <ul className="list-disc space-y-2 pl-5 text-sm text-muted-foreground">
-                                <li>Select symptoms from a comprehensive list.</li>
-                                <li>Upload a photo for more accurate analysis.</li>
-                                <li>Get instant, AI-powered disease possibilities.</li>
-                                <li>Receive a practical treatment and prevention plan.</li>
-                            </ul>
-                        </CardContent>
-                        <CardFooter>
-                            <Button size="lg" className="w-full" asChild>
-                                <Link href="/tools">Check Flock Health Now</Link>
-                            </Button>
-                        </CardFooter>
-                    </Card>
-
-                    {isAppLoading ? (
-                        <Skeleton className="h-full w-full min-h-[400px]" />
-                    ) : appUser ? (
-                       <BroilerCalculator />
-                    ) : (
-                        <Card className="h-full flex flex-col items-center justify-center text-center">
-                             <CardHeader>
-                                <div className="flex items-center gap-2 mx-auto">
-                                    <Calculator className="size-8 text-primary" />
-                                    <div>
-                                        <CardTitle className="font-headline text-2xl">Broiler Farm Calculator</CardTitle>
-                                    </div>
-                                </div>
-                                 <CardDescription>Estimate your costs and profits for a 45-day broiler cycle. Login to use this feature.</CardDescription>
-                            </CardHeader>
-                            <CardContent className="flex-1">
-                                <p className="text-muted-foreground">This tool helps you plan your expenses and predict your earnings. To get started, please log in or create an account.</p>
-                            </CardContent>
-                            <CardFooter className="w-full grid grid-cols-2 gap-4">
-                                 <Button size="lg" className="w-full" asChild>
-                                    <Link href="/login">Login to Use</Link>
-                                </Button>
-                                <Button size="lg" variant="outline" className="w-full" asChild>
-                                    <Link href="/signup">Sign up Now</Link>
-                                </Button>
-                            </CardFooter>
-                        </Card>
-                    )}
-
+                    <FeedComparisonCalculator />
+                    <BroilerCalculator />
                     <FcrCalculator />
                 </div>
             </div>
@@ -364,11 +305,11 @@ export default function LandingPage() {
                 </div>
                 <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 lg:items-start">
                     {pricingPlans.map(plan => (
-                        <Card key={plan.name} className={cn("flex flex-col", plan.isPopular && "border-2 border-primary shadow-lg")}>
+                        <Card key={plan.name} className={plan.isPopular ? "border-2 border-primary shadow-lg" : ""}>
                             <CardHeader className="relative">
                                 {plan.isPopular && (
                                     <div className="absolute top-0 right-4 -mt-3 flex items-center gap-1 rounded-full bg-primary px-3 py-1 text-xs text-primary-foreground">
-                                        <Zap className="size-3" /> Most Popular
+                                        <Wrench className="size-3" /> Most Popular
                                     </div>
                                 )}
                                 <CardTitle className="font-headline text-xl">{plan.name}</CardTitle>
@@ -378,11 +319,11 @@ export default function LandingPage() {
                                     <span className="text-sm text-muted-foreground">{plan.priceDesc}</span>
                                 </div>
                             </CardHeader>
-                            <CardContent className="flex-1">
+                            <CardContent>
                                 <ul className="space-y-3">
                                     {plan.features.map(feature => (
                                         <li key={feature} className="flex items-start">
-                                            <CheckCircle className="mr-2 mt-1 size-4 shrink-0 text-green-500" />
+                                            <Wrench className="mr-2 mt-1 size-4 shrink-0 text-green-500" />
                                             <span className="text-sm text-muted-foreground">{feature}</span>
                                         </li>
                                     ))}
@@ -498,3 +439,5 @@ export default function LandingPage() {
     </div>
   );
 }
+
+    
