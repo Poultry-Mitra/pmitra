@@ -5,14 +5,12 @@ import { SymptomChecker } from "./_components/symptom-checker";
 export default function DiagnoseHealthPage() {
   return (
     <>
-      <div className="container max-w-5xl py-12">
-        <PageHeader 
-          title="AI Health Diagnosis"
-          description="Use our AI tool to diagnose potential health issues in your flock. Select symptoms and upload a photo for a detailed analysis."
-        />
-        <div className="mt-8">
-          <SymptomChecker />
-        </div>
+      <PageHeader 
+        title="AI Health Diagnosis"
+        description="Use our AI tool to diagnose potential health issues in your flock. Select symptoms and upload a photo for a detailed analysis."
+      />
+      <div className="mt-8">
+        <SymptomChecker />
       </div>
     </>
   );
