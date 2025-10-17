@@ -1,3 +1,4 @@
+
 // src/app/tools/per-egg-cost/page.tsx
 "use client";
 

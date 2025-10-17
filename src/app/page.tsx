@@ -16,7 +16,6 @@ import {
   Facebook,
   Linkedin,
   Heart,
-  Wrench,
   Calculator,
   Droplet,
   LineChart,
@@ -412,7 +411,7 @@ export default function LandingPage() {
                                 <ul className="space-y-3">
                                     {plan.features.map(feature => (
                                         <li key={feature} className="flex items-start">
-                                            <Wrench className="mr-2 mt-1 size-4 shrink-0 text-green-500" />
+                                            <CheckCircle className="mr-2 mt-1 size-4 shrink-0 text-green-500" />
                                             <span className="text-sm text-muted-foreground">{feature}</span>
                                         </li>
                                     ))}
