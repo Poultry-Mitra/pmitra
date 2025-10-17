@@ -39,6 +39,7 @@ import {
   AreaChart,
   Signal,
   Heart,
+  Wrench,
 } from "lucide-react";
 import { useLanguage } from "@/components/language-provider";
 import { Badge } from "@/components/ui/badge";
@@ -228,4 +229,5 @@ const aiNavItems = [
     { href: "/monitoring", icon: Signal, label: "monitoring.title" },
     { href: "/biosecurity", icon: ShieldCheck, label: "biosecurity.title" },
     { href: "/feed-recommendation", icon: WandSparkles, label: "feed_ai.title"},
+    { href: "/tools", icon: Wrench, label: "Tools" },
 ];
