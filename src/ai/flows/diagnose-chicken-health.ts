@@ -25,15 +25,15 @@ const DiseasePossibilitySchema = z.object({
 });
 
 const TreatmentStepSchema = z.object({
-    step: z.string().describe("A single, clear, actionable step."),
-    details: z.string().describe("More detailed explanation for the step, including why it's important.")
+    step: z.string().describe("A single, clear, actionable step title (e.g., 'Isolate Sick Birds')."),
+    details: z.string().describe("A more detailed explanation for the step, including why it's important and how to do it.")
 });
 
 const DiagnoseChickenHealthOutputSchema = z.object({
   possibleDiseases: z.array(DiseasePossibilitySchema).describe('A list of 1 to 3 possible diseases, ranked by likelihood.'),
-  treatmentPlan: z.array(TreatmentStepSchema).describe("A step-by-step treatment and management plan. This should be very detailed."),
-  preventativeMeasures: z.array(z.string()).describe('A list of long-term preventative measures to avoid this issue in the future.'),
-  biharSpecificAdvice: z.string().describe("Specific advice relevant to farmers in Bihar, India. Mention locally available medicine brands or government resources if applicable. This must be in Hindi."),
+  treatmentPlan: z.array(TreatmentStepSchema).describe("A step-by-step treatment and management plan. This should be very detailed and practical for a small-scale farmer."),
+  preventativeMeasures: z.array(z.string()).describe('A list of 2-4 long-term preventative measures to avoid this issue in the future.'),
+  biharSpecificAdvice: z.string().describe("Specific advice relevant to farmers in Bihar, India. Mention locally available medicine brands or government resources if applicable. THIS MUST BE IN HINDI."),
 });
 export type DiagnoseChickenHealthOutput = z.infer<typeof DiagnoseChickenHealthOutputSchema>;
 
@@ -49,9 +49,12 @@ Analyze the following data carefully:
 
 Based on this information, provide a detailed diagnosis. Your response MUST be in a structured JSON format.
 
-1.  **possibleDiseases**: Identify 1 to 3 potential diseases. For each disease, provide its name, likelihood (High, Medium, or Low), and a brief reasoning connecting the symptoms to the diagnosis.
-2.  **treatmentPlan**: Provide a detailed, step-by-step plan. Be very specific. For example, instead of "Give medicine", say "Administer Amprolium in drinking water". Include steps for isolation, sanitation, feed/water management, and specific medication if applicable. For each step, provide a 'step' title and a 'details' explanation.
-3.  **preventativeMeasures**: Suggest 2-4 long-term measures to prevent similar issues in the future.
+1.  **possibleDiseases**: Identify 1 to 3 potential diseases. For each disease, provide its name, likelihood (High, Medium, or Low), and a brief reasoning connecting the symptoms to the diagnosis. Consider the flock's age and the combination of symptoms.
+
+2.  **treatmentPlan**: Provide a detailed, step-by-step plan. Be very specific, practical, and action-oriented. For example, instead of "Give medicine", say "Administer Amprolium in drinking water". Include clear, numbered steps for isolation, sanitation, feed/water management, and specific medication if applicable. For each step, provide a short 'step' title and a longer 'details' explanation.
+
+3.  **preventativeMeasures**: Suggest 2-4 long-term measures to prevent similar issues in the future. These should be practical for a small farmer.
+
 4.  **biharSpecificAdvice**: Provide a crucial piece of advice specifically for farmers in Bihar. This could be about a locally available medicine (e.g., "Amprolium Bihar ki dawai ki dukano mein asaani se mil jaati hai"), a government scheme, or a regional climate consideration. THIS MUST BE IN HINDI.
 
 Prioritize common diseases and consider the flock's age. For example, Gumboro is common in young chicks. Coccidiosis is linked to bloody diarrhea. Provide clear, concise, and practical advice.`;

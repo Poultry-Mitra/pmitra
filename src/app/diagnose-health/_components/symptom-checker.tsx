@@ -1,3 +1,4 @@
+
 // src/app/diagnose-health/_components/symptom-checker.tsx
 "use client";
 
@@ -26,7 +27,7 @@ import { useLanguage } from '@/components/language-provider';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import { AppIcon } from '@/app/icon-component';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 
 const formSchema = z.object({
@@ -37,10 +38,16 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-const respiratorySymptoms = ["खाँसी", "छींक", "नाक बहना", "सांस फूलना", "मुंह खोलकर सांस लेना"];
-const physicalSymptoms = ["गर्दन मुड़ी होना", "पंख फूलना", "शरीर पर गांठें", "नीले रंग का सिर"];
-const behavioralSymptoms = ["सुस्त और कमजोर", "भूख कम होना"];
-const digestiveSymptoms = ["ढीला मल", "मल में खून"];
+const symptomsByCategory = {
+    general: ["सुस्त और कमजोर", "भूख कम लगना", "प्यास बढ़ना", "वजन घटना", "अचानक मौत"],
+    respiratory: ["खाँसी", "छींकना", "नाक बहना", "सांस लेने में कठिनाई", "मुंह खोलकर सांस लेना", "सांस लेते समय घरघराहट"],
+    digestive: ["ढीला मल (दस्त)", "खूनी दस्त", "हरा दस्त", "सफ़ेद दस्त", "बिना पचा हुआ चारा बीट में"],
+    neurological: ["पक्षाघात (लकवा)", "गर्दन मुड़ना", "लड़खड़ाना", "चक्कर काटना", "असंतुलित चाल"],
+    physical: ["पंख झड़ना", "शरीर पर गांठें", "सूजे हुए जोड़", "अंडे का उत्पादन कम होना", "पतले छिलके वाले अंडे"],
+    head_neck_eyes: ["आंखों में सूजन", "आंखों से पानी आना", "चेहरे पर सूजन", "कलगी और गलमुच्छे का नीला पड़ना", "गर्दन में सूजन"],
+    skin_feathers: ["पंख अस्त-व्यस्त होना", "त्वचा पर घाव", "पंखों के पास कीड़े", "त्वचा का पीला पड़ना"],
+};
+
 
 const LikelihoodBadge = ({ likelihood }: { likelihood: 'High' | 'Medium' | 'Low' }) => {
     const config = {
@@ -166,24 +173,22 @@ export function SymptomChecker() {
                 <CardContent>
                     <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                        <div>
-                            <h4 className="font-medium mb-2">Respiratory & Physical Symptoms</h4>
-                            <div className="flex flex-wrap gap-2">
-                                {[...respiratorySymptoms, ...physicalSymptoms].map(symptom => (
-                                    <Button key={symptom} type="button" variant={form.watch('symptoms').includes(symptom) ? "default" : "outline"} onClick={() => handleSymptomToggle(symptom)}>{symptom}</Button>
-                                ))}
-                            </div>
+                        <div className="space-y-4">
+                            {Object.entries(symptomsByCategory).map(([category, symptoms]) => (
+                                <Card key={category} className="p-4">
+                                    <h4 className="font-medium mb-3 capitalize">{category.replace(/_/g, ' ')} Symptoms</h4>
+                                    <div className="flex flex-wrap gap-2">
+                                        {symptoms.map(symptom => (
+                                            <Button key={symptom} type="button" variant={form.watch('symptoms').includes(symptom) ? "default" : "outline"} size="sm" className="h-auto py-1 px-3 text-sm" onClick={() => handleSymptomToggle(symptom)}>{symptom}</Button>
+                                        ))}
+                                    </div>
+                                </Card>
+                            ))}
                         </div>
-                         <div>
-                            <h4 className="font-medium mb-2">Behavioral & Digestive Symptoms</h4>
-                            <div className="flex flex-wrap gap-2">
-                                {[...behavioralSymptoms, ...digestiveSymptoms].map(symptom => (
-                                    <Button key={symptom} type="button" variant={form.watch('symptoms').includes(symptom) ? "default" : "outline"} onClick={() => handleSymptomToggle(symptom)}>{symptom}</Button>
-                                ))}
-                            </div>
-                        </div>
+
                         <FormField control={form.control} name="symptoms" render={() => <FormMessage />} />
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
                             <FormField control={form.control} name="flockAgeWeeks" render={({ field }) => (
                                 <FormItem><FormLabel>Flock Age (in weeks)</FormLabel><FormControl><Input type="number" placeholder="e.g. 4" {...field} /></FormControl><FormMessage /></FormItem>
                             )} />
@@ -197,13 +202,15 @@ export function SymptomChecker() {
                                 </FormItem>
                             )} />
                         </div>
+
                          {previewImage && (
                             <div className="relative w-full max-w-sm mx-auto">
                                 <Image src={previewImage} alt="Preview" width={300} height={300} className="rounded-md object-contain" />
                                 <Button type="button" variant="destructive" size="icon" className="absolute top-2 right-2 h-7 w-7" onClick={removeImage}><X className="h-4 w-4" /></Button>
                             </div>
                         )}
-                        <Button type="submit" disabled={loading} className="w-full">
+
+                        <Button type="submit" disabled={loading} className="w-full !mt-8">
                             {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <WandSparkles className="mr-2 h-4 w-4" />}
                             {loading ? "Analyzing..." : "Get AI Diagnosis"}
                         </Button>
@@ -229,7 +236,7 @@ export function SymptomChecker() {
                         <div className="space-y-4 text-sm">
                              <Alert variant="destructive" className="bg-orange-500/10 border-orange-500/50 text-orange-700 dark:text-orange-300 [&>svg]:text-orange-600">
                                 <AlertTriangle className="h-4 w-4" />
-                                <AlertDescription>This is an AI-generated diagnosis. Always consult a qualified veterinarian for serious health concerns.</AlertDescription>
+                                <AlertDescription>यह एआई-जनित निदान है। गंभीर स्वास्थ्य संबंधी चिंताओं के लिए हमेशा एक योग्य पशु चिकित्सक से सलाह लें।</AlertDescription>
                             </Alert>
 
                             <div>
@@ -247,14 +254,29 @@ export function SymptomChecker() {
                                 </div>
                             </div>
                              <div>
-                                <h3 className="font-headline font-semibold text-foreground mb-2">Recommended Actions</h3>
-                                <p className="text-muted-foreground whitespace-pre-line text-xs">{diagnosis.recommendedActions}</p>
+                                <h3 className="font-headline font-semibold text-foreground mb-2">Treatment Plan</h3>
+                                <ol className="list-decimal list-inside space-y-2 text-xs">
+                                  {diagnosis.treatmentPlan.map((step, index) => (
+                                    <li key={index}>
+                                        <strong className="font-medium">{step.step}:</strong>
+                                        <p className="pl-4 text-muted-foreground">{step.details}</p>
+                                    </li>
+                                  ))}
+                                </ol>
                             </div>
                              <div>
                                 <h3 className="font-headline font-semibold text-foreground mb-2">Preventative Measures</h3>
-                                <p className="text-muted-foreground whitespace-pre-line text-xs">{diagnosis.preventativeMeasures}</p>
+                                <ul className="list-disc list-inside space-y-1 text-xs text-muted-foreground">
+                                    {diagnosis.preventativeMeasures.map((measure, index) => <li key={index}>{measure}</li>)}
+                                </ul>
                             </div>
+                            <div className="rounded-md border bg-blue-500/10 border-blue-500/30 p-3">
+                                <h3 className="font-headline font-semibold text-blue-800 dark:text-blue-300 mb-2">बिहार के लिए विशेष सलाह</h3>
+                                <p className="text-sm text-blue-700 dark:text-blue-400">{diagnosis.biharSpecificAdvice}</p>
+                            </div>
+
                             <Separator />
+
                             {/* Chat Section */}
                             <div className="space-y-2">
                                 <h3 className="font-headline font-semibold text-foreground">Ask a Follow-up Question</h3>
