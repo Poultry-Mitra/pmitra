@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useMemo, useCallback }from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle }from '@/components/ui/card';
 import { Input }from '@/components/ui/input';
 import { Label }from '@/components/ui/label';
 import { Button }from '@/components/ui/button';
@@ -79,7 +79,7 @@ export function BroilerCalculator() {
   }
   
   return (
-    <Card>
+    <Card className="h-full flex flex-col">
       <CardHeader>
         <div className="flex items-center gap-2">
             <Calculator className="size-8 text-primary" />
@@ -89,7 +89,7 @@ export function BroilerCalculator() {
             </div>
         </div>
       </CardHeader>
-      <CardContent className="space-y-8">
+      <CardContent className="space-y-4 flex-1">
         <Alert>
             <AlertTitle>शैक्षिक उद्देश्य (Educational Purpose)</AlertTitle>
             <AlertDescription>

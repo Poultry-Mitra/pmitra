@@ -23,6 +23,7 @@ import {
   Zap,
   Heart,
   Calculator,
+  Droplet,
 } from 'lucide-react';
 import { AppIcon } from './icon-component';
 import { ThemeToggle } from '@/components/theme-toggle';
@@ -36,6 +37,7 @@ import { useAppUser } from '@/app/app-provider';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { BroilerCalculator } from '@/app/_components/broiler-calculator';
+import { FcrCalculator } from './_components/fcr-calculator';
 
 
 export default function LandingPage() {
@@ -227,53 +229,39 @@ export default function LandingPage() {
         </section>
 
         <section id="interactive-tools" className="bg-secondary py-16 lg:py-24">
-            <div className="container grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
-                 <Card className="h-full">
-                    <CardHeader className="text-center">
-                        <div className="flex items-center gap-2 justify-center">
-                            <Heart className="size-8 text-destructive" />
-                            <CardTitle className="font-headline text-2xl">AI Health Diagnosis</CardTitle>
-                        </div>
-                        <CardDescription>Worried about a sick bird? Check symptoms and get immediate AI-powered recommendations.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <Image src="https://picsum.photos/seed/chick/600/400" alt="Sick chicken diagnosis" width={600} height={400} className="rounded-lg object-cover" data-ai-hint="sick chicken" />
-                    </CardContent>
-                    <CardFooter>
-                        <Button size="lg" className="w-full" asChild>
-                            <Link href="/diagnose">Check Flock Health Now</Link>
-                        </Button>
-                    </CardFooter>
-                 </Card>
-
-                 <Card className="h-full flex flex-col">
-                    <CardHeader className="text-center">
-                         <div className="flex items-center gap-2 justify-center">
-                            <Calculator className="size-8 text-primary" />
-                            <CardTitle className="font-headline text-2xl">Broiler Farm Calculator</CardTitle>
-                        </div>
-                        <CardDescription>Estimate your costs and profits for a 45-day broiler cycle.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="flex-1">
-                        {appUser ? (
-                            <BroilerCalculator />
-                        ) : (
-                            <div className="text-center p-4 h-full flex flex-col justify-center items-center rounded-lg border-2 border-dashed">
-                                 <p className="text-muted-foreground mb-4">
-                                    Login to use this tool and plan your expenses and predict your earnings.
-                                 </p>
-                                  <div className="flex justify-center gap-4">
-                                      <Button asChild>
-                                        <Link href="/login">Login to Use</Link>
-                                      </Button>
-                                      <Button variant="outline" asChild>
-                                        <Link href="/signup">Sign up Now</Link>
-                                      </Button>
-                                  </div>
+            <div className="container mx-auto max-w-6xl">
+                 <div className="mx-auto flex max-w-[58rem] flex-col items-center space-y-4 text-center mb-12">
+                    <h2 className="font-headline text-3xl font-bold leading-[1.1] sm:text-3xl md:text-5xl">
+                       Free Poultry Tools
+                    </h2>
+                    <p className="max-w-[85%] leading-normal text-muted-foreground sm:text-lg sm:leading-7">
+                        Use our free calculators and AI tools to make smarter decisions for your farm.
+                    </p>
+                </div>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+                    <Card className="h-full flex flex-col">
+                        <CardHeader>
+                            <div className="flex items-center gap-2">
+                                <Heart className="size-8 text-destructive" />
+                                <div>
+                                    <CardTitle className="font-headline text-2xl">AI Health Diagnosis</CardTitle>
+                                    <CardDescription>Worried about a sick bird? Check symptoms for an AI-powered diagnosis.</CardDescription>
+                                </div>
                             </div>
-                        )}
-                    </CardContent>
-                 </Card>
+                        </CardHeader>
+                        <CardContent className="flex-1">
+                            <Image src="https://picsum.photos/seed/chick/600/400" alt="Sick chicken diagnosis" width={600} height={400} className="rounded-lg object-cover" data-ai-hint="sick chicken" />
+                        </CardContent>
+                        <CardFooter>
+                            <Button size="lg" className="w-full" asChild>
+                                <Link href="/diagnose">Check Flock Health Now</Link>
+                            </Button>
+                        </CardFooter>
+                    </Card>
+
+                    <BroilerCalculator />
+                    <FcrCalculator />
+                </div>
             </div>
         </section>
         
