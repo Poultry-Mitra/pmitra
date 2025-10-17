@@ -1,4 +1,3 @@
-
 // src/app/diagnose-health/_components/symptom-checker.tsx
 "use client";
 
@@ -18,7 +17,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { diagnoseChickenHealth, type DiagnoseChickenHealthOutput } from '@/ai/flows/diagnose-chicken-health';
+import { diagnoseChickenHealth, type DiagnoseChickenHealthOutput, type DiagnoseChickenHealthInput } from '@/ai/flows/diagnose-chicken-health';
 import { siteExpert } from '@/ai/flows/site-expert';
 import { WandSparkles, Loader2, Upload, X, AlertTriangle, Send } from 'lucide-react';
 import Image from 'next/image';
@@ -29,6 +28,9 @@ import { cn } from '@/lib/utils';
 import { AppIcon } from '@/app/icon-component';
 import { Avatar } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
+import { localDiagnosis } from '@/lib/local-diagnosis';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+
 
 const formSchema = z.object({
   symptoms: z.array(z.string()).min(1, "Please select at least one symptom."),
@@ -39,15 +41,15 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 const symptomsByCategory = {
-    general: ["सुस्त और कमजोर", "भूख कम लगना", "प्यास बढ़ना", "वजन घटना", "अचानक मौत"],
-    respiratory: ["खाँसी", "छींकना", "नाक बहना", "सांस लेने में कठिनाई", "मुंह खोलकर सांस लेना", "सांस लेते समय घरघराहट"],
-    digestive: ["ढीला मल (दस्त)", "खूनी दस्त", "हरा दस्त", "सफ़ेद दस्त", "बिना पचा हुआ चारा बीट में"],
-    neurological: ["पक्षाघात (लकवा)", "गर्दन मुड़ना", "लड़खड़ाना", "चक्कर काटना", "असंतुलित चाल"],
-    physical: ["पंख झड़ना", "शरीर पर गांठें", "सूजे हुए जोड़", "अंडे का उत्पादन कम होना", "पतले छिलके वाले अंडे"],
-    head_neck_eyes: ["आंखों में सूजन", "आंखों से पानी आना", "चेहरे पर सूजन", "कलगी और गलमुच्छे का नीला पड़ना", "गर्दन में सूजन"],
-    skin_feathers: ["पंख अस्त-व्यस्त होना", "त्वचा पर घाव", "पंखों के पास कीड़े", "त्वचा का पीला पड़ना"],
+    general: ["सुस्त और कमजोर (Lethargic and weak)", "भूख कम लगना (Loss of appetite)", "प्यास बढ़ना (Increased thirst)", "वजन घटना (Weight loss)", "अचानक मौत (Sudden death)", "पंख अस्त-व्यस्त होना (Ruffled feathers)"],
+    respiratory: ["खाँसी (Coughing)", "छींकना (Sneezing)", "नाक बहना (Nasal discharge)", "सांस लेने में कठिनाई (Difficulty breathing)", "मुंह खोलकर सांस लेना (Gasping for air)", "सांस लेते समय घरघराहट (Rattling or gurgling sounds)"],
+    digestive: ["ढीला मल (Diarrhea)", "खूनी दस्त (Bloody diarrhea)", "हरा दस्त (Greenish diarrhea)", "सफ़ेद दस्त (White/chalky diarrhea)", "चिपचिपी बीट (Pasty vent)", "बिना पचा हुआ चारा बीट में (Undigested feed in droppings)"],
+    neurological: ["पक्षाघात (Paralysis of legs, wings, or neck)", "गर्दन मुड़ना (Twisted neck/Torticollis)", "लड़खड़ाना (Staggering/Incoordination)", "चक्कर काटना (Circling)", "कंपन (Tremors)"],
+    legs_joints: ["सूजे हुए जोड़ (Swollen joints)", "लंगड़ापन (Lameness)", "पैर की उंगलियों का मुड़ना (Curled toes)", "हॉक-सिटिंग (Sitting on hocks)"],
+    head_neck_eyes: ["आंखों में सूजन (Swollen eyes)", "आंखों से पानी आना (Watery eyes)", "आंखों में झाग (Foamy eyes)", "चेहरे पर सूजन (Facial swelling)", "कलगी और गलमुच्छे का नीला पड़ना (Bluish comb and wattles)", "कलगी का पीला पड़ना (Pale comb and wattles)", "गर्दन में सूजन (Swollen neck)"],
+    skin_feathers: ["पंख झड़ना (Feather loss)", "त्वचा पर घाव (Skin lesions/sores)", "पंखों के पास कीड़े (Mites/Lice visible)", "वेंट के पास सूजन (Swollen vent)"],
+    egg_production: ["अंडे का उत्पादन कम होना (Drop in egg production)", "पतले छिलके वाले अंडे (Thin-shelled eggs)", "बिना छिलके के अंडे (Shell-less eggs)", "अंडे का आकार बिगड़ना (Deformed eggs)"],
 };
-
 
 const LikelihoodBadge = ({ likelihood }: { likelihood: 'High' | 'Medium' | 'Low' }) => {
     const config = {
@@ -130,6 +132,10 @@ export function SymptomChecker() {
       setChatMessages([{id: '0', text: "What other questions do you have about this diagnosis?", sender: 'ai'}]);
     } catch (error) {
       console.error("Failed to get diagnosis:", error);
+      // Fallback to local diagnosis on AI failure
+      const fallbackDiagnosis = localDiagnosis({ symptoms: values.symptoms.join(', '), flockAgeWeeks: values.flockAgeWeeks });
+      setDiagnosis(fallbackDiagnosis);
+      setChatMessages([{id: '0', text: "AI is currently unavailable, this is a basic diagnosis. What questions do you have?", sender: 'ai'}]);
     } finally {
       setLoading(false);
     }
@@ -176,7 +182,7 @@ export function SymptomChecker() {
                         <div className="space-y-4">
                             {Object.entries(symptomsByCategory).map(([category, symptoms]) => (
                                 <Card key={category} className="p-4">
-                                    <h4 className="font-medium mb-3 capitalize">{category.replace(/_/g, ' ')} Symptoms</h4>
+                                    <h4 className="font-medium mb-3 capitalize">{category.replace(/_/g, ' ')}</h4>
                                     <div className="flex flex-wrap gap-2">
                                         {symptoms.map(symptom => (
                                             <Button key={symptom} type="button" variant={form.watch('symptoms').includes(symptom) ? "default" : "outline"} size="sm" className="h-auto py-1 px-3 text-sm" onClick={() => handleSymptomToggle(symptom)}>{symptom}</Button>
