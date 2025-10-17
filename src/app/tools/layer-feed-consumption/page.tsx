@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Separator } from '@/components/ui/separator';
 import { Bird } from 'lucide-react';
-import { PageHeader } from '@/components/PageHeader';
+import { PageHeader } from '@/app/(app)/_components/page-header';
 
 export default function LayerFeedConsumptionPage() {
   const [inputs, setInputs] = useState({
@@ -57,7 +57,7 @@ export default function LayerFeedConsumptionPage() {
         <div className="mt-8 max-w-lg mx-auto">
             <Card>
                 <CardHeader>
-                    <CardTitle>Input Details</CardTitle>
+                    <CardTitle>Production Details</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <div className="space-y-2">
