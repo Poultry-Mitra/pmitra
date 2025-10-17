@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import Link from 'next/link';
@@ -24,6 +25,7 @@ import {
   Heart,
   Calculator,
   Droplet,
+  Wrench,
 } from 'lucide-react';
 import { AppIcon } from './icon-component';
 import { ThemeToggle } from '@/components/theme-toggle';
@@ -177,6 +179,7 @@ export default function LandingPage() {
           <nav className="hidden items-center space-x-6 text-sm font-medium md:flex">
             <Link href="/" className="transition-colors hover:text-foreground">{t('nav.home')}</Link>
             <Link href="#features" className="text-muted-foreground transition-colors hover:text-foreground">{t('nav.features')}</Link>
+             <Link href="/tools" className="text-muted-foreground transition-colors hover:text-foreground">Tools</Link>
             <Link href="/pricing" className="text-muted-foreground transition-colors hover:text-foreground">{t('nav.pricing')}</Link>
             <Link href="#contact" className="text-muted-foreground transition-colors hover:text-foreground">{t('nav.contact')}</Link>
           </nav>
@@ -238,7 +241,7 @@ export default function LandingPage() {
                         Use our free calculators and AI tools to make smarter decisions for your farm.
                     </p>
                 </div>
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-start">
                     <Card className="h-full flex flex-col">
                         <CardHeader>
                             <div className="flex items-center gap-2">
@@ -254,13 +257,50 @@ export default function LandingPage() {
                         </CardContent>
                         <CardFooter>
                             <Button size="lg" className="w-full" asChild>
-                                <Link href="/diagnose">Check Flock Health Now</Link>
+                                <Link href="/tools">Check Flock Health Now</Link>
                             </Button>
                         </CardFooter>
                     </Card>
 
-                    <BroilerCalculator />
-                    <FcrCalculator />
+                    <Card className="h-full flex flex-col">
+                        <CardHeader>
+                            <div className="flex items-center gap-2">
+                                <Calculator className="size-8 text-primary" />
+                                <div>
+                                    <CardTitle className="font-headline text-2xl">Broiler Farm Calculator</CardTitle>
+                                    <CardDescription>Estimate costs and profits for a broiler cycle.</CardDescription>
+                                </div>
+                            </div>
+                        </CardHeader>
+                        <CardContent className="flex-1">
+                             <Image src="https://picsum.photos/seed/calculator/600/400" alt="Calculator" width={600} height={400} className="rounded-lg object-cover" data-ai-hint="calculator charts" />
+                        </CardContent>
+                        <CardFooter>
+                            <Button size="lg" className="w-full" asChild>
+                                <Link href="/tools">Use Broiler Calculator</Link>
+                            </Button>
+                        </CardFooter>
+                    </Card>
+
+                     <Card className="h-full flex flex-col">
+                        <CardHeader>
+                            <div className="flex items-center gap-2">
+                                <Droplet className="size-8 text-blue-500" />
+                                <div>
+                                    <CardTitle className="font-headline text-2xl">FCR Calculator</CardTitle>
+                                    <CardDescription>Quickly calculate your Feed Conversion Ratio.</CardDescription>
+                                </div>
+                            </div>
+                        </CardHeader>
+                        <CardContent className="flex-1">
+                             <Image src="https://picsum.photos/seed/fcr/600/400" alt="Feed conversion ratio" width={600} height={400} className="rounded-lg object-cover" data-ai-hint="chicken feed" />
+                        </CardContent>
+                        <CardFooter>
+                            <Button size="lg" className="w-full" asChild>
+                                <Link href="/tools">Calculate FCR</Link>
+                            </Button>
+                        </CardFooter>
+                    </Card>
                 </div>
             </div>
         </section>

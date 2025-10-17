@@ -41,6 +41,7 @@ import {
   Heart,
   Calculator,
   Stethoscope,
+  Wrench,
 } from "lucide-react";
 import { useLanguage } from "@/components/language-provider";
 import { Badge } from "@/components/ui/badge";
@@ -231,6 +232,7 @@ const aiNavItems = [
     { href: "/monitoring", icon: Signal, label: "monitoring.title" },
     { href: "/biosecurity", icon: ShieldCheck, label: "biosecurity.title" },
     { href: "/feed-recommendation", icon: WandSparkles, label: "feed_ai.title"},
-    { href: "/calculator", icon: Calculator, label: "calculator.title" },
+    { href: "/tools", icon: Wrench, label: "Tools" },
 ];
+
 
