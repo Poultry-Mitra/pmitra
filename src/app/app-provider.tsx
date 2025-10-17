@@ -1,5 +1,3 @@
-
-
 // src/app/app-provider.tsx
 'use client';
 
@@ -26,7 +24,7 @@ export function useAppUser() {
   return context;
 }
 
-const PUBLIC_PATHS = ['/login', '/signup', '/blog', '/privacy', '/terms'];
+const PUBLIC_PATHS = ['/login', '/signup', '/blog', '/privacy', '/terms', '/diagnose-health'];
 
 const getRedirectPath = (role?: UserRole | null) => {
   if (!role) return '/login';
@@ -110,12 +108,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (isLoading) return;
 
     const requiredRole = getRoleFromPath(pathname);
-    
-    // If a logged-in user is on the root page, redirect them to their dashboard.
-    if (appUser && pathname === '/') {
-        router.replace(getRedirectPath(appUser.role));
-        return;
-    }
     
     // If the path is public, no redirection needed.
     if (requiredRole === 'public') {
