@@ -39,8 +39,6 @@ import {
   AreaChart,
   Signal,
   Heart,
-  Calculator,
-  Stethoscope,
   Wrench,
 } from "lucide-react";
 import { useLanguage } from "@/components/language-provider";
@@ -228,11 +226,8 @@ const connectNavItems = [
 const aiNavItems = [
     { href: "/chat", icon: MessageSquare, label: "ai_chat.title" },
     { href: "/analytics", icon: AreaChart, label: "analytics.title" },
-    { href: "/diagnose", icon: Stethoscope, label: "diagnose_health.title" },
     { href: "/monitoring", icon: Signal, label: "monitoring.title" },
     { href: "/biosecurity", icon: ShieldCheck, label: "biosecurity.title" },
     { href: "/feed-recommendation", icon: WandSparkles, label: "feed_ai.title"},
     { href: "/tools", icon: Wrench, label: "Tools" },
 ];
-
-

@@ -35,9 +35,7 @@ import { signOut } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import { useAppUser } from '@/app/app-provider';
 import { Input } from '@/components/ui/input';
-import { BroilerCalculator } from '@/app/_components/broiler-calculator';
-import { FcrCalculator } from '@/app/_components/fcr-calculator';
-import { FeedComparisonCalculator } from '@/app/_components/feed-comparison-calculator';
+import { PageHeader } from './(app)/_components/page-header';
 
 export default function LandingPage() {
   const { t } = useLanguage();
@@ -231,12 +229,7 @@ export default function LandingPage() {
         <section id="interactive-tools" className="bg-secondary py-16 lg:py-24">
             <div className="container">
                  <div className="mx-auto flex max-w-[58rem] flex-col items-center space-y-4 text-center mb-12">
-                    <h2 className="font-headline text-3xl font-bold leading-[1.1] sm:text-3xl md:text-5xl">
-                       Free Poultry Tools
-                    </h2>
-                    <p className="max-w-[85%] leading-normal text-muted-foreground sm:text-lg sm:leading-7">
-                        Use our free calculators and AI tools to make smarter decisions for your farm.
-                    </p>
+                    <PageHeader title="Free Poultry Tools" description="Use our free calculators and AI tools to make smarter decisions for your farm." />
                 </div>
                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 items-start">
                    <Card className="h-full flex flex-col hover:border-primary transition-colors">
@@ -247,7 +240,7 @@ export default function LandingPage() {
                       </CardHeader>
                       <CardFooter className="mt-auto">
                            <Button className="w-full" asChild>
-                              <Link href="/diagnose">Use Tool</Link>
+                              <Link href="/diagnose-health">Use Tool</Link>
                           </Button>
                       </CardFooter>
                     </Card>
@@ -528,3 +521,5 @@ export default function LandingPage() {
     </div>
   );
 }
+
+    
