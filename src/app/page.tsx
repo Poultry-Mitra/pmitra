@@ -22,6 +22,7 @@ import {
   Wrench,
   CheckCircle,
   Zap,
+  Egg,
 } from 'lucide-react';
 import { AppIcon } from './icon-component';
 import { ThemeToggle } from '@/components/theme-toggle';
@@ -227,18 +228,6 @@ export default function LandingPage() {
                     description="Use our free calculators and AI tools to make smarter decisions for your farm."
                  />
                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-start mt-12">
-                   <Card className="h-full flex flex-col hover:border-primary transition-colors">
-                      <CardHeader>
-                          <Heart className="size-8 text-destructive" />
-                          <CardTitle className="font-headline text-xl pt-2">AI Health Diagnosis</CardTitle>
-                          <CardDescription>Worried about a sick bird? Check symptoms for an AI-powered diagnosis.</CardDescription>
-                      </CardHeader>
-                      <CardFooter className="mt-auto">
-                           <Button className="w-full" asChild>
-                              <Link href="/tools/diagnose-health">Use Tool</Link>
-                          </Button>
-                      </CardFooter>
-                    </Card>
                     <Card className="h-full flex flex-col hover:border-primary transition-colors">
                       <CardHeader>
                           <Calculator className="size-8 text-primary" />
@@ -260,6 +249,42 @@ export default function LandingPage() {
                       <CardFooter className="mt-auto">
                            <Button className="w-full" asChild>
                               <Link href="/tools/fcr-calculator">Use Tool</Link>
+                          </Button>
+                      </CardFooter>
+                    </Card>
+                    <Card className="h-full flex flex-col hover:border-primary transition-colors">
+                      <CardHeader>
+                          <LineChart className="size-8 text-primary" />
+                          <CardTitle className="font-headline text-xl pt-2">Feed Comparison</CardTitle>
+                          <CardDescription>Compare feed brands by price and nutrition to find the best value.</CardDescription>
+                      </CardHeader>
+                      <CardFooter className="mt-auto">
+                           <Button className="w-full" asChild>
+                              <Link href="/tools/feed-comparison">Use Tool</Link>
+                          </Button>
+                      </CardFooter>
+                    </Card>
+                     <Card className="h-full flex flex-col hover:border-primary transition-colors">
+                      <CardHeader>
+                          <Egg className="size-8 text-primary" />
+                          <CardTitle className="font-headline text-xl pt-2">Layer Feed Consumption</CardTitle>
+                          <CardDescription>Estimate total feed required for your layer birds over a period.</CardDescription>
+                      </CardHeader>
+                      <CardFooter className="mt-auto">
+                           <Button className="w-full" asChild>
+                              <Link href="/tools/layer-feed-consumption">Use Tool</Link>
+                          </Button>
+                      </CardFooter>
+                    </Card>
+                    <Card className="h-full flex flex-col hover:border-primary transition-colors">
+                      <CardHeader>
+                          <Egg className="size-8 text-primary" />
+                          <CardTitle className="font-headline text-xl pt-2">Per Egg Feed Cost</CardTitle>
+                          <CardDescription>Calculate the feed cost to produce a single egg.</CardDescription>
+                      </CardHeader>
+                      <CardFooter className="mt-auto">
+                           <Button className="w-full" asChild>
+                              <Link href="/tools/per-egg-cost">Use Tool</Link>
                           </Button>
                       </CardFooter>
                     </Card>
