@@ -23,6 +23,7 @@ import {
   Egg,
   Bird,
   Zap,
+  CheckCircle,
 } from 'lucide-react';
 import { AppIcon } from './icon-component';
 import { ThemeToggle } from '@/components/theme-toggle';

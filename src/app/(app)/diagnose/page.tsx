@@ -1,5 +1,5 @@
 // src/app/(app)/diagnose/page.tsx
-import { PageHeader } from "./_components/page-header";
+import { PageHeader } from "@/app/(app)/_components/page-header";
 import { SymptomChecker } from "./_components/symptom-checker";
 
 export default function DiagnoseHealthPage() {
