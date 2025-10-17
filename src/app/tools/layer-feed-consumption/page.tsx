@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Separator } from '@/components/ui/separator';
 import { Bird } from 'lucide-react';
-import { PageHeader } from '@/app/(app)/_components/page-header';
+import { PageHeader } from '@/components/PageHeader';
 
 export default function LayerFeedConsumptionPage() {
   const [inputs, setInputs] = useState({

@@ -20,10 +20,13 @@ import {
   Calculator,
   Droplet,
   LineChart,
+  GitCompareArrows,
+  Egg,
+  Bird,
 } from 'lucide-react';
 import { AppIcon } from './icon-component';
 import { ThemeToggle } from '@/components/theme-toggle';
-import { LanguageToggle } from '@/components/language-toggle';
+import { LanguageToggle } from '@/components/language-provider';
 import { useLanguage } from '@/components/language-provider';
 import { useAuth } from '@/firebase/provider';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -236,11 +239,11 @@ export default function LandingPage() {
                       <CardHeader>
                           <Heart className="size-8 text-destructive" />
                           <CardTitle className="font-headline text-xl pt-2">AI Health Diagnosis</CardTitle>
-                          <CardDescription>Worried about a sick bird? Get an AI-powered diagnosis.</CardDescription>
+                          <CardDescription>Worried about a sick bird? Check symptoms for an AI-powered diagnosis.</CardDescription>
                       </CardHeader>
                       <CardFooter className="mt-auto">
                            <Button className="w-full" asChild>
-                              <Link href="/tools/health-diagnosis">Use Tool</Link>
+                              <Link href="/diagnose">Use Tool</Link>
                           </Button>
                       </CardFooter>
                     </Card>
@@ -271,7 +274,7 @@ export default function LandingPage() {
                     <Card className="h-full flex flex-col hover:border-primary transition-colors">
                       <CardHeader>
                           <LineChart className="size-8 text-primary" />
-                          <CardTitle className="font-headline text-xl pt-2">Feed Comparison</CardTitle>
+                          <CardTitle className="font-headline text-xl pt-2">Feed Comparison Calculator</CardTitle>
                           <CardDescription>Compare feed brands by price and nutrition to find the best value.</CardDescription>
                       </CardHeader>
                       <CardFooter className="mt-auto">
@@ -279,6 +282,44 @@ export default function LandingPage() {
                               <Link href="/tools/feed-comparison">Use Tool</Link>
                           </Button>
                       </CardFooter>
+                    </Card>
+                    <Card className="h-full flex flex-col hover:border-primary transition-colors">
+                        <CardHeader>
+                            <GitCompareArrows className="size-8 text-primary" />
+                            <CardTitle className="font-headline text-xl pt-2">Broiler Feed Rate Comparison</CardTitle>
+                            <CardDescription>Compare the cost-effectiveness of two different broiler feeds.</CardDescription>
+                        </CardHeader>
+                        <CardFooter className="mt-auto">
+                            <Button className="w-full" asChild>
+                                <Link href="/tools/broiler-feed-comparison">Use Tool</Link>
+                            </Button>
+                        </CardFooter>
+                    </Card>
+
+                    <Card className="h-full flex flex-col hover:border-primary transition-colors">
+                        <CardHeader>
+                            <Bird className="size-8 text-primary" />
+                            <CardTitle className="font-headline text-xl pt-2">Layer Feed Consumption</CardTitle>
+                            <CardDescription>Estimate total feed required for your layer birds over a period.</CardDescription>
+                        </CardHeader>
+                        <CardFooter className="mt-auto">
+                            <Button className="w-full" asChild>
+                                <Link href="/tools/layer-feed-consumption">Use Tool</Link>
+                            </Button>
+                        </CardFooter>
+                    </Card>
+                    
+                    <Card className="h-full flex flex-col hover:border-primary transition-colors">
+                        <CardHeader>
+                            <Egg className="size-8 text-primary" />
+                            <CardTitle className="font-headline text-xl pt-2">Per Egg Feed Cost</CardTitle>
+                            <CardDescription>Calculate the feed cost to produce a single egg.</CardDescription>
+                        </CardHeader>
+                        <CardFooter className="mt-auto">
+                            <Button className="w-full" asChild>
+                                <Link href="/tools/per-egg-cost">Use Tool</Link>
+                            </Button>
+                        </CardFooter>
                     </Card>
                 </div>
             </div>
@@ -483,3 +524,5 @@ export default function LandingPage() {
     </div>
   );
 }
+
+    
