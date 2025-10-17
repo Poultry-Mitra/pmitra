@@ -9,33 +9,8 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-
-const DiagnoseChickenHealthInputSchema = z.object({
-  symptoms: z.string().describe('A comma-separated string of symptoms observed in the chicken(s), such as bloody diarrhea, ruffled feathers, paralysis, coughing, sneezing, etc.'),
-  flockAgeDays: z.number().int().describe('The age of the flock in days.'),
-  photoDataUri: z.string().optional().describe("A photo of the sick chicken or its droppings, as a data URI. Format: 'data:<mimetype>;base64,<encoded_data>'."),
-});
-export type DiagnoseChickenHealthInput = z.infer<typeof DiagnoseChickenHealthInputSchema>;
-
-
-export const DiseasePossibilitySchema = z.object({
-    name: z.string().describe('The name of the possible disease (e.g., Coccidiosis, Marek\'s Disease).'),
-    likelihood: z.enum(['High', 'Medium', 'Low']).describe('The likelihood of this disease being the cause.'),
-    reasoning: z.string().describe('A brief explanation of why this disease is considered a possibility based on the provided symptoms and age.'),
-});
-
-const TreatmentStepSchema = z.object({
-    step: z.string().describe("A single, clear, actionable step title (e.g., 'Isolate Sick Birds')."),
-    details: z.string().describe("A more detailed explanation for the step, including why it's important and how to do it.")
-});
-
-const DiagnoseChickenHealthOutputSchema = z.object({
-  possibleDiseases: z.array(DiseasePossibilitySchema).describe('A list of 1 to 3 possible diseases, ranked by likelihood.'),
-  treatmentPlan: z.array(TreatmentStepSchema).describe("A step-by-step treatment and management plan. This should be very detailed and practical for a small-scale farmer."),
-  preventativeMeasures: z.array(z.string()).describe('A list of 2-4 long-term preventative measures to avoid this issue in the future.'),
-  biharSpecificAdvice: z.string().describe("Specific advice relevant to farmers in Bihar, India. Mention locally available medicine brands or government resources if applicable. THIS MUST BE IN HINDI."),
-});
-export type DiagnoseChickenHealthOutput = z.infer<typeof DiagnoseChickenHealthOutputSchema>;
+import type { DiagnoseChickenHealthInput, DiagnoseChickenHealthOutput, DiseasePossibility, TreatmentStep } from '@/lib/types';
+import { DiagnoseChickenHealthInputSchema, DiagnoseChickenHealthOutputSchema } from '@/lib/schemas';
 
 
 const promptTemplate = `You are a specialized poultry veterinarian AI named Chickrate AI. Your primary audience is small to medium-scale poultry farmers in Bihar, India. Your task is to diagnose potential diseases in a chicken flock based on the information provided by a farmer. Your response MUST be in the specified JSON format.

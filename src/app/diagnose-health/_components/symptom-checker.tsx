@@ -17,7 +17,9 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { diagnoseChickenHealth, type DiagnoseChickenHealthOutput, type DiagnoseChickenHealthInput, DiseasePossibilitySchema } from '@/ai/flows/diagnose-chicken-health';
+import { diagnoseChickenHealth } from '@/ai/flows/diagnose-chicken-health';
+import type { DiagnoseChickenHealthOutput, DiagnoseChickenHealthInput, DiseasePossibility, TreatmentStep } from '@/lib/types';
+
 import { siteExpert } from '@/ai/flows/site-expert';
 import { WandSparkles, Loader2, Upload, X, AlertTriangle, Send, ShieldCheck, Pill, Droplet, Stethoscope } from 'lucide-react';
 import Image from 'next/image';
@@ -43,13 +45,14 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 const symptomsByCategory = {
-    general: ["सुस्त और कमजोर (Lethargic and weak)", "भूख कम लगना (Loss of appetite)", "प्यास बढ़ना (Increased thirst)", "वजन घटना (Weight loss)", "अचानक मौत (Sudden death)", "पंख अस्त-व्यस्त होना (Ruffled feathers)"],
-    respiratory: ["खाँसी (Coughing)", "छींकना (Sneezing)", "नाक बहना (Nasal discharge)", "सांस लेने में कठिनाई (Difficulty breathing)", "मुंह खोलकर सांस लेना (Gasping for air)", "सांस लेते समय घरघराहट (Rattling or gurgling sounds)"],
-    digestive: ["ढीला मल (Diarrhea)", "खूनी दस्त (Bloody diarrhea)", "हरा दस्त (Greenish diarrhea)", "सफ़ेद दस्त (White/chalky diarrhea)", "चिपचिपी बीट (Pasty vent)", "बिना पचा हुआ चारा बीट में (Undigested feed in droppings)"],
-    neurological: ["पक्षाघात (Paralysis of legs, wings, or neck)", "गर्दन मुड़ना (Twisted neck/Torticollis)", "लड़खड़ाना (Staggering/Incoordination)", "चक्कर काटना (Circling)", "कंपन (Tremors)"],
-    legs_joints: ["सूजे हुए जोड़ (Swollen joints)", "लंगड़ापन (Lameness)", "पैर की उंगलियों का मुड़ना (Curled toes)", "हॉक-सिटिंग (Sitting on hocks)"],
-    head_neck_eyes: ["आंखों में सूजन (Swollen eyes)", "आंखों से पानी आना (Watery eyes)", "आंखों में झाग (Foamy eyes)", "चेहरे पर सूजन (Facial swelling)", "कलगी और गलमुच्छे का नीला पड़ना (Bluish comb and wattles)", "कलगी का पीला पड़ना (Pale comb and wattles)", "गर्दन में सूजन (Swollen neck)"],
-    skin_feathers: ["पंख झड़ना (Feather loss)", "त्वचा पर घाव (Skin lesions/sores)", "पंखों के पास कीड़े (Mites/Lice visible)", "वेंट के पास सूजन (Swollen vent)"],
+    general_behavioral: ["सुस्त और कमजोर (Lethargic and weak)", "भूख कम लगना (Loss of appetite)", "प्यास बढ़ना (Increased thirst)", "वजन घटना (Weight loss)", "अचानक मौत (Sudden death)", "पंख अस्त-व्यस्त होना (Ruffled feathers)", " huddled together"],
+    respiratory: ["खाँसी (Coughing)", "छींकना (Sneezing)", "नाक बहना (Nasal discharge)", "सांस लेने में कठिनाई (Difficulty breathing)", "मुंह खोलकर सांस लेना (Gasping for air)", "सांस लेते समय घरघराहट (Rattling or gurgling sounds)", "साइनस में सूजन (Swollen sinuses)"],
+    digestive_droppings: ["ढीला मल (Diarrhea)", "खूनी दस्त (Bloody diarrhea)", "हरा दस्त (Greenish diarrhea)", "सफ़ेद दस्त (White/chalky diarrhea)", "पीला दस्त (Yellowish diarrhea)", "चिपचिपी बीट (Pasty vent)", "बिना पचा हुआ चारा बीट में (Undigested feed in droppings)"],
+    neurological: ["पक्षाघात (Paralysis of legs, wings, or neck)", "गर्दन मुड़ना (Twisted neck/Torticollis)", "लड़खड़ाना (Staggering/Incoordination)", "चक्कर काटना (Circling)", "कंपन (Tremors)", "अंधापन (Blindness)"],
+    legs_joints: ["सूजे हुए जोड़ (Swollen joints)", "लंगड़ापन (Lameness)", "पैर की उंगलियों का मुड़ना (Curled toes)", "हॉक-सिटिंग (Sitting on hocks)", "Footpad dermatitis (Bumblefoot)"],
+    head_neck_eyes: ["आंखों में सूजन (Swollen eyes)", "आंखों से पानी आना (Watery eyes)", "आंखों में झाग (Foamy eyes)", "चेहरे पर सूजन (Facial swelling)", "कलगी और गलमुच्छे का नीला पड़ना (Bluish comb and wattles)", "कलगी का पीला पड़ना (Pale comb and wattles)", "गर्दन में सूजन (Swollen neck)", "Conjunctivitis"],
+    skin_feathers: ["पंख झड़ना (Feather loss)", "त्वचा पर घाव (Skin lesions/sores)", "पंखों के पास कीड़े (Mites/Lice visible)", "वेंट के पास सूजन (Swollen vent)", "Bloody feathers", "Scabs on comb"],
+    egg_production_layers: ["Egg production drop", "Misshapen eggs", "Thin-shelled eggs", "Watery egg whites", "Blood-stained eggs"],
 };
 
 const LikelihoodBadge = ({ likelihood }: { likelihood: 'High' | 'Medium' | 'Low' }) => {

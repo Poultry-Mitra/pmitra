@@ -1,4 +1,6 @@
 import { Timestamp } from "firebase/firestore";
+import { z } from "zod";
+import { DiagnoseChickenHealthInputSchema, DiagnoseChickenHealthOutputSchema, DiseasePossibilitySchema, TreatmentStepSchema } from "./schemas";
 
 export type UserRole = 'farmer' | 'dealer' | 'admin';
 export type UserStatus = 'Pending' | 'Active' | 'Suspended';
@@ -223,3 +225,9 @@ export type VaccinationScheduleItem = {
     vaccine: string;
     method: string;
 };
+
+// Types for diagnose-chicken-health flow
+export type DiagnoseChickenHealthInput = z.infer<typeof DiagnoseChickenHealthInputSchema>;
+export type DiseasePossibility = z.infer<typeof DiseasePossibilitySchema>;
+export type TreatmentStep = z.infer<typeof TreatmentStepSchema>;
+export type DiagnoseChickenHealthOutput = z.infer<typeof DiagnoseChickenHealthOutputSchema>;
