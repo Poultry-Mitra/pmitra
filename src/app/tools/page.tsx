@@ -1,4 +1,5 @@
 
+
 // src/app/tools/page.tsx
 "use client";
 
@@ -11,10 +12,8 @@ import {
   Calculator,
   Droplet,
   LineChart,
-  GitCompareArrows,
-  Egg,
-  Bird,
 } from 'lucide-react';
+import { PageHeader } from '@/app/(app)/_components/page-header';
 
 export default function ToolsPage() {
   return (
@@ -56,7 +55,7 @@ export default function ToolsPage() {
                 <CardDescription>Estimate costs and profits for a 45-day broiler cycle.</CardDescription>
             </CardHeader>
             <CardContent className="flex-1">
-                 <ul className="list-disc space-y-2 pl-5 text-sm text-muted-foreground">
+                <ul className="list-disc space-y-2 pl-5 text-sm text-muted-foreground">
                     <li>Calculate feed requirements.</li>
                     <li>Estimate total costs and potential profit.</li>
                     <li>Plan your equipment needs.</li>
@@ -108,68 +107,9 @@ export default function ToolsPage() {
                 </Button>
             </CardFooter>
         </Card>
-
-        <Card className="h-full flex flex-col hover:border-primary transition-colors">
-            <CardHeader>
-                <GitCompareArrows className="size-8 text-primary" />
-                <CardTitle className="font-headline text-xl pt-2">Broiler Feed Rate Comparison</CardTitle>
-                <CardDescription>Compare the cost-effectiveness of two different broiler feeds.</CardDescription>
-            </CardHeader>
-            <CardContent className="flex-1">
-                <ul className="list-disc space-y-2 pl-5 text-sm text-muted-foreground">
-                    <li>Input consumption and rate for two feeds.</li>
-                    <li>See total cost and potential savings.</li>
-                    <li>Calculate cost per bag for each.</li>
-                </ul>
-            </CardContent>
-            <CardFooter>
-                <Button className="w-full" asChild>
-                    <Link href="/tools/broiler-feed-comparison">Use Tool</Link>
-                </Button>
-            </CardFooter>
-        </Card>
-
-        <Card className="h-full flex flex-col hover:border-primary transition-colors">
-            <CardHeader>
-                <Bird className="size-8 text-primary" />
-                <CardTitle className="font-headline text-xl pt-2">Layer Feed Consumption</CardTitle>
-                <CardDescription>Estimate total feed required for your layer birds over a period.</CardDescription>
-            </CardHeader>
-            <CardContent className="flex-1">
-                <ul className="list-disc space-y-2 pl-5 text-sm text-muted-foreground">
-                    <li>Input total birds and number of weeks.</li>
-                    <li>Get feed estimates for different growth phases.</li>
-                    <li>Plan your feed procurement in advance.</li>
-                </ul>
-            </CardContent>
-            <CardFooter>
-                <Button className="w-full" asChild>
-                    <Link href="/tools/layer-feed-consumption">Use Tool</Link>
-                </Button>
-            </CardFooter>
-        </Card>
-        
-        <Card className="h-full flex flex-col hover:border-primary transition-colors">
-            <CardHeader>
-                <Egg className="size-8 text-primary" />
-                <CardTitle className="font-headline text-xl pt-2">Per Egg Feed Cost</CardTitle>
-                <CardDescription>Calculate the feed cost to produce a single egg.</CardDescription>
-            </CardHeader>
-            <CardContent className="flex-1">
-                <ul className="list-disc space-y-2 pl-5 text-sm text-muted-foreground">
-                    <li>Based on feed intake and production percentage.</li>
-                    <li>Understand your production efficiency.</li>
-                    <li>Optimize feed for better profitability.</li>
-                </ul>
-            </CardContent>
-            <CardFooter>
-                <Button className="w-full" asChild>
-                    <Link href="/tools/per-egg-cost">Use Tool</Link>
-                </Button>
-            </CardFooter>
-        </Card>
-
       </div>
     </div>
   );
 }
+
+    
