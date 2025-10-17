@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import Link from 'next/link';
@@ -35,7 +36,7 @@ import { signOut } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import { useAppUser } from '@/app/app-provider';
 import { Input } from '@/components/ui/input';
-import { PageHeader } from '@/app/(app)/_components/page-header';
+import { PageHeader } from '@/app/admin/_components/page-header';
 
 export default function LandingPage() {
   const { t } = useLanguage();
