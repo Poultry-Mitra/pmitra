@@ -232,3 +232,5 @@ const aiNavItems = [
     { href: "/feed-recommendation", icon: WandSparkles, label: "feed_ai.title"},
     { href: "/tools", icon: Wrench, label: "Tools" },
 ];
+
+    
