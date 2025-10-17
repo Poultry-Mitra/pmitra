@@ -242,6 +242,30 @@
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["id", "dealerUID", "name", "createdAt"]
+    },
+    "Diagnosis": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Diagnosis",
+      "type": "object",
+      "description": "Stores a saved AI health diagnosis report.",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "input": {
+          "type": "object",
+          "description": "The input given to the AI."
+        },
+        "output": {
+          "type": "object",
+          "description": "The structured output from the AI."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["id", "input", "output", "createdAt"]
     }
   },
   "auth": {
@@ -370,8 +394,24 @@
             }
           ]
         }
+      },
+      {
+        "path": "/diagnoses/{diagnosisId}",
+        "definition": {
+          "entityName": "Diagnosis",
+          "schema": {
+            "$ref": "#/backend/entities/Diagnosis"
+          },
+          "description": "Stores saved AI health diagnosis reports, making them shareable.",
+          "params": [
+            {
+              "name": "diagnosisId",
+              "description": "The unique identifier for the diagnosis report."
+            }
+          ]
+        }
       }
     ],
-    "reasoning": "The Firestore structure is designed to ensure authorization independence, clarity, and scalability. User profiles are stored in a top-level `users` collection. The admin role is now determined by a direct check of the user's email in the security rules, which is simpler and more robust than relying on a separate collection. Farm data, including sensor readings, is nested under the `farms` collection to link it to a specific farm. An `alerts` subcollection is under `farms` to manage real-time alerts efficiently. The `orders` collection stores order details, including `farmerId` and `dealerId`. The `suppliers` collection stores dealer-specific supplier information, with security rules ensuring that only the owner dealer can manage their own suppliers."
+    "reasoning": "The Firestore structure is designed to ensure authorization independence, clarity, and scalability. User profiles are stored in a top-level `users` collection. The admin role is now determined by a direct check of the user's email in the security rules, which is simpler and more robust than relying on a separate collection. Farm data, including sensor readings, is nested under the `farms` collection to link it to a specific farm. An `alerts` subcollection is under `farms` to manage real-time alerts efficiently. The `orders` collection stores order details, including `farmerId` and `dealerId`. The `suppliers` collection stores dealer-specific supplier information, with security rules ensuring that only the owner dealer can manage their own suppliers. A new `diagnoses` collection is added to store saved health reports for sharing."
   }
 }

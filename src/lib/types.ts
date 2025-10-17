@@ -230,4 +230,11 @@ export type VaccinationScheduleItem = {
 export type DiagnoseChickenHealthInput = z.infer<typeof DiagnoseChickenHealthInputSchema>;
 export type DiseasePossibility = z.infer<typeof DiseasePossibilitySchema>;
 export type TreatmentStep = z.infer<typeof TreatmentStepSchema>;
-export type DiagnoseChickenHealthOutput = z.infer<typeof DiagnoseChickenHealthOutputSchema>;
+export type DiagnoseChickenHealthOutput = z.infer<typeof DiagnoseChickenHealthOutputSchema> & { reportId?: string };
+
+export type DiagnosisRecord = {
+    id: string;
+    input: DiagnoseChickenHealthInput;
+    output: DiagnoseChickenHealthOutput;
+    createdAt: Timestamp;
+};

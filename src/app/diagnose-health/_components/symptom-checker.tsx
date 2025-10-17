@@ -2,6 +2,7 @@
 "use client";
 
 import { useState, useRef, ChangeEvent, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -19,9 +20,8 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { diagnoseChickenHealth } from '@/ai/flows/diagnose-chicken-health';
 import type { DiagnoseChickenHealthOutput, DiagnoseChickenHealthInput, DiseasePossibility, TreatmentStep } from '@/lib/types';
-
 import { siteExpert } from '@/ai/flows/site-expert';
-import { WandSparkles, Loader2, Upload, X, AlertTriangle, Send, ShieldCheck, Pill, Droplet, Stethoscope } from 'lucide-react';
+import { WandSparkles, Loader2, Upload, X, AlertTriangle, Send, ShieldCheck, Pill, Droplet, Stethoscope, Share2 } from 'lucide-react';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/components/language-provider';
@@ -34,6 +34,9 @@ import { localDiagnosis } from '@/lib/local-diagnosis';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recharts';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useFirestore } from '@/firebase/provider';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { useToast } from '@/hooks/use-toast';
 
 
 const formSchema = z.object({
@@ -45,7 +48,7 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 const symptomsByCategory = {
-    general_behavioral: ["सुस्त और कमजोर (Lethargic and weak)", "भूख कम लगना (Loss of appetite)", "प्यास बढ़ना (Increased thirst)", "वजन घटना (Weight loss)", "अचानक मौत (Sudden death)", "पंख अस्त-व्यस्त होना (Ruffled feathers)", " huddled together"],
+    general_behavioral: ["सुस्त और कमजोर (Lethargic and weak)", "भूख कम लगना (Loss of appetite)", "प्यास बढ़ना (Increased thirst)", "वजन घटना (Weight loss)", "अचानक मौत (Sudden death)", "पंख अस्त-व्यस्त होना (Ruffled feathers)", " huddle together"],
     respiratory: ["खाँसी (Coughing)", "छींकना (Sneezing)", "नाक बहना (Nasal discharge)", "सांस लेने में कठिनाई (Difficulty breathing)", "मुंह खोलकर सांस लेना (Gasping for air)", "सांस लेते समय घरघराहट (Rattling or gurgling sounds)", "साइनस में सूजन (Swollen sinuses)"],
     digestive_droppings: ["ढीला मल (Diarrhea)", "खूनी दस्त (Bloody diarrhea)", "हरा दस्त (Greenish diarrhea)", "सफ़ेद दस्त (White/chalky diarrhea)", "पीला दस्त (Yellowish diarrhea)", "चिपचिपी बीट (Pasty vent)", "बिना पचा हुआ चारा बीट में (Undigested feed in droppings)"],
     neurological: ["पक्षाघात (Paralysis of legs, wings, or neck)", "गर्दन मुड़ना (Twisted neck/Torticollis)", "लड़खड़ाना (Staggering/Incoordination)", "चक्कर काटना (Circling)", "कंपन (Tremors)", "अंधापन (Blindness)"],
@@ -79,13 +82,15 @@ const TreatmentStepIcon = ({ stepTitle }: { stepTitle: string }) => {
 }
 
 export function SymptomChecker() {
+  const router = useRouter();
+  const firestore = useFirestore();
+  const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [diagnosis, setDiagnosis] = useState<DiagnoseChickenHealthOutput | null>(null);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { t, language } = useLanguage();
   const [resultLang, setResultLang] = useState<'en' | 'hi'>('en');
-
   const [chatMessages, setChatMessages] = useState<Message[]>([]);
   const [chatInput, setChatInput] = useState('');
   const [isChatLoading, setIsChatLoading] = useState(false);
@@ -134,23 +139,55 @@ export function SymptomChecker() {
     form.setValue('symptoms', newSymptoms, { shouldValidate: true });
   };
   
+  async function saveDiagnosis(input: DiagnoseChickenHealthInput, output: DiagnoseChickenHealthOutput): Promise<string> {
+    if (!firestore) {
+        throw new Error("Firestore is not available.");
+    }
+    const collectionRef = collection(firestore, 'diagnoses');
+    const docRef = await addDoc(collectionRef, {
+        input,
+        output,
+        createdAt: serverTimestamp(),
+    });
+    return docRef.id;
+}
+
 
   async function onSubmit(values: FormValues) {
     setLoading(true);
     setDiagnosis(null);
     setChatMessages([]);
+    let result: DiagnoseChickenHealthOutput;
+
+    const inputForAI: DiagnoseChickenHealthInput = {
+        symptoms: values.symptoms.join(', '),
+        flockAgeDays: values.flockAgeDays,
+        photoDataUri: values.photoDataUri
+    };
+    
     try {
-      const result = await diagnoseChickenHealth({symptoms: values.symptoms.join(', '), flockAgeDays: values.flockAgeDays, photoDataUri: values.photoDataUri});
-      setDiagnosis(result);
+      result = await diagnoseChickenHealth(inputForAI);
       setChatMessages([{id: '0', text: "What other questions do you have about this diagnosis?", sender: 'ai'}]);
     } catch (error) {
-      console.error("Failed to get diagnosis:", error);
+      console.error("Failed to get AI diagnosis:", error);
       // Fallback to local diagnosis on AI failure
-      const fallbackDiagnosis = localDiagnosis({ symptoms: values.symptoms.join(', '), flockAgeDays: values.flockAgeDays });
-      setDiagnosis(fallbackDiagnosis);
+      result = localDiagnosis(inputForAI);
       setChatMessages([{id: '0', text: "AI is currently unavailable, this is a basic diagnosis. What questions do you have?", sender: 'ai'}]);
     } finally {
+      setDiagnosis(result);
       setLoading(false);
+      try {
+        const reportId = await saveDiagnosis(inputForAI, result);
+        // Add reportId to diagnosis object to use for sharing
+        setDiagnosis(prev => prev ? { ...prev, reportId } : null);
+      } catch (saveError) {
+        console.error("Failed to save diagnosis report:", saveError);
+        toast({
+            title: "Could not save report",
+            description: "The diagnosis was successful, but the report could not be saved for sharing.",
+            variant: "destructive"
+        });
+      }
     }
   }
 
@@ -181,6 +218,16 @@ export function SymptomChecker() {
     }
   };
   
+  const handleShare = () => {
+    if (!diagnosis?.reportId) return;
+    const url = `${window.location.origin}/diagnose-health/report/${diagnosis.reportId}`;
+    navigator.clipboard.writeText(url);
+    toast({
+      title: "Link Copied!",
+      description: "A shareable link to the diagnosis report has been copied to your clipboard.",
+    });
+  };
+
   const chartData = useMemo(() => {
     if (!diagnosis) return [];
     const likelihoodToValue = { 'High': 3, 'Medium': 2, 'Low': 1 };
@@ -251,8 +298,17 @@ export function SymptomChecker() {
         <div className="lg:col-span-2">
             <Card className="sticky top-24">
                 <CardHeader>
-                    <CardTitle>AI Diagnosis Results</CardTitle>
-                    <CardDescription>Based on the information provided. Not a substitute for professional veterinary advice.</CardDescription>
+                    <div className="flex justify-between items-start">
+                        <div>
+                            <CardTitle>AI Diagnosis Results</CardTitle>
+                            <CardDescription>Based on the information provided. Not a substitute for professional veterinary advice.</CardDescription>
+                        </div>
+                        {diagnosis?.reportId && (
+                             <Button variant="outline" size="sm" onClick={handleShare}>
+                                <Share2 className="mr-2" /> Share
+                            </Button>
+                        )}
+                    </div>
                 </CardHeader>
                 <CardContent className="min-h-[400px]">
                     {loading ? (
