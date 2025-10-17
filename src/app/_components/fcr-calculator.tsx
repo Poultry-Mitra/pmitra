@@ -1,12 +1,12 @@
 // src/app/_components/fcr-calculator.tsx
 "use client";
 
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Droplet, HelpCircle, Loader2 } from 'lucide-react';
+import { Droplet, HelpCircle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
   Tooltip,
@@ -14,18 +14,22 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
+import { cn } from '@/lib/utils';
 
 export function FcrCalculator() {
   const [weightGain, setWeightGain] = useState('');
-  const [feedConsumed, setFeedConsumed] = useState('');
+  const [feedInput, setFeedInput] = useState('');
+  const [feedUnit, setFeedUnit] = useState<'kg' | 'bags'>('kg');
   const [fcr, setFcr] = useState<number | null>(null);
 
   const calculateFcr = () => {
     const wg = parseFloat(weightGain);
-    const fc = parseFloat(feedConsumed);
+    const fi = parseFloat(feedInput);
 
-    if (wg > 0 && fc > 0) {
-      setFcr(fc / wg);
+    if (wg > 0 && fi > 0) {
+      const totalFeedInKg = feedUnit === 'bags' ? fi * 50 : fi;
+      setFcr(totalFeedInKg / wg);
     } else {
       setFcr(null);
     }
@@ -66,15 +70,33 @@ export function FcrCalculator() {
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="feedConsumed">Total Feed Consumed (in kg)</Label>
-          <Input
-            id="feedConsumed"
-            type="number"
-            value={feedConsumed}
-            onChange={(e) => setFeedConsumed(e.target.value)}
-            placeholder="e.g., 3800"
-          />
+            <Label htmlFor="feedConsumed">Total Feed Consumed</Label>
+            <div className="flex gap-2">
+                <Input
+                    id="feedConsumed"
+                    type="number"
+                    value={feedInput}
+                    onChange={(e) => setFeedInput(e.target.value)}
+                    placeholder={feedUnit === 'kg' ? "e.g., 3800" : "e.g., 76"}
+                />
+                <ToggleGroup 
+                    type="single" 
+                    value={feedUnit} 
+                    onValueChange={(value: 'kg' | 'bags') => {
+                        if (value) setFeedUnit(value)
+                    }}
+                    className="gap-1"
+                >
+                    <ToggleGroupItem value="kg" aria-label="Kilograms" className="h-10 px-3 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground">
+                        KG
+                    </ToggleGroupItem>
+                    <ToggleGroupItem value="bags" aria-label="Bags" className="h-10 px-3 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground">
+                        Bags
+                    </ToggleGroupItem>
+                </ToggleGroup>
+            </div>
         </div>
+
 
         <Button onClick={calculateFcr} className="w-full">
             Calculate FCR
