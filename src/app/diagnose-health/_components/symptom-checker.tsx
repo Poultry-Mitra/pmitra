@@ -1,7 +1,7 @@
 // src/app/diagnose-health/_components/symptom-checker.tsx
 "use client";
 
-import { useState, useRef, ChangeEvent } from 'react';
+import { useState, useRef, ChangeEvent, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -17,9 +17,9 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { diagnoseChickenHealth, type DiagnoseChickenHealthOutput, type DiagnoseChickenHealthInput } from '@/ai/flows/diagnose-chicken-health';
+import { diagnoseChickenHealth, type DiagnoseChickenHealthOutput, type DiagnoseChickenHealthInput, DiseasePossibilitySchema } from '@/ai/flows/diagnose-chicken-health';
 import { siteExpert } from '@/ai/flows/site-expert';
-import { WandSparkles, Loader2, Upload, X, AlertTriangle, Send } from 'lucide-react';
+import { WandSparkles, Loader2, Upload, X, AlertTriangle, Send, ShieldCheck, Pill, Droplet, Stethoscope } from 'lucide-react';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/components/language-provider';
@@ -29,7 +29,9 @@ import { AppIcon } from '@/app/icon-component';
 import { Avatar } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { localDiagnosis } from '@/lib/local-diagnosis';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recharts';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 
 const formSchema = z.object({
@@ -48,7 +50,6 @@ const symptomsByCategory = {
     legs_joints: ["सूजे हुए जोड़ (Swollen joints)", "लंगड़ापन (Lameness)", "पैर की उंगलियों का मुड़ना (Curled toes)", "हॉक-सिटिंग (Sitting on hocks)"],
     head_neck_eyes: ["आंखों में सूजन (Swollen eyes)", "आंखों से पानी आना (Watery eyes)", "आंखों में झाग (Foamy eyes)", "चेहरे पर सूजन (Facial swelling)", "कलगी और गलमुच्छे का नीला पड़ना (Bluish comb and wattles)", "कलगी का पीला पड़ना (Pale comb and wattles)", "गर्दन में सूजन (Swollen neck)"],
     skin_feathers: ["पंख झड़ना (Feather loss)", "त्वचा पर घाव (Skin lesions/sores)", "पंखों के पास कीड़े (Mites/Lice visible)", "वेंट के पास सूजन (Swollen vent)"],
-    egg_production: ["अंडे का उत्पादन कम होना (Drop in egg production)", "पतले छिलके वाले अंडे (Thin-shelled eggs)", "बिना छिलके के अंडे (Shell-less eggs)", "अंडे का आकार बिगड़ना (Deformed eggs)"],
 };
 
 const LikelihoodBadge = ({ likelihood }: { likelihood: 'High' | 'Medium' | 'Low' }) => {
@@ -66,12 +67,21 @@ type Message = {
   sender: 'user' | 'ai';
 };
 
+const TreatmentStepIcon = ({ stepTitle }: { stepTitle: string }) => {
+    const title = stepTitle.toLowerCase();
+    if (title.includes('isolate') || title.includes('separate')) return <ShieldCheck className="text-orange-500" />;
+    if (title.includes('medication') || title.includes('antibiotic') || title.includes('treat')) return <Pill className="text-red-500" />;
+    if (title.includes('water') || title.includes('feed') || title.includes('vitamin')) return <Droplet className="text-blue-500" />;
+    return <Stethoscope className="text-gray-500" />;
+}
+
 export function SymptomChecker() {
   const [loading, setLoading] = useState(false);
   const [diagnosis, setDiagnosis] = useState<DiagnoseChickenHealthOutput | null>(null);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const [resultLang, setResultLang] = useState<'en' | 'hi'>('en');
 
   const [chatMessages, setChatMessages] = useState<Message[]>([]);
   const [chatInput, setChatInput] = useState('');
@@ -168,6 +178,15 @@ export function SymptomChecker() {
     }
   };
   
+  const chartData = useMemo(() => {
+    if (!diagnosis) return [];
+    const likelihoodToValue = { 'High': 3, 'Medium': 2, 'Low': 1 };
+    return diagnosis.possibleDiseases.map(d => ({
+        name: d.name,
+        likelihood: likelihoodToValue[d.likelihood]
+    }));
+  }, [diagnosis]);
+  
   return (
     <div className="grid grid-cols-1 gap-8 lg:grid-cols-5 items-start">
         <div className="lg:col-span-3">
@@ -244,42 +263,70 @@ export function SymptomChecker() {
                                 <AlertTriangle className="h-4 w-4" />
                                 <AlertDescription>यह एआई-जनित निदान है। गंभीर स्वास्थ्य संबंधी चिंताओं के लिए हमेशा एक योग्य पशु चिकित्सक से सलाह लें।</AlertDescription>
                             </Alert>
+                             <Tabs defaultValue="en" onValueChange={(val) => setResultLang(val as 'en' | 'hi')}>
+                                <TabsList className="grid w-full grid-cols-2">
+                                    <TabsTrigger value="en">English</TabsTrigger>
+                                    <TabsTrigger value="hi">हिन्दी</TabsTrigger>
+                                </TabsList>
+                            </Tabs>
 
-                            <div>
-                                <h3 className="font-headline font-semibold text-foreground mb-2">Possible Diseases</h3>
-                                <div className="space-y-3">
-                                {diagnosis.possibleDiseases.map(disease => (
-                                    <div key={disease.name} className="rounded-md border p-3">
-                                        <div className="flex justify-between items-start">
-                                            <h4 className="font-medium">{disease.name}</h4>
-                                            <LikelihoodBadge likelihood={disease.likelihood} />
-                                        </div>
-                                        <p className="text-muted-foreground mt-1 text-xs">{disease.reasoning}</p>
-                                    </div>
-                                ))}
+                            <TabsContent value={resultLang} forceMount={true} hidden={resultLang !== 'en'}>
+                                <div className="space-y-6">
+                                    <Card>
+                                        <CardHeader><CardTitle>Possible Diseases</CardTitle></CardHeader>
+                                        <CardContent>
+                                            <ResponsiveContainer width="100%" height={120}>
+                                                <BarChart data={chartData} layout="vertical" margin={{ left: 10, right: 10 }}>
+                                                    <XAxis type="number" hide />
+                                                    <YAxis type="category" dataKey="name" width={100} tickLine={false} axisLine={false} fontSize={12} />
+                                                    <Tooltip cursor={{ fill: 'hsl(var(--secondary))' }} contentStyle={{ backgroundColor: 'hsl(var(--background))' }} />
+                                                    <Bar dataKey="likelihood" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
+                                                </BarChart>
+                                            </ResponsiveContainer>
+                                             {diagnosis.possibleDiseases.map(disease => (
+                                                <div key={disease.name} className="mt-4">
+                                                    <div className="flex justify-between items-start">
+                                                        <h4 className="font-medium">{disease.name}</h4>
+                                                        <LikelihoodBadge likelihood={disease.likelihood} />
+                                                    </div>
+                                                    <p className="text-muted-foreground mt-1 text-xs">{disease.reasoning}</p>
+                                                </div>
+                                            ))}
+                                        </CardContent>
+                                    </Card>
+
+                                    <Card>
+                                        <CardHeader><CardTitle>Treatment Plan</CardTitle></CardHeader>
+                                        <CardContent className="space-y-4">
+                                          {diagnosis.treatmentPlan.map((step, index) => (
+                                            <div key={index} className="flex items-start gap-3">
+                                                <div className="flex-shrink-0"><TreatmentStepIcon stepTitle={step.step}/></div>
+                                                <div>
+                                                    <strong className="font-medium">{step.step}</strong>
+                                                    <p className="text-muted-foreground text-xs">{step.details}</p>
+                                                </div>
+                                            </div>
+                                          ))}
+                                        </CardContent>
+                                    </Card>
+
+                                    <Card>
+                                        <CardHeader><CardTitle>Preventative Measures</CardTitle></CardHeader>
+                                        <CardContent>
+                                            <ul className="list-disc list-inside space-y-1 text-xs text-muted-foreground">
+                                                {diagnosis.preventativeMeasures.map((measure, index) => <li key={index}>{measure}</li>)}
+                                            </ul>
+                                        </CardContent>
+                                    </Card>
                                 </div>
-                            </div>
-                             <div>
-                                <h3 className="font-headline font-semibold text-foreground mb-2">Treatment Plan</h3>
-                                <ol className="list-decimal list-inside space-y-2 text-xs">
-                                  {diagnosis.treatmentPlan.map((step, index) => (
-                                    <li key={index}>
-                                        <strong className="font-medium">{step.step}:</strong>
-                                        <p className="pl-4 text-muted-foreground">{step.details}</p>
-                                    </li>
-                                  ))}
-                                </ol>
-                            </div>
-                             <div>
-                                <h3 className="font-headline font-semibold text-foreground mb-2">Preventative Measures</h3>
-                                <ul className="list-disc list-inside space-y-1 text-xs text-muted-foreground">
-                                    {diagnosis.preventativeMeasures.map((measure, index) => <li key={index}>{measure}</li>)}
-                                </ul>
-                            </div>
-                            <div className="rounded-md border bg-blue-500/10 border-blue-500/30 p-3">
-                                <h3 className="font-headline font-semibold text-blue-800 dark:text-blue-300 mb-2">बिहार के लिए विशेष सलाह</h3>
-                                <p className="text-sm text-blue-700 dark:text-blue-400">{diagnosis.biharSpecificAdvice}</p>
-                            </div>
+                            </TabsContent>
+
+                            <TabsContent value={resultLang} forceMount={true} hidden={resultLang !== 'hi'}>
+                               <div className="rounded-md border bg-blue-500/10 border-blue-500/30 p-4">
+                                    <h3 className="font-headline font-semibold text-blue-800 dark:text-blue-300 mb-2">बिहार के लिए विशेष सलाह</h3>
+                                    <p className="text-sm text-blue-700 dark:text-blue-400">{diagnosis.biharSpecificAdvice}</p>
+                                </div>
+                            </TabsContent>
 
                             <Separator />
 

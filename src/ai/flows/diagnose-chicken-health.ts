@@ -18,7 +18,7 @@ const DiagnoseChickenHealthInputSchema = z.object({
 export type DiagnoseChickenHealthInput = z.infer<typeof DiagnoseChickenHealthInputSchema>;
 
 
-const DiseasePossibilitySchema = z.object({
+export const DiseasePossibilitySchema = z.object({
     name: z.string().describe('The name of the possible disease (e.g., Coccidiosis, Marek\'s Disease).'),
     likelihood: z.enum(['High', 'Medium', 'Low']).describe('The likelihood of this disease being the cause.'),
     reasoning: z.string().describe('A brief explanation of why this disease is considered a possibility based on the provided symptoms and age.'),
