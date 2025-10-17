@@ -11,7 +11,6 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { HelpCircle, Trash2, PlusCircle, RefreshCw, Download, LineChart } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useLanguage } from '@/components/language-provider';
 
 interface BrandData {
   id: string;
@@ -30,7 +29,6 @@ interface ResultData extends BrandData {
 const initialRows = 3;
 
 export function FeedComparisonCalculator() {
-  const { t } = useLanguage();
   const [bagWeight, setBagWeight] = useState(50);
   const [brands, setBrands] = useState<BrandData[]>([]);
   const [results, setResults] = useState<ResultData[] | null>(null);
@@ -226,7 +224,7 @@ export function FeedComparisonCalculator() {
                     <Alert>
                         <AlertTitle>🌟 Tip</AlertTitle>
                         <AlertDescription className="text-xs">
-                           {t('language') === 'hi' ? 'कीमत के साथ साथ Protein% और Observed FCR का भी मिलान करें। सस्ते फीड का मतलब हमेशा कम लागत नहीं होता अगर FCR खराब हो।' : 'Compare Protein % and Observed FCR along with the price. Cheaper feed doesn\'t always mean lower cost if the FCR is poor.'}
+                           Compare Protein % and Observed FCR along with the price. Cheaper feed doesn't always mean lower cost if the FCR is poor.
                         </AlertDescription>
                     </Alert>
                 </div>
