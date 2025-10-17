@@ -23,6 +23,7 @@ import {
   GitCompareArrows,
   Egg,
   Bird,
+  Zap,
 } from 'lucide-react';
 import { AppIcon } from './icon-component';
 import { ThemeToggle } from '@/components/theme-toggle';
@@ -228,7 +229,7 @@ export default function LandingPage() {
         </section>
 
         <section id="interactive-tools" className="bg-secondary py-16 lg:py-24">
-            <div className="container mx-auto max-w-7xl">
+            <div className="container">
                  <div className="mx-auto flex max-w-[58rem] flex-col items-center space-y-4 text-center mb-12">
                     <h2 className="font-headline text-3xl font-bold leading-[1.1] sm:text-3xl md:text-5xl">
                        Free Poultry Tools
