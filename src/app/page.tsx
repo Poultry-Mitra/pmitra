@@ -1,4 +1,3 @@
-
 // src/app/page.tsx
 "use client";
 
@@ -26,7 +25,7 @@ import {
 } from 'lucide-react';
 import { AppIcon } from './icon-component';
 import { ThemeToggle } from '@/components/theme-toggle';
-import { LanguageToggle } from '@/components/language-provider';
+import { LanguageToggle } from '@/components/language-toggle';
 import { useLanguage } from '@/components/language-provider';
 import { useAuth } from '@/firebase/provider';
 import { Skeleton } from '@/components/ui/skeleton';

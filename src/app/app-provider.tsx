@@ -24,7 +24,7 @@ export function useAppUser() {
   return context;
 }
 
-const PUBLIC_PATHS = ['/login', '/signup', '/blog', '/privacy', '/terms', '/tools', '/diagnose-health', '/pricing'];
+const PUBLIC_PATHS = ['/login', '/signup', '/blog', '/privacy', '/terms', '/tools'];
 
 const getRedirectPath = (role?: UserRole | null) => {
   if (!role) return '/login';
@@ -41,6 +41,8 @@ const getRoleFromPath = (path: string): UserRole | 'public' | 'none' => {
     }
     if (path.startsWith('/admin')) return 'admin';
     if (path.startsWith('/dealer')) return 'dealer';
+    // Any other path inside the app is considered a farmer path for now.
+    // This is a simplification. A more robust solution might involve a more explicit mapping.
     if (path.startsWith('/dashboard') || path.startsWith('/batches') || path.startsWith('/ledger') || path.startsWith('/inventory') || path.startsWith('/dealers') || path.startsWith('/monitoring') || path.startsWith('/feed-recommendation') || path.startsWith('/pricing') || path.startsWith('/profile') || path.startsWith('/analytics') || path.startsWith('/biosecurity') || path.startsWith('/chat')) {
         return 'farmer';
     }
