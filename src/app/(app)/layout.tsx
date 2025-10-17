@@ -33,7 +33,7 @@ function AuthWall({ children }: { children: React.ReactNode }) {
 }
 
 
-export default function MainAppLayout({ children }: { children: React.ReactNode }) {
+export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
       <AppProvider>
         <AuthWall>

@@ -1,4 +1,4 @@
-// src/app/(public)/tools/fcr-calculator/page.tsx
+// src/app/tools/fcr-calculator/page.tsx
 "use client";
 
 import { useState } from 'react';
@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/tooltip"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { cn } from '@/lib/utils';
-import { PageHeader } from '@/app/(public)/_components/page-header';
+import { PageHeader } from '@/app/_components/page-header';
 
 export default function FcrCalculatorPage() {
   const [weightGain, setWeightGain] = useState('');

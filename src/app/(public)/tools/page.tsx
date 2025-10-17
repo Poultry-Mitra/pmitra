@@ -12,7 +12,7 @@ import {
   LineChart,
   Egg,
 } from 'lucide-react';
-import { PageHeader } from '@/app/_components/page-header';
+import { PageHeader } from '@/app/(public)/_components/page-header';
 
 export default function ToolsPage() {
   return (

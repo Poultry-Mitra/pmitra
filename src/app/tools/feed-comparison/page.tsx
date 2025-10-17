@@ -1,7 +1,7 @@
-// src/app/(public)/tools/feed-comparison/page.tsx
+// src/app/tools/feed-comparison/page.tsx
 "use client";
 
-import { PageHeader } from "@/app/(public)/_components/page-header";
+import { PageHeader } from "@/app/_components/page-header";
 import { FeedComparisonCalculator } from "@/app/_components/feed-comparison-calculator";
 
 export default function FeedComparisonPage() {

@@ -1,4 +1,4 @@
-// src/app/(public)/tools/page.tsx
+// src/app/tools/page.tsx
 "use client";
 
 import Link from 'next/link';
@@ -10,6 +10,7 @@ import {
   Calculator,
   Droplet,
   LineChart,
+  Egg,
 } from 'lucide-react';
 import { PageHeader } from '@/app/_components/page-header';
 
@@ -26,26 +27,6 @@ export default function ToolsPage() {
             </p>
         </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-start mt-12">
-        <Card className="h-full flex flex-col hover:border-primary transition-colors">
-            <CardHeader>
-                <Heart className="size-8 text-destructive" />
-                <CardTitle className="font-headline text-xl pt-2">AI Health Diagnosis</CardTitle>
-                <CardDescription>Worried about a sick bird? Get an AI-powered diagnosis.</CardDescription>
-            </CardHeader>
-             <CardContent className="flex-1">
-                 <ul className="list-disc space-y-2 pl-5 text-sm text-muted-foreground">
-                    <li>Select symptoms from a comprehensive list.</li>
-                    <li>Upload a photo for more accurate analysis.</li>
-                    <li>Get instant, AI-powered disease possibilities.</li>
-                </ul>
-            </CardContent>
-            <CardFooter>
-                <Button className="w-full" asChild>
-                    <Link href="/tools/diagnose-health">Use Tool</Link>
-                </Button>
-            </CardFooter>
-        </Card>
-        
         <Card className="h-full flex flex-col hover:border-primary transition-colors">
             <CardHeader>
                 <Calculator className="size-8 text-primary" />
@@ -102,6 +83,46 @@ export default function ToolsPage() {
             <CardFooter>
                 <Button className="w-full" asChild>
                     <Link href="/tools/feed-comparison">Use Tool</Link>
+                </Button>
+            </CardFooter>
+        </Card>
+
+         <Card className="h-full flex flex-col hover:border-primary transition-colors">
+            <CardHeader>
+                <Egg className="size-8 text-primary" />
+                <CardTitle className="font-headline text-xl pt-2">Layer Feed Consumption</CardTitle>
+                <CardDescription>Estimate total feed required for your layer birds over a period.</CardDescription>
+            </CardHeader>
+            <CardContent className="flex-1">
+                <ul className="list-disc space-y-2 pl-5 text-sm text-muted-foreground">
+                    <li>Calculate total feed for growing phase.</li>
+                    <li>Estimate feed for the entire laying period.</li>
+                    <li>Plan your purchases in advance.</li>
+                </ul>
+            </CardContent>
+            <CardFooter>
+                <Button className="w-full" asChild>
+                    <Link href="/tools/layer-feed-consumption">Use Tool</Link>
+                </Button>
+            </CardFooter>
+        </Card>
+
+        <Card className="h-full flex flex-col hover:border-primary transition-colors">
+            <CardHeader>
+                <Egg className="size-8 text-primary" />
+                <CardTitle className="font-headline text-xl pt-2">Per Egg Feed Cost</CardTitle>
+                <CardDescription>Calculate the feed cost to produce a single egg.</CardDescription>
+            </CardHeader>
+            <CardContent className="flex-1">
+                <ul className="list-disc space-y-2 pl-5 text-sm text-muted-foreground">
+                    <li>Input daily feed intake and cost.</li>
+                    <li>Factor in your flock's production percentage.</li>
+                    <li>Find out the exact feed cost per egg.</li>
+                </ul>
+            </CardContent>
+            <CardFooter>
+                <Button className="w-full" asChild>
+                    <Link href="/tools/per-egg-cost">Use Tool</Link>
                 </Button>
             </CardFooter>
         </Card>

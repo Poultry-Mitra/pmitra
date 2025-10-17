@@ -1,4 +1,4 @@
-// src/app/(public)/tools/layer-feed-consumption/page.tsx
+// src/app/tools/layer-feed-consumption/page.tsx
 "use client";
 
 import { useState } from 'react';
@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Separator } from '@/components/ui/separator';
 import { Bird } from 'lucide-react';
-import { PageHeader } from '@/app/(public)/_components/page-header';
+import { PageHeader } from '@/app/_components/page-header';
 
 export default function LayerFeedConsumptionPage() {
   const [inputs, setInputs] = useState({

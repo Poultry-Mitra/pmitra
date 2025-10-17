@@ -1,4 +1,3 @@
-
 // src/app/page.tsx
 "use client";
 
@@ -16,11 +15,9 @@ import {
   Twitter,
   Facebook,
   Linkedin,
-  Heart,
   Calculator,
   Droplet,
   LineChart,
-  Wrench,
   CheckCircle,
   Zap,
   Egg,
@@ -35,7 +32,7 @@ import { signOut } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import { useAppUser } from '@/app/app-provider';
 import { Input } from '@/components/ui/input';
-import { PageHeader } from '@/app/_components/page-header';
+import { PageHeader } from '@/app/(public)/_components/page-header';
 
 export default function LandingPage() {
   const { t } = useLanguage();

@@ -1,4 +1,4 @@
-// src/app/(public)/tools/broiler-calculator/page.tsx
+// src/app/tools/broiler-calculator/page.tsx
 "use client";
 
 import { useState, useMemo, useCallback }from 'react';
@@ -11,7 +11,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
 import { Calculator, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { PageHeader } from '@/app/(public)/_components/page-header';
+import { PageHeader } from '@/app/_components/page-header';
 
 const initialState = {
   chicks: 1000,
