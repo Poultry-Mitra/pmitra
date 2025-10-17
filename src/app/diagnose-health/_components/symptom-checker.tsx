@@ -36,7 +36,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const formSchema = z.object({
   symptoms: z.array(z.string()).min(1, "Please select at least one symptom."),
-  flockAgeWeeks: z.coerce.number().int().min(0, "Age must be a non-negative number."),
+  flockAgeDays: z.coerce.number().int().min(0, "Age must be a non-negative number."),
   photoDataUri: z.string().optional(),
 });
 
@@ -92,7 +92,7 @@ export function SymptomChecker() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       symptoms: [],
-      flockAgeWeeks: 4,
+      flockAgeDays: 28,
       photoDataUri: "",
     },
   });
@@ -137,13 +137,13 @@ export function SymptomChecker() {
     setDiagnosis(null);
     setChatMessages([]);
     try {
-      const result = await diagnoseChickenHealth({symptoms: values.symptoms.join(', '), flockAgeWeeks: values.flockAgeWeeks, photoDataUri: values.photoDataUri});
+      const result = await diagnoseChickenHealth({symptoms: values.symptoms.join(', '), flockAgeDays: values.flockAgeDays, photoDataUri: values.photoDataUri});
       setDiagnosis(result);
       setChatMessages([{id: '0', text: "What other questions do you have about this diagnosis?", sender: 'ai'}]);
     } catch (error) {
       console.error("Failed to get diagnosis:", error);
       // Fallback to local diagnosis on AI failure
-      const fallbackDiagnosis = localDiagnosis({ symptoms: values.symptoms.join(', '), flockAgeWeeks: values.flockAgeWeeks });
+      const fallbackDiagnosis = localDiagnosis({ symptoms: values.symptoms.join(', '), flockAgeDays: values.flockAgeDays });
       setDiagnosis(fallbackDiagnosis);
       setChatMessages([{id: '0', text: "AI is currently unavailable, this is a basic diagnosis. What questions do you have?", sender: 'ai'}]);
     } finally {
@@ -214,8 +214,8 @@ export function SymptomChecker() {
                         <FormField control={form.control} name="symptoms" render={() => <FormMessage />} />
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
-                            <FormField control={form.control} name="flockAgeWeeks" render={({ field }) => (
-                                <FormItem><FormLabel>Flock Age (in weeks)</FormLabel><FormControl><Input type="number" placeholder="e.g. 4" {...field} /></FormControl><FormMessage /></FormItem>
+                            <FormField control={form.control} name="flockAgeDays" render={({ field }) => (
+                                <FormItem><FormLabel>Flock Age (in days)</FormLabel><FormControl><Input type="number" placeholder="e.g. 28" {...field} /></FormControl><FormMessage /></FormItem>
                             )} />
                              <FormField control={form.control} name="photoDataUri" render={() => (
                                 <FormItem>

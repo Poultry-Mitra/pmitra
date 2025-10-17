@@ -12,7 +12,7 @@ import {z} from 'genkit';
 
 const DiagnoseChickenHealthInputSchema = z.object({
   symptoms: z.string().describe('A comma-separated string of symptoms observed in the chicken(s), such as bloody diarrhea, ruffled feathers, paralysis, coughing, sneezing, etc.'),
-  flockAgeWeeks: z.number().int().describe('The age of the flock in weeks.'),
+  flockAgeDays: z.number().int().describe('The age of the flock in days.'),
   photoDataUri: z.string().optional().describe("A photo of the sick chicken or its droppings, as a data URI. Format: 'data:<mimetype>;base64,<encoded_data>'."),
 });
 export type DiagnoseChickenHealthInput = z.infer<typeof DiagnoseChickenHealthInputSchema>;
@@ -41,7 +41,7 @@ export type DiagnoseChickenHealthOutput = z.infer<typeof DiagnoseChickenHealthOu
 const promptTemplate = `You are a specialized poultry veterinarian AI named Chickrate AI. Your primary audience is small to medium-scale poultry farmers in Bihar, India. Your task is to diagnose potential diseases in a chicken flock based on the information provided by a farmer. Your response MUST be in the specified JSON format.
 
 Analyze the following data carefully:
-- Flock Age: {{{flockAgeWeeks}}} weeks
+- Flock Age: {{{flockAgeDays}}} days
 - Observed Symptoms: {{{symptoms}}}
 {{#if photoDataUri}}
 - Photo Evidence: {{media url=photoDataUri}}
@@ -57,7 +57,7 @@ Based on this information, provide a detailed diagnosis. Your response MUST be i
 
 4.  **biharSpecificAdvice**: Provide a crucial piece of advice specifically for farmers in Bihar. This could be about a locally available medicine (e.g., "Amprolium Bihar ki dawai ki dukano mein asaani se mil jaati hai"), a government scheme, or a regional climate consideration. THIS MUST BE IN HINDI.
 
-Prioritize common diseases and consider the flock's age. For example, Gumboro is common in young chicks. Coccidiosis is linked to bloody diarrhea. Provide clear, concise, and practical advice.`;
+Prioritize common diseases and consider the flock's age. For example, Gumboro is common in young chicks (21-42 days). Coccidiosis is linked to bloody diarrhea. Provide clear, concise, and practical advice.`;
 
 
 const diagnosePrompt = ai.definePrompt({

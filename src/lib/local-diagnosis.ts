@@ -3,7 +3,7 @@ import type { DiagnoseChickenHealthInput, DiagnoseChickenHealthOutput } from '@/
 
 // A very basic, rule-based local diagnosis engine as a fallback.
 export function localDiagnosis(input: DiagnoseChickenHealthInput): DiagnoseChickenHealthOutput {
-  const { symptoms, flockAgeWeeks } = input;
+  const { symptoms, flockAgeDays } = input;
   const symptomSet = new Set(symptoms.toLowerCase().split(',').map(s => s.trim()));
 
   const output: DiagnoseChickenHealthOutput = {
@@ -45,7 +45,7 @@ export function localDiagnosis(input: DiagnoseChickenHealthInput): DiagnoseChick
   }
 
   // Rule 2: Gumboro (IBD)
-  if (symptomSet.has("white/chalky diarrhea") && flockAgeWeeks >= 3 && flockAgeWeeks <= 7) {
+  if (symptomSet.has("white/chalky diarrhea") && flockAgeDays >= 21 && flockAgeDays <= 49) {
     output.possibleDiseases.push({
       name: "Gumboro (Infectious Bursal Disease)",
       likelihood: "Medium",
