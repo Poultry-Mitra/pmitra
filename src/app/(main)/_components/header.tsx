@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useState } from 'react';
@@ -78,7 +77,7 @@ export function AppHeader() {
                 </Link>
             </Button>
             <Button variant="ghost" size="icon" className="rounded-full" asChild>
-                <Link href="/tools/diagnose-health">
+                <Link href="/diagnose-health">
                     <Stethoscope className="size-5" />
                     <span className="sr-only">Diagnose</span>
                 </Link>
@@ -136,3 +135,5 @@ export function AppHeader() {
     </>
   );
 }
+
+    
