@@ -38,7 +38,12 @@ export default function ToolsPage() {
                 </div>
             </CardHeader>
             <CardContent className="flex-1">
-                <Image src="https://picsum.photos/seed/chick/600/400" alt="Sick chicken diagnosis" width={600} height={400} className="rounded-lg object-cover" data-ai-hint="sick chicken" />
+                 <ul className="list-disc space-y-2 pl-5 text-sm text-muted-foreground">
+                    <li>Select symptoms from a comprehensive list.</li>
+                    <li>Upload a photo for more accurate analysis.</li>
+                    <li>Get instant, AI-powered disease possibilities.</li>
+                    <li>Receive a practical treatment and prevention plan.</li>
+                </ul>
             </CardContent>
             <CardFooter>
                 <Button size="lg" className="w-full" asChild>

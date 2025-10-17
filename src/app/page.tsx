@@ -253,7 +253,12 @@ export default function LandingPage() {
                             </div>
                         </CardHeader>
                         <CardContent className="flex-1">
-                            <Image src="https://picsum.photos/seed/chick/600/400" alt="Sick chicken diagnosis" width={600} height={400} className="rounded-lg object-cover" data-ai-hint="sick chicken" />
+                             <ul className="list-disc space-y-2 pl-5 text-sm text-muted-foreground">
+                                <li>Select symptoms from a comprehensive list.</li>
+                                <li>Upload a photo for more accurate analysis.</li>
+                                <li>Get instant, AI-powered disease possibilities.</li>
+                                <li>Receive a practical treatment and prevention plan.</li>
+                            </ul>
                         </CardContent>
                         <CardFooter>
                             <Button size="lg" className="w-full" asChild>
@@ -273,7 +278,12 @@ export default function LandingPage() {
                             </div>
                         </CardHeader>
                         <CardContent className="flex-1">
-                             <Image src="https://picsum.photos/seed/calculator/600/400" alt="Calculator" width={600} height={400} className="rounded-lg object-cover" data-ai-hint="calculator charts" />
+                             <ul className="list-disc space-y-2 pl-5 text-sm text-muted-foreground">
+                                <li>Plan your feed requirements (Starter, Grower, Finisher).</li>
+                                <li>Estimate costs for chicks, feed, and other expenses.</li>
+                                <li>Forecast your potential income based on market rates.</li>
+                                <li>Instantly see your estimated profit for the entire batch.</li>
+                            </ul>
                         </CardContent>
                         <CardFooter>
                             <Button size="lg" className="w-full" asChild>
@@ -293,7 +303,12 @@ export default function LandingPage() {
                             </div>
                         </CardHeader>
                         <CardContent className="flex-1">
-                             <Image src="https://picsum.photos/seed/fcr/600/400" alt="Feed conversion ratio" width={600} height={400} className="rounded-lg object-cover" data-ai-hint="chicken feed" />
+                             <ul className="list-disc space-y-2 pl-5 text-sm text-muted-foreground">
+                                <li>Enter your total weight gain and feed consumed.</li>
+                                <li>Input feed as total kilograms or by number of bags.</li>
+                                <li>Get an instant FCR value to measure your farm's efficiency.</li>
+                                <li>Lower FCR indicates better performance.</li>
+                            </ul>
                         </CardContent>
                         <CardFooter>
                             <Button size="lg" className="w-full" asChild>
