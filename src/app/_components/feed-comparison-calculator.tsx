@@ -1,3 +1,4 @@
+
 // src/app/_components/feed-comparison-calculator.tsx
 "use client";
 
@@ -11,7 +12,6 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { HelpCircle, Trash2, PlusCircle, RefreshCw, Download, LineChart } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useLanguage } from '@/components/language-provider';
 
 interface BrandData {
   id: string;
