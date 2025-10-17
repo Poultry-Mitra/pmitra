@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import Link from 'next/link';
@@ -25,7 +26,7 @@ import {
 } from 'lucide-react';
 import { AppIcon } from './icon-component';
 import { ThemeToggle } from '@/components/theme-toggle';
-import { LanguageToggle } from '@/components/language-toggle';
+import { LanguageToggle } from '@/components/language-provider';
 import { useLanguage } from '@/components/language-provider';
 import { useAuth } from '@/firebase/provider';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -34,6 +35,7 @@ import { useRouter } from 'next/navigation';
 import { useAppUser } from '@/app/app-provider';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
+import { BroilerCalculator } from '@/app/_components/broiler-calculator';
 
 
 export default function LandingPage() {
@@ -289,6 +291,12 @@ export default function LandingPage() {
                      </div>
                 </div>
             </div>
+        </section>
+
+        <section id="calculator" className="container py-16 md:py-20 lg:py-24">
+          <div className="mx-auto max-w-4xl">
+             <BroilerCalculator />
+          </div>
         </section>
 
         <section id="features" className="container space-y-12 py-16 md:py-20 lg:py-24">
