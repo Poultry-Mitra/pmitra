@@ -25,6 +25,7 @@ import {
   Bird,
   Zap,
   CheckCircle,
+  Wrench,
 } from 'lucide-react';
 import { AppIcon } from './icon-component';
 import { ThemeToggle } from '@/components/theme-toggle';
@@ -36,7 +37,7 @@ import { signOut } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import { useAppUser } from '@/app/app-provider';
 import { Input } from '@/components/ui/input';
-import { PageHeader } from '@/app/admin/_components/page-header';
+import { PageHeader } from './admin/_components/page-header';
 
 export default function LandingPage() {
   const { t } = useLanguage();
@@ -522,5 +523,9 @@ export default function LandingPage() {
     </div>
   );
 }
+
+    
+
+    
 
     
