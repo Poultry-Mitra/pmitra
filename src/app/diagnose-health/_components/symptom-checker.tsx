@@ -29,7 +29,7 @@ import { AppIcon } from '@/app/icon-component';
 import { Avatar } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { localDiagnosis } from '@/lib/local-diagnosis';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recharts';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
@@ -263,70 +263,72 @@ export function SymptomChecker() {
                                 <AlertTriangle className="h-4 w-4" />
                                 <AlertDescription>यह एआई-जनित निदान है। गंभीर स्वास्थ्य संबंधी चिंताओं के लिए हमेशा एक योग्य पशु चिकित्सक से सलाह लें।</AlertDescription>
                             </Alert>
-                             <Tabs defaultValue="en" onValueChange={(val) => setResultLang(val as 'en' | 'hi')}>
+                             
+                            <Tabs defaultValue="en" onValueChange={(val) => setResultLang(val as 'en' | 'hi')} className="w-full">
                                 <TabsList className="grid w-full grid-cols-2">
                                     <TabsTrigger value="en">English</TabsTrigger>
                                     <TabsTrigger value="hi">हिन्दी</TabsTrigger>
                                 </TabsList>
-                            </Tabs>
-
-                            <TabsContent value={resultLang} forceMount={true} hidden={resultLang !== 'en'}>
-                                <div className="space-y-6">
-                                    <Card>
-                                        <CardHeader><CardTitle>Possible Diseases</CardTitle></CardHeader>
-                                        <CardContent>
-                                            <ResponsiveContainer width="100%" height={120}>
-                                                <BarChart data={chartData} layout="vertical" margin={{ left: 10, right: 10 }}>
-                                                    <XAxis type="number" hide />
-                                                    <YAxis type="category" dataKey="name" width={100} tickLine={false} axisLine={false} fontSize={12} />
-                                                    <Tooltip cursor={{ fill: 'hsl(var(--secondary))' }} contentStyle={{ backgroundColor: 'hsl(var(--background))' }} />
-                                                    <Bar dataKey="likelihood" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
-                                                </BarChart>
-                                            </ResponsiveContainer>
-                                             {diagnosis.possibleDiseases.map(disease => (
-                                                <div key={disease.name} className="mt-4">
-                                                    <div className="flex justify-between items-start">
-                                                        <h4 className="font-medium">{disease.name}</h4>
-                                                        <LikelihoodBadge likelihood={disease.likelihood} />
+                                
+                                <TabsContent value="en">
+                                    <div className="space-y-6 mt-4">
+                                        <Card>
+                                            <CardHeader><CardTitle>Possible Diseases</CardTitle></CardHeader>
+                                            <CardContent>
+                                                <ResponsiveContainer width="100%" height={120}>
+                                                    <BarChart data={chartData} layout="vertical" margin={{ left: 10, right: 10 }}>
+                                                        <XAxis type="number" hide />
+                                                        <YAxis type="category" dataKey="name" width={100} tickLine={false} axisLine={false} fontSize={12} />
+                                                        <Tooltip cursor={{ fill: 'hsl(var(--secondary))' }} contentStyle={{ backgroundColor: 'hsl(var(--background))' }} />
+                                                        <Bar dataKey="likelihood" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
+                                                    </BarChart>
+                                                </ResponsiveContainer>
+                                                {diagnosis.possibleDiseases.map(disease => (
+                                                    <div key={disease.name} className="mt-4">
+                                                        <div className="flex justify-between items-start">
+                                                            <h4 className="font-medium">{disease.name}</h4>
+                                                            <LikelihoodBadge likelihood={disease.likelihood} />
+                                                        </div>
+                                                        <p className="text-muted-foreground mt-1 text-xs">{disease.reasoning}</p>
                                                     </div>
-                                                    <p className="text-muted-foreground mt-1 text-xs">{disease.reasoning}</p>
+                                                ))}
+                                            </CardContent>
+                                        </Card>
+
+                                        <Card>
+                                            <CardHeader><CardTitle>Treatment Plan</CardTitle></CardHeader>
+                                            <CardContent className="space-y-4">
+                                            {diagnosis.treatmentPlan.map((step, index) => (
+                                                <div key={index} className="flex items-start gap-3">
+                                                    <div className="flex-shrink-0"><TreatmentStepIcon stepTitle={step.step}/></div>
+                                                    <div>
+                                                        <strong className="font-medium">{step.step}</strong>
+                                                        <p className="text-muted-foreground text-xs">{step.details}</p>
+                                                    </div>
                                                 </div>
                                             ))}
-                                        </CardContent>
-                                    </Card>
+                                            </CardContent>
+                                        </Card>
 
-                                    <Card>
-                                        <CardHeader><CardTitle>Treatment Plan</CardTitle></CardHeader>
-                                        <CardContent className="space-y-4">
-                                          {diagnosis.treatmentPlan.map((step, index) => (
-                                            <div key={index} className="flex items-start gap-3">
-                                                <div className="flex-shrink-0"><TreatmentStepIcon stepTitle={step.step}/></div>
-                                                <div>
-                                                    <strong className="font-medium">{step.step}</strong>
-                                                    <p className="text-muted-foreground text-xs">{step.details}</p>
-                                                </div>
-                                            </div>
-                                          ))}
-                                        </CardContent>
-                                    </Card>
+                                        <Card>
+                                            <CardHeader><CardTitle>Preventative Measures</CardTitle></CardHeader>
+                                            <CardContent>
+                                                <ul className="list-disc list-inside space-y-1 text-xs text-muted-foreground">
+                                                    {diagnosis.preventativeMeasures.map((measure, index) => <li key={index}>{measure}</li>)}
+                                                </ul>
+                                            </CardContent>
+                                        </Card>
+                                    </div>
+                                </TabsContent>
 
-                                    <Card>
-                                        <CardHeader><CardTitle>Preventative Measures</CardTitle></CardHeader>
-                                        <CardContent>
-                                            <ul className="list-disc list-inside space-y-1 text-xs text-muted-foreground">
-                                                {diagnosis.preventativeMeasures.map((measure, index) => <li key={index}>{measure}</li>)}
-                                            </ul>
-                                        </CardContent>
-                                    </Card>
-                                </div>
-                            </TabsContent>
-
-                            <TabsContent value={resultLang} forceMount={true} hidden={resultLang !== 'hi'}>
-                               <div className="rounded-md border bg-blue-500/10 border-blue-500/30 p-4">
-                                    <h3 className="font-headline font-semibold text-blue-800 dark:text-blue-300 mb-2">बिहार के लिए विशेष सलाह</h3>
-                                    <p className="text-sm text-blue-700 dark:text-blue-400">{diagnosis.biharSpecificAdvice}</p>
-                                </div>
-                            </TabsContent>
+                                <TabsContent value="hi">
+                                <div className="rounded-md border bg-blue-500/10 border-blue-500/30 p-4 mt-4">
+                                        <h3 className="font-headline font-semibold text-blue-800 dark:text-blue-300 mb-2">बिहार के लिए विशेष सलाह</h3>
+                                        <p className="text-sm text-blue-700 dark:text-blue-400">{diagnosis.biharSpecificAdvice}</p>
+                                    </div>
+                                </TabsContent>
+                            </Tabs>
+                            
 
                             <Separator />
 
