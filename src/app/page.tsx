@@ -3,7 +3,6 @@
 "use client";
 
 import Link from 'next/link';
-import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -225,7 +224,7 @@ export default function LandingPage() {
                 <Link href={getStartedHref()}>{t('hero.get_started')}</Link>
               </Button>
               <Button size="lg" variant="outline" asChild>
-                <Link href="#features">{t('hero.watch_demo')}</Link>
+                <Link href="#how-it-works">{t('hero.watch_demo')}</Link>
               </Button>
             </div>
           </div>
@@ -241,7 +240,7 @@ export default function LandingPage() {
                         Use our free calculators and AI tools to make smarter decisions for your farm.
                     </p>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-start">
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
                     <Card className="h-full flex flex-col">
                         <CardHeader>
                             <div className="flex items-center gap-2">
@@ -267,55 +266,34 @@ export default function LandingPage() {
                         </CardFooter>
                     </Card>
 
-                    <Card className="h-full flex flex-col">
-                        <CardHeader>
-                            <div className="flex items-center gap-2">
-                                <Calculator className="size-8 text-primary" />
-                                <div>
-                                    <CardTitle className="font-headline text-2xl">Broiler Farm Calculator</CardTitle>
-                                    <CardDescription>Estimate costs and profits for a broiler cycle.</CardDescription>
+                    {isAppLoading ? (
+                        <Skeleton className="h-full w-full min-h-[400px]" />
+                    ) : appUser ? (
+                       <BroilerCalculator />
+                    ) : (
+                        <Card className="h-full flex flex-col items-center justify-center text-center">
+                             <CardHeader>
+                                <div className="flex items-center gap-2 mx-auto">
+                                    <Calculator className="size-8 text-primary" />
+                                    <div>
+                                        <CardTitle className="font-headline text-2xl">Broiler Farm Calculator</CardTitle>
+                                    </div>
                                 </div>
-                            </div>
-                        </CardHeader>
-                        <CardContent className="flex-1">
-                             <ul className="list-disc space-y-2 pl-5 text-sm text-muted-foreground">
-                                <li>Plan your feed requirements (Starter, Grower, Finisher).</li>
-                                <li>Estimate costs for chicks, feed, and other expenses.</li>
-                                <li>Forecast your potential income based on market rates.</li>
-                                <li>Instantly see your estimated profit for the entire batch.</li>
-                            </ul>
-                        </CardContent>
-                        <CardFooter>
-                            <Button size="lg" className="w-full" asChild>
-                                <Link href="/tools">Use Broiler Calculator</Link>
-                            </Button>
-                        </CardFooter>
-                    </Card>
-
-                     <Card className="h-full flex flex-col">
-                        <CardHeader>
-                            <div className="flex items-center gap-2">
-                                <Droplet className="size-8 text-blue-500" />
-                                <div>
-                                    <CardTitle className="font-headline text-2xl">FCR Calculator</CardTitle>
-                                    <CardDescription>Quickly calculate your Feed Conversion Ratio.</CardDescription>
-                                </div>
-                            </div>
-                        </CardHeader>
-                        <CardContent className="flex-1">
-                             <ul className="list-disc space-y-2 pl-5 text-sm text-muted-foreground">
-                                <li>Enter your total weight gain and feed consumed.</li>
-                                <li>Input feed as total kilograms or by number of bags.</li>
-                                <li>Get an instant FCR value to measure your farm's efficiency.</li>
-                                <li>Lower FCR indicates better performance.</li>
-                            </ul>
-                        </CardContent>
-                        <CardFooter>
-                            <Button size="lg" className="w-full" asChild>
-                                <Link href="/tools">Calculate FCR</Link>
-                            </Button>
-                        </CardFooter>
-                    </Card>
+                                 <CardDescription>Estimate your costs and profits for a 45-day broiler cycle. Login to use this feature.</CardDescription>
+                            </CardHeader>
+                            <CardContent className="flex-1">
+                                <p className="text-muted-foreground">This tool helps you plan your expenses and predict your earnings. To get started, please log in or create an account.</p>
+                            </CardContent>
+                            <CardFooter className="w-full grid grid-cols-2 gap-4">
+                                 <Button size="lg" className="w-full" asChild>
+                                    <Link href="/login">Login to Use</Link>
+                                </Button>
+                                <Button size="lg" variant="outline" className="w-full" asChild>
+                                    <Link href="/signup">Sign up Now</Link>
+                                </Button>
+                            </CardFooter>
+                        </Card>
+                    )}
                 </div>
             </div>
         </section>
