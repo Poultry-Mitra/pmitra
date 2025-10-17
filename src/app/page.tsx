@@ -34,6 +34,9 @@ import { signOut } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import { useAppUser } from '@/app/app-provider';
 import { Input } from '@/components/ui/input';
+import { BroilerCalculator } from '@/app/_components/broiler-calculator';
+import { FcrCalculator } from '@/app/_components/fcr-calculator';
+import { FeedComparisonCalculator } from '@/app/_components/feed-comparison-calculator';
 
 export default function LandingPage() {
   const { t } = useLanguage();
@@ -394,7 +397,7 @@ export default function LandingPage() {
                             <CardHeader className="relative">
                                 {plan.isPopular && (
                                     <div className="absolute top-0 right-4 -mt-3 flex items-center gap-1 rounded-full bg-primary px-3 py-1 text-xs text-primary-foreground">
-                                        <Wrench className="size-3" /> Most Popular
+                                        <Zap className="size-3" /> Most Popular
                                     </div>
                                 )}
                                 <CardTitle className="font-headline text-xl">{plan.name}</CardTitle>
@@ -524,5 +527,3 @@ export default function LandingPage() {
     </div>
   );
 }
-
-    
