@@ -1,4 +1,4 @@
-// src/app/tools/per-egg-cost/page.tsx
+// src/app/(public)/tools/per-egg-cost/page.tsx
 "use client";
 
 import { useState } from 'react';
@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Egg } from 'lucide-react';
-import { PageHeader } from '@/app/(app)/_components/page-header';
+import { PageHeader } from '@/app/_components/page-header';
 
 export default function PerEggCostPage() {
   const [inputs, setInputs] = useState({

@@ -1,4 +1,4 @@
-// src/app/tools/fcr-calculator/page.tsx
+// src/app/(public)/tools/fcr-calculator/page.tsx
 "use client";
 
 import { useState } from 'react';

@@ -1,4 +1,4 @@
-// src/app/tools/broiler-calculator/page.tsx
+// src/app/(public)/tools/broiler-calculator/page.tsx
 "use client";
 
 import { useState, useMemo, useCallback }from 'react';

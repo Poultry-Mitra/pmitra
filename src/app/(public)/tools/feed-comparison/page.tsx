@@ -1,4 +1,4 @@
-// src/app/tools/feed-comparison/page.tsx
+// src/app/(public)/tools/feed-comparison/page.tsx
 "use client";
 
 import { PageHeader } from "@/app/_components/page-header";

@@ -1,5 +1,4 @@
-
-// src/app/(app)/diagnose-health/report/[reportId]/page.tsx
+// src/app/diagnose-health/report/[reportId]/page.tsx
 "use client";
 
 import { useParams } from 'next/navigation';
@@ -8,7 +7,7 @@ import { useFirestore, useMemoFirebase } from '@/firebase';
 import { useDoc } from '@/firebase/firestore/use-doc';
 import type { DiagnosisRecord } from '@/lib/types';
 import { Loader2, AlertTriangle, ShieldCheck, Pill, Droplet, Stethoscope } from 'lucide-react';
-import { PageHeader } from '@/app/(app)/_components/page-header';
+import { PageHeader } from '@/app/_components/page-header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -145,4 +144,3 @@ export default function DiagnosisReportPage() {
         </div>
     );
 }
-
