@@ -33,7 +33,7 @@ import { signOut } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import { useAppUser } from '@/app/app-provider';
 import { Input } from '@/components/ui/input';
-import { PageHeader } from './_components/page-header';
+import { PageHeader } from '@/app/_components/page-header';
 
 export default function LandingPage() {
   const { t } = useLanguage();
@@ -210,7 +210,7 @@ export default function LandingPage() {
                 title={t('hero.title')}
                 description={t('hero.subtitle')}
             />
-            <div className="mt-8 flex gap-4">
+            <div className="mt-8 flex justify-center gap-4">
               <Button size="lg" asChild>
                 <Link href={getStartedHref()}>{t('hero.get_started')}</Link>
               </Button>
@@ -235,7 +235,7 @@ export default function LandingPage() {
                       </CardHeader>
                       <CardFooter className="mt-auto">
                            <Button className="w-full" asChild>
-                              <Link href="/diagnose-health">Use Tool</Link>
+                              <Link href="/tools/diagnose-health">Use Tool</Link>
                           </Button>
                       </CardFooter>
                     </Card>

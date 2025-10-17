@@ -41,7 +41,7 @@ export default function ToolsPage() {
             </CardContent>
             <CardFooter>
                 <Button className="w-full" asChild>
-                    <Link href="/diagnose-health">Use Tool</Link>
+                    <Link href="/tools/diagnose-health">Use Tool</Link>
                 </Button>
             </CardFooter>
         </Card>

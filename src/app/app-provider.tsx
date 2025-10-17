@@ -24,7 +24,7 @@ export function useAppUser() {
   return context;
 }
 
-const PUBLIC_PATHS = ['/login', '/signup', '/blog', '/privacy', '/terms', '/diagnose-health'];
+const PUBLIC_PATHS = ['/login', '/signup', '/blog', '/privacy', '/terms', '/tools', '/diagnose-health', '/pricing'];
 
 const getRedirectPath = (role?: UserRole | null) => {
   if (!role) return '/login';

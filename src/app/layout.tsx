@@ -5,7 +5,7 @@ import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { ThemeProvider } from '@/components/theme-provider';
 import { LanguageProvider } from '@/components/language-provider';
-import { Inter, Noto_Sans, Hind } from 'next/font/google';
+import { Space_Grotesk, PT_Sans } from 'next/font/google';
 import { cn } from '@/lib/utils';
 import { AppProvider } from '@/app/app-provider';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
@@ -13,24 +13,15 @@ import { FirebaseProvider } from '@/firebase/provider';
 import { ChatProvider } from '@/components/chat/chat-provider';
 import { FloatingChatWidget } from '@/components/chat/floating-chat-widget';
 
-const fontInter = Inter({
+const fontSpaceGrotesk = Space_Grotesk({
   subsets: ['latin'],
-  variable: '--font-inter',
-  display: 'swap',
+  variable: '--font-space-grotesk',
 });
 
-const fontNotoSans = Noto_Sans({
+const fontPtSans = PT_Sans({
   subsets: ['latin'],
   weight: ['400', '700'],
-  variable: '--font-noto-sans',
-  display: 'swap',
-});
-
-const fontHind = Hind({
-  subsets: ['latin'],
-  weight: ['400', '500', '700'],
-  variable: '--font-hind',
-  display: 'swap',
+  variable: '--font-pt-sans',
 });
 
 
@@ -49,9 +40,8 @@ export default function RootLayout({
       <body 
         className={cn(
           "font-body antialiased",
-          fontInter.variable,
-          fontNotoSans.variable,
-          fontHind.variable
+          fontSpaceGrotesk.variable,
+          fontPtSans.variable
         )}
       >
         <LanguageProvider>

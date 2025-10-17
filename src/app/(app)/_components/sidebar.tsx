@@ -227,7 +227,7 @@ const aiNavItems = [
     { href: "/chat", icon: MessageSquare, label: "ai_chat.title" },
     { href: "/analytics", icon: AreaChart, label: "analytics.title" },
     { href: "/monitoring", icon: Signal, label: "monitoring.title" },
-    { href: "/diagnose-health", icon: Heart, label: "diagnose_health.title" },
+    { href: "/tools/diagnose-health", icon: Heart, label: "diagnose_health.title" },
     { href: "/biosecurity", icon: ShieldCheck, label: "biosecurity.title" },
     { href: "/feed-recommendation", icon: WandSparkles, label: "feed_ai.title"},
     { href: "/tools", icon: Wrench, label: "Tools" },
