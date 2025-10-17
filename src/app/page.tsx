@@ -293,11 +293,13 @@ export default function LandingPage() {
             </div>
         </section>
 
-        <section id="calculator" className="container py-16 md:py-20 lg:py-24">
-          <div className="mx-auto max-w-4xl">
-             <BroilerCalculator />
-          </div>
-        </section>
+        {appUser && (
+          <section id="calculator" className="container py-16 md:py-20 lg:py-24">
+            <div className="mx-auto max-w-4xl">
+              <BroilerCalculator />
+            </div>
+          </section>
+        )}
 
         <section id="features" className="container space-y-12 py-16 md:py-20 lg:py-24">
           <div className="mx-auto flex max-w-[58rem] flex-col items-center space-y-4 text-center">
