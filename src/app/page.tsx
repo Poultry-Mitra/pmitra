@@ -1,5 +1,4 @@
-
-
+// src/app/page.tsx
 "use client";
 
 import Link from 'next/link';
@@ -207,13 +206,10 @@ export default function LandingPage() {
       </header>
       <main className="flex-1">
         <section id="hero" className="container py-20 text-center md:py-28 lg:py-32">
-          <div className="mx-auto flex max-w-3xl flex-col items-center">
-            <h1 className="font-headline text-4xl font-bold leading-tight tracking-tighter md:text-5xl lg:text-6xl">
-              {t('hero.title')}
-            </h1>
-            <p className="mt-6 max-w-[600px] text-lg text-muted-foreground">
-              {t('hero.subtitle')}
-            </p>
+          <PageHeader
+                title={t('hero.title')}
+                description={t('hero.subtitle')}
+            />
             <div className="mt-8 flex gap-4">
               <Button size="lg" asChild>
                 <Link href={getStartedHref()}>{t('hero.get_started')}</Link>
@@ -222,15 +218,15 @@ export default function LandingPage() {
                 <Link href="#how-it-works">{t('hero.watch_demo')}</Link>
               </Button>
             </div>
-          </div>
         </section>
 
         <section id="interactive-tools" className="bg-secondary py-16 lg:py-24">
             <div className="container">
-                 <div className="mx-auto flex max-w-[58rem] flex-col items-center space-y-4 text-center mb-12">
-                    <PageHeader title="Free Poultry Tools" description="Use our free calculators and AI tools to make smarter decisions for your farm." />
-                </div>
-                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 items-start">
+                 <PageHeader
+                    title="Free Poultry Tools"
+                    description="Use our free calculators and AI tools to make smarter decisions for your farm."
+                 />
+                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-start mt-12">
                    <Card className="h-full flex flex-col hover:border-primary transition-colors">
                       <CardHeader>
                           <Heart className="size-8 text-destructive" />
@@ -267,32 +263,16 @@ export default function LandingPage() {
                           </Button>
                       </CardFooter>
                     </Card>
-                    <Card className="h-full flex flex-col hover:border-primary transition-colors">
-                      <CardHeader>
-                          <LineChart className="size-8 text-primary" />
-                          <CardTitle className="font-headline text-xl pt-2">Feed Comparison Calculator</CardTitle>
-                          <CardDescription>Compare feed brands by price and nutrition to find the best value.</CardDescription>
-                      </CardHeader>
-                      <CardFooter className="mt-auto">
-                           <Button className="w-full" asChild>
-                              <Link href="/tools/feed-comparison">Use Tool</Link>
-                          </Button>
-                      </CardFooter>
-                    </Card>
                 </div>
             </div>
         </section>
         
         <section id="how-it-works" className="py-16 lg:py-24">
             <div className="container">
-                <div className="mx-auto flex max-w-[58rem] flex-col items-center space-y-4 text-center">
-                    <h2 className="font-headline text-3xl font-bold leading-[1.1] sm:text-3xl md:text-5xl">
-                       How It Works
-                    </h2>
-                    <p className="max-w-[85%] leading-normal text-muted-foreground sm:text-lg sm:leading-7">
-                        Start optimizing your farm in three simple steps.
-                    </p>
-                </div>
+                <PageHeader
+                    title="How It Works"
+                    description="Start optimizing your farm in three simple steps."
+                />
                 <div className="relative mt-16">
                      <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-px w-2/3 bg-border -z-10 hidden md:block" aria-hidden="true"></div>
                      <div className="grid grid-cols-1 gap-12 md:grid-cols-3">
@@ -317,14 +297,10 @@ export default function LandingPage() {
         </section>
 
         <section id="features" className="container space-y-12 py-16 md:py-20 lg:py-24">
-          <div className="mx-auto flex max-w-[58rem] flex-col items-center space-y-4 text-center">
-            <h2 className="font-headline text-3xl font-bold leading-[1.1] sm:text-3xl md:text-5xl">
-              {t('features.title')}
-            </h2>
-            <p className="max-w-[85%] leading-normal text-muted-foreground sm:text-lg sm:leading-7">
-              {t('features.subtitle')}
-            </p>
-          </div>
+            <PageHeader
+                title={t('features.title')}
+                description={t('features.subtitle')}
+            />
           <div className="mx-auto grid justify-center gap-6 sm:grid-cols-2 md:max-w-[64rem] lg:grid-cols-3">
             {features.map((feature, i) => (
               <Card key={i}>
@@ -342,10 +318,10 @@ export default function LandingPage() {
 
         <section id="pricing-preview" className="bg-secondary py-16 lg:py-24">
             <div className="container">
-                <div className="mx-auto flex max-w-[58rem] flex-col items-center space-y-4 text-center">
-                    <h2 className="font-headline text-3xl font-bold leading-[1.1] sm:text-3xl md:text-5xl">{t('pricing.title')}</h2>
-                    <p className="max-w-[85%] leading-normal text-muted-foreground sm:text-lg sm:leading-7">{t('pricing.subtitle')}</p>
-                </div>
+                <PageHeader
+                    title={t('pricing.title')}
+                    description={t('pricing.subtitle')}
+                />
                 <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 lg:items-start">
                     {pricingPlans.map(plan => (
                         <Card key={plan.name} className={plan.isPopular ? "border-2 border-primary shadow-lg" : ""}>
@@ -390,10 +366,10 @@ export default function LandingPage() {
 
         <section id="testimonials" className="py-16 lg:py-24">
             <div className="container">
-                <div className="mx-auto flex max-w-[58rem] flex-col items-center space-y-4 text-center">
-                    <h2 className="font-headline text-3xl font-bold leading-[1.1] sm:text-3xl md:text-5xl">{t('testimonials.title')}</h2>
-                    <p className="max-w-[85%] leading-normal text-muted-foreground sm:text-lg sm:leading-7">{t('testimonials.subtitle')}</p>
-                </div>
+                <PageHeader
+                    title={t('testimonials.title')}
+                    description={t('testimonials.subtitle')}
+                />
                 <div className="mt-12 grid gap-8 md:grid-cols-2">
                     {testimonials.map((item, i) => (
                         <Card key={i} className="bg-secondary/50 dark:bg-card">
@@ -482,13 +458,3 @@ export default function LandingPage() {
     </div>
   );
 }
-
-    
-
-    
-
-    
-    
-
-    
-

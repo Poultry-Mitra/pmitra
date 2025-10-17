@@ -1,5 +1,3 @@
-
-
 // src/app/tools/page.tsx
 "use client";
 
@@ -27,7 +25,7 @@ export default function ToolsPage() {
                 Use our free calculators and AI tools to make smarter decisions for your farm.
             </p>
         </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 items-start mt-12">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-start mt-12">
         <Card className="h-full flex flex-col hover:border-primary transition-colors">
             <CardHeader>
                 <Heart className="size-8 text-destructive" />

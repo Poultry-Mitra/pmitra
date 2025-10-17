@@ -1,4 +1,5 @@
-
+// src/app/_components/page-header.tsx
+"use client";
 
 type PageHeaderProps = {
     title: string;
@@ -8,13 +9,15 @@ type PageHeaderProps = {
 
 export function PageHeader({ title, description, children }: PageHeaderProps) {
     return (
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div className="space-y-1">
-                <h1 className="font-headline text-2xl font-bold tracking-tight md:text-3xl">
-                    {title}
-                </h1>
-                {description && <p className="text-muted-foreground">{description}</p>}
-            </div>
+        <div className="mx-auto flex max-w-[58rem] flex-col items-center space-y-4 text-center">
+            <h1 className="font-headline text-3xl font-bold leading-[1.1] sm:text-3xl md:text-5xl">
+                {title}
+            </h1>
+            {description && (
+                <p className="max-w-[85%] leading-normal text-muted-foreground sm:text-lg sm:leading-7">
+                    {description}
+                </p>
+            )}
             {children && <div className="flex shrink-0 items-center gap-2">{children}</div>}
         </div>
     );
