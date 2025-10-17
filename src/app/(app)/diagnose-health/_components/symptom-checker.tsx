@@ -19,7 +19,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { diagnoseChickenHealth, type DiagnoseChickenHealthOutput } from '@/ai/flows/diagnose-chicken-health';
 import { siteExpert } from '@/ai/flows/site-expert';
-import { WandSparkles, Loader2, Upload, X, AlertTriangle, Send } from 'lucide-react';
+import { WandSparkles, Loader2, Upload, X, AlertTriangle, Send, HeartPulse } from 'lucide-react';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/components/language-provider';
@@ -39,12 +39,36 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-// Expanded symptom lists
-const respiratorySymptoms = ["खाँसी (Coughing)", "छींक (Sneezing)", "नाक बहना (Nasal Discharge)", "सांस फूलना (Gasping)", "घरघराहट (Rattling)"];
-const digestiveSymptoms = ["ढीला मल (Diarrhea)", "मल में खून (Bloody Droppings)", "पानी जैसा दस्त (Watery Diarrhea)", "हरा दस्त (Greenish Droppings)"];
-const neurologicalSymptoms = ["गर्दन मुड़ी होना (Twisted Neck)", "लंगड़ापन (Lameness)", "पक्षाघात (Paralysis)"];
-const physicalSymptoms = ["पंख फूलना (Ruffled Feathers)", "शरीर पर गांठें (Lumps on body)", "नीले रंग का सिर (Bluish Comb/Wattles)", "पैरों पर पपड़ी (Scaly Legs)"];
-const generalSymptoms = ["सुस्त और कमजोर (Lethargy)", "भूख कम होना (Loss of Appetite)", "वजन न बढ़ना (Poor Growth)", "अचानक मृत्यु (Sudden Death)"];
+const symptomCategories = {
+    general: {
+        title: "सामान्य और व्यवहार (General & Behavioral)",
+        symptoms: ["सुस्ती/कमजोरी (Lethargy/Weakness)", "भूख न लगना (Loss of Appetite)", "प्यास बढ़ना (Increased Thirst)", "वजन न बढ़ना (Poor Growth)", "अचानक मृत्यु (Sudden Death)", "अलग-थलग रहना (Isolation)", "असामान्य आवाजें (Unusual Noises)"]
+    },
+    respiratory: {
+        title: "श्वसन (Respiratory)",
+        symptoms: ["खाँसी (Coughing)", "छींक (Sneezing)", "घरघराहट (Rattling/Gasping)", "नाक बहना (Nasal Discharge)", "चेहरे पर सूजन (Facial Swelling)", "आँखों से पानी (Watery Eyes)"]
+    },
+    digestive: {
+        title: "पाचन और बीट (Digestive & Droppings)",
+        symptoms: ["दस्त (Diarrhea)", "खूनी दस्त (Bloody Droppings)", "सफ़ेद दस्त (White/Chalky Droppings)", "हरा दस्त (Greenish Droppings)", "पानी जैसा दस्त (Watery Droppings)", "फूला हुआ पेट (Swollen Abdomen)", "वेंट का गंदा होना (Pasting of Vent)"]
+    },
+    neurological: {
+        title: "तंत्रिका-सम्बंधित (Neurological)",
+        symptoms: ["गर्दन मुड़ी होना (Twisted Neck/Torticollis)", "लंगड़ापन (Lameness)", "पक्षाघात (Paralysis of legs/wings)", "असंतुलित चाल (Staggering/Incoordination)", "कंपन (Tremors)"]
+    },
+    legs_joints: {
+        title: "पैर और जोड़ (Legs & Joints)",
+        symptoms: ["जोड़ों में सूजन (Swollen Joints)", "पैरों पर पपड़ी (Scaly Legs)", "पैर के तलवों में घाव (Footpad Lesions/Bumblefoot)", "चलने में कठिनाई (Difficulty Walking)"]
+    },
+    head_eyes: {
+        title: "सिर और आँखें (Head & Eyes)",
+        symptoms: ["कलगी और वॉटल्स का नीला पड़ना (Cyanosis of Comb/Wattles)", "कलगी पर सफेद धब्बे (White spots on Comb)", "आँखों में झाग (Foamy Eyes)", "आँखें बंद रखना (Closed Eyes)"]
+    },
+    skin_feathers: {
+        title: "त्वचा और पंख (Skin & Feathers)",
+        symptoms: ["पंख झड़ना (Feather Loss)", "पंख फूलना (Ruffled Feathers)", "त्वचा पर घाव/गांठें (Skin Lesions/Lumps)", "एक दूसरे को नोचना (Cannibalism)"]
+    }
+};
 
 
 const LikelihoodBadge = ({ likelihood }: { likelihood: 'High' | 'Medium' | 'Low' }) => {
@@ -127,21 +151,21 @@ export function SymptomChecker() {
 
         const symptoms = values.symptoms;
 
-        if (symptoms.includes("मल में खून (Bloody Droppings)")) {
+        if (symptoms.includes("खूनी दस्त (Bloody Droppings)")) {
             disease = "कोक्सीडियोसिस (Coccidiosis)";
             likelihood = "High";
             reasoning = "मल में खून आना कोक्सीडियोसिस का एक प्रमुख लक्षण है, जो एक परजीवी संक्रमण है। (Bloody droppings are a primary symptom of Coccidiosis, a parasitic infection.)";
             treatmentPlan = [{step: "एम्प्रोलियम का प्रयोग करें (Use Amprolium)", details:"पशु चिकित्सक की सलाह के अनुसार पीने के पानी में एम्प्रोलियम मिलाएं। यह एक सामान्य और प्रभावी दवा है। (Administer Amprolium in drinking water as per veterinary advice. It's a common and effective medicine.)"}, {step: "बिस्तर बदलें (Change Litter)", details: "गीले बिस्तर को तुरंत हटा दें और नया, सूखा बिस्तर बिछाएं ताकि परजीवी का प्रसार रुक सके। (Immediately remove wet litter and replace it with fresh, dry litter to stop the spread of parasites.)"}];
             preventativeMeasures = ["बिस्तर को हमेशा सूखा रखें। (Keep the litter dry at all times.)", "कोक्सीडियोस्टैट युक्त स्टार्टर फ़ीड का उपयोग करें। (Use starter feed containing Coccidiostats.)"];
             biharSpecificAdvice = "एम्प्रोलियम या टॉल्ट्राज़ुरिल दवा बिहार की दवा दुकानों में आसानी से उपलब्ध है। (Amprolium or Toltrazuril medicine is easily available in Bihar's medicine shops.)";
-        } else if (symptoms.includes("गर्दन मुड़ी होना (Twisted Neck)")) {
+        } else if (symptoms.includes("गर्दन मुड़ी होना (Twisted Neck/Torticollis)")) {
             disease = "रानीखेत (Newcastle Disease)";
             likelihood = "High";
             reasoning = "गर्दन का मुड़ना रानीखेत रोग का एक विशिष्ट तंत्रिका-संबंधी लक्षण है। (A twisted neck is a specific neurological symptom of Newcastle Disease.)";
             treatmentPlan = [{step: "तुरंत पशु चिकित्सक से मिलें (Consult a Vet Immediately)", details: "यह एक गंभीर वायरल बीमारी है और इसके लिए पेशेवर मदद की आवश्यकता है। (This is a serious viral disease and requires professional help.)"}, {step: "बीमार मुर्गियों को अलग करें (Isolate Sick Birds)", details: "संक्रमण को फैलने से रोकने के लिए प्रभावित पक्षियों को तुरंत स्वस्थ झुंड से अलग करें। (Isolate affected birds immediately from the healthy flock to prevent the spread of infection.)"}];
             preventativeMeasures = ["समय पर 'R2B' और 'LaSota' का टीकाकरण करवाएं। (Get 'R2B' and 'LaSota' vaccinations done on time.)", "फार्म पर बाहरी लोगों का प्रवेश प्रतिबंधित करें। (Restrict entry of outsiders to the farm.)"];
             biharSpecificAdvice = "बिहार में लासोटा वैक्सीन सरकारी पशुपालन केंद्रों पर उपलब्ध है। टीकाकरण कार्यक्रम का सख्ती से पालन करें। (LaSota vaccine is available at government animal husbandry centers in Bihar. Strictly follow the vaccination schedule.)";
-        } else if (symptoms.some(s => ["खाँसी (Coughing)", "छींक (Sneezing)", "घरघराहट (Rattling)"].includes(s))) {
+        } else if (symptoms.some(s => ["खाँसी (Coughing)", "छींक (Sneezing)", "घरघराहट (Rattling/Gasping)"].includes(s))) {
             disease = "श्वसन संबंधी संक्रमण (CRD)";
             likelihood = "Medium";
             reasoning = "खांसी और छींक जैसे लक्षण क्रोनिक रेस्पिरेटरी डिजीज (CRD) का संकेत देते हैं। (Symptoms like coughing and sneezing indicate Chronic Respiratory Disease (CRD).)";
@@ -229,29 +253,26 @@ export function SymptomChecker() {
                     <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                         
-                        <div className="space-y-4">
-                            <h4 className="font-medium mb-2">श्वसन और पाचन संबंधी लक्षण</h4>
-                            <div className="flex flex-wrap gap-2">
-                                {[...respiratorySymptoms, ...digestiveSymptoms].map(s => <SymptomButton key={s} symptom={s} />)}
-                            </div>
-                        </div>
-
-                         <div className="space-y-4">
-                            <h4 className="font-medium mb-2">शारीरिक और तंत्रिका-संबंधी लक्षण</h4>
-                            <div className="flex flex-wrap gap-2">
-                                {[...physicalSymptoms, ...neurologicalSymptoms].map(s => <SymptomButton key={s} symptom={s} />)}
-                            </div>
-                        </div>
-                        
-                         <div className="space-y-4">
-                            <h4 className="font-medium mb-2">सामान्य लक्षण</h4>
-                            <div className="flex flex-wrap gap-2">
-                                {generalSymptoms.map(s => <SymptomButton key={s} symptom={s} />)}
-                            </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {Object.values(symptomCategories).map(category => (
+                                <Card key={category.title} className="flex-1">
+                                    <CardHeader className="p-4">
+                                        <CardTitle className="text-base">{category.title}</CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="p-4 pt-0">
+                                        <div className="flex flex-wrap gap-2">
+                                            {category.symptoms.map(s => <SymptomButton key={s} symptom={s} />)}
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            ))}
                         </div>
 
                         <FormField control={form.control} name="symptoms" render={() => <FormMessage />} />
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        
+                        <Separator />
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
                             <FormField control={form.control} name="flockAgeWeeks" render={({ field }) => (
                                 <FormItem><FormLabel>Flock Age (in weeks)</FormLabel><FormControl><Input type="number" placeholder="e.g. 4" {...field} /></FormControl><FormMessage /></FormItem>
                             )} />
@@ -259,7 +280,6 @@ export function SymptomChecker() {
                                 <FormItem>
                                      <FormLabel>Upload Photo (Optional)</FormLabel>
                                      <FormControl><Button type="button" variant="outline" className="w-full" onClick={() => fileInputRef.current?.click()}><Upload className="mr-2"/>Upload Image</Button></FormControl>
-                                     <Input type="file" ref={fileInputRef} className="hidden" accept="image/png, image/jpeg, image/webp" onChange={handleImageChange} />
                                      <FormDescription className="text-xs">A photo of the sick bird or its droppings can improve diagnosis.</FormDescription>
                                      <FormMessage />
                                 </FormItem>
@@ -271,8 +291,8 @@ export function SymptomChecker() {
                                 <Button type="button" variant="destructive" size="icon" className="absolute top-2 right-2 h-7 w-7" onClick={removeImage}><X className="h-4 w-4" /></Button>
                             </div>
                         )}
-                        <Button type="submit" disabled={loading} className="w-full">
-                            {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <WandSparkles className="mr-2 h-4 w-4" />}
+                        <Button type="submit" disabled={loading} className="w-full" size="lg">
+                            {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <HeartPulse className="mr-2 h-4 w-4" />}
                             {loading ? "Analyzing..." : "Get AI Diagnosis"}
                         </Button>
                     </form>
@@ -287,7 +307,7 @@ export function SymptomChecker() {
                     <CardTitle>AI Diagnosis Results</CardTitle>
                     <CardDescription>Based on the information provided. Not a substitute for professional veterinary advice.</CardDescription>
                 </CardHeader>
-                <CardContent className="min-h-[400px]">
+                <CardContent className="min-h-[600px]">
                     {loading ? (
                          <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
                             <Loader2 className="h-8 w-8 animate-spin text-primary" />
