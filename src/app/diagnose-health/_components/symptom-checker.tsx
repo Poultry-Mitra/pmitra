@@ -19,7 +19,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { diagnoseChickenHealth } from '@/ai/flows/diagnose-chicken-health';
-import type { DiagnoseChickenHealthOutput, DiagnoseChickenHealthInput, DiseasePossibility, TreatmentStep } from '@/lib/types';
+import type { DiagnoseChickenHealthOutput, DiagnoseChickenHealthInput } from '@/lib/types';
 import { siteExpert } from '@/ai/flows/site-expert';
 import { WandSparkles, Loader2, Upload, X, AlertTriangle, Send, ShieldCheck, Pill, Droplet, Stethoscope, Share2 } from 'lucide-react';
 import Image from 'next/image';
@@ -381,9 +381,48 @@ export function SymptomChecker() {
                                 </TabsContent>
 
                                 <TabsContent value="hi">
-                                <div className="rounded-md border bg-blue-500/10 border-blue-500/30 p-4 mt-4">
-                                        <h3 className="font-headline font-semibold text-blue-800 dark:text-blue-300 mb-2">बिहार के लिए विशेष सलाह</h3>
-                                        <p className="text-sm text-blue-700 dark:text-blue-400">{diagnosis.biharSpecificAdvice}</p>
+                                    <div className="space-y-6 mt-4">
+                                        <Card>
+                                            <CardHeader><CardTitle>संभावित रोग</CardTitle></CardHeader>
+                                            <CardContent>
+                                                 {diagnosis.possibleDiseases.map(disease => (
+                                                    <div key={disease.name} className="mt-4">
+                                                        <div className="flex justify-between items-start">
+                                                            <h4 className="font-medium">{disease.name}</h4>
+                                                            <LikelihoodBadge likelihood={disease.likelihood} />
+                                                        </div>
+                                                        <p className="text-muted-foreground mt-1 text-xs">{disease.reasoning}</p>
+                                                    </div>
+                                                ))}
+                                            </CardContent>
+                                        </Card>
+                                         <Card>
+                                            <CardHeader><CardTitle>इलाज योजना</CardTitle></CardHeader>
+                                            <CardContent className="space-y-4">
+                                            {diagnosis.treatmentPlan.map((step, index) => (
+                                                <div key={index} className="flex items-start gap-3">
+                                                    <div className="flex-shrink-0"><TreatmentStepIcon stepTitle={step.step}/></div>
+                                                    <div>
+                                                        <strong className="font-medium">{step.step}</strong>
+                                                        <p className="text-muted-foreground text-xs">{step.details}</p>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                            </CardContent>
+                                        </Card>
+
+                                        <Card>
+                                            <CardHeader><CardTitle>निवारक उपाय</CardTitle></CardHeader>
+                                            <CardContent>
+                                                <ul className="list-disc list-inside space-y-1 text-xs text-muted-foreground">
+                                                    {diagnosis.preventativeMeasures.map((measure, index) => <li key={index}>{measure}</li>)}
+                                                </ul>
+                                            </CardContent>
+                                        </Card>
+                                        <div className="rounded-md border bg-blue-500/10 border-blue-500/30 p-4">
+                                            <h3 className="font-headline font-semibold text-blue-800 dark:text-blue-300 mb-2">बिहार के लिए विशेष सलाह</h3>
+                                            <p className="text-sm text-blue-700 dark:text-blue-400">{diagnosis.biharSpecificAdvice}</p>
+                                        </div>
                                     </div>
                                 </TabsContent>
                             </Tabs>
