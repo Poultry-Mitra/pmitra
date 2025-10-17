@@ -13,7 +13,7 @@ import {
   Droplet,
   LineChart,
 } from 'lucide-react';
-import { PageHeader } from '@/app/(app)/_components/page-header';
+import { PageHeader } from '@/app/_components/page-header';
 
 export default function ToolsPage() {
   return (
@@ -111,5 +111,3 @@ export default function ToolsPage() {
     </div>
   );
 }
-
-    
