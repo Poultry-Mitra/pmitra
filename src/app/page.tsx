@@ -23,6 +23,7 @@ import {
   TrendingUp,
   Zap,
   Heart,
+  Calculator,
 } from 'lucide-react';
 import { AppIcon } from './icon-component';
 import { ThemeToggle } from '@/components/theme-toggle';
@@ -293,13 +294,38 @@ export default function LandingPage() {
             </div>
         </section>
 
-        {appUser && (
-          <section id="calculator" className="container py-16 md:py-20 lg:py-24">
-            <div className="mx-auto max-w-4xl">
+        <section id="calculator" className="container py-16 md:py-20 lg:py-24">
+          <div className="mx-auto max-w-4xl">
+            {appUser ? (
               <BroilerCalculator />
-            </div>
-          </section>
-        )}
+            ) : (
+              <Card className="text-center">
+                <CardHeader>
+                    <div className="flex items-center gap-2 justify-center">
+                        <Calculator className="size-8 text-primary" />
+                        <div>
+                            <CardTitle className="font-headline text-2xl">Broiler Farm Calculator</CardTitle>
+                        </div>
+                    </div>
+                  <CardDescription>Estimate your costs and profits for a 45-day broiler cycle. Login to use this feature.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground">
+                    This tool helps you plan your expenses and predict your earnings. To get started, please log in or create an account.
+                  </p>
+                </CardContent>
+                <CardFooter className="flex justify-center gap-4">
+                  <Button asChild>
+                    <Link href="/login">Login to Use</Link>
+                  </Button>
+                  <Button variant="outline" asChild>
+                    <Link href="/signup">Sign up Now</Link>
+                  </Button>
+                </CardFooter>
+              </Card>
+            )}
+          </div>
+        </section>
 
         <section id="features" className="container space-y-12 py-16 md:py-20 lg:py-24">
           <div className="mx-auto flex max-w-[58rem] flex-col items-center space-y-4 text-center">
@@ -467,5 +493,3 @@ export default function LandingPage() {
     </div>
   );
 }
-
-    
