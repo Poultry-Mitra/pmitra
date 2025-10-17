@@ -29,8 +29,8 @@ import { useRouter } from 'next/navigation';
 import { useAppUser } from '@/app/app-provider';
 import { Input } from '@/components/ui/input';
 import { BroilerCalculator } from '@/app/_components/broiler-calculator';
-import { FcrCalculator } from './_components/fcr-calculator';
-import { FeedComparisonCalculator } from './_components/feed-comparison-calculator';
+import { FcrCalculator } from '@/app/_components/fcr-calculator';
+import { FeedComparisonCalculator } from '@/app/_components/feed-comparison-calculator';
 
 
 export default function LandingPage() {
@@ -233,9 +233,35 @@ export default function LandingPage() {
                     </p>
                 </div>
                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-start">
-                    <FeedComparisonCalculator />
+                   <Card className="h-full flex flex-col">
+                        <CardHeader>
+                            <div className="flex items-center gap-2">
+                                <Heart className="size-8 text-destructive" />
+                                <div>
+                                    <CardTitle className="font-headline text-2xl">AI Health Diagnosis</CardTitle>
+                                    <CardDescription>Worried about a sick bird? Check symptoms for an AI-powered diagnosis.</CardDescription>
+                                </div>
+                            </div>
+                        </CardHeader>
+                        <CardContent className="flex-1">
+                            <ul className="list-disc space-y-2 pl-5 text-sm text-muted-foreground">
+                                <li>Select symptoms from a comprehensive list.</li>
+                                <li>Upload a photo for more accurate analysis.</li>
+                                <li>Get instant, AI-powered disease possibilities.</li>
+                                <li>Receive a practical treatment and prevention plan.</li>
+                            </ul>
+                        </CardContent>
+                        <CardFooter>
+                            <Button size="lg" className="w-full" asChild>
+                                <Link href="/diagnose">Check Flock Health Now</Link>
+                            </Button>
+                        </CardFooter>
+                    </Card>
                     <BroilerCalculator />
                     <FcrCalculator />
+                </div>
+                <div className="mt-8">
+                    <FeedComparisonCalculator />
                 </div>
             </div>
         </section>
@@ -439,5 +465,3 @@ export default function LandingPage() {
     </div>
   );
 }
-
-    
