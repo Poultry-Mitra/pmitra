@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import Link from 'next/link';
@@ -231,7 +230,7 @@ export default function LandingPage() {
         </section>
 
         <section id="interactive-tools" className="bg-secondary py-16 lg:py-24">
-            <div className="container mx-auto max-w-6xl">
+            <div className="container mx-auto max-w-7xl">
                  <div className="mx-auto flex max-w-[58rem] flex-col items-center space-y-4 text-center mb-12">
                     <h2 className="font-headline text-3xl font-bold leading-[1.1] sm:text-3xl md:text-5xl">
                        Free Poultry Tools
@@ -240,7 +239,7 @@ export default function LandingPage() {
                         Use our free calculators and AI tools to make smarter decisions for your farm.
                     </p>
                 </div>
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-start">
                     <Card className="h-full flex flex-col">
                         <CardHeader>
                             <div className="flex items-center gap-2">
@@ -294,6 +293,8 @@ export default function LandingPage() {
                             </CardFooter>
                         </Card>
                     )}
+
+                    <FcrCalculator />
                 </div>
             </div>
         </section>
