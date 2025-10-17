@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useState } from 'react';
@@ -25,7 +24,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Bell, Search, AlertTriangle, Loader2 } from 'lucide-react';
+import { Bell, Search, AlertTriangle, Loader2, Calculator, Stethoscope } from 'lucide-react';
 import { useAuth } from '@/firebase/provider';
 import { LanguageToggle } from '@/components/language-toggle';
 import { ThemeToggle } from '@/components/theme-toggle';
@@ -71,6 +70,18 @@ export function AppHeader() {
         <SidebarTrigger className="md:hidden" />
         
         <div className="ml-auto flex items-center gap-2">
+            <Button variant="ghost" size="icon" className="rounded-full" asChild>
+                <Link href="/calculator">
+                    <Calculator className="size-5" />
+                    <span className="sr-only">Calculator</span>
+                </Link>
+            </Button>
+            <Button variant="ghost" size="icon" className="rounded-full" asChild>
+                <Link href="/diagnose">
+                    <Stethoscope className="size-5" />
+                    <span className="sr-only">Diagnose</span>
+                </Link>
+            </Button>
             <LanguageToggle />
             <ThemeToggle />
             <Button variant="ghost" size="icon" className="rounded-full">

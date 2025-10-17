@@ -238,3 +238,14 @@ export type DiagnosisRecord = {
     output: DiagnoseChickenHealthOutput;
     createdAt: Timestamp;
 };
+
+export type BroilerCalculationInputs = {
+  chicks: number;
+  starterRate: number;
+  growerRate: number;
+  finisherRate: number;
+  chickCostPerUnit: number;
+  medicineCost: number;
+  otherCost: number;
+  marketPrice: number;
+};

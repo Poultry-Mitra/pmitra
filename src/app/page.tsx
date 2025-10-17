@@ -236,7 +236,7 @@ export default function LandingPage() {
                         Worried about a sick bird? Use our AI tool to check symptoms and get immediate recommendations.
                     </p>
                     <Button size="lg" className="mt-6" asChild>
-                        <Link href="/diagnose-health">
+                        <Link href="/diagnose">
                             <Heart className="mr-2"/>
                             Check Flock Health Now
                         </Link>
