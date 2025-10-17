@@ -71,7 +71,7 @@ export function AppHeader() {
         
         <div className="ml-auto flex items-center gap-2">
             <Button variant="ghost" size="icon" className="rounded-full" asChild>
-                <Link href="/calculator">
+                <Link href="/tools">
                     <Calculator className="size-5" />
                     <span className="sr-only">Calculator</span>
                 </Link>
