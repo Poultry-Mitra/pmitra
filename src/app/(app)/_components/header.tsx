@@ -77,7 +77,7 @@ export function AppHeader() {
                 </Link>
             </Button>
             <Button variant="ghost" size="icon" className="rounded-full" asChild>
-                <Link href="/diagnose">
+                <Link href="/diagnose-health">
                     <Stethoscope className="size-5" />
                     <span className="sr-only">Diagnose</span>
                 </Link>

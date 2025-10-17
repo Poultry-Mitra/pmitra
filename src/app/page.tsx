@@ -240,7 +240,7 @@ export default function LandingPage() {
                       </CardHeader>
                       <CardFooter className="mt-auto">
                            <Button className="w-full" asChild>
-                              <Link href="/diagnose">Use Tool</Link>
+                              <Link href="/diagnose-health">Use Tool</Link>
                           </Button>
                       </CardFooter>
                     </Card>
@@ -521,7 +521,3 @@ export default function LandingPage() {
     </div>
   );
 }
-
-    
-
-    
