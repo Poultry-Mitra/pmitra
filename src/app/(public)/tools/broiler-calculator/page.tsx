@@ -42,93 +42,92 @@ function reducer(state: any, action: any) {
 
 const formatCurrency = (value: number) => `₹${value.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
-// Printable Report Component as a class component for better ref handling with react-to-print
-class PrintableReport extends React.Component<{ reportData: any, state: any, generationTime: string }> {
-    render() {
-        const { reportData, state, generationTime } = this.props;
-        return (
-            <div className="print-container p-8 font-sans">
-                <header className="flex items-center justify-between pb-4 border-b">
-                    <div className="flex items-center gap-3">
-                        <AppIcon className="size-10 text-primary" />
-                        <div>
-                            <h1 className="text-2xl font-bold font-headline text-primary">PoultryMitra</h1>
-                            <p className="text-sm text-muted-foreground">Broiler Farm Profitability Report</p>
-                        </div>
+// Printable Report Component as a functional component for better compatibility
+const PrintableReport = forwardRef<HTMLDivElement, { reportData: any, state: any, generationTime: string }>(({ reportData, state, generationTime }, ref) => {
+    return (
+        <div ref={ref} className="print-container p-8 font-sans">
+            <header className="flex items-center justify-between pb-4 border-b">
+                <div className="flex items-center gap-3">
+                    <AppIcon className="size-10 text-primary" />
+                    <div>
+                        <h1 className="text-2xl font-bold font-headline text-primary">PoultryMitra</h1>
+                        <p className="text-sm text-muted-foreground">Broiler Farm Profitability Report</p>
                     </div>
-                    <div className="text-right text-xs text-muted-foreground">
-                        <p>Generated on: {generationTime}</p>
-                        <p>www.poultrymitra.com</p>
-                    </div>
-                </header>
+                </div>
+                <div className="text-right text-xs text-muted-foreground">
+                    <p>Generated on: {generationTime}</p>
+                    <p>www.poultrymitra.com</p>
+                </div>
+            </header>
+            
+            <main className="mt-8">
+                <h2 className="text-xl font-semibold mb-4">Report for {state.chicks} Broiler Chicks</h2>
                 
-                <main className="mt-8">
-                    <h2 className="text-xl font-semibold mb-4">Report for {state.chicks} Broiler Chicks</h2>
-                    
-                    <section className="mb-6">
-                        <h3 className="font-bold text-lg mb-2 border-b pb-1">🌾 Feed Plan (in 50kg Bags)</h3>
-                        <Table>
-                            <TableHeader><TableRow><TableHead>Phase</TableHead><TableHead>Days</TableHead><TableHead>Bags</TableHead><TableHead className="text-right">Cost</TableHead></TableRow></TableHeader>
-                            <TableBody>
-                                <TableRow><TableCell>Pre-Starter</TableCell><TableCell>1–14</TableCell><TableCell>{reportData.starterBags}</TableCell><TableCell className="text-right">{formatCurrency(reportData.starterBags * state.starterRate)}</TableCell></TableRow>
-                                <TableRow><TableCell>Starter</TableCell><TableCell>15–28</TableCell><TableCell>{reportData.growerBags}</TableCell><TableCell className="text-right">{formatCurrency(reportData.growerBags * state.growerRate)}</TableCell></TableRow>
-                                <TableRow><TableCell>Finisher</TableCell><TableCell>29–45</TableCell><TableCell>{reportData.finisherBags}</TableCell><TableCell className="text-right">{formatCurrency(reportData.finisherBags * state.finisherRate)}</TableCell></TableRow>
-                            </TableBody>
-                        </Table>
-                    </section>
-                    
-                    <section className="mb-6">
-                        <h3 className="font-bold text-lg mb-2 border-b pb-1">🔧 Equipment Required</h3>
-                        <Table>
-                            <TableHeader><TableRow><TableHead>Equipment</TableHead><TableHead>Phase</TableHead><TableHead>Quantity</TableHead></TableRow></TableHeader>
-                            <TableBody>
-                                <TableRow><TableCell>Drinkers (Small)</TableCell><TableCell>Day 1–14</TableCell><TableCell>{reportData.smallDrinkers}</TableCell></TableRow>
-                                <TableRow><TableCell>Drinkers (Large)</TableCell><TableCell>Day 15–45</TableCell><TableCell>{reportData.largeDrinkers}</TableCell></TableRow>
-                                <TableRow><TableCell>Feeders (Small)</TableCell><TableCell>Day 1–14</TableCell><TableCell>{reportData.smallFeeders}</TableCell></TableRow>
-                                <TableRow><TableCell>Feeders (Large)</TableCell><TableCell>Day 15–45</TableCell><TableCell>{reportData.largeFeeders}</TableCell></TableRow>
-                            </TableBody>
-                        </Table>
-                    </section>
+                <section className="mb-6">
+                    <h3 className="font-bold text-lg mb-2 border-b pb-1">🌾 Feed Plan (in 50kg Bags)</h3>
+                    <Table>
+                        <TableHeader><TableRow><TableHead>Phase</TableHead><TableHead>Days</TableHead><TableHead>Bags</TableHead><TableHead className="text-right">Cost</TableHead></TableRow></TableHeader>
+                        <TableBody>
+                            <TableRow><TableCell>Pre-Starter</TableCell><TableCell>1–14</TableCell><TableCell>{reportData.starterBags}</TableCell><TableCell className="text-right">{formatCurrency(reportData.starterBags * state.starterRate)}</TableCell></TableRow>
+                            <TableRow><TableCell>Starter</TableCell><TableCell>15–28</TableCell><TableCell>{reportData.growerBags}</TableCell><TableCell className="text-right">{formatCurrency(reportData.growerBags * state.growerRate)}</TableCell></TableRow>
+                            <TableRow><TableCell>Finisher</TableCell><TableCell>29–45</TableCell><TableCell>{reportData.finisherBags}</TableCell><TableCell className="text-right">{formatCurrency(reportData.finisherBags * state.finisherRate)}</TableCell></TableRow>
+                        </TableBody>
+                    </Table>
+                </section>
+                
+                <section className="mb-6">
+                    <h3 className="font-bold text-lg mb-2 border-b pb-1">🔧 Equipment Required</h3>
+                    <Table>
+                        <TableHeader><TableRow><TableHead>Equipment</TableHead><TableHead>Phase</TableHead><TableHead>Quantity</TableHead></TableRow></TableHeader>
+                        <TableBody>
+                            <TableRow><TableCell>Drinkers (Small)</TableCell><TableCell>Day 1–14</TableCell><TableCell>{reportData.smallDrinkers}</TableCell></TableRow>
+                            <TableRow><TableCell>Drinkers (Large)</TableCell><TableCell>Day 15–45</TableCell><TableCell>{reportData.largeDrinkers}</TableCell></TableRow>
+                            <TableRow><TableCell>Feeders (Small)</TableCell><TableCell>Day 1–14</TableCell><TableCell>{reportData.smallFeeders}</TableCell></TableRow>
+                            <TableRow><TableCell>Feeders (Large)</TableCell><TableCell>Day 15–45</TableCell><TableCell>{reportData.largeFeeders}</TableCell></TableRow>
+                        </TableBody>
+                    </Table>
+                </section>
 
-                    <section>
-                        <h3 className="font-bold text-lg mb-2 border-b pb-1">📌 Financial Summary</h3>
-                        <div className="grid grid-cols-2 gap-8">
-                            <div>
-                                <h4 className="font-semibold text-destructive mb-2">Cost Details</h4>
-                                <div className="space-y-2 text-sm">
-                                    <div className="flex justify-between"><span className="text-muted-foreground">Chick Cost:</span> <span>{formatCurrency(reportData.chickCost)}</span></div>
-                                    <div className="flex justify-between"><span className="text-muted-foreground">Total Feed Cost:</span> <span>{formatCurrency(reportData.totalFeedCost)}</span></div>
-                                    <div className="flex justify-between"><span className="text-muted-foreground">Management Cost:</span> <span>{formatCurrency(parseFloat(state.medicineCost))}</span></div>
-                                    <div className="flex justify-between"><span className="text-muted-foreground">Other Costs:</span> <span>{formatCurrency(parseFloat(state.otherCost))}</span></div>
-                                    <div className="flex justify-between font-bold pt-2 border-t"><span className="text-destructive">Total Cost:</span> <span className="text-destructive">{formatCurrency(reportData.totalCost)}</span></div>
-                                </div>
-                            </div>
-                            <div>
-                                <h4 className="font-semibold text-green-600 mb-2">Income & Profit</h4>
-                                <div className="space-y-2 text-sm">
-                                    <div className="flex justify-between"><span className="text-muted-foreground">Total Weight Produced:</span> <span>{reportData.totalWeight.toLocaleString('en-IN')} kg</span></div>
-                                    <div className="flex justify-between"><span className="text-muted-foreground">Market Sale Price:</span> <span>{formatCurrency(parseFloat(state.marketPrice))}/kg</span></div>
-                                    <div className="flex justify-between font-bold pt-2 border-t"><span className="text-green-600">Total Income:</span> <span className="text-green-600">{formatCurrency(reportData.income)}</span></div>
-                                    <div className="flex justify-between font-bold text-xl mt-4 p-2 rounded bg-gray-100"><span>Estimated Profit:</span> <span>{formatCurrency(reportData.profit)}</span></div>
-                                </div>
+                <section>
+                    <h3 className="font-bold text-lg mb-2 border-b pb-1">📌 Financial Summary</h3>
+                    <div className="grid grid-cols-2 gap-8">
+                        <div>
+                            <h4 className="font-semibold text-destructive mb-2">Cost Details</h4>
+                            <div className="space-y-2 text-sm">
+                                <div className="flex justify-between"><span className="text-muted-foreground">Chick Cost:</span> <span>{formatCurrency(reportData.chickCost)}</span></div>
+                                <div className="flex justify-between"><span className="text-muted-foreground">Total Feed Cost:</span> <span>{formatCurrency(reportData.totalFeedCost)}</span></div>
+                                <div className="flex justify-between"><span className="text-muted-foreground">Management Cost:</span> <span>{formatCurrency(parseFloat(state.medicineCost))}</span></div>
+                                <div className="flex justify-between"><span className="text-muted-foreground">Other Costs:</span> <span>{formatCurrency(parseFloat(state.otherCost))}</span></div>
+                                <div className="flex justify-between font-bold pt-2 border-t"><span className="text-destructive">Total Cost:</span> <span className="text-destructive">{formatCurrency(reportData.totalCost)}</span></div>
                             </div>
                         </div>
-                    </section>
-                </main>
+                        <div>
+                            <h4 className="font-semibold text-green-600 mb-2">Income & Profit</h4>
+                            <div className="space-y-2 text-sm">
+                                <div className="flex justify-between"><span className="text-muted-foreground">Total Weight Produced:</span> <span>{reportData.totalWeight.toLocaleString('en-IN')} kg</span></div>
+                                <div className="flex justify-between"><span className="text-muted-foreground">Market Sale Price:</span> <span>{formatCurrency(parseFloat(state.marketPrice))}/kg</span></div>
+                                <div className="flex justify-between font-bold pt-2 border-t"><span className="text-green-600">Total Income:</span> <span className="text-green-600">{formatCurrency(reportData.income)}</span></div>
+                                <div className="flex justify-between font-bold text-xl mt-4 p-2 rounded bg-gray-100"><span>Estimated Profit:</span> <span>{formatCurrency(reportData.profit)}</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </main>
 
-                <footer className="mt-8 pt-4 border-t text-center text-xs text-muted-foreground">
-                    <p>Best wishes for your farm! - The PoultryMitra Team</p>
-                    <p className="mt-1">This is an estimation and actual results may vary. Always consult with a professional for final decisions.</p>
-                </footer>
-            </div>
-        );
-    }
-}
+            <footer className="mt-8 pt-4 border-t text-center text-xs text-muted-foreground">
+                <p>Best wishes for your farm! - The PoultryMitra Team</p>
+                <p className="mt-1">This is an estimation and actual results may vary. Always consult with a professional for final decisions.</p>
+            </footer>
+        </div>
+    );
+});
+PrintableReport.displayName = 'PrintableReport';
+
 
 export default function BroilerCalculatorPage() {
   const [state, dispatch] = useReducer(reducer, initialState);
   const { toast } = useToast();
-  const componentRef = useRef<PrintableReport>(null);
+  const componentRef = useRef<HTMLDivElement>(null);
   const [generationTime, setGenerationTime] = useState("");
 
   const handlePrint = useReactToPrint({
