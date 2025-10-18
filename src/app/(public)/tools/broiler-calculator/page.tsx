@@ -144,7 +144,7 @@ export default function BroilerCalculatorPage() {
   };
   
   const handleShare = async () => {
-    if (!calculations) return;
+    if (!calculations || !generationTime) return;
     
     const { chicks } = state;
     const { totalCost, income, profit, starterBags, growerBags, finisherBags, chickCost, totalFeedCost, totalWeight, smallDrinkers, largeDrinkers, smallFeeders, largeFeeders } = calculations;

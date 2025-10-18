@@ -156,7 +156,7 @@ export default function DetailedSignupPage() {
             await deleteDoc(doc(firestore, 'invitations', invitation.id));
         }
 
-        return finalStatus;
+        return { finalStatus, finalRole };
     }
 
 
@@ -170,16 +170,16 @@ export default function DetailedSignupPage() {
         
         try {
             const signInMethods = await fetchSignInMethodsForEmail(auth, values.email);
-            if (signInMethods.length > 0 && !googleUser) {
+            if (signInMethods.length > 0 && authProvider !== 'google') {
                 form.setError('email', { type: 'manual', message: 'This email is already registered. Please login.' });
                 setIsSubmitting(false);
                 return;
             }
 
-            let finalStatus: UserStatus = 'Pending';
+            let result: { finalStatus: UserStatus, finalRole: UserRole };
             if (authProvider === 'google' && googleUser) {
                  createdAuthUser = googleUser;
-                 finalStatus = await handleFinalUserCreation(createdAuthUser, values);
+                 result = await handleFinalUserCreation(createdAuthUser, values);
             } else {
                 if (!values.password) {
                     form.setError('password', { message: 'Password is required for email signup.' });
@@ -188,19 +188,19 @@ export default function DetailedSignupPage() {
                 }
                 const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
                 createdAuthUser = userCredential.user;
-                finalStatus = await handleFinalUserCreation(createdAuthUser, values);
+                result = await handleFinalUserCreation(createdAuthUser, values);
             }
             
             if (auth?.currentUser) await auth.signOut();
 
-            if (finalStatus === 'Pending') {
+            if (result.finalStatus === 'Pending') {
                 setShowPendingMessage(true);
             } else {
                 toast({
                     title: "Account Created!",
                     description: "You can now log in with your credentials.",
                 });
-                router.replace(`/login/${createdAuthUser.email === 'ipoultrymitra@gmail.com' ? 'admin' : initialRole}`);
+                router.replace(`/login/${result.finalRole}`);
             }
 
 
@@ -240,17 +240,17 @@ export default function DetailedSignupPage() {
                 return;
             }
             
+            setGoogleUser(user);
+            setAuthProvider('google');
             form.reset({
                 ...form.getValues(),
                 fullName: user.displayName || "",
                 email: user.email || "",
                 password: "",
             });
-            setAuthProvider('google');
-            setGoogleUser(user);
 
         } catch (error: any) {
-            if (error.code !== 'auth/popup-closed-by-user') {
+            if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
                 console.error("Google sign up error:", error);
                 toast({ title: "Google Sign-Up Failed", description: "Could not sign up with Google.", variant: "destructive" });
             }
@@ -311,7 +311,7 @@ export default function DetailedSignupPage() {
                         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                 <FormField control={form.control} name="fullName" render={({ field }) => (
-                                    <FormItem><FormLabel>Full Name</FormLabel><FormControl><Input placeholder="Your full name" {...field} /></FormControl><FormMessage /></FormItem>
+                                    <FormItem><FormLabel>Full Name</FormLabel><FormControl><Input placeholder="Your full name" {...field} disabled={authProvider === 'google'} /></FormControl><FormMessage /></FormItem>
                                 )} />
                                 <FormField control={form.control} name="email" render={({ field }) => (
                                     <FormItem><FormLabel>Email</FormLabel><FormControl><Input type="email" placeholder="your@email.com" {...field} disabled={authProvider === 'google' || !!invitation} /></FormControl><FormMessage /></FormItem>
@@ -355,9 +355,9 @@ export default function DetailedSignupPage() {
                                 )} />
                             </div>
 
-                            <Button type="submit" className="w-full" disabled={isSubmitting}>
-                                {isSubmitting && <Loader2 className="mr-2 animate-spin" />}
-                                {isSubmitting ? 'Creating Account...' : 'Create Account'}
+                            <Button type="submit" className="w-full" disabled={isSubmitting || isGoogleLoading}>
+                                {(isSubmitting || isGoogleLoading) && <Loader2 className="mr-2 animate-spin" />}
+                                {(isSubmitting || isGoogleLoading) ? 'Creating Account...' : 'Create Account'}
                             </Button>
 
                             <p className="text-center text-sm text-muted-foreground">

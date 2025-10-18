@@ -13,6 +13,7 @@ import { signOut } from 'firebase/auth';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAppUser } from '@/app/app-provider';
 import { cn } from '@/lib/utils';
+import { getDashboardPath } from '@/lib/utils';
 
 export function PublicHeader() {
   const { t } = useLanguage();
@@ -20,20 +21,6 @@ export function PublicHeader() {
   const auth = useAuth();
   const router = useRouter();
   const pathname = usePathname();
-
-  const getDashboardPath = () => {
-    if (isAppLoading || !appUser) return "/login";
-    switch (appUser.role) {
-      case 'farmer':
-        return '/dashboard';
-      case 'dealer':
-        return '/dealer/dashboard';
-      case 'admin':
-        return '/admin/dashboard';
-      default:
-        return '/login';
-    }
-  };
 
   const handleLogout = () => {
       if(!auth) return;
@@ -67,7 +54,7 @@ export function PublicHeader() {
           ) : appUser ? (
             <>
               <Button asChild>
-                <Link href={getDashboardPath()}>Dashboard</Link>
+                <Link href={getDashboardPath(appUser.role)}>{appUser.role === 'admin' ? 'Admin Panel' : 'Dashboard'}</Link>
               </Button>
               <Button variant="outline" onClick={handleLogout}>Logout</Button>
             </>

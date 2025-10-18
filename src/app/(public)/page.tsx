@@ -23,31 +23,26 @@ import {
   CheckCircle,
   Zap,
   Egg,
+  Mail,
+  Phone,
 } from 'lucide-react';
 import { AppIcon } from '@/app/icon-component';
 import { useLanguage } from '@/components/language-provider';
 import { useAppUser } from '@/app/app-provider';
 import { Input } from '@/components/ui/input';
 import { PageHeader } from './_components/page-header';
+import { getDashboardPath } from '@/lib/utils';
 
 export default function LandingPage() {
   const { t } = useLanguage();
   const { user: appUser, loading: isAppLoading } = useAppUser();
   
-  const getDashboardPath = () => {
-    if (isAppLoading || !appUser) return "/login";
-    switch (appUser.role) {
-      case 'farmer':
-        return '/dashboard';
-      case 'dealer':
-        return '/dealer/dashboard';
-      case 'admin':
-        return '/admin/dashboard';
-      default:
-        return '/login';
-    }
+  const getStartedHref = () => {
+    if (isAppLoading) return "/login"; // Default during load to prevent mismatch
+    if (appUser) return getDashboardPath(appUser.role);
+    return "/signup";
   };
-
+  
   const features = [
     {
       icon: <Bot className="size-8 text-primary" />,
@@ -139,12 +134,6 @@ export default function LandingPage() {
       quote: t('testimonials.dealer_quote'),
     },
   ];
-
-  const getStartedHref = () => {
-    if (isAppLoading) return "/login"; // Default during load to prevent mismatch
-    if (appUser) return getDashboardPath();
-    return "/signup";
-  };
   
     return (
         <main className="flex-1">
@@ -158,7 +147,7 @@ export default function LandingPage() {
                   <Link href={getStartedHref()}>{t('hero.get_started')}</Link>
                 </Button>
                 <Button size="lg" variant="outline" asChild>
-                  <Link href="#how-it-works">{t('hero.watch_demo')}</Link>
+                  <Link href="#how-it-works-section">{t('hero.watch_demo')}</Link>
                 </Button>
               </div>
           </section>
@@ -234,7 +223,7 @@ export default function LandingPage() {
               </div>
           </section>
           
-          <section id="how-it-works" className="py-16 lg:py-24">
+          <section id="how-it-works-section" className="py-16 lg:py-24">
               <div className="container">
                   <PageHeader
                       title="How It Works"
@@ -368,7 +357,7 @@ export default function LandingPage() {
                    <h2 className="font-headline text-3xl font-bold md:text-4xl">{t('cta.title')}</h2>
                    <p className="mt-4 max-w-xl text-lg text-primary-foreground/80">{t('cta.subtitle')}</p>
                    <Button size="lg" variant="secondary" className="mt-8" asChild>
-                      <Link href="/signup">{t('cta.button')}</Link>
+                      <Link href={getStartedHref()}>{t('cta.button')}</Link>
                    </Button>
               </div>
           </section>
