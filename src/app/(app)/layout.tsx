@@ -7,7 +7,7 @@ import { AppSidebar } from "./_components/sidebar";
 import { AppHeader } from "./_components/header";
 import { AppProvider } from "@/app/app-provider";
 
-export default function AppLayout({ children }: { children: React.ReactNode }) {
+export default function MainAppLayout({ children }: { children: React.ReactNode }) {
   return (
       <AppProvider>
         <SidebarProvider>
