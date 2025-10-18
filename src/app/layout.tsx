@@ -6,7 +6,7 @@ import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { ThemeProvider } from '@/components/theme-provider';
 import { LanguageProvider } from '@/components/language-provider';
-import { Space_Grotesk, Noto_Sans } from 'next/font/google';
+import { Space_Grotesk } from 'next/font/google';
 import { cn } from '@/lib/utils';
 import { AppProvider } from '@/app/app-provider';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
@@ -17,12 +17,6 @@ import { FloatingChatWidget } from '@/components/chat/floating-chat-widget';
 const fontSpaceGrotesk = Space_Grotesk({
   subsets: ['latin'],
   variable: '--font-space-grotesk',
-});
-
-const fontNotoSans = Noto_Sans({
-  subsets: ['latin'],
-  weight: ['400', '700'],
-  variable: '--font-pt-sans', // Keep variable name for minimal disruption
 });
 
 
@@ -41,8 +35,7 @@ export default function RootLayout({
       <body 
         className={cn(
           "font-body antialiased",
-          fontSpaceGrotesk.variable,
-          fontNotoSans.variable
+          fontSpaceGrotesk.variable
         )}
       >
         <LanguageProvider>

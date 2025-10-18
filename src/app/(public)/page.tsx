@@ -1,3 +1,4 @@
+
 // src/app/(public)/page.tsx
 "use client";
 
@@ -272,7 +273,16 @@ export default function LandingPage() {
             </div>
           </section>
 
-          <section id="pricing-preview" className="bg-secondary py-16 lg:py-24">
+          <section id="about" className="bg-secondary py-16 lg:py-24">
+            <div className="container">
+                <PageHeader
+                    title="About PoultryMitra"
+                    description="We are a team of poultry experts and technologists passionate about empowering farmers with the data and tools they need to succeed in the modern poultry industry."
+                />
+            </div>
+          </section>
+
+          <section id="pricing-preview" className="py-16 lg:py-24">
               <div className="container">
                   <PageHeader
                       title={t('pricing.title')}
@@ -320,7 +330,7 @@ export default function LandingPage() {
               </div>
           </section>
 
-          <section id="testimonials" className="py-16 lg:py-24">
+          <section id="testimonials" className="bg-secondary py-16 lg:py-24">
               <div className="container">
                   <PageHeader
                       title={t('testimonials.title')}
@@ -328,7 +338,7 @@ export default function LandingPage() {
                   />
                   <div className="mt-12 grid gap-8 md:grid-cols-2">
                       {testimonials.map((item, i) => (
-                          <Card key={i} className="bg-secondary/50 dark:bg-card">
+                          <Card key={i} className="bg-card">
                               <CardContent className="pt-6">
                                   <div className="flex space-x-1">
                                       {[...Array(5)].map((_, i) => (
