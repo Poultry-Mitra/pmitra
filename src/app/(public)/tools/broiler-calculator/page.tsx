@@ -9,9 +9,11 @@ import { Button }from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow }from '@/components/ui/table';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
-import { Calculator, FileText, AlertTriangle } from 'lucide-react';
+import { Calculator, FileText, AlertTriangle, ArrowLeft, LayoutDashboard } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { PageHeader } from '@/app/(public)/_components/page-header';
+import { useAppUser } from '@/app/app-provider';
+import Link from 'next/link';
 
 const initialState = {
   chicks: 1000,
@@ -27,6 +29,7 @@ const initialState = {
 export default function BroilerCalculatorPage() {
   const [inputs, setInputs] = useState(initialState);
   const [showSummary, setShowSummary] = useState(false);
+  const { user } = useAppUser();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
@@ -222,6 +225,19 @@ export default function BroilerCalculatorPage() {
                 )}
             </CardContent>
             </Card>
+            <div className="mt-8 flex flex-wrap justify-center gap-4">
+                <Button variant="outline" asChild>
+                    <Link href="/tools"><ArrowLeft className="mr-2" /> Go back to Tools</Link>
+                </Button>
+                {user && (
+                    <Button asChild>
+                        <Link href="/dashboard"><LayoutDashboard className="mr-2" /> Go to Dashboard</Link>
+                    </Button>
+                )}
+                <Button variant="outline" asChild>
+                    <Link href="/"><ArrowLeft className="mr-2" /> Go back to Homepage</Link>
+                </Button>
+            </div>
         </div>
     </div>
   );

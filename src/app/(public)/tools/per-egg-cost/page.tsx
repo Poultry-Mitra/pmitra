@@ -7,8 +7,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Egg, AlertTriangle } from 'lucide-react';
+import { Egg, AlertTriangle, ArrowLeft, LayoutDashboard } from 'lucide-react';
 import { PageHeader } from '@/app/(public)/_components/page-header';
+import { useAppUser } from '@/app/app-provider';
+import Link from 'next/link';
 
 export default function PerEggCostPage() {
   const [inputs, setInputs] = useState({
@@ -17,6 +19,7 @@ export default function PerEggCostPage() {
     productionPercentage: 90,
   });
   const [result, setResult] = useState<number | null>(null);
+  const { user } = useAppUser();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
@@ -81,6 +84,19 @@ export default function PerEggCostPage() {
                     </AlertDescription>
                 </Alert>
             )}
+            <div className="mt-8 flex flex-wrap justify-center gap-4">
+                <Button variant="outline" asChild>
+                    <Link href="/tools"><ArrowLeft className="mr-2" /> Go back to Tools</Link>
+                </Button>
+                {user && (
+                    <Button asChild>
+                        <Link href="/dashboard"><LayoutDashboard className="mr-2" /> Go to Dashboard</Link>
+                    </Button>
+                )}
+                <Button variant="outline" asChild>
+                    <Link href="/"><ArrowLeft className="mr-2" /> Go back to Homepage</Link>
+                </Button>
+            </div>
         </div>
     </div>
   );

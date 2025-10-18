@@ -8,9 +8,11 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Separator } from '@/components/ui/separator';
-import { Bird, AlertTriangle } from 'lucide-react';
+import { Bird, AlertTriangle, ArrowLeft, LayoutDashboard } from 'lucide-react';
 import { PageHeader } from '@/app/(public)/_components/page-header';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { useAppUser } from '@/app/app-provider';
+import Link from 'next/link';
 
 export default function LayerFeedConsumptionPage() {
   const [inputs, setInputs] = useState({
@@ -18,6 +20,7 @@ export default function LayerFeedConsumptionPage() {
     weeks: 72,
   });
   const [results, setResults] = useState<any>(null);
+  const { user } = useAppUser();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
@@ -118,6 +121,19 @@ export default function LayerFeedConsumptionPage() {
                     </CardContent>
                 </Card>
             )}
+            <div className="mt-8 flex flex-wrap justify-center gap-4">
+                <Button variant="outline" asChild>
+                    <Link href="/tools"><ArrowLeft className="mr-2" /> Go back to Tools</Link>
+                </Button>
+                {user && (
+                    <Button asChild>
+                        <Link href="/dashboard"><LayoutDashboard className="mr-2" /> Go to Dashboard</Link>
+                    </Button>
+                )}
+                <Button variant="outline" asChild>
+                    <Link href="/"><ArrowLeft className="mr-2" /> Go back to Homepage</Link>
+                </Button>
+            </div>
         </div>
     </div>
   )

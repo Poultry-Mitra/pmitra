@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Droplet, HelpCircle, AlertTriangle } from 'lucide-react';
+import { Droplet, HelpCircle, AlertTriangle, ArrowLeft, LayoutDashboard } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import {
   Tooltip,
@@ -17,12 +17,15 @@ import {
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { cn } from '@/lib/utils';
 import { PageHeader } from '@/app/(public)/_components/page-header';
+import { useAppUser } from '@/app/app-provider';
+import Link from 'next/link';
 
 export default function FcrCalculatorPage() {
   const [weightGain, setWeightGain] = useState('');
   const [feedInput, setFeedInput] = useState('');
   const [feedUnit, setFeedUnit] = useState<'kg' | 'bags'>('kg');
   const [fcr, setFcr] = useState<number | null>(null);
+  const { user } = useAppUser();
 
   const calculateFcr = () => {
     const wg = parseFloat(weightGain);
@@ -119,6 +122,19 @@ export default function FcrCalculatorPage() {
                     </CardContent>
                 )}
             </Card>
+            <div className="mt-8 flex flex-wrap justify-center gap-4">
+                <Button variant="outline" asChild>
+                    <Link href="/tools"><ArrowLeft className="mr-2" /> Go back to Tools</Link>
+                </Button>
+                {user && (
+                    <Button asChild>
+                        <Link href="/dashboard"><LayoutDashboard className="mr-2" /> Go to Dashboard</Link>
+                    </Button>
+                )}
+                <Button variant="outline" asChild>
+                    <Link href="/"><ArrowLeft className="mr-2" /> Go back to Homepage</Link>
+                </Button>
+            </div>
         </div>
     </div>
   );
