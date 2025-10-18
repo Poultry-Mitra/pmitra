@@ -1,7 +1,7 @@
 // src/app/(public)/tools/broiler-calculator/page.tsx
 "use client";
 
-import { useReducer, useMemo, useRef } from 'react';
+import { useReducer, useMemo, useRef, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
