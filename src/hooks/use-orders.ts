@@ -27,11 +27,13 @@ import { useMemoFirebase } from '@/firebase/provider';
 import { updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
-import { getAuth } from 'firebase/auth';
+import { useAppUser } from '@/app/app-provider';
+import { getAllOrders } from '@/ai/flows/get-all-orders';
+
 
 // Helper to convert Firestore doc to Order type
-function toOrder(doc: QueryDocumentSnapshot<DocumentData>): Order {
-    const data = doc.data();
+function toOrder(doc: QueryDocumentSnapshot<DocumentData> | any): Order {
+    const data = doc.data ? doc.data() : doc; // Handle both snapshot and plain object
     if (!data) throw new Error("Document data is empty");
     return {
         id: doc.id,
@@ -41,16 +43,32 @@ function toOrder(doc: QueryDocumentSnapshot<DocumentData>): Order {
 }
 
 export function useOrders() {
-    const firestore = useFirestore();
+    const { user: adminUser } = useAppUser();
     const [orders, setOrders] = useState<Order[]>([]);
     const [loading, setLoading] = useState(true);
     
-    // Admin does not use this hook. This is a placeholder for potential future use.
-    // For now, we will assume this hook is not called by an admin and won't implement a Genkit flow.
     useEffect(() => {
-        setOrders([]);
-        setLoading(false);
-    }, []);
+        async function fetchAllOrders() {
+            if (!adminUser || adminUser.role !== 'admin') {
+                setOrders([]);
+                setLoading(false);
+                return;
+            }
+
+            setLoading(true);
+            try {
+                const result = await getAllOrders({ adminUid: adminUser.id });
+                const sortedOrders = result.orders.sort((a,b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+                setOrders(sortedOrders.map(o => toOrder(o)));
+            } catch (error) {
+                 console.error("Failed to fetch all orders:", error);
+                setOrders([]);
+            } finally {
+                setLoading(false);
+            }
+        }
+        fetchAllOrders();
+    }, [adminUser]);
 
     return { orders, loading };
 }

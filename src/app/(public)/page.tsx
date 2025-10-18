@@ -26,7 +26,7 @@ import {
 } from 'lucide-react';
 import { AppIcon } from '@/app/icon-component';
 import { ThemeToggle } from '@/components/theme-toggle';
-import { LanguageToggle } from '@/components/language-provider';
+import { LanguageToggle } from '@/components/language-toggle';
 import { useLanguage } from '@/components/language-provider';
 import { useAuth } from '@/firebase/provider';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -34,7 +34,7 @@ import { signOut } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import { useAppUser } from '@/app/app-provider';
 import { Input } from '@/components/ui/input';
-import { PageHeader } from '@/app/(public)/_components/page-header';
+import { PageHeader } from './_components/page-header';
 
 export default function LandingPage() {
   const { t } = useLanguage();

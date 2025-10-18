@@ -1,4 +1,4 @@
-// src/app/(app)/diagnose/_components/symptom-checker.tsx
+// src/app/(app)/tools/diagnose-health/_components/symptom-checker.tsx
 "use client";
 
 import { useState, useRef, ChangeEvent, useMemo } from 'react';

@@ -57,6 +57,8 @@ export default function CreateOfflineSalePage() {
     const selectedProduct = products.find(p => p.id === selectedProductId);
     const totalAmount = (selectedProduct?.ratePerUnit || 0) * (quantity || 0);
 
+    const formatCurrency = (value: number) => `₹${value.toLocaleString('en-IN')}`;
+
     async function onSubmit(values: FormValues) {
         if (!dealerUser || !selectedProduct || !firestore) {
             toast({ title: t('messages.error'), description: "Could not create order.", variant: "destructive" });
@@ -163,7 +165,7 @@ export default function CreateOfflineSalePage() {
                                         <IndianRupee className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                                         <Input 
                                             readOnly 
-                                            value={totalAmount.toLocaleString()}
+                                            value={formatCurrency(totalAmount)}
                                             className="pl-8 font-bold"
                                         />
                                     </div>

@@ -1,4 +1,4 @@
-// src/app/(app)/diagnose/page.tsx
+// src/app/(app)/tools/diagnose-health/page.tsx
 import { PageHeader } from "@/app/(app)/_components/page-header";
 import { SymptomChecker } from "./_components/symptom-checker";
 

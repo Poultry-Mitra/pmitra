@@ -1,33 +1,15 @@
 
+
 "use client";
 
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AdminSidebar } from "./_components/sidebar";
 import { AdminHeader } from "./_components/header";
-import { useAppUser } from "../app-provider";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
-import { Loader2 } from "lucide-react";
+import { AppProvider } from "@/app/app-provider";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAppUser();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (!loading && user?.role !== 'admin') {
-      router.replace('/dashboard');
-    }
-  }, [user, loading, router]);
-
-  if (loading || user?.role !== 'admin') {
-    return (
-      <div className="flex h-screen w-full items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    );
-  }
-
   return (
+    <AppProvider>
       <SidebarProvider>
           <AdminSidebar />
           <SidebarInset>
@@ -37,7 +19,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </main>
           </SidebarInset>
       </SidebarProvider>
+    </AppProvider>
   );
 }
-
-    

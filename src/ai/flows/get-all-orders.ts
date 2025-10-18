@@ -1,6 +1,6 @@
 'use server';
 /**
- * @fileOverview A flow for administrators to fetch all users from the database.
+ * @fileOverview A flow for administrators to fetch all orders from the database.
  */
 
 import { ai } from '@/ai/genkit';
@@ -8,21 +8,21 @@ import { z } from 'zod';
 import { initializeAdminApp } from '@/firebase/admin-config';
 import { getFirestore } from 'firebase-admin/firestore';
 import { getAuth } from 'firebase-admin/auth';
-import type { User } from '@/lib/types';
+import type { Order } from '@/lib/types';
 
-const GetAllUsersInputSchema = z.object({
+const GetAllOrdersInputSchema = z.object({
   adminUid: z.string().describe('The UID of the user requesting the data, for verification.'),
 });
 
-const GetAllUsersOutputSchema = z.object({
-  users: z.array(z.any()).describe('An array of all user objects.'),
+const GetAllOrdersOutputSchema = z.object({
+  orders: z.array(z.any()).describe('An array of all order objects.'),
 });
 
-export const getAllUsers = ai.defineFlow(
+export const getAllOrders = ai.defineFlow(
   {
-    name: 'getAllUsersFlow',
-    inputSchema: GetAllUsersInputSchema,
-    outputSchema: GetAllUsersOutputSchema,
+    name: 'getAllOrdersFlow',
+    inputSchema: GetAllOrdersInputSchema,
+    outputSchema: GetAllOrdersOutputSchema,
   },
   async (input) => {
     try {
@@ -36,24 +36,22 @@ export const getAllUsers = ai.defineFlow(
       }
       
       const adminFirestore = getFirestore(adminApp);
-      const usersSnapshot = await adminFirestore.collection('users').get();
+      const ordersSnapshot = await adminFirestore.collection('orders').get();
       
-      const users = usersSnapshot.docs.map(doc => {
+      const orders = ordersSnapshot.docs.map(doc => {
         const data = doc.data();
         // Ensure date fields are serializable (ISO strings)
         return {
           id: doc.id,
           ...data,
-          dateJoined: data.dateJoined?.toDate ? data.dateJoined.toDate().toISOString() : data.dateJoined,
-        } as User;
+          createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toISOString() : data.createdAt,
+        } as Order;
       });
 
-      return { users };
+      return { orders };
     } catch (error: any) {
-      console.error("Error in getAllUsersFlow:", error);
-      // It's better to return an empty array than to throw, to prevent crashing the client UI.
-      // The error will be logged on the server.
-      return { users: [] };
+      console.error("Error in getAllOrdersFlow:", error);
+      return { orders: [] };
     }
   }
 );
