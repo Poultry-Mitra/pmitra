@@ -1,141 +1,120 @@
 // src/app/(public)/tools/fcr-calculator/page.tsx
 "use client";
 
-import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useReducer, useMemo } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Droplet, HelpCircle, AlertTriangle, ArrowLeft, LayoutDashboard } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip"
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
-import { cn } from '@/lib/utils';
-import { PageHeader } from '@/app/(public)/_components/page-header';
-import { useAppUser } from '@/app/app-provider';
-import Link from 'next/link';
+import { HelpCircle, RefreshCw, Calculator } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { ToolPageLayout } from '../_components/tool-page-layout';
+
+const initialState = {
+  weightGain: '',
+  feedInput: '',
+  feedUnit: 'kg' as 'kg' | 'bags',
+};
+
+function reducer(state: typeof initialState, action: { type: string, payload?: any }) {
+  switch (action.type) {
+    case 'SET_FIELD':
+      return { ...state, [action.payload.field]: action.payload.value };
+    case 'SET_UNIT':
+      return { ...state, feedUnit: action.payload };
+    case 'RESET':
+      return initialState;
+    default:
+      return state;
+  }
+}
 
 export default function FcrCalculatorPage() {
-  const [weightGain, setWeightGain] = useState('');
-  const [feedInput, setFeedInput] = useState('');
-  const [feedUnit, setFeedUnit] = useState<'kg' | 'bags'>('kg');
-  const [fcr, setFcr] = useState<number | null>(null);
-  const { user } = useAppUser();
+  const [state, dispatch] = useReducer(reducer, initialState);
 
-  const calculateFcr = () => {
-    const wg = parseFloat(weightGain);
-    const fi = parseFloat(feedInput);
+  const fcr = useMemo(() => {
+    const wg = parseFloat(state.weightGain);
+    const fi = parseFloat(state.feedInput);
 
     if (wg > 0 && fi > 0) {
-      const totalFeedInKg = feedUnit === 'bags' ? fi * 50 : fi;
-      setFcr(totalFeedInKg / wg);
-    } else {
-      setFcr(null);
+      const totalFeedInKg = state.feedUnit === 'bags' ? fi * 50 : fi;
+      return (totalFeedInKg / wg).toFixed(2);
     }
-  };
+    return null;
+  }, [state]);
+
+  const handleReset = () => dispatch({ type: 'RESET' });
+  const handleCalculate = () => { /* The calculation is now reactive via useMemo */ };
 
   return (
-    <div className="container py-12">
-        <PageHeader 
-            title="FCR Calculator"
-            description="Calculate your Feed Conversion Ratio to measure efficiency."
-        />
-        <div className="mt-8 max-w-md mx-auto">
-            <Alert variant="destructive" className="mb-6 bg-yellow-500/10 border-yellow-500/50 text-yellow-700 dark:text-yellow-300 [&>svg]:text-yellow-600">
-                <AlertTriangle className="h-4 w-4" />
-                <AlertTitle>चेतावनी (Warning)</AlertTitle>
-                <AlertDescription>
-                    यह केवल एक अनुमान है और 100% सटीक नहीं हो सकता है। कृपया अपने निर्णय के लिए पेशेवर सलाह भी लें।
-                </AlertDescription>
-            </Alert>
-            <Card>
-                <CardHeader>
-                    <CardTitle>Enter Details</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    <div className="space-y-2">
-                    <Label htmlFor="weightGain" className="flex items-center gap-1">
-                        Total Weight Gain (in kg)
-                        <TooltipProvider>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <HelpCircle className="size-4 text-muted-foreground" />
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    <p>The total live weight of all birds sold.</p>
-                                </TooltipContent>
-                            </Tooltip>
-                        </TooltipProvider>
-                    </Label>
-                    <Input
-                        id="weightGain"
-                        type="number"
-                        value={weightGain}
-                        onChange={(e) => setWeightGain(e.target.value)}
-                        placeholder="e.g., 2000"
-                    />
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="feedConsumed">Total Feed Consumed</Label>
-                        <div className="flex gap-2">
-                            <Input
-                                id="feedConsumed"
-                                type="number"
-                                value={feedInput}
-                                onChange={(e) => setFeedInput(e.target.value)}
-                                placeholder={feedUnit === 'kg' ? "e.g., 3800" : "e.g., 76"}
-                            />
-                            <ToggleGroup 
-                                type="single" 
-                                value={feedUnit} 
-                                onValueChange={(value: 'kg' | 'bags') => {
-                                    if (value) setFeedUnit(value)
-                                }}
-                                className="gap-1"
-                            >
-                                <ToggleGroupItem value="kg" aria-label="Kilograms" className="h-10 px-3 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground">
-                                    KG
-                                </ToggleGroupItem>
-                                <ToggleGroupItem value="bags" aria-label="Bags" className="h-10 px-3 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground">
-                                    Bags
-                                </ToggleGroupItem>
-                            </ToggleGroup>
-                        </div>
-                    </div>
-                    <Button onClick={calculateFcr} className="w-full">
-                        Calculate FCR
-                    </Button>
-                </CardContent>
-                {fcr !== null && (
-                    <CardContent>
-                        <Alert className="border-primary bg-primary/10">
-                            <AlertDescription className="text-center">
-                                <p className="text-sm text-primary">Your Feed Conversion Ratio is:</p>
-                                <p className="text-3xl font-bold text-primary">{fcr.toFixed(2)}</p>
-                            </AlertDescription>
-                        </Alert>
-                    </CardContent>
-                )}
-            </Card>
-            <div className="mt-8 flex flex-wrap justify-center gap-4">
-                <Button variant="outline" asChild>
-                    <Link href="/tools"><ArrowLeft className="mr-2" /> Go back to Tools</Link>
-                </Button>
-                {user && (
-                    <Button asChild>
-                        <Link href="/dashboard"><LayoutDashboard className="mr-2" /> Go to Dashboard</Link>
-                    </Button>
-                )}
-                <Button variant="outline" asChild>
-                    <Link href="/"><ArrowLeft className="mr-2" /> Go back to Homepage</Link>
-                </Button>
+    <ToolPageLayout
+      title="FCR Calculator"
+      description="Calculate your Feed Conversion Ratio to measure efficiency."
+    >
+      <Card>
+        <CardHeader>
+          <CardTitle>Enter Details</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="weightGain" className="flex items-center gap-1">
+              Total Weight Gain (in kg)
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <HelpCircle className="size-4 text-muted-foreground" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>The total live weight of all birds sold.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </Label>
+            <Input
+              id="weightGain" type="number"
+              value={state.weightGain}
+              onChange={(e) => dispatch({ type: 'SET_FIELD', payload: { field: 'weightGain', value: e.target.value } })}
+              placeholder="e.g., 2000"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="feedConsumed">Total Feed Consumed</Label>
+            <div className="flex gap-2">
+              <Input
+                id="feedConsumed" type="number"
+                value={state.feedInput}
+                onChange={(e) => dispatch({ type: 'SET_FIELD', payload: { field: 'feedInput', value: e.target.value } })}
+                placeholder={state.feedUnit === 'kg' ? "e.g., 3800" : "e.g., 76"}
+              />
+              <ToggleGroup
+                type="single"
+                value={state.feedUnit}
+                onValueChange={(value: 'kg' | 'bags') => value && dispatch({ type: 'SET_UNIT', payload: value })}
+                className="gap-1"
+              >
+                <ToggleGroupItem value="kg" aria-label="Kilograms" className="h-10 px-3 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground">KG</ToggleGroupItem>
+                <ToggleGroupItem value="bags" aria-label="Bags" className="h-10 px-3 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground">Bags</ToggleGroupItem>
+              </ToggleGroup>
             </div>
-        </div>
-    </div>
+          </div>
+          {fcr !== null && (
+            <Alert className="border-primary bg-primary/10 animate-in fade-in-50">
+              <AlertDescription className="text-center">
+                <p className="text-sm text-primary">Your Feed Conversion Ratio is:</p>
+                <p className="text-3xl font-bold text-primary">{fcr}</p>
+              </AlertDescription>
+            </Alert>
+          )}
+        </CardContent>
+        <CardFooter>
+            <Button onClick={handleReset} className="w-full" variant="outline">
+                <RefreshCw className="mr-2"/>
+                Reset
+            </Button>
+        </CardFooter>
+      </Card>
+    </ToolPageLayout>
   );
 }
