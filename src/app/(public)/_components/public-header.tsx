@@ -10,14 +10,16 @@ import { useLanguage } from '@/components/language-provider';
 import { useAuth } from '@/firebase/provider';
 import { Skeleton } from '@/components/ui/skeleton';
 import { signOut } from 'firebase/auth';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useAppUser } from '@/app/app-provider';
+import { cn } from '@/lib/utils';
 
 export function PublicHeader() {
   const { t } = useLanguage();
   const { user: appUser, loading: isAppLoading } = useAppUser();
   const auth = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
 
   const getDashboardPath = () => {
     if (isAppLoading || !appUser) return "/login";
@@ -48,10 +50,10 @@ export function PublicHeader() {
           <span className="font-bold font-headline">PoultryMitra</span>
         </Link>
         <nav className="hidden items-center space-x-6 text-sm font-medium md:flex">
-          <Link href="/" className="transition-colors hover:text-foreground">{t('nav.home')}</Link>
+          <Link href="/" className={cn("transition-colors hover:text-foreground", pathname === "/" ? "text-foreground" : "text-muted-foreground")}>{t('nav.home')}</Link>
           <Link href="/#features" className="text-muted-foreground transition-colors hover:text-foreground">{t('nav.features')}</Link>
-          <Link href="/tools" className="text-muted-foreground transition-colors hover:text-foreground">Tools</Link>
-          <Link href="/pricing" className="text-muted-foreground transition-colors hover:text-foreground">{t('nav.pricing')}</Link>
+          <Link href="/tools" className={cn("transition-colors hover:text-foreground", pathname.startsWith("/tools") ? "text-foreground" : "text-muted-foreground")}>Tools</Link>
+          <Link href="/pricing" className={cn("transition-colors hover:text-foreground", pathname === "/pricing" ? "text-foreground" : "text-muted-foreground")}>{t('nav.pricing')}</Link>
           <Link href="/#contact" className="text-muted-foreground transition-colors hover:text-foreground">{t('nav.contact')}</Link>
         </nav>
         <div className="ml-auto flex items-center space-x-2">
@@ -84,4 +86,3 @@ export function PublicHeader() {
     </header>
   );
 }
-
