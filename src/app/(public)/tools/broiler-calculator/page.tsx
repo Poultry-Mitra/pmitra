@@ -42,6 +42,7 @@ function reducer(state: any, action: any) {
 
 const formatCurrency = (value: number) => `₹${value.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
+// Re-implementing as a functional component with forwardRef for modern React compatibility
 const PrintableReport = React.forwardRef<HTMLDivElement, { reportData: any, state: any, generationTime: string }>(({ reportData, state, generationTime }, ref) => {
     return (
         <div ref={ref} className="print-container p-8 font-sans">
@@ -173,17 +174,11 @@ export default function BroilerCalculatorPage() {
       totalWeight
     };
   }, [state]);
-
-  const handleGenerate = () => {
-    setGenerationTime(new Date().toLocaleString('en-IN'));
-    dispatch({ type: 'SET_SUMMARY', payload: true });
-  }
-  const handleReset = () => dispatch({ type: 'RESET' });
   
   const handleShare = async () => {
-      if (!calculations) return;
-      
-      const summaryText = `
+    if (!calculations) return;
+    
+    const summaryText = `
 PoultryMitra Broiler Farm Report
 --------------------------------
 Chicks: ${state.chicks}
@@ -192,27 +187,30 @@ Est. Total Income: ${formatCurrency(calculations.income)}
 Est. Profit: ${formatCurrency(calculations.profit)}
 --------------------------------
 Calculated via www.poultrymitra.com
-      `;
+    `;
 
-      if (navigator.share) {
-          try {
-              await navigator.share({
-                  title: 'Poultry Farm Report',
-                  text: summaryText,
-                  url: window.location.href
-              });
-          } catch (error) {
-              console.error('Error sharing:', error);
-              // Fallback to clipboard for browsers that fail on share()
-              navigator.clipboard.writeText(summaryText);
-              toast({ title: "Copied to Clipboard", description: "Report summary copied to clipboard as sharing failed." });
-          }
-      } else {
-          navigator.clipboard.writeText(summaryText);
-          toast({ title: "Copied to Clipboard", description: "Report summary copied to clipboard." });
-      }
+    if (navigator.share) {
+        try {
+            await navigator.share({
+                title: 'Poultry Farm Report',
+                text: summaryText,
+            });
+        } catch (error) {
+            console.error('Error sharing:', error);
+            navigator.clipboard.writeText(summaryText);
+            toast({ title: "Sharing Failed", description: "Browser prevented sharing. Report copied to clipboard instead." });
+        }
+    } else {
+        navigator.clipboard.writeText(summaryText);
+        toast({ title: "Copied to Clipboard", description: "Report summary copied to clipboard." });
+    }
   };
 
+  const handleGenerate = () => {
+    setGenerationTime(new Date().toLocaleString('en-IN'));
+    dispatch({ type: 'SET_SUMMARY', payload: true });
+  }
+  const handleReset = () => dispatch({ type: 'RESET' });
 
   return (
     <ToolPageLayout
