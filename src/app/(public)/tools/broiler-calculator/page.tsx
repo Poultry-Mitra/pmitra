@@ -129,7 +129,7 @@ class PrintableReport extends Component<{ reportData: any, state: any, generatio
 export default function BroilerCalculatorPage() {
   const [state, dispatch] = useReducer(reducer, initialState);
   const { toast } = useToast();
-  const reportRef = useRef<PrintableReport>(null);
+  const reportRef = useRef<Component>(null);
   const [generationTime, setGenerationTime] = useState("");
 
   const handlePrint = useReactToPrint({
@@ -325,7 +325,7 @@ Calculated via www.poultrymitra.com
             </CardFooter>
         </Card>
         
-        <div className="hidden">
+        <div style={{ display: "none" }}>
             {calculations && <PrintableReport ref={reportRef} reportData={calculations} state={state} generationTime={generationTime} />}
         </div>
     </ToolPageLayout>
