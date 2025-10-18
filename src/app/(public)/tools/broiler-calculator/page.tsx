@@ -42,10 +42,12 @@ function reducer(state: any, action: any) {
 
 const formatCurrency = (value: number) => `₹${value.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
-// Re-implementing as a functional component with forwardRef for modern React compatibility
-const PrintableReport = React.forwardRef<HTMLDivElement, { reportData: any, state: any, generationTime: string }>(({ reportData, state, generationTime }, ref) => {
-    return (
-        <div ref={ref} className="print-container p-8 font-sans">
+// Using a class component as it's more reliable with react-to-print in some edge cases.
+class PrintableReport extends React.Component<{ reportData: any, state: any, generationTime: string }> {
+    render() {
+        const { reportData, state, generationTime } = this.props;
+        return (
+             <div className="print-container p-8 font-sans">
             <header className="flex items-center justify-between pb-4 border-b">
                 <div className="flex items-center gap-3">
                     <AppIcon className="size-10 text-primary" />
@@ -119,15 +121,15 @@ const PrintableReport = React.forwardRef<HTMLDivElement, { reportData: any, stat
                 <p className="mt-1">This is an estimation and actual results may vary. Always consult with a professional for final decisions.</p>
             </footer>
         </div>
-    );
-});
-PrintableReport.displayName = 'PrintableReport';
+        );
+    }
+}
 
 
 export default function BroilerCalculatorPage() {
   const [state, dispatch] = useReducer(reducer, initialState);
   const { toast } = useToast();
-  const reportRef = useRef<HTMLDivElement>(null);
+  const reportRef = useRef<PrintableReport>(null);
   const [generationTime, setGenerationTime] = useState("");
 
   const handlePrint = useReactToPrint({
@@ -178,31 +180,60 @@ export default function BroilerCalculatorPage() {
   const handleShare = async () => {
     if (!calculations) return;
     
-    const summaryText = `
-PoultryMitra Broiler Farm Report
---------------------------------
-Chicks: ${state.chicks}
-Est. Total Cost: ${formatCurrency(calculations.totalCost)}
-Est. Total Income: ${formatCurrency(calculations.income)}
-Est. Profit: ${formatCurrency(calculations.profit)}
---------------------------------
+    const { chicks } = state;
+    const { totalCost, income, profit, starterBags, growerBags, finisherBags, chickCost, totalFeedCost, totalWeight } = calculations;
+
+    const reportText = `
+*PoultryMitra Broiler Farm Report*
+_Generated on: ${generationTime}_
+
+*Report for ${chicks} Broiler Chicks*
+-----------------------------------
+
+*🌾 Feed Plan (in 50kg Bags)*
+- Pre-Starter (1-14 Days): ${starterBags} Bags
+- Starter (15-28 Days): ${growerBags} Bags
+- Finisher (29-45 Days): ${finisherBags} Bags
+
+*🔧 Equipment Required*
+- Small Drinkers: ${calculations.smallDrinkers}
+- Large Drinkers: ${calculations.largeDrinkers}
+- Small Feeders: ${calculations.smallFeeders}
+- Large Feeders: ${calculations.largeFeeders}
+
+*📌 Financial Summary*
+
+*Cost Details:*
+- Chick Cost: ${formatCurrency(chickCost)}
+- Total Feed Cost: ${formatCurrency(totalFeedCost)}
+- Management Cost: ${formatCurrency(parseFloat(state.medicineCost))}
+- Other Costs: ${formatCurrency(parseFloat(state.otherCost))}
+*- Total Cost: ${formatCurrency(totalCost)}*
+
+*Income & Profit:*
+- Total Weight Produced: ${totalWeight.toLocaleString('en-IN')} kg
+- Market Sale Price: ${formatCurrency(parseFloat(state.marketPrice))}/kg
+*- Total Income: ${formatCurrency(income)}*
+*- Estimated Profit: ${formatCurrency(profit)}*
+
+-----------------------------------
 Calculated via www.poultrymitra.com
     `;
 
     if (navigator.share) {
         try {
             await navigator.share({
-                title: 'Poultry Farm Report',
-                text: summaryText,
+                title: 'PoultryMitra Broiler Farm Report',
+                text: reportText,
             });
         } catch (error) {
             console.error('Error sharing:', error);
-            navigator.clipboard.writeText(summaryText);
+            navigator.clipboard.writeText(reportText);
             toast({ title: "Sharing Failed", description: "Browser prevented sharing. Report copied to clipboard instead." });
         }
     } else {
-        navigator.clipboard.writeText(summaryText);
-        toast({ title: "Copied to Clipboard", description: "Report summary copied to clipboard." });
+        navigator.clipboard.writeText(reportText);
+        toast({ title: "Copied to Clipboard", description: "Full report copied to clipboard." });
     }
   };
 
