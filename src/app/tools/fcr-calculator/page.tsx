@@ -1,4 +1,4 @@
-// src/app/tools/fcr-calculator/page.tsx
+// src/app/(public)/tools/per-egg-cost/page.tsx
 "use client";
 
 import { useState } from 'react';
@@ -6,112 +6,74 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Droplet, HelpCircle } from 'lucide-react';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip"
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
-import { cn } from '@/lib/utils';
-import { PageHeader } from '@/app/_components/page-header';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Egg } from 'lucide-react';
+import { PageHeader } from '@/app/(public)/_components/page-header';
 
-export default function FcrCalculatorPage() {
-  const [weightGain, setWeightGain] = useState('');
-  const [feedInput, setFeedInput] = useState('');
-  const [feedUnit, setFeedUnit] = useState<'kg' | 'bags'>('kg');
-  const [fcr, setFcr] = useState<number | null>(null);
+export default function PerEggCostPage() {
+  const [inputs, setInputs] = useState({
+    feedIntake: 115,
+    feedCost: 40,
+    productionPercentage: 90,
+  });
+  const [result, setResult] = useState<number | null>(null);
 
-  const calculateFcr = () => {
-    const wg = parseFloat(weightGain);
-    const fi = parseFloat(feedInput);
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { id, value } = e.target;
+    setInputs(prev => ({ ...prev, [id]: Number(value) }));
+  };
 
-    if (wg > 0 && fi > 0) {
-      const totalFeedInKg = feedUnit === 'bags' ? fi * 50 : fi;
-      setFcr(totalFeedInKg / wg);
+  const calculateCost = () => {
+    const { feedIntake, feedCost, productionPercentage } = inputs;
+    if (feedIntake > 0 && feedCost > 0 && productionPercentage > 0) {
+      const perEggFeedCost = ((feedIntake / 1000) * feedCost) / (productionPercentage / 100);
+      setResult(perEggFeedCost);
     } else {
-      setFcr(null);
+      setResult(null);
     }
   };
 
   return (
     <div className="container py-12">
         <PageHeader 
-            title="FCR Calculator"
-            description="Calculate your Feed Conversion Ratio to measure efficiency."
+            title="Per Egg Feed Cost Calculator"
+            description="Calculate the feed cost to produce a single egg."
         />
         <div className="mt-8 max-w-md mx-auto">
             <Card>
                 <CardHeader>
-                    <CardTitle>Enter Details</CardTitle>
+                    <CardTitle>Production Details</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <div className="space-y-2">
-                    <Label htmlFor="weightGain" className="flex items-center gap-1">
-                        Total Weight Gain (in kg)
-                        <TooltipProvider>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <HelpCircle className="size-4 text-muted-foreground" />
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    <p>The total live weight of all birds sold.</p>
-                                </TooltipContent>
-                            </Tooltip>
-                        </TooltipProvider>
-                    </Label>
-                    <Input
-                        id="weightGain"
-                        type="number"
-                        value={weightGain}
-                        onChange={(e) => setWeightGain(e.target.value)}
-                        placeholder="e.g., 2000"
-                    />
+                        <Label htmlFor="feedIntake">Per Bird Feed Intake (Gram)</Label>
+                        <Input id="feedIntake" type="number" value={inputs.feedIntake} onChange={handleInputChange} min="0" />
                     </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="feedConsumed">Total Feed Consumed</Label>
-                        <div className="flex gap-2">
-                            <Input
-                                id="feedConsumed"
-                                type="number"
-                                value={feedInput}
-                                onChange={(e) => setFeedInput(e.target.value)}
-                                placeholder={feedUnit === 'kg' ? "e.g., 3800" : "e.g., 76"}
-                            />
-                            <ToggleGroup 
-                                type="single" 
-                                value={feedUnit} 
-                                onValueChange={(value: 'kg' | 'bags') => {
-                                    if (value) setFeedUnit(value)
-                                }}
-                                className="gap-1"
-                            >
-                                <ToggleGroupItem value="kg" aria-label="Kilograms" className="h-10 px-3 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground">
-                                    KG
-                                </ToggleGroupItem>
-                                <ToggleGroupItem value="bags" aria-label="Bags" className="h-10 px-3 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground">
-                                    Bags
-                                </ToggleGroupItem>
-                            </ToggleGroup>
-                        </div>
+                     <div className="space-y-2">
+                        <Label htmlFor="feedCost">Feed Cost (per Kg)</Label>
+                        <Input id="feedCost" type="number" value={inputs.feedCost} onChange={handleInputChange} min="0" />
                     </div>
-                    <Button onClick={calculateFcr} className="w-full">
-                        Calculate FCR
+                     <div className="space-y-2">
+                        <Label htmlFor="productionPercentage">Production Percentage</Label>
+                        <Input id="productionPercentage" type="number" value={inputs.productionPercentage} onChange={handleInputChange} min="0" max="100" />
+                    </div>
+                    <Button onClick={calculateCost} className="w-full">
+                        <Egg className="mr-2" />
+                        Calculate Cost
                     </Button>
                 </CardContent>
-                {fcr !== null && (
-                    <CardContent>
-                        <Alert className="border-primary bg-primary/10">
-                            <AlertDescription className="text-center">
-                                <p className="text-sm text-primary">Your Feed Conversion Ratio is:</p>
-                                <p className="text-3xl font-bold text-primary">{fcr.toFixed(2)}</p>
-                            </AlertDescription>
-                        </Alert>
-                    </CardContent>
-                )}
             </Card>
+
+            {result !== null && (
+                <Alert className="mt-8 border-primary bg-primary/10 animate-in fade-in-50">
+                    <Egg className="h-4 w-4 !text-primary" />
+                    <AlertTitle>Result</AlertTitle>
+                    <AlertDescription className="text-center">
+                        <p className="text-sm text-primary">Your Feed Cost Per Egg is:</p>
+                        <p className="text-3xl font-bold text-primary">₹{result.toFixed(2)}</p>
+                    </AlertDescription>
+                </Alert>
+            )}
         </div>
     </div>
   );
