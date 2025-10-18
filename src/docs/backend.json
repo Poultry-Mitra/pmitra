@@ -20,7 +20,7 @@
           "description": "Email address of the user.",
           "format": "email"
         },
-        "fullName": {
+        "name": {
           "type": "string",
           "description": "Full name of the user."
         },
@@ -44,13 +44,9 @@
             "type": "string",
             "description": "The user's postal PIN code."
         },
-        "subscriptionPlanId": {
+        "planType": {
           "type": "string",
-          "description": "Reference to SubscriptionPlan. (Relationship: UserProfile 1:1 SubscriptionPlan)"
-        },
-        "farmId": {
-          "type": "string",
-          "description": "Reference to Farm. (Relationship: UserProfile 1:1 Farm)"
+          "description": "The user's subscription plan (e.g., 'free', 'premium')."
         },
         "uniqueDealerCode": {
           "type": "string",
@@ -79,7 +75,7 @@
       "required": [
         "id",
         "email",
-        "fullName",
+        "name",
         "role",
         "state",
         "district",
@@ -192,11 +188,11 @@
           "type": "string",
           "description": "Unique identifier for the order."
         },
-        "farmerId": {
+        "farmerUID": {
           "type": "string",
           "description": "Reference to UserProfile (farmer). (Relationship: UserProfile 1:N Order)"
         },
-        "dealerId": {
+        "dealerUID": {
           "type": "string",
           "description": "Reference to UserProfile (dealer). (Relationship: UserProfile 1:N Order)"
         },
@@ -219,8 +215,7 @@
       },
       "required": [
         "id",
-        "farmerId",
-        "dealerId",
+        "dealerUID",
         "orderDate",
         "items",
         "status"
@@ -242,11 +237,51 @@
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["id", "dealerUID", "name", "createdAt"]
+    },
+    "Connection": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "title": "Connection",
+        "type": "object",
+        "description": "Represents a connection request or an established link between a farmer and a dealer.",
+        "properties": {
+            "id": { "type": "string" },
+            "farmerUID": { "type": "string", "description": "The UID of the farmer." },
+            "dealerUID": { "type": "string", "description": "The UID of the dealer." },
+            "status": { "type": "string", "enum": ["Pending", "Approved", "Rejected"], "description": "The current status of the connection." },
+            "requestedBy": { "type": "string", "enum": ["farmer", "dealer"], "description": "Indicates which role initiated the connection request." },
+            "createdAt": { "type": "string", "format": "date-time" }
+        },
+        "required": ["id", "farmerUID", "dealerUID", "status", "requestedBy", "createdAt"]
+    },
+    "Diagnosis": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Diagnosis",
+      "type": "object",
+      "description": "Stores a saved AI health diagnosis report.",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "input": {
+          "type": "object",
+          "description": "The input given to the AI."
+        },
+        "output": {
+          "type": "object",
+          "description": "The structured output from the AI."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["id", "input", "output", "createdAt"]
     }
   },
   "auth": {
     "providers": [
-      "password"
+      "password",
+      "google.com"
     ]
   },
   "firestore": {
@@ -256,71 +291,40 @@
         "definition": {
           "entityName": "UserProfile",
           "schema": {
-            "$ref": "#/backend/entities/UserProfile"
-          },
-          "description": "Stores user profiles. Includes standard user information.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier for the user profile."
-            }
-          ]
+            "$ref": "#/entities/UserProfile"
+          }
         }
       },
       {
-        "path": "/farms/{farmId}",
+        "path": "/batches/{batchId}",
         "definition": {
-          "entityName": "Farm",
-          "schema": {
-            "$ref": "#/backend/entities/Farm"
-          },
-          "description": "Stores farm information.",
-          "params": [
-            {
-              "name": "farmId",
-              "description": "The unique identifier for the farm."
-            }
-          ]
+            "entityName": "Batch",
+            "schema": { "$ref": "#/entities/Batch" }
         }
       },
       {
-        "path": "/farms/{farmId}/farmData/{farmDataId}",
+        "path": "/batches/{batchId}/dailyRecords/{recordId}",
+        "definition": {
+            "entityName": "DailyRecord",
+            "schema": { "$ref": "#/entities/DailyRecord" }
+        }
+      },
+      {
+        "path": "/farmData/{farmDataId}",
         "definition": {
           "entityName": "FarmData",
           "schema": {
-            "$ref": "#/backend/entities/FarmData"
-          },
-          "description": "Stores time-series data for a specific farm, including sensor readings.",
-          "params": [
-            {
-              "name": "farmId",
-              "description": "The unique identifier for the farm."
-            },
-            {
-              "name": "farmDataId",
-              "description": "The unique identifier for the farm data entry."
-            }
-          ]
+            "$ref": "#/entities/FarmData"
+          }
         }
       },
       {
-        "path": "/farms/{farmId}/alerts/{alertId}",
+        "path": "/farmAlerts/{alertId}",
         "definition": {
           "entityName": "FarmAlert",
           "schema": {
-            "$ref": "#/backend/entities/FarmAlert"
-          },
-          "description": "Stores critical and warning alerts for a specific farm.",
-          "params": [
-            {
-              "name": "farmId",
-              "description": "The unique identifier for the farm."
-            },
-            {
-              "name": "alertId",
-              "description": "The unique identifier for the alert."
-            }
-          ]
+            "$ref": "#/entities/FarmAlert"
+          }
         }
       },
       {
@@ -328,15 +332,8 @@
         "definition": {
           "entityName": "SubscriptionPlan",
           "schema": {
-            "$ref": "#/backend/entities/SubscriptionPlan"
-          },
-          "description": "Stores information about available subscription plans.",
-          "params": [
-            {
-              "name": "subscriptionPlanId",
-              "description": "The unique identifier for the subscription plan."
-            }
-          ]
+            "$ref": "#/entities/SubscriptionPlan"
+          }
         }
       },
       {
@@ -344,15 +341,8 @@
         "definition": {
           "entityName": "Order",
           "schema": {
-            "$ref": "#/backend/entities/Order"
-          },
-          "description": "Stores order information, including farmerId and dealerId.",
-          "params": [
-            {
-              "name": "orderId",
-              "description": "The unique identifier for the order."
-            }
-          ]
+            "$ref": "#/entities/Order"
+          }
         }
       },
       {
@@ -360,18 +350,29 @@
         "definition": {
           "entityName": "Supplier",
           "schema": {
-            "$ref": "#/backend/entities/Supplier"
-          },
-          "description": "Stores information about a dealer's suppliers.",
-          "params": [
-            {
-              "name": "supplierId",
-              "description": "The unique identifier for the supplier."
-            }
-          ]
+            "$ref": "#/entities/Supplier"
+          }
+        }
+      },
+      {
+        "path": "/connections/{connectionId}",
+        "definition": {
+          "entityName": "Connection",
+          "schema": { "$ref": "#/entities/Connection" }
+        }
+      },
+      {
+        "path": "/diagnoses/{diagnosisId}",
+        "definition": {
+          "entityName": "Diagnosis",
+          "schema": {
+            "$ref": "#/entities/Diagnosis"
+          }
         }
       }
     ],
-    "reasoning": "The Firestore structure is designed to ensure authorization independence, clarity, and scalability. User profiles are stored in a top-level `users` collection. The admin role is now determined by a direct check of the user's email in the security rules, which is simpler and more robust than relying on a separate collection. Farm data, including sensor readings, is nested under the `farms` collection to link it to a specific farm. An `alerts` subcollection is under `farms` to manage real-time alerts efficiently. The `orders` collection stores order details, including `farmerId` and `dealerId`. The `suppliers` collection stores dealer-specific supplier information, with security rules ensuring that only the owner dealer can manage their own suppliers."
+    "reasoning": "The Firestore structure is designed to be scalable and secure. Top-level collections are used for major entities like `users`, `batches`, `orders`, `suppliers`, `connections`, and `diagnoses` to allow for independent and efficient querying. Subcollections like `dailyRecords` are nested under `batches` for a clear hierarchical relationship. Security rules will be configured to ensure that users can only access their own data (e.g., a farmer can only see their own batches and connections), and dealers can only manage their own network and inventory. A top-level `connections` collection is used to manage the many-to-many relationship between farmers and dealers efficiently."
   }
 }
+
+    

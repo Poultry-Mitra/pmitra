@@ -1,3 +1,4 @@
+
 // src/hooks/use-connections.ts
 'use client';
 
@@ -44,9 +45,8 @@ export function useConnections(userId: string | undefined, userRole: 'farmer' | 
     const field = userRole === 'farmer' ? 'farmerUID' : 'dealerUID';
     return query(
         connectionsCollection, 
-        where(field, "==", userId)
-        // Removed orderBy("createdAt") which would require a composite index
-        // Sorting can be done on the client if needed.
+        where(field, "==", userId),
+        orderBy("createdAt", "desc")
     );
   }, [firestore, userId, userRole]);
 
@@ -62,8 +62,7 @@ export function useConnections(userId: string | undefined, userRole: 'farmer' | 
     const unsubscribe = onSnapshot(
       connectionsQuery,
       (snapshot) => {
-        // Sort client-side
-        const sortedConnections = snapshot.docs.map(toConnection).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        const sortedConnections = snapshot.docs.map(toConnection);
         setConnections(sortedConnections);
         setLoading(false);
       },
@@ -86,7 +85,7 @@ export async function updateConnectionStatus(firestore: Firestore, connectionId:
     
     if (newStatus === 'Rejected') {
         // Use non-blocking update for simple status changes. Auth is null as security rules are sufficient.
-        updateDocumentNonBlocking(connectionRef, { status: newStatus }, null);
+        await updateDocumentNonBlocking(connectionRef, { status: newStatus }, null);
         return;
     }
     
@@ -116,3 +115,5 @@ export async function updateConnectionStatus(firestore: Firestore, connectionId:
         }
     }
 }
+
+    
