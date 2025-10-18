@@ -34,7 +34,7 @@ import { signOut } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import { useAppUser } from '@/app/app-provider';
 import { Input } from '@/components/ui/input';
-import { PageHeader } from '@/components/ui/page-header';
+import { PageHeader } from '@/app/(public)/_components/page-header';
 
 export default function LandingPage() {
   const { t } = useLanguage();
