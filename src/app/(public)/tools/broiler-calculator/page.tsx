@@ -326,23 +326,3 @@ Calculated via www.poultrymitra.com
     </ToolPageLayout>
   );
 }
-
-// Add CSS for printing
-const style = document.createElement('style');
-style.innerHTML = `
-@media print {
-  body * {
-    visibility: hidden;
-  }
-  .print-container, .print-container * {
-    visibility: visible;
-  }
-  .print-container {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
-  }
-}
-`;
-document.head.appendChild(style);
