@@ -153,7 +153,7 @@ export default function PricingPage() {
     const userPlans = user ? plans.filter(p => p.userType.toLowerCase() === user.role) : [];
     
     return (
-        <>
+        <div className="container py-12">
             <PageHeader
                 title={t('pricing.title')}
                 description="Choose the plan that's right for your farm. Unlock powerful AI features to boost your productivity."
@@ -198,6 +198,6 @@ export default function PricingPage() {
                     </>
                 )}
             </div>
-        </>
+        </div>
     )
 }
