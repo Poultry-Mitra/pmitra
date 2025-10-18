@@ -39,6 +39,10 @@ import {
   Warehouse,
   ShoppingBag,
   CreditCard,
+  Calculator,
+  Droplet,
+  LineChart as LineChartIcon,
+  Egg,
 } from "lucide-react";
 import { useLanguage } from "@/components/language-provider";
 import { Badge } from "@/components/ui/badge";
@@ -63,7 +67,6 @@ const farmerAiNavItems = [
     { href: "/diagnose-health", icon: Heart, label: "diagnose_health.title" },
     { href: "/biosecurity", icon: ShieldCheck, label: "biosecurity.title" },
     { href: "/feed-recommendation", icon: WandSparkles, label: "feed_ai.title"},
-    { href: "/tools", icon: Wrench, label: "Tools" },
 ];
 
 const dealerNavItems = [
@@ -74,6 +77,14 @@ const dealerNavItems = [
     { href: "/dealer/transactions", icon: CreditCard, label: "dealer.ledger" },
 ];
 
+const publicTools = [
+  { href: "/tools/broiler-calculator", icon: Calculator, label: "Broiler Calculator" },
+  { href: "/tools/fcr-calculator", icon: Droplet, label: "FCR Calculator" },
+  { href: "/tools/feed-comparison", icon: LineChartIcon, label: "Feed Comparison" },
+  { href: "/tools/layer-feed-consumption", icon: Egg, label: "Layer Feed Calc" },
+  { href: "/tools/per-egg-cost", icon: Egg, label: "Per Egg Cost Calc" },
+];
+
 
 export function AppSidebar() {
   const pathname = usePathname();
@@ -81,6 +92,7 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const { user, loading } = useAppUser();
   const [inventoryOpen, setInventoryOpen] = useState(pathname.startsWith('/inventory'));
+  const [toolsOpen, setToolsOpen] = useState(pathname.startsWith('/tools'));
 
   if (loading || !user) {
     return (
@@ -235,6 +247,40 @@ export function AppSidebar() {
                     ))}
                  </SidebarMenu>
             )}
+
+            <SidebarSeparator />
+            <SidebarGroupLabel>Tools</SidebarGroupLabel>
+            <SidebarMenu>
+                <Collapsible open={toolsOpen} onOpenChange={setToolsOpen}>
+                    <SidebarMenuItem className="relative">
+                    <CollapsibleTrigger asChild>
+                        <SidebarMenuButton tooltip="Calculators & Tools" className="w-full justify-between pr-8" isActive={pathname.startsWith("/tools")}>
+                            <div className="flex items-center gap-3">
+                                <Wrench />
+                                <span>Tools</span>
+                            </div>
+                        </SidebarMenuButton>
+                    </CollapsibleTrigger>
+                    <div className="absolute right-2 top-1/2 -translate-y-1/2 group-data-[state=collapsed]:hidden">
+                        {toolsOpen ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
+                    </div>
+                    </SidebarMenuItem>
+
+                    <CollapsibleContent>
+                        <SidebarMenu className="ml-7 mt-1 border-l pl-3">
+                            {publicTools.map((tool) => (
+                                <SidebarMenuItem key={tool.href}>
+                                    <Link href={tool.href}>
+                                        <SidebarMenuButton size="sm" isActive={pathname === tool.href}>
+                                        {tool.label}
+                                        </SidebarMenuButton>
+                                    </Link>
+                                </SidebarMenuItem>
+                            ))}
+                        </SidebarMenu>
+                    </CollapsibleContent>
+                </Collapsible>
+            </SidebarMenu>
             
         </SidebarContent>
         <SidebarFooter>
