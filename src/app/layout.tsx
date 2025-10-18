@@ -6,7 +6,7 @@ import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { ThemeProvider } from '@/components/theme-provider';
 import { LanguageProvider } from '@/components/language-provider';
-import { Space_Grotesk, PT_Sans } from 'next/font/google';
+import { Space_Grotesk, Noto_Sans } from 'next/font/google';
 import { cn } from '@/lib/utils';
 import { AppProvider } from '@/app/app-provider';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
@@ -19,10 +19,10 @@ const fontSpaceGrotesk = Space_Grotesk({
   variable: '--font-space-grotesk',
 });
 
-const fontPtSans = PT_Sans({
+const fontNotoSans = Noto_Sans({
   subsets: ['latin'],
   weight: ['400', '700'],
-  variable: '--font-pt-sans',
+  variable: '--font-pt-sans', // Keep variable name for minimal disruption
 });
 
 
@@ -42,7 +42,7 @@ export default function RootLayout({
         className={cn(
           "font-body antialiased",
           fontSpaceGrotesk.variable,
-          fontPtSans.variable
+          fontNotoSans.variable
         )}
       >
         <LanguageProvider>
