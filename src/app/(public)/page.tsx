@@ -31,7 +31,7 @@ import { AppIcon } from '@/app/icon-component';
 import { useLanguage } from '@/components/language-provider';
 import { useAppUser } from '@/app/app-provider';
 import { Input } from '@/components/ui/input';
-import { PageHeader } from './_components/page-header';
+import { PageHeader } from '@/components/ui/page-header';
 import { getDashboardPath } from '@/lib/utils';
 
 export default function LandingPage() {
@@ -140,6 +140,7 @@ export default function LandingPage() {
         <main className="flex-1">
           <section id="hero" className="container py-20 text-center md:py-28 lg:py-32">
             <PageHeader
+                  variant="centered"
                   title={t('hero.title')}
                   description={t('hero.subtitle')}
               />
@@ -156,6 +157,7 @@ export default function LandingPage() {
           <section id="interactive-tools" className="bg-secondary py-16 lg:py-24">
               <div className="container">
                    <PageHeader
+                      variant="centered"
                       title="Free Poultry Tools"
                       description="Use our free calculators and AI tools to make smarter decisions for your farm."
                    />
@@ -227,6 +229,7 @@ export default function LandingPage() {
           <section id="how-it-works-section" className="py-16 lg:py-24">
               <div className="container">
                   <PageHeader
+                      variant="centered"
                       title="How It Works"
                       description="Start optimizing your farm in three simple steps."
                   />
@@ -255,6 +258,7 @@ export default function LandingPage() {
 
           <section id="features" className="container space-y-12 py-16 md:py-20 lg:py-24">
               <PageHeader
+                  variant="centered"
                   title={t('features.title')}
                   description={t('features.subtitle')}
               />
@@ -276,6 +280,7 @@ export default function LandingPage() {
           <section id="about" className="bg-secondary py-16 lg:py-24">
             <div className="container">
                 <PageHeader
+                    variant="centered"
                     title="About PoultryMitra"
                     description="We are a team of poultry experts and technologists passionate about empowering farmers with the data and tools they need to succeed in the modern poultry industry."
                 />
@@ -285,6 +290,7 @@ export default function LandingPage() {
           <section id="pricing-preview" className="py-16 lg:py-24">
               <div className="container">
                   <PageHeader
+                      variant="centered"
                       title={t('pricing.title')}
                       description={t('pricing.subtitle')}
                   />
@@ -333,6 +339,7 @@ export default function LandingPage() {
           <section id="testimonials" className="bg-secondary py-16 lg:py-24">
               <div className="container">
                   <PageHeader
+                      variant="centered"
                       title={t('testimonials.title')}
                       description={t('testimonials.subtitle')}
                   />

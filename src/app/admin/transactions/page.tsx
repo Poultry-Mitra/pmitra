@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { PageHeader } from "@/app/admin/_components/page-header";
+import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { FileDown, Loader2, Users as UsersIcon } from "lucide-react";

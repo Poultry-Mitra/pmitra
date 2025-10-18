@@ -4,7 +4,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckCircle, Zap } from "lucide-react";
-import { PageHeader } from "@/app/(public)/_components/page-header";
+import { PageHeader } from "@/components/ui/page-header";
 import type { PricingPlan } from "@/lib/types";
 import { useState } from "react";
 import { useAppUser } from "@/app/app-provider";
@@ -155,6 +155,7 @@ export default function PricingPage() {
     return (
         <div className="container py-12">
             <PageHeader
+                variant="centered"
                 title={t('pricing.title')}
                 description="Choose the plan that's right for your farm. Unlock powerful AI features to boost your productivity."
             />

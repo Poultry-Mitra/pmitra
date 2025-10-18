@@ -6,7 +6,7 @@ import { useState, memo, useMemo } from "react";
 import dynamic from 'next/dynamic';
 import { useParams } from "next/navigation";
 import { useBatch, useDailyRecords } from "@/hooks/use-batches";
-import { PageHeader } from "../../_components/page-header";
+import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Bird, Droplet, Percent, Scale, Wheat, IndianRupee, Loader2, AlertCircle, PlusCircle, Thermometer, ShieldCheck } from "lucide-react";

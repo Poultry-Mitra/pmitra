@@ -3,6 +3,7 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { PageHeader } from "@/components/ui/page-header";
 
 export default function DealerPage() {
   const router = useRouter();

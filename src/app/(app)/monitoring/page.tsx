@@ -1,7 +1,7 @@
 
 "use client";
 
-import { PageHeader } from "../_components/page-header";
+import { PageHeader } from "@/components/ui/page-header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertTriangle, Siren, Thermometer, Droplets, Wind, Loader2 } from 'lucide-react';

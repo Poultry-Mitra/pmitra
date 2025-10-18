@@ -21,7 +21,7 @@ import { useFirestore } from "@/firebase/provider";
 import { useDealerInventory } from "@/hooks/use-dealer-inventory";
 import { createOrder } from "@/hooks/use-orders";
 import { Save, Loader2, IndianRupee } from "lucide-react";
-import { PageHeader } from "../../_components/page-header";
+import { PageHeader } from "@/components/ui/page-header";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "@/components/language-provider";
 import { useAppUser } from "@/app/app-provider";

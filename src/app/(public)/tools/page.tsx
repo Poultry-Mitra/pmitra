@@ -14,7 +14,7 @@ import {
   ArrowLeft,
   LayoutDashboard,
 } from 'lucide-react';
-import { PageHeader } from '@/app/(public)/_components/page-header';
+import { PageHeader } from '@/components/ui/page-header';
 import { useAppUser } from '@/app/app-provider';
 
 export default function ToolsPage() {
@@ -23,12 +23,11 @@ export default function ToolsPage() {
     <div className="container py-12">
        <div className="mx-auto flex max-w-[58rem] flex-col items-center space-y-4 text-center mb-12">
             <Wrench className="size-16 text-primary" />
-            <h1 className="font-headline text-4xl font-bold leading-[1.1] sm:text-4xl md:text-6xl">
-                Poultry Tools & Calculators
-            </h1>
-            <p className="max-w-[85%] leading-normal text-muted-foreground sm:text-lg sm:leading-7">
-                Use our free calculators and AI tools to make smarter decisions for your farm.
-            </p>
+            <PageHeader
+                variant="centered"
+                title="Poultry Tools & Calculators"
+                description="Use our free calculators and AI tools to make smarter decisions for your farm."
+             />
         </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-start mt-12">
         <Card className="h-full flex flex-col hover:border-primary transition-colors">

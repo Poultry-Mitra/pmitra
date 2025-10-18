@@ -22,7 +22,7 @@ import { addSupplier } from '@/hooks/use-suppliers';
 import { useLanguage } from '@/components/language-provider';
 import { useAppUser } from '@/app/app-provider';
 import { useRouter } from 'next/navigation';
-import { PageHeader } from '../../_components/page-header';
+import { PageHeader } from '@/components/ui/page-header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 const formSchema = z.object({

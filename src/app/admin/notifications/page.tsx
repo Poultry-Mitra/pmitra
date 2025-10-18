@@ -3,7 +3,7 @@
 
 import { useEffect } from "react";
 import { useSearchParams } from "next/navigation";
-import { PageHeader } from "@/app/admin/_components/page-header";
+import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";

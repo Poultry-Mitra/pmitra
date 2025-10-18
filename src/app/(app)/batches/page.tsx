@@ -3,7 +3,7 @@
 "use client";
 
 import { useState } from "react";
-import { PageHeader } from "../_components/page-header";
+import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
 import { MoreHorizontal, PlusCircle, AlertTriangle, Loader2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";

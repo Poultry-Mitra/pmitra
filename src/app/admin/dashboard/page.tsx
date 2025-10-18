@@ -4,7 +4,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Users, IndianRupee, ShoppingBag, Loader2 } from "lucide-react";
-import { PageHeader } from "@/app/admin/_components/page-header";
+import { PageHeader } from "@/components/ui/page-header";
 import { useUsers } from "@/hooks/use-users";
 import { useLanguage } from "@/components/language-provider";
 import { useOrders } from "@/hooks/use-orders";

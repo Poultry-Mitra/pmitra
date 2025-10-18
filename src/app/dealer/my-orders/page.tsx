@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useMemo, useEffect, useContext } from 'react';
-import { PageHeader } from "../_components/page-header";
+import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
 import {
   Card,

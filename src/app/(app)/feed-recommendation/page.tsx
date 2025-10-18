@@ -1,5 +1,5 @@
 
-import { PageHeader } from "../_components/page-header";
+import { PageHeader } from "@/components/ui/page-header";
 import { FeedRecommendationForm } from "./_components/feed-form";
 
 export default function FeedRecommendationPage() {

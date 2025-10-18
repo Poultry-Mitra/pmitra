@@ -3,7 +3,7 @@
 
 import { useState, useContext } from "react";
 import { useParams } from "next/navigation";
-import { PageHeader } from "../../../_components/page-header";
+import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";

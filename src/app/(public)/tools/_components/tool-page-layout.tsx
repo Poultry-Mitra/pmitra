@@ -4,7 +4,7 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, LayoutDashboard, AlertTriangle } from 'lucide-react';
-import { PageHeader } from '@/app/(public)/_components/page-header';
+import { PageHeader } from '@/components/ui/page-header';
 import { useAppUser } from '@/app/app-provider';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 
@@ -19,7 +19,7 @@ export function ToolPageLayout({ title, description, children }: ToolPageLayoutP
 
     return (
         <div className="container py-12">
-            <PageHeader title={title} description={description} />
+            <PageHeader variant="centered" title={title} description={description} />
             <div className="mt-8 max-w-4xl mx-auto">
                 <Alert variant="destructive" className="mb-6 bg-yellow-500/10 border-yellow-500/50 text-yellow-700 dark:text-yellow-300 [&>svg]:text-yellow-600">
                     <AlertTriangle className="h-4 w-4" />

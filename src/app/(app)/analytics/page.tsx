@@ -3,7 +3,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from 'react';
-import { PageHeader } from "../_components/page-header";
+import { PageHeader } from "@/components/ui/page-header";
 import { useBatches } from '@/hooks/use-batches';
 import { getFarmAnalytics, type FarmAnalyticsOutput } from '@/ai/flows/get-farm-analytics';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";

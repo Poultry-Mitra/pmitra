@@ -1,9 +1,10 @@
-import { PageHeader } from "@/app/(public)/_components/page-header";
+import { PageHeader } from "@/components/ui/page-header";
 
 export default function TermsOfServicePage() {
   return (
     <div className="container max-w-4xl py-12">
       <PageHeader
+        variant="centered"
         title="Terms of Service"
         description="Last updated: October 13, 2025"
       />

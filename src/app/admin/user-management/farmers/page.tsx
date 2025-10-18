@@ -2,7 +2,7 @@
 // src/app/admin/user-management/farmers/page.tsx
 "use client";
 
-import { PageHeader } from "@/app/admin/_components/page-header";
+import { PageHeader } from "@/components/ui/page-header";
 import { UserManagementSummary } from "@/app/admin/_components/user-management-summary";
 import { useLanguage } from "@/components/language-provider";
 

@@ -17,7 +17,7 @@ import { useConnections, updateConnectionStatus } from '@/hooks/use-connections'
 import { useUsersByIds } from '@/hooks/use-users';
 import { useFirestore, useAuth } from '@/firebase/provider';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { PageHeader } from '../_components/page-header';
+import { PageHeader } from '@/components/ui/page-header';
 import { VaccinationReminders } from './_components/vaccination-reminders';
 import Link from 'next/link';
 
