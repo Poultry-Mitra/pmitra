@@ -20,7 +20,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useFirestore } from "@/firebase/provider";
 import { useDealerInventory } from "@/hooks/use-dealer-inventory";
 import { createOrder } from "@/hooks/use-orders";
-import { Save, Loader2 } from "lucide-react";
+import { Save, Loader2, IndianRupee } from "lucide-react";
 import { PageHeader } from "../../_components/page-header";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "@/components/language-provider";
@@ -159,11 +159,14 @@ export default function CreateOfflineSalePage() {
                                 />
                                 <FormItem>
                                     <FormLabel>Total Amount</FormLabel>
-                                    <Input 
-                                        readOnly 
-                                        value={`₹${totalAmount.toLocaleString()}`}
-                                        className="font-bold"
-                                    />
+                                    <div className="relative">
+                                        <IndianRupee className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                        <Input 
+                                            readOnly 
+                                            value={totalAmount.toLocaleString()}
+                                            className="pl-8 font-bold"
+                                        />
+                                    </div>
                                 </FormItem>
                             </div>
                             <div className="flex justify-end gap-2">

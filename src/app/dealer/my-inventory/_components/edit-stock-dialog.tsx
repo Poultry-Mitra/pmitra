@@ -1,4 +1,4 @@
-
+// src/app/dealer/my-inventory/_components/edit-stock-dialog.tsx
 "use client";
 
 import { useForm } from 'react-hook-form';
@@ -56,7 +56,7 @@ export function EditStockDialog({ open, onOpenChange, item }: { open: boolean; o
         }
 
         try {
-            updateDealerInventoryItem(firestore, auth, item.id, values);
+            await updateDealerInventoryItem(firestore, auth, item.id, values);
             toast({
                 title: "Stock Updated",
                 description: `Stock for ${item.productName} has been updated.`,

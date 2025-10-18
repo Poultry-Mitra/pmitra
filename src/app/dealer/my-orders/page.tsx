@@ -90,6 +90,7 @@ export default function MyOrdersPage() {
         return orders.filter(o => o.status.toLowerCase() === activeTab);
     }, [orders, activeTab]);
 
+    const formatCurrency = (value: number) => `₹${value.toLocaleString('en-IN')}`;
 
     return (
         <>
@@ -160,7 +161,7 @@ export default function MyOrdersPage() {
                                         </TableCell>
                                         <TableCell>{order.productName}</TableCell>
                                         <TableCell>{order.quantity}</TableCell>
-                                        <TableCell>₹{order.totalAmount.toLocaleString()}</TableCell>
+                                        <TableCell>{formatCurrency(order.totalAmount)}</TableCell>
                                         <TableCell>
                                             <Badge variant={statusConfig[order.status].variant} className={statusConfig[order.status].color}>
                                                 {order.status}

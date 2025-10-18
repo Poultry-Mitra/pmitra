@@ -15,11 +15,13 @@ import { useReactToPrint } from 'react-to-print';
 import { AppIcon } from '@/app/icon-component';
 import { useToast } from '@/hooks/use-toast';
 
+
+const formatCurrency = (value: number) => `₹${value.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
 // Define a class component for printing, as it's more reliable with react-to-print.
 class PrintableReport extends React.Component<{ reportData: any, state: any, generationTime: string }> {
     render() {
         const { reportData, state, generationTime } = this.props;
-        const formatCurrency = (value: number) => `₹${value.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
         return (
              <div className="print-container p-8 font-sans">
@@ -126,8 +128,6 @@ function reducer(state: any, action: any) {
   }
 }
 
-const formatCurrency = (value: number) => `₹${value.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-
 export default function BroilerCalculatorPage() {
   const [state, dispatch] = useReducer(reducer, initialState);
   const { toast } = useToast();
@@ -142,42 +142,6 @@ export default function BroilerCalculatorPage() {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     dispatch({ type: 'SET_FIELD', field: e.target.id, value: e.target.value });
   };
-
-  const calculations = useMemo(() => {
-    const { chicks, starterRate, growerRate, finisherRate, chickCostPerUnit, medicineCost, otherCost, marketPrice } = state;
-    const numChicks = parseInt(chicks) || 0;
-    if (numChicks <= 0) return null;
-
-    const starterBags = Math.ceil((numChicks * 0.5) / 50);
-    const growerBags = Math.ceil((numChicks * 1.0) / 50);
-    const finisherBags = Math.ceil((numChicks * 1.5) / 50);
-    const totalBags = starterBags + growerBags + finisherBags;
-
-    const smallDrinkers = Math.ceil(numChicks * 0.025);
-    const largeDrinkers = Math.ceil(numChicks * 0.025);
-    const smallFeeders = Math.ceil(numChicks * 0.02);
-    const largeFeeders = Math.ceil(numChicks * 0.02);
-
-    const starterCost = starterBags * (parseFloat(starterRate) || 0);
-    const growerCost = growerBags * (parseFloat(growerRate) || 0);
-    const finisherCost = finisherBags * (parseFloat(finisherRate) || 0);
-    const totalFeedCost = starterCost + growerCost + finisherCost;
-
-    const numChickCost = numChicks * (parseFloat(chickCostPerUnit) || 0);
-    const totalCost = numChickCost + totalFeedCost + (parseFloat(medicineCost) || 0) + (parseFloat(otherCost) || 0);
-
-    const avgWeight = 2.0;
-    const totalWeight = numChicks * avgWeight;
-    const income = totalWeight * (parseFloat(marketPrice) || 0);
-    const profit = income - totalCost;
-
-    return {
-      starterBags, growerBags, finisherBags, totalBags,
-      smallDrinkers, largeDrinkers, smallFeeders, largeFeeders,
-      totalFeedCost, chickCost: numChickCost, totalCost, income, profit,
-      totalWeight
-    };
-  }, [state]);
   
   const handleShare = async () => {
     if (!calculations) return;
@@ -231,13 +195,51 @@ Calculated via https://www.poultrymitra.com/tools/broiler-calculator
         } catch (error) {
             console.error('Sharing failed, copying to clipboard as fallback:', error);
             navigator.clipboard.writeText(reportText);
-            toast({ title: "Copied to Clipboard", description: "Report summary copied to clipboard as sharing failed." });
+            toast({ title: "Sharing Failed", description: "Report copied to clipboard as sharing via app failed." });
         }
     } else {
         navigator.clipboard.writeText(reportText);
         toast({ title: "Copied to Clipboard", description: "Full report copied to clipboard." });
     }
   };
+
+
+  const calculations = useMemo(() => {
+    const { chicks, starterRate, growerRate, finisherRate, chickCostPerUnit, medicineCost, otherCost, marketPrice } = state;
+    const numChicks = parseInt(chicks) || 0;
+    if (numChicks <= 0) return null;
+
+    const starterBags = Math.ceil((numChicks * 0.5) / 50);
+    const growerBags = Math.ceil((numChicks * 1.0) / 50);
+    const finisherBags = Math.ceil((numChicks * 1.5) / 50);
+    const totalBags = starterBags + growerBags + finisherBags;
+
+    const smallDrinkers = Math.ceil(numChicks * 0.025);
+    const largeDrinkers = Math.ceil(numChicks * 0.025);
+    const smallFeeders = Math.ceil(numChicks * 0.02);
+    const largeFeeders = Math.ceil(numChicks * 0.02);
+
+    const starterCost = starterBags * (parseFloat(starterRate) || 0);
+    const growerCost = growerBags * (parseFloat(growerRate) || 0);
+    const finisherCost = finisherBags * (parseFloat(finisherRate) || 0);
+    const totalFeedCost = starterCost + growerCost + finisherCost;
+
+    const numChickCost = numChicks * (parseFloat(chickCostPerUnit) || 0);
+    const totalCost = numChickCost + totalFeedCost + (parseFloat(medicineCost) || 0) + (parseFloat(otherCost) || 0);
+
+    const avgWeight = 2.0;
+    const totalWeight = numChicks * avgWeight;
+    const income = totalWeight * (parseFloat(marketPrice) || 0);
+    const profit = income - totalCost;
+
+    return {
+      starterBags, growerBags, finisherBags, totalBags,
+      smallDrinkers, largeDrinkers, smallFeeders, largeFeeders,
+      totalFeedCost, chickCost: numChickCost, totalCost, income, profit,
+      totalWeight
+    };
+  }, [state]);
+  
 
   const handleGenerate = () => {
     setGenerationTime(new Date().toLocaleString('en-IN'));

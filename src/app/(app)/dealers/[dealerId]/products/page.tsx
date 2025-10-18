@@ -1,4 +1,4 @@
-
+// src/app/(app)/dealers/[dealerId]/products/page.tsx
 "use client";
 
 import { useState, useContext } from "react";
@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, ShoppingCart } from "lucide-react";
+import { Loader2, ShoppingCart, IndianRupee } from "lucide-react";
 import { useDealerInventory, type DealerInventoryItem } from "@/hooks/use-dealer-inventory";
 import { CreateOrderDialog } from "./_components/create-order-dialog";
 import { useUsersByIds } from "@/hooks/use-users";
@@ -29,6 +29,8 @@ export default function DealerProductsPage() {
 
     const dealer = dealers[0];
     const loading = inventoryLoading || dealerLoading;
+
+    const formatCurrency = (value: number) => `₹${value.toLocaleString('en-IN')}`;
 
     if (loading) {
         return (
@@ -98,7 +100,7 @@ export default function DealerProductsPage() {
                                                     `${item.quantity.toLocaleString()} ${item.unit}`
                                                 )}
                                             </TableCell>
-                                            <TableCell className="text-right">₹{item.ratePerUnit.toLocaleString()}</TableCell>
+                                            <TableCell className="text-right">{formatCurrency(item.ratePerUnit)}</TableCell>
                                             <TableCell className="text-center">
                                                 <Button 
                                                     size="sm" 

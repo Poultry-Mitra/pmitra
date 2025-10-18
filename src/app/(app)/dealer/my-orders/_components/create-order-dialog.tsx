@@ -1,6 +1,4 @@
-
-
-// src/app/dealer/my-orders/_components/create-order-dialog.tsx
+// src/app/(app)/dealer/my-orders/_components/create-order-dialog.tsx
 "use client";
 
 import { useForm, useWatch } from "react-hook-form";
@@ -30,7 +28,7 @@ import { useFirestore, useAuth } from "@/firebase/provider";
 import { useUsersByIds } from "@/hooks/use-users";
 import { useDealerInventory } from "@/hooks/use-dealer-inventory";
 import { createOrder } from "@/hooks/use-orders";
-import { Send, Loader2 } from "lucide-react";
+import { Send, Loader2, IndianRupee } from "lucide-react";
 import { useMemo } from "react";
 import { useAppUser } from "@/app/app-provider";
 
@@ -78,7 +76,7 @@ export function CreateOrderDialog({ open, onOpenChange }: { open: boolean; onOpe
         }
 
         try {
-            await createOrder(firestore, auth, {
+            await createOrder(firestore, {
                 farmerUID: values.farmerUID,
                 dealerUID: dealerUser.id,
                 isOfflineSale: false,
@@ -145,7 +143,7 @@ export function CreateOrderDialog({ open, onOpenChange }: { open: boolean; onOpe
                                     </FormControl>
                                     <SelectContent>
                                         {products.map(product => (
-                                            <SelectItem key={product.id} value={product.id}>
+                                            <SelectItem key={product.id} value={product.id} disabled={product.quantity <= 0}>
                                                 {product.productName} (Stock: {product.quantity})
                                             </SelectItem>
                                         ))}
@@ -169,10 +167,14 @@ export function CreateOrderDialog({ open, onOpenChange }: { open: boolean; onOpe
                             />
                              <FormItem>
                                 <FormLabel>Total Amount</FormLabel>
-                                <Input 
-                                    readOnly 
-                                    value={`₹${((selectedProduct?.ratePerUnit || 0) * form.watch('quantity')).toLocaleString()}`}
-                                />
+                                <div className="relative">
+                                    <IndianRupee className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                    <Input 
+                                        readOnly 
+                                        value={`${((selectedProduct?.ratePerUnit || 0) * form.watch('quantity')).toLocaleString()}`}
+                                        className="pl-8"
+                                    />
+                                </div>
                             </FormItem>
                         </div>
                         <DialogFooter>

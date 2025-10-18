@@ -1,4 +1,3 @@
-
 // src/app/dealer/my-inventory/page.tsx
 "use client";
 
@@ -38,6 +37,8 @@ export default function MyInventoryPage() {
         setEditDialogOpen(true);
     };
 
+    const formatCurrency = (value: number) => `₹${value.toLocaleString('en-IN')}`;
+
     return (
         <>
             <PageHeader
@@ -70,7 +71,7 @@ export default function MyInventoryPage() {
                         <CardHeader>
                             <CardTitle>{supplierName}</CardTitle>
                             <CardDescription>
-                                Total Stock Value from this supplier: <span className="font-bold text-primary">₹{totalValue.toLocaleString()}</span>
+                                Total Stock Value from this supplier: <span className="font-bold text-primary">{formatCurrency(totalValue)}</span>
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="overflow-x-auto">
@@ -99,8 +100,8 @@ export default function MyInventoryPage() {
                                                     {item.quantity.toLocaleString()} {item.unit}
                                                     {item.unitWeight && ` (${item.unitWeight}kg)`}
                                                 </TableCell>
-                                                <TableCell className="text-right">₹{item.purchaseRatePerUnit.toLocaleString()}</TableCell>
-                                                <TableCell className="text-right font-semibold text-green-600">₹{item.ratePerUnit.toLocaleString()}</TableCell>
+                                                <TableCell className="text-right">{formatCurrency(item.purchaseRatePerUnit)}</TableCell>
+                                                <TableCell className="text-right font-semibold text-green-600">{formatCurrency(item.ratePerUnit)}</TableCell>
                                                 <TableCell className="text-right">
                                                     <DropdownMenu>
                                                         <DropdownMenuTrigger asChild>

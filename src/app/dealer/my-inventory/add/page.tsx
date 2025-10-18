@@ -1,4 +1,4 @@
-
+// src/app/dealer/my-inventory/add/page.tsx
 "use client";
 
 import { useForm, useFieldArray, useWatch } from "react-hook-form";
@@ -77,6 +77,8 @@ function SummaryCard({ control }: { control: any }) {
     const netPayable = subTotal - totalDiscount + transportCost + miscCost;
     const balanceDue = netPayable - amountPaid;
 
+    const formatCurrency = (value: number) => `₹${value.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
     return (
         <Card>
             <CardHeader>
@@ -85,36 +87,36 @@ function SummaryCard({ control }: { control: any }) {
             <CardContent className="space-y-4">
                 <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Items Subtotal</span>
-                    <span className="font-medium">₹{subTotal.toFixed(2)}</span>
+                    <span className="font-medium">{formatCurrency(subTotal)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Total Discount / Incentive</span>
-                    <span className="font-medium text-destructive">- ₹{totalDiscount.toFixed(2)}</span>
+                    <span className="font-medium text-destructive">- {formatCurrency(totalDiscount)}</span>
                 </div>
                  <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Transport Cost</span>
-                    <span className="font-medium">+ ₹{transportCost.toFixed(2)}</span>
+                    <span className="font-medium">+ {formatCurrency(transportCost)}</span>
                 </div>
                  <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Misc. Cost</span>
-                    <span className="font-medium">+ ₹{miscCost.toFixed(2)}</span>
+                    <span className="font-medium">+ {formatCurrency(miscCost)}</span>
                 </div>
                 <Separator />
                 <div className="flex justify-between font-bold text-lg">
                     <span>Net Payable Amount</span>
-                    <span>₹{netPayable.toFixed(2)}</span>
+                    <span>{formatCurrency(netPayable)}</span>
                 </div>
                 <Separator />
                  <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Amount Paid</span>
-                    <span className="font-medium">- ₹{amountPaid.toFixed(2)}</span>
+                    <span className="font-medium">- {formatCurrency(amountPaid)}</span>
                 </div>
                 <div className={cn(
                     "flex justify-between font-bold text-lg rounded-md p-2",
                     balanceDue > 0 ? "bg-destructive/10 text-destructive" : "bg-green-500/10 text-green-600"
                 )}>
                     <span>Balance Due</span>
-                    <span>₹{balanceDue.toFixed(2)}</span>
+                    <span>{formatCurrency(balanceDue)}</span>
                 </div>
             </CardContent>
         </Card>
@@ -622,4 +624,3 @@ export default function AddStockPage() {
         </>
     );
 }
-

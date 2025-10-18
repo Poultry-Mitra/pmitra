@@ -1,4 +1,3 @@
-
 // src/app/(app)/dealers/[dealerId]/products/_components/create-order-dialog.tsx
 "use client";
 
@@ -26,7 +25,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useFirestore, AuthContext } from "@/firebase/provider";
 import { createOrder } from "@/hooks/use-orders";
-import { Send, Loader2 } from "lucide-react";
+import { Send, Loader2, IndianRupee } from "lucide-react";
 import type { User, DealerInventoryItem } from "@/lib/types";
 import { useContext } from 'react';
 
@@ -56,7 +55,7 @@ export function CreateOrderDialog({ open, onOpenChange, product, dealer }: Creat
     });
 
     const quantity = useWatch({ control: form.control, name: 'quantity' });
-    const totalAmount = (product.ratePerUnit * (quantity || 0)).toLocaleString();
+    const totalAmount = (product.ratePerUnit * (quantity || 0)).toLocaleString('en-IN');
 
     async function onSubmit(values: FormValues) {
         if (!farmerUser || !firestore) {
@@ -118,11 +117,14 @@ export function CreateOrderDialog({ open, onOpenChange, product, dealer }: Creat
                             />
                              <FormItem>
                                 <FormLabel>Total Amount</FormLabel>
-                                <Input 
-                                    readOnly 
-                                    value={`₹${totalAmount}`}
-                                    className="font-bold"
-                                />
+                                <div className="relative">
+                                    <IndianRupee className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                    <Input 
+                                        readOnly 
+                                        value={totalAmount}
+                                        className="font-bold pl-8"
+                                    />
+                                </div>
                             </FormItem>
                         </div>
                         <DialogFooter>
