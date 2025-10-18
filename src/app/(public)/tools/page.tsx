@@ -11,10 +11,14 @@ import {
   Droplet,
   LineChart,
   Egg,
+  ArrowLeft,
+  LayoutDashboard,
 } from 'lucide-react';
 import { PageHeader } from '@/app/(public)/_components/page-header';
+import { useAppUser } from '@/app/app-provider';
 
 export default function ToolsPage() {
+  const { user } = useAppUser();
   return (
     <div className="container py-12">
        <div className="mx-auto flex max-w-[58rem] flex-col items-center space-y-4 text-center mb-12">
@@ -127,6 +131,17 @@ export default function ToolsPage() {
             </CardFooter>
         </Card>
       </div>
+
+       <div className="mt-12 flex flex-wrap justify-center gap-4">
+            {user && (
+                <Button asChild>
+                    <Link href="/dashboard"><LayoutDashboard className="mr-2" /> Go to Dashboard</Link>
+                </Button>
+            )}
+            <Button variant="outline" asChild>
+                <Link href="/"><ArrowLeft className="mr-2" /> Go back to Homepage</Link>
+            </Button>
+        </div>
     </div>
   );
 }
