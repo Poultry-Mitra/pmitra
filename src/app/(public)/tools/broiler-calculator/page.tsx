@@ -9,7 +9,7 @@ import { Button }from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow }from '@/components/ui/table';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
-import { Calculator, FileText } from 'lucide-react';
+import { Calculator, FileText, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { PageHeader } from '@/app/(public)/_components/page-header';
 
@@ -85,16 +85,16 @@ export default function BroilerCalculatorPage() {
             title="Broiler Farm Calculator"
             description="Estimate your costs and profits for a 45-day broiler cycle."
         />
-        <div className="mt-8">
+        <div className="mt-8 max-w-4xl mx-auto">
+            <Alert variant="destructive" className="mb-6 bg-yellow-500/10 border-yellow-500/50 text-yellow-700 dark:text-yellow-300 [&>svg]:text-yellow-600">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertTitle>चेतावनी (Warning)</AlertTitle>
+                <AlertDescription>
+                    यह केवल एक अनुमान है और 100% सटीक नहीं हो सकता है। कृपया अपने निर्णय के लिए पेशेवर सलाह भी लें।
+                </AlertDescription>
+            </Alert>
             <Card className="h-full flex flex-col">
             <CardContent className="space-y-4 flex-1 pt-6">
-                <Alert>
-                    <AlertTitle>शैक्षिक उद्देश्य (Educational Purpose)</AlertTitle>
-                    <AlertDescription>
-                        यह उपकरण केवल सूचना और फार्म प्रबंधन सहायता के लिए है। किसी भी गंभीर स्थिति में स्थानीय पंजीकृत विशेषज्ञ से मार्गदर्शन लें।
-                    </AlertDescription>
-                </Alert>
-
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
                     <div className="space-y-2">
                         <Label htmlFor="chicks" className="font-bold">चूजों की संख्या डालें (Enter Number of Chicks):</Label>

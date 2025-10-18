@@ -8,8 +8,9 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Separator } from '@/components/ui/separator';
-import { Bird } from 'lucide-react';
+import { Bird, AlertTriangle } from 'lucide-react';
 import { PageHeader } from '@/app/(public)/_components/page-header';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 export default function LayerFeedConsumptionPage() {
   const [inputs, setInputs] = useState({
@@ -55,6 +56,13 @@ export default function LayerFeedConsumptionPage() {
             description="Estimate total feed required for your layer birds over a period."
         />
         <div className="mt-8 max-w-lg mx-auto">
+            <Alert variant="destructive" className="mb-6 bg-yellow-500/10 border-yellow-500/50 text-yellow-700 dark:text-yellow-300 [&>svg]:text-yellow-600">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertTitle>चेतावनी (Warning)</AlertTitle>
+                <AlertDescription>
+                    यह केवल एक अनुमान है और 100% सटीक नहीं हो सकता है। कृपया अपने निर्णय के लिए पेशेवर सलाह भी लें।
+                </AlertDescription>
+            </Alert>
             <Card>
                 <CardHeader>
                     <CardTitle>Production Details</CardTitle>

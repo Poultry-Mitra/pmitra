@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { HelpCircle, Trash2, PlusCircle, RefreshCw, Download, LineChart } from 'lucide-react';
+import { HelpCircle, Trash2, PlusCircle, RefreshCw, Download, LineChart, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface BrandData {

@@ -6,8 +6,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Droplet, HelpCircle } from 'lucide-react';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Droplet, HelpCircle, AlertTriangle } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import {
   Tooltip,
   TooltipContent,
@@ -43,6 +43,13 @@ export default function FcrCalculatorPage() {
             description="Calculate your Feed Conversion Ratio to measure efficiency."
         />
         <div className="mt-8 max-w-md mx-auto">
+            <Alert variant="destructive" className="mb-6 bg-yellow-500/10 border-yellow-500/50 text-yellow-700 dark:text-yellow-300 [&>svg]:text-yellow-600">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertTitle>चेतावनी (Warning)</AlertTitle>
+                <AlertDescription>
+                    यह केवल एक अनुमान है और 100% सटीक नहीं हो सकता है। कृपया अपने निर्णय के लिए पेशेवर सलाह भी लें।
+                </AlertDescription>
+            </Alert>
             <Card>
                 <CardHeader>
                     <CardTitle>Enter Details</CardTitle>
